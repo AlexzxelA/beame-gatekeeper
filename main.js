@@ -120,21 +120,12 @@ function ensureCertHasPrivateKey(cert) {
 	});
 }
 
-function runServer(cert) {
-	console.log("Will start server");
-	return new Promise((resolve, reject) => {
-		if(cert.hasKey('PRIVATE_KEY')) {
-			resolve(cert);
-			return;
-		}
-		reject(`Certificate for FQDN ${cert.fqdn} does not have private key, can't run a server with it.`);
-	});
-}
 
 if (args._[0] == 'server' || args._[0] == 'serve') {
+	const server = require('./server.js');
 	selectCert()
 		.then(ensureCertHasPrivateKey)
-		.then(runServer)
+		.then(server.runServer)
 		.catch(e => {
 			console.error(`Error: ${e}`);
 			process.exit(1);
