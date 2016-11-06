@@ -128,6 +128,9 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 		.then(server.runServer)
 		.catch(e => {
 			console.error(`Error: ${e}`);
+			if(e.stack) {
+				console.error(`Stack: ${e.stack}`);
+			}
 			process.exit(1);
 		});
 	commandHandled = true;
