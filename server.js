@@ -9,6 +9,7 @@ const ProxyClient = beame.ProxyClient;
 
 const proxy = httpProxy.createProxyServer({});
 
+// TODO: Check that websockets work
 // TODO: Look if this can help: https://github.com/senchalabs/connect
 
 // https://github.com/nodejitsu/node-http-proxy/blob/d8fb34471594f8899013718e77d99c2acbf2c6c9/examples/http/custom-proxy-error.js
@@ -26,12 +27,7 @@ function extractAuthToken(req) {
 }
 
 function proxyRequestToAuthServer(req, res) {
-	try {
-		proxy.web(req, res, { target: `http://127.0.0.1:${process.env.BEAME_INSTA_SERVER_AUTH_PORT || 65001}` });
-	} catch(e) {
-		res.writeHead(502, {'Content-Type': 'text/plain'});
-		res.end(`Proxying failed:\n${e.stack}`);
-	}
+	proxy.web(req, res, { target: `http://127.0.0.1:${process.env.BEAME_INSTA_SERVER_AUTH_PORT || 65001}` });
 }
 
 // TODO: Make sure X-Forwarded-For is set
@@ -42,8 +38,10 @@ function handleRequest(req, res) {
 		proxyRequestToAuthServer(req, res);
 		return;
 	}
+	// If have have the token, we're proxying to an application
 }
 
+// Starts HTTPS server
 function startRequestsHandler(cert) {
 	console.log('startRequestsHandler');
 	return new Promise((resolve, reject) => {
@@ -61,6 +59,7 @@ function startRequestsHandler(cert) {
 	});
 }
 
+// Starts Beame tunnel that points to our HTTPS server
 function startTunnel([cert, requestsHandlerPort]) {
 	console.log('startTunnel');
 	return new Promise((resolve, reject) => {
@@ -78,6 +77,7 @@ function startTunnel([cert, requestsHandlerPort]) {
 	});
 }
 
+// Starts HTTPS server and Beame tunnel for it
 function runServer(cert) {
 	console.log(`Starting server at https://${cert.fqdn}`);
 	return startRequestsHandler(cert)
