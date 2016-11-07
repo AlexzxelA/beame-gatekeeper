@@ -9,6 +9,13 @@ const ProxyClient = beame.ProxyClient;
 
 const proxy = httpProxy.createProxyServer({});
 
+const getServicesList = new Promise((resolve, reject) => {
+	resolve({
+		admin: {name: 'Admin Panel', url: 'http://127.0.0.1:65002/'},
+		svc1: {name: 'Admin Panel', url: 'http://127.0.0.1:65500/'}
+	});
+});
+
 // TODO: Check that websockets work
 // TODO: Look if this can help: https://github.com/senchalabs/connect
 
@@ -23,6 +30,8 @@ proxy.on('error', (err, req, res) => {
 
 // Extracts URL token either from URL or from Cookie
 function extractAuthToken(req) {
+	// XXX: temp
+	return 'svc1';
 	return null;
 }
 
@@ -33,12 +42,27 @@ function proxyRequestToAuthServer(req, res) {
 // TODO: Make sure X-Forwarded-For is set
 function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
+	// Don't want to parse all requests. It's a waste because most of them will be just proxied.
+	if(req.url.startsWith('/beame/switch-app')) {
+		console.log('SWITCHING APP');
+	}
 	if (!authToken) {
 		// Must get some authorization
 		proxyRequestToAuthServer(req, res);
 		return;
 	}
 	// If have have the token, we're proxying to an application
+	// TODO: make sure this .then() does not leak - getServicesList is singleton
+	getServicesList.then(services => {
+		if(!services[authToken]) {
+			console.error(`--- Proxy error: unknown service ${authToken} in token`);
+			res.writeHead(502, {'Content-Type': 'text/plain'});
+			res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error: unknown service "${authToken}" in token\n`);
+			return;
+		}
+		proxy.web(req, res, {target: services[authToken].url});
+		// TODO: set cookie to carry token
+	});
 }
 
 // Starts HTTPS server
