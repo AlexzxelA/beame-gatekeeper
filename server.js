@@ -63,7 +63,7 @@ function startRequestsHandler(cert) {
 function startTunnel([cert, requestsHandlerPort]) {
 	console.log('startTunnel');
 	return new Promise((resolve, reject) => {
-		
+
 		var serverCerts = {
 			key:  cert.getKey("PRIVATE_KEY"),
 			cert: cert.getKey("P7B"),
@@ -82,7 +82,7 @@ function runServer(cert) {
 	console.log(`Starting server at https://${cert.fqdn}`);
 	return startRequestsHandler(cert)
 		.then(startTunnel);
-};
+}
 
 module.exports = {
 	runServer
