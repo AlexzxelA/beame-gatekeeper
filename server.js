@@ -1,20 +1,28 @@
 "use strict";
 
 const https       = require('https');
-
-const httpProxy   = require('http-proxy');
+const querystring = require('querystring');
+const url         = require('url');
 
 const beame       = require('beame-sdk');
+const httpProxy   = require('http-proxy');
 const ProxyClient = beame.ProxyClient;
 
-const proxy = httpProxy.createProxyServer({});
+const proxy = httpProxy.createProxyServer({
+	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
+	xfwd: true,
+	// Verify SSL cert
+	secure: true
+});
 
-const getServicesList = new Promise((resolve, reject) => {
-	resolve({
+// TOOD: Audit trail?
+
+function getServicesList() {
+	return  Promise.resolve({
 		admin: {name: 'Admin Panel', url: 'http://127.0.0.1:65002/'},
 		svc1: {name: 'Admin Panel', url: 'http://127.0.0.1:65500/'}
 	});
-});
+};
 
 // TODO: Check that websockets work
 // TODO: Look if this can help: https://github.com/senchalabs/connect
@@ -35,16 +43,44 @@ function extractAuthToken(req) {
 	return null;
 }
 
+function addBeameHeaders(req) {
+	const via = `${req.httpVersion} ${req.headers.host} (beame-insta-server-gateway)`;
+
+	if(req.headers.via) {
+		req.headers.via = `${req.headers.via} ${via}`;
+	} else {
+		req.headers.via = via;
+	}
+}
+
+function sendError(req, res, code, err) {
+	console.error(`Sending error: ${err}`);
+	res.writeHead(code, {'Content-Type': 'text/plain'});
+	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
+}
+
+
 function proxyRequestToAuthServer(req, res) {
+	addBeameHeaders(req);
 	proxy.web(req, res, { target: `http://127.0.0.1:${process.env.BEAME_INSTA_SERVER_AUTH_PORT || 65001}` });
 }
 
-// TODO: Make sure X-Forwarded-For is set
 function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
+	let qs = null;
 	// Don't want to parse all requests. It's a waste because most of them will be just proxied.
+	if(req.url.startsWith('/beame/')) {
+		qs = querystring.parse(url.parse(req.url).query);
+	}
+	// Probably /beame/save-token endpoint for storing token in cookie
 	if(req.url.startsWith('/beame/switch-app')) {
-		console.log('SWITCHING APP');
+		// 1. Set application authorization token cookie
+		// 2. Redirect to the application
+		console.log('SWITCHING APP', qs);
+		if(!qs || !qs.app_auth_token) {
+			sendError(req, res, 400, `${req.url} requires app_auth_token query string parameter`);
+			return;
+		}
 	}
 	if (!authToken) {
 		// Must get some authorization
@@ -53,13 +89,13 @@ function handleRequest(req, res) {
 	}
 	// If have have the token, we're proxying to an application
 	// TODO: make sure this .then() does not leak - getServicesList is singleton
-	getServicesList.then(services => {
+	// TODO: get only specific service, might be changed to talk to external DB
+	getServicesList().then(services => {
 		if(!services[authToken]) {
-			console.error(`--- Proxy error: unknown service ${authToken} in token`);
-			res.writeHead(502, {'Content-Type': 'text/plain'});
-			res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error: unknown service "${authToken}" in token\n`);
+			sendError(req, res, 502, `Unknown service "${authToken}" in token`);
 			return;
 		}
+		addBeameHeaders(req);
 		proxy.web(req, res, {target: services[authToken].url});
 		// TODO: set cookie to carry token
 	});
