@@ -15,6 +15,8 @@ const proxy = httpProxy.createProxyServer({
 	secure: true
 });
 
+const COOKIE_NAME = 'X-Beame-GW-Service-Token';
+
 // TOOD: Audit trail?
 
 function getServicesList() {
@@ -39,7 +41,8 @@ proxy.on('error', (err, req, res) => {
 // Extracts URL token either from URL or from Cookie
 function extractAuthToken(req) {
 	// XXX: temp
-	return 'svc1';
+	return {'name': 'svc1'};
+	return 'INVALID';
 	return null;
 }
 
@@ -53,9 +56,9 @@ function addBeameHeaders(req) {
 	}
 }
 
-function sendError(req, res, code, err) {
+function sendError(req, res, code, err, extra_headers = {}) {
 	console.error(`Sending error: ${err}`);
-	res.writeHead(code, {'Content-Type': 'text/plain'});
+	res.writeHead(code, Object.assign({}, {'Content-Type': 'text/plain'}, extra_headers));
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
 }
 
@@ -66,27 +69,41 @@ function proxyRequestToAuthServer(req, res) {
 }
 
 function handleRequest(req, res) {
-	const authToken = extractAuthToken(req);
+
+	// ---------- Beame services - no cookie token involved ----------
+
 	let qs = null;
 	// Don't want to parse all requests. It's a waste because most of them will be just proxied.
 	if(req.url.startsWith('/beame/')) {
 		qs = querystring.parse(url.parse(req.url).query);
 	}
+
 	// Probably /beame/save-token endpoint for storing token in cookie
 	if(req.url.startsWith('/beame/switch-app')) {
 		// 1. Set application authorization token cookie
 		// 2. Redirect to the application
 		console.log('SWITCHING APP', qs);
 		if(!qs || !qs.app_auth_token) {
-			sendError(req, res, 400, `${req.url} requires app_auth_token query string parameter`);
+			sendError(req, res, 400, 'app_auth_token query string parameter is required');
 			return;
 		}
 	}
+
+	// ---------- Proxied services - use cookie token ----------
+
+	const authToken = extractAuthToken(req);
+
+	if (authToken == 'INVALID') {
+		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});
+		return;
+	}
+
 	if (!authToken) {
 		// Must get some authorization
 		proxyRequestToAuthServer(req, res);
 		return;
 	}
+
 	// If have have the token, we're proxying to an application
 	// TODO: make sure this .then() does not leak - getServicesList is singleton
 	// TODO: get only specific service, might be changed to talk to external DB
