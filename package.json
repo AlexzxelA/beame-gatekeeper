@@ -1,35 +1,38 @@
 {
-	"name": "beame-insta-server",
-	"version": "0.0.1",
-	"description": "Gateway TLS (SSL) server for authenticated access to your services",
-	"main": "index.js",
-	"engine": "node >= 6.9.1",
-	"bin": {
-		"beame-insta-server": "main.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git@github.com:beameio/beame-insta-server.git"
-	},
-	"keywords": [
-		"beame",
-		"SSL cert",
-		"x509",
-		"localhost",
-		"proxy tunnel",
-		"ssl tunnel",
-		"signing",
-		"crypto"
-	],
-	"author": "beame.io",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/beameio/beame-insta-server/issues"
-	},
-	"homepage": "https://github.com/beameio/beame-insta-server#readme",
-	"dependencies": {
-		"beame-sdk": "https://github.com/beameio/beame-sdk.git",
-		"minimist": "^1.2.0",
-		"http-proxy": "^1.15.1"
-	}
+  "name": "beame-insta-server",
+  "version": "0.0.1",
+  "description": "Gateway TLS (SSL) server for authenticated access to your services",
+  "main": "index.js",
+  "engine": "node >= 6.9.1",
+  "bin": {
+    "beame-insta-server": "main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:beameio/beame-insta-server.git"
+  },
+  "keywords": [
+    "beame",
+    "SSL cert",
+    "x509",
+    "localhost",
+    "proxy tunnel",
+    "ssl tunnel",
+    "signing",
+    "crypto"
+  ],
+  "author": "beame.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/beameio/beame-insta-server/issues"
+  },
+  "homepage": "https://github.com/beameio/beame-insta-server#readme",
+  "dependencies": {
+    "beame-sdk": "https://github.com/beameio/beame-sdk.git",
+    "http-proxy": "^1.15.1",
+    "minimist": "^1.2.0",
+    "sequelize": "^3.24.8",
+    "sequelize-cli": "^2.4.0",
+    "sqlite3": "^3.1.8"
+  }
 }

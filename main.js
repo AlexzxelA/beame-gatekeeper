@@ -32,6 +32,39 @@ function list() {
 	return BeameStore.list(null, {hasPrivateKey: true});
 }
 
+function selectCert() {
+	if (args.fqdn) {
+		const ret = BeameStore.find(args.fqdn);
+		ret.catch(e => console.error(`Certificate for FQDN ${args.fqdn} not found: ${e}`));
+		return ret;
+	}
+
+	return new Promise((resolve, reject) => {
+		let allCerts = list();
+		if (allCerts.length == 1) {
+			resolve(allCerts[0]);
+			return;
+		}
+		console.log("server requires --fqdn parameter because you have more than one certificate");
+		console.log("Possible FQDNs are:");
+		allCerts.forEach(cred => {
+			console.log(`  ${cred.fqdn}`);
+		});
+		reject('server requires --fqdn parameter because you have more than one certificate');
+		return;
+	});
+}
+
+function ensureCertHasPrivateKey(cert) {
+	return new Promise((resolve, reject) => {
+		if(cert.hasKey('PRIVATE_KEY')) {
+			resolve(cert);
+			return;
+		}
+		reject(`Certificate for FQDN ${cert.fqdn} does not have private key, can't run a server with it.`);
+	});
+}
+
 
 if (args._[0] == 'create') {
 	/** @type {RegistrationToken} */
@@ -77,50 +110,6 @@ if (args._[0] == 'list') {
 	process.exit(0);
 }
 
-if (args._[0] == 'list') {
-	// TODO: show admin(s) and special permissions
-	// TODO later: show permitted applications per user
-	// TODO later: show user aliases?
-	list().forEach(cred => {
-		console.log(cred.fqdn);
-	});
-	process.exit(0);
-}
-
-function selectCert() {
-	if (args.fqdn) {
-		const ret = BeameStore.find(args.fqdn);
-		ret.catch(e => console.error(`Certificate for FQDN ${args.fqdn} not found: ${e}`));
-		return ret;
-	}
-
-	return new Promise((resolve, reject) => {
-		let allCerts = list();
-		if (allCerts.length == 1) {
-			resolve(allCerts[0]);
-			return;
-		}
-		console.log("server requires --fqdn parameter because you have more than one certificate");
-		console.log("Possible FQDNs are:");
-		allCerts.forEach(cred => {
-			console.log(`  ${cred.fqdn}`);
-		});
-		reject('server requires --fqdn parameter because you have more than one certificate');
-		return;
-	});
-}
-
-function ensureCertHasPrivateKey(cert) {
-	return new Promise((resolve, reject) => {
-		if(cert.hasKey('PRIVATE_KEY')) {
-			resolve(cert);
-			return;
-		}
-		reject(`Certificate for FQDN ${cert.fqdn} does not have private key, can't run a server with it.`);
-	});
-}
-
-
 if (args._[0] == 'server' || args._[0] == 'serve') {
 	const server = require('./server.js');
 	selectCert()
@@ -140,3 +129,4 @@ if (!commandHandled) {
 	console.error(`Unknown command: ${args._[0]}`);
 	process.exit(1);
 }
+
