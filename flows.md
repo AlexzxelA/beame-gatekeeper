@@ -1,6 +1,7 @@
 # Admin creation flow
 
 * Admin registrates on Beame Authorization server and gets token via email
+* Additional FQDNs generated for: Authorization server, Whisperer, Matching server, Adminstration panel?
 * Admin bootstraps Beame Insta Server
 * Admin starts Beame Insta Server component called **Gateway Server**
 * Admin (or Gateway Server?) starts Beame Insta Server component called **Authorization Server**
