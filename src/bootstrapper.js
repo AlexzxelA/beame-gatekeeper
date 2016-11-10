@@ -1,15 +1,13 @@
 /**
  * Created by zenit1 on 09/11/2016.
  */
+"use strict";
+
 
 const path = require('path');
-// const os   = require('os');
-// const home = os.homedir();
 
 const defaults      = require('../defaults');
-//const BeameDirProps = defaults.ConfigProps.BeameDir;
 const SqliteProps   = defaults.ConfigProps.Sqlite;
-//const ServersProps  = defaults.ConfigProps.Servers;
 const SettingsProps = defaults.ConfigProps.Settings;
 const DbProviders   = defaults.DbProviders;
 const execFile      = require('child_process').execFile;
@@ -25,13 +23,19 @@ const CommonUtils = beameSDK.CommonUtils;
 const DirectoryServices = beameSDK.DirectoryServices;
 const dirServices       = new DirectoryServices();
 
+const ConfigFolder      = "config";
+const CredsConfigFolder = "creds";
+
 const AppConfigFileName      = "app_config.json";
-const SqliteDbConfigFileName = "db_config.json";
+const CredsFileName          = "creds.json";
+const SqliteDbConfigFileName = "sqlite_config.json";
 const BeameRootPath          = defaults.beame_server_folder_path;
-const ConfigFolderPath       = path.join(BeameRootPath, "config");
-const CredsFolderPath        = path.join(BeameRootPath, "creds");
-const ConfigJsonPath         = path.join(BeameRootPath, "config", AppConfigFileName);
-const SqliteConfigJsonPath   = path.join(BeameRootPath, "config", SqliteDbConfigFileName);
+
+const CredsFolderPath      = path.join(BeameRootPath, CredsConfigFolder);
+const CredsJsonPath        = path.join(BeameRootPath, CredsConfigFolder, CredsFileName);
+const ConfigFolderPath     = path.join(BeameRootPath, ConfigFolder);
+const AppConfigJsonPath    = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
+const SqliteConfigJsonPath = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
 
 const __onConfigError = error=> {
 	logger.error(error);
@@ -41,28 +45,47 @@ const __onConfigError = error=> {
 class Bootstrapper {
 
 	constructor() {
-		let config   = DirectoryServices.readJSON(ConfigJsonPath);
+		let config   = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config = CommonUtils.isObjectEmpty(config) ? null : config;
 	}
 
-	initAll(){
-		this.initConfig().then(this.initDb.bind(this)).then(()=>{
+	/**
+	 * init config files and then db
+	 */
+	initAll() {
+		this.initConfig(false).then(this.initDb.bind(this,false)).then(()=> {
 			logger.info(`beame-insta-server bootstrapped successfully`);
 			process.exit(0);
 		}).catch(__onConfigError);
 	}
 
-	initConfig() {
+	/**
+	 *
+	 * @param {boolean} exit
+	 * @returns {Promise}
+	 */
+	initConfig(exit) {
 
 		return new Promise((resolve) => {
-			Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(resolve).catch(__onConfigError)
+				Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureCredsConfigJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(()=>{
+					logger.info(`Beame-insta-server config files ensured`);
+					resolve();
+					if(exit){
+						process.exit(0);
+					}
+				}).catch(__onConfigError)
 			}
 		);
 
 
 	}
 
-	initDb() {
+	/**
+	 *
+	 * @param {boolean} exit
+	 * @returns {Promise}
+	 */
+	initDb(exit) {
 		return new Promise((resolve, reject) => {
 				let provider = this._config[SettingsProps.DbProvider];
 
@@ -75,7 +98,13 @@ class Bootstrapper {
 
 				switch (provider) {
 					case DbProviders.Sqlite:
-						this._ensureSqliteDir().then(this._migrateSqliteSchema.bind(this)).then(resolve).catch(__onConfigError);
+						this._ensureSqliteDir().then(this._migrateSqliteSchema.bind(this)).then(()=>{
+							logger.info(`Beame-insta-server ${provider} DB updated successfully`);
+							resolve();
+							if(exit){
+								process.exit(0);
+							}
+						}).catch(__onConfigError);
 						return;
 					//TODO implement Couchbase connector
 					// case DbProviders.Couchbase:
@@ -87,11 +116,18 @@ class Bootstrapper {
 		);
 	}
 
+	static getCredsSettings(){
+		let creds = DirectoryServices.readJSON(CredsJsonPath);
+
+		if(CommonUtils.isObjectEmpty(creds)) return null;
+	}
+
 	//region Beame folder
 	static _ensureBeameServerDir() {
 
 		return Bootstrapper._ensureDir(BeameRootPath).then(Bootstrapper._ensureDir(ConfigFolderPath)).then(Bootstrapper._ensureDir(CredsFolderPath));
 	}
+
 	//endregion
 
 	//region App Config
@@ -100,7 +136,7 @@ class Bootstrapper {
 		return new Promise((resolve) => {
 				logger.debug(`ensuring ${AppConfigFileName}...`);
 
-				let isExists = DirectoryServices.doesPathExists(ConfigJsonPath);
+				let isExists = DirectoryServices.doesPathExists(AppConfigJsonPath);
 
 				if (isExists) {
 					logger.debug(`${AppConfigFileName} found...`);
@@ -133,8 +169,8 @@ class Bootstrapper {
 
 				this._config = config;
 
-				dirServices.saveFileAsync(ConfigJsonPath, CommonUtils.stringify(config)).then(()=> {
-					logger.debug(`${AppConfigFileName} saved in ${path.dirname(ConfigJsonPath)}...`);
+				dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config)).then(()=> {
+					logger.debug(`${AppConfigFileName} saved in ${path.dirname(AppConfigJsonPath)}...`);
 					resolve();
 				}).catch(error=> {
 					this._config = null;
@@ -148,7 +184,7 @@ class Bootstrapper {
 
 		return new Promise((resolve, reject) => {
 				try {
-					let config     = DirectoryServices.readJSON(ConfigJsonPath),
+					let config     = DirectoryServices.readJSON(AppConfigJsonPath),
 					    updateFile = false;
 
 					if (CommonUtils.isObjectEmpty(config)) {
@@ -173,7 +209,7 @@ class Bootstrapper {
 						return;
 					}
 
-					dirServices.saveFileAsync(ConfigJsonPath, CommonUtils.stringify(config, false)).then(()=> {
+					dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config, false)).then(()=> {
 						logger.debug(`${AppConfigFileName} updated...`);
 						resolve();
 					}).catch(error=> {
@@ -186,10 +222,43 @@ class Bootstrapper {
 				}
 			}
 		);
-
-
 	}
 
+	//endregion
+
+	//region Creds config
+	_ensureCredsConfigJson() {
+		return new Promise((resolve) => {
+				logger.debug(`ensuring ${CredsFileName}...`);
+
+				let isExists = DirectoryServices.doesPathExists(CredsJsonPath);
+
+				if (isExists) {
+					logger.debug(`${CredsFileName} found...`);
+					resolve();
+				}
+				else {
+					this._createCredsConfigJson().then(resolve).catch(__onConfigError);
+				}
+			}
+		);
+	}
+
+	_createCredsConfigJson() {
+
+		return new Promise((resolve, reject) => {
+				let credsConfig = defaults.CredsConfigTemplate;
+
+				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig)).then(()=> {
+					logger.debug(`${CredsFileName} saved in ${path.dirname(CredsJsonPath)}...`);
+					resolve();
+				}).catch(error=> {
+					reject(error);
+				});
+
+			}
+		);
+	}
 	//endregion
 
 	//region Db services
@@ -263,6 +332,7 @@ class Bootstrapper {
 
 
 	}
+
 	//endregion
 
 	//region initConfig
@@ -297,6 +367,7 @@ class Bootstrapper {
 
 		return this._ensureConfigDir(SqliteProps.StorageRoot);
 	}
+
 	//endregion
 
 
@@ -320,6 +391,7 @@ class Bootstrapper {
 
 		return Promise.resolve();
 	}
+
 	//endregion
 
 }

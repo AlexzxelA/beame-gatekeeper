@@ -25,7 +25,7 @@ const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const SqliteConfigTemplate = {
-	[sqlite_env_name] : {
+	[sqlite_env_name]: {
 		"username":             "",
 		"password":             "",
 		"storage":              "",
@@ -47,23 +47,27 @@ const ConfigProps = {
 		StorageRoot:    "sqlite_db_storage_root",
 		EnvName:        "sqlite_env_name"
 	},
-	Servers:  {
-		GatewayFqdn:   "gateway_server_fqdn",
-		AuthFqdn:      "auth_server_fqdn",
-		MatchingFqdn:  "matching_server_fqdn",
-		AdminFqdn:     "admin_server_fqdn",
-		WhispererFqdn: "whisperer_server_fqdn"
-	},
 	BeameDir: {
 		BeameFolderRootPath: "beame_server_folder_path",
 		BeameFolderName:     "beame_server_folder_name"
 	}
 };
 
+const CredsConfigTemplate = {
+	ZeroLevelFqdn:       "",
+	GatewayServerFqdn:   "",
+	AuthServerFqdn:      "",
+	MatchingServerFqdn:  "",
+	AdminServerFqdn:     "",
+	WhispererServerFqdn: "",
+	Users:               {}
+};
+
 module.exports = {
 	ConfigProps,
 	DbProviders,
 
+	CredsConfigTemplate,
 	SqliteConfigTemplate,
 
 	db_provider,
@@ -75,13 +79,4 @@ module.exports = {
 
 	beame_server_folder_path,
 	beame_server_folder_name,
-
-
-	gateway_server_fqdn:   "",
-	auth_server_fqdn:      "",
-	admin_server_fqdn:     "",
-	matching_server_fqdn:  "",
-	whisperer_server_fqdn: ""
-
-
 };

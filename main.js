@@ -15,10 +15,15 @@ const fs   = require('fs');
 const path = require('path');
 
 const args  = require('minimist')(process.argv.slice(2));
-const beame = require('beame-sdk');
+const beameSDK = require('beame-sdk');
+const module_name = "InstaServerMain";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
 
-const BeameStore = new beame.BeameStore();
-const Credential = beame.Credential;
+const BeameStore = new beameSDK.BeameStore();
+const Credential = beameSDK.Credential;
+
+const Bootstrapper = require('./src/bootstrapper');
 
 var commandHandled = false;
 
@@ -111,6 +116,9 @@ if (args._[0] == 'list') {
 }
 
 if (args._[0] == 'server' || args._[0] == 'serve') {
+
+	let creds = Bootstrapper.getCredsSettings();
+
 	const server = require('./server.js');
 	selectCert()
 		.then(ensureCertHasPrivateKey)
