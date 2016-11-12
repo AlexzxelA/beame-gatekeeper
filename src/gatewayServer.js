@@ -8,6 +8,8 @@ const beame       = require('beame-sdk');
 const httpProxy   = require('http-proxy');
 const ProxyClient = beame.ProxyClient;
 
+const socket_io   = require('socket.io');
+
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
 	xfwd: true,
@@ -118,6 +120,10 @@ function handleRequest(req, res) {
 	});
 }
 
+function handleSocketIoConnect(client) {
+	// Browser controller will connect here
+}
+
 // Starts HTTPS server
 function startRequestsHandler(cert) {
 	console.log('startRequestsHandler');
@@ -128,6 +134,8 @@ function startRequestsHandler(cert) {
 			ca:   cert.getKey("CA")
 		};
 		const server = https.createServer(serverCerts, handleRequest);
+		const io = socket_io(server);
+		io.on('connection', handleSocketIoConnect);
 		server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
 			const port = server.address().port;
 			console.log(`beame-insta-server listening port ${port}`);
