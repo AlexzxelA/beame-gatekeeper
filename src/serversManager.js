@@ -24,7 +24,8 @@ class ServersManager {
 	start() {
 		return new Promise((resolve, reject) => {
 			logger.info('Starting services');
-
+			const node_command = process.env.BEAME_NODE_COMMAND || 'node';
+			console.log('SETTINGS', this._settings);
 		});
 	}
 
