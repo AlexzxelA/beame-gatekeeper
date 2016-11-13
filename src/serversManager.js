@@ -22,7 +22,14 @@ class ServersManager {
 	}
 
 	start() {
+		return new Promise((resolve, reject) => {
+			logger.info('Starting services');
 
+		});
+	}
+
+	static go(serversSettings) {
+		return (new ServersManager(serversSettings)).start();
 	}
 }
 
