@@ -4,11 +4,14 @@ const https       = require('https');
 const querystring = require('querystring');
 const url         = require('url');
 
-const beame       = require('beame-sdk');
 const httpProxy   = require('http-proxy');
-const ProxyClient = beame.ProxyClient;
+
+const beameSDK       = require('beame-sdk');
+const ProxyClient = beameSDK.ProxyClient;
+const BeameStore  = new beameSDK.BeameStore();
 
 const socket_io   = require('socket.io');
+
 
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
@@ -170,9 +173,10 @@ function startTunnel([cert, requestsHandlerPort]) {
 }
 
 // Starts HTTPS server and Beame tunnel for it
-function runServer(cert) {
-	console.log(`Starting server at https://${cert.fqdn}`);
-	return startRequestsHandler(cert)
+function runServer(fqdn) {
+	console.log(`Starting server at https://${fqdn}`);
+	return BeameStore.find(fqdn, false)
+		.then(startRequestsHandler)
 		.then(startTunnel);
 }
 

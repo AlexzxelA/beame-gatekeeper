@@ -107,13 +107,13 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 	const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
 	const ServersManager = require('./src/serversManager');
 
-	const assertServersSettings = (creds) => {
+	const assertServersSettings = (settings) => {
 		return new Promise((resolve, reject) => {
-			if(!creds) {
+			if(!settings) {
 				console.log(getHelpMessage('no-certificates.txt'));
 				process.exit(1);
 			}
-			resolve(creds);
+			resolve(settings);
 		});
 	};
 

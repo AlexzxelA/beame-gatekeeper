@@ -26,6 +26,8 @@ class ServersManager {
 			logger.info('Starting services');
 			const node_command = process.env.BEAME_NODE_COMMAND || 'node';
 			console.log('SETTINGS', this._settings);
+			const gws = require('./gatewayServer');
+			gws.runServer(this._settings.GatewayServer.fqdn);
 		});
 	}
 
