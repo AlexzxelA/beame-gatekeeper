@@ -48,7 +48,7 @@ class CredentialManager {
 
 	createServersCredentials() {
 		return new Promise((resolve, reject) => {
-				let zeroLevelFqdn = Bootstrapper.getZeroLevelFqdn();
+				let zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
 
 				if (!zeroLevelFqdn) {
 					reject(`Zero level fqdn not found`);

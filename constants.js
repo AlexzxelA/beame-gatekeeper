@@ -9,7 +9,7 @@ const home = os.homedir();
 
 //DON'T change these settings
 const beame_server_folder_name = ".beame_server";
-const BeameRootPath = path.join(home, beame_server_folder_name);
+const BeameRootPath            = path.join(home, beame_server_folder_name);
 
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
@@ -38,20 +38,13 @@ const RegistrationSource = {
 	"IOSSDK":         4
 };
 
-const ZeroLevel       = "ZeroLevel",
-      GatewayServer   = "GatewayServer",
-      AuthServer      = "AuthServer",
-      MatchingServer  = "MatchingServer",
-      AdminServer     = "AdminServer",
-      WhispererServer = "WhispererServer";
-
-const CredentialType =  {
-		ZeroLevel:       ZeroLevel,
-		GatewayServer:   GatewayServer,
-		AuthServer:      AuthServer,
-		MatchingServer:  MatchingServer,
-		AdminServer:     AdminServer,
-		WhispererServer: WhispererServer
+const CredentialType = {
+	ZeroLevel:       "ZeroLevel",
+	GatewayServer:   "GatewayServer",
+	AuthServer:      "AuthServer",
+	MatchingServer:  "MatchingServer",
+	AdminServer:     "AdminServer",
+	WhispererServer: "WhispererServer"
 };
 
 

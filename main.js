@@ -43,7 +43,7 @@ function list() {
 
 if (args._[0] == 'create') {
 
-	let fqdn = Bootstrapper.getZeroLevelFqdn();
+	let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
 
 	if (fqdn) {
 		logger.info(`Zero level credential already registered on ${fqdn}`);

@@ -143,12 +143,16 @@ class Bootstrapper {
 		return CommonUtils.filterHash(emptyServers, (k, v) => v.server);
 	}
 
-	static getZeroLevelFqdn() {
+	/**
+	 * @param {String}type
+	 * @returns {String|null}
+	 */
+	static getCredFqdn(type) {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
 		if (CommonUtils.isObjectEmpty(creds)) return null;
 
-		let zero = creds[Constants.CredentialType.ZeroLevel];
+		let zero = creds[type];
 
 		return zero ? (zero["fqdn"] === "" ? null : zero["fqdn"]) : null;
 	}
