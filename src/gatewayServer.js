@@ -79,6 +79,7 @@ function handleRequest(req, res) {
 	console.log(req.url);
 
 	// ---------- Beame services - no cookie token involved ----------
+	// These will move to Socket.IO
 
 	let qs = null;
 	// Don't want to parse all requests. It's a waste because most of them will be just proxied.
@@ -108,7 +109,10 @@ function handleRequest(req, res) {
 
 	if (!authToken) {
 		// Must get some authorization
-		proxyRequestToAuthServer(req, res);
+		// proxyRequestToAuthServer(req, res);
+		if(req.url == '/') {
+			// Show "sign in / sign up" page
+		}
 		return;
 	}
 
@@ -117,7 +121,7 @@ function handleRequest(req, res) {
 	// TODO: get only specific service, might be changed to talk to external DB
 	getServicesList().then(services => {
 		if(!services[authToken]) {
-			sendError(req, res, 502, `Unknown service "${authToken}" in token`);
+			sendError(req, res, 502, `Unknown service "${JSON.stringify(authToken)}" in token`);
 			return;
 		}
 		addBeameHeaders(req);
