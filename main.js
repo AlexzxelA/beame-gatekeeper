@@ -104,21 +104,23 @@ if (args._[0] == 'list') {
 
 if (args._[0] == 'server' || args._[0] == 'serve') {
 
+	const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
+	const ServersManager = require('./src/serversManager');
 
-	bootstrapper.initAll().then(() => {
+	function assertServersSettings(creds) {
+		return new Promise((resolve, reject) => {
+			if(!creds) {
+				console.log(getHelpMessage('no-certificates.txt'));
+				process.exit(1);
+			}
+			resolve(creds);
+		});
+	}
 
-		let serversSettings = Bootstrapper.getServersSettings();
-
-		if (!serversSettings) {
-			console.log(getHelpMessage('no-certificates.txt'));
-			process.exit(1);
-			return;
-		}
-
-		let manager = new (require('./src/serversManager'))(serversSettings);
-
-		manager.start();
-	});
+	bootstrapper.initAll()
+		.then(getServersSettings)
+		.then(assertServersSettings)
+		.then(ServersManager.go);
 
 	commandHandled = true;
 }

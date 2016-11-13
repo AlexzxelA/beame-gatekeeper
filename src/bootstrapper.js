@@ -54,13 +54,11 @@ class Bootstrapper {
 	 */
 	initAll() {
 		return new Promise((resolve) => {
-				this.initConfig(false).then(this.initDb.bind(this, false)).then(()=> {
-					logger.info(`beame-insta-server bootstrapped successfully`);
-					resolve();
-				}).catch(__onConfigError);
-			}
-		);
-
+			this.initConfig(false).then(this.initDb.bind(this, false)).then(()=> {
+				logger.info(`beame-insta-server bootstrapped successfully`);
+				resolve();
+			}).catch(__onConfigError);
+		});
 	}
 
 	/**
@@ -118,19 +116,27 @@ class Bootstrapper {
 		);
 	}
 
-	static getServersSettings() {
-		let creds = DirectoryServices.readJSON(CredsJsonPath);
+	getServersSettings() {
 
-		if (CommonUtils.isObjectEmpty(creds)) return null;
+		return new Promise((resolve, reject) => {
 
-		let emptyServers = CommonUtils.filterHash(creds, (k, v) => v.fqdn === "");
+			let creds = DirectoryServices.readJSON(CredsJsonPath);
 
-		if (!CommonUtils.isObjectEmpty(emptyServers)) {
-			Object.keys(emptyServers).forEach(key=>logger.info(`${key} not found`));
-			return null;
-		}
+			if (CommonUtils.isObjectEmpty(creds)) {
+				reject('Credentials do not exist');
+				return;
+			}
 
-		return CommonUtils.filterHash(creds, (k, v) => v.server);
+			let emptyServers = CommonUtils.filterHash(creds, (k, v) => v.fqdn === "");
+
+			if (!CommonUtils.isObjectEmpty(emptyServers)) {
+				Object.keys(emptyServers).forEach(key=>logger.info(`${key} not found`));
+				reject(`Credentials for following servers not found: ${Object.keys(emptyServers).join(',')}`);
+				return;
+			}
+
+			resolve(CommonUtils.filterHash(creds, (k, v) => v.server));
+		});
 	}
 
 	static getServersToCreate() {
