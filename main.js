@@ -97,17 +97,22 @@ if (args._[0] == 'list') {
 
 if (args._[0] == 'server' || args._[0] == 'serve') {
 
-	let serversSettings = Bootstrapper.getServersSettings();
+	const bootstrapper = new (require('./src/bootstrapper'))();
 
-	if (!serversSettings) {
-		console.log(getHelpMessage('no-cer  `tificates.txt'));
-		process.exit(1);
-		return;
-	}
+	bootstrapper.initAll().then(() => {
 
-	let manager = new (require('./src/serversManager'))(serversSettings);
+		let serversSettings = Bootstrapper.getServersSettings();
 
-	manager.start();
+		if (!serversSettings) {
+			console.log(getHelpMessage('no-certificates.txt'));
+			process.exit(1);
+			return;
+		}
+
+		let manager = new (require('./src/serversManager'))(serversSettings);
+
+		manager.start();
+	});
 
 	commandHandled = true;
 }
