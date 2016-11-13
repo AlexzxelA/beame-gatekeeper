@@ -19,7 +19,8 @@ const proxy = httpProxy.createProxyServer({
 
 const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 
-// TOOD: Audit trail?
+// TODO: Audit trail?
+// TODO: Move socket.io to non-standard location as other applications might use it
 
 function getServicesList() {
 	return  Promise.resolve({
@@ -72,6 +73,8 @@ function proxyRequestToAuthServer(req, res) {
 
 function handleRequest(req, res) {
 
+	console.log(req.url);
+
 	// ---------- Beame services - no cookie token involved ----------
 
 	let qs = null;
@@ -122,6 +125,10 @@ function handleRequest(req, res) {
 
 function handleSocketIoConnect(client) {
 	// Browser controller will connect here
+	client.on('data', data => {
+		console.log('DATA', data);
+
+	});
 }
 
 // Starts HTTPS server
