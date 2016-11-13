@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/beameio/beame-insta-server#readme",
   "dependencies": {
+    "async": "^2.1.2",
     "beame-sdk": "https://github.com/beameio/beame-sdk.git",
     "http-proxy": "^1.15.1",
     "minimist": "^1.2.0",

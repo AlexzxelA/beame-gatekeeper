@@ -7,17 +7,9 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
-
-//DON'T change these settings
-const beame_server_folder_name = ".beame_server";
-const beame_server_folder_path = path.join(home, beame_server_folder_name);
-
-const DbProviders = {
-	"Sqlite":    "sqlite",
-	"Couchbase": "couchbase"
-};
-
-const db_provider = DbProviders.Sqlite;
+const Constants = require('./constants');
+const Servers = Constants.CredentialType;
+const db_provider = Constants.DbProviders.Sqlite;
 
 const sqlite_db_name           = "beame_server.db";
 const sqlite_db_admin_username = "admin";
@@ -35,6 +27,7 @@ const SqliteConfigTemplate = {
 		"autoMigrateOldSchema": true
 	}
 };
+
 
 const ConfigProps = {
 	Settings: {
@@ -54,18 +47,35 @@ const ConfigProps = {
 };
 
 const CredsConfigTemplate = {
-	ZeroLevelFqdn:       "",
-	GatewayServerFqdn:   "",
-	AuthServerFqdn:      "",
-	MatchingServerFqdn:  "",
-	AdminServerFqdn:     "",
-	WhispererServerFqdn: "",
-	Users:               {}
+	[Servers.ZeroLevel]:       {
+		fqdn:   "",
+		server: false
+	},
+	[Servers.GatewayServer]:   {
+		fqdn:   "",
+		server: true
+	},
+	[Servers.AuthServer]:      {
+		fqdn:   "",
+		server: true
+	},
+	[Servers.MatchingServer]:  {
+		fqdn:   "",
+		server: true
+	},
+	[Servers.AdminServer]:     {
+		fqdn:   "",
+		server: true
+	},
+	[Servers.WhispererServer]: {
+		fqdn:   "",
+		server: true
+	},
+	Users:                 {}
 };
 
 module.exports = {
 	ConfigProps,
-	DbProviders,
 
 	CredsConfigTemplate,
 	SqliteConfigTemplate,
@@ -75,8 +85,5 @@ module.exports = {
 	sqlite_db_name,
 	sqlite_db_storage_root,
 	sqlite_db_admin_username,
-	sqlite_env_name,
-
-	beame_server_folder_path,
-	beame_server_folder_name,
+	sqlite_env_name
 };

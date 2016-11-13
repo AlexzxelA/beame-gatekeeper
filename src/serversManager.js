@@ -3,21 +3,28 @@
  */
 "use strict";
 
-const beameSDK = require('beame-sdk');
+const beameSDK    = require('beame-sdk');
 const module_name = "ServersManager";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
 const CommonUtils = beameSDK.CommonUtils;
 
-class ServersManager{
-	constructor(credSettings){
+class ServersManager {
+	constructor(serversSettings) {
 
-		if(CommonUtils.isObjectEmpty(credSettings)){
+		if (CommonUtils.isObjectEmpty(serversSettings)) {
 			logger.error(`Creds settings required`);
 			process.exit(1);
 		}
 
-		this._settings = credSettings;
+		this._settings = serversSettings;
+	}
+
+	start() {
+
 	}
 }
+
+
+module.exports = ServersManager;
