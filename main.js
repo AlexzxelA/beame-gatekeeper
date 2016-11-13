@@ -22,12 +22,14 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
 const BeameStore = new beameSDK.BeameStore();
-const Credential = beameSDK.Credential;
 
 const Constants         = require('./constants');
 const Bootstrapper      = require('./src/bootstrapper');
+const bootstrapper      = new Bootstrapper();
 const credentialManager = new (require('./src/credentialManager'))();
-var commandHandled      = false;
+
+
+var commandHandled = false;
 
 function getHelpMessage(fileName) {
 	return fs.readFileSync(path.join(__dirname, 'help-messages', fileName), {'encoding': 'utf-8'});
@@ -56,17 +58,22 @@ if (args._[0] == 'create') {
 		process.exit(1);
 	}
 
-	credentialManager.createInitialCredentials(token).then(metadata=> {
-		console.log('');
-		console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
-		console.log('');
-		console.log(getHelpMessage('certificate-created.txt'));
-		console.log(`https://${metadata.fqdn}`);
-		process.exit(0);
-	}).catch(e => {
-		logger.error(e);
-		process.exit(1);
+	bootstrapper.initAll().then(() => {
+
+		credentialManager.createInitialCredentials(token).then(metadata=> {
+			console.log('');
+			console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
+			console.log('');
+			console.log(getHelpMessage('certificate-created.txt'));
+			console.log(`https://${metadata.fqdn}`);
+			process.exit(0);
+		}).catch(e => {
+			logger.error(e);
+			process.exit(1);
+		});
 	});
+
+
 
 	commandHandled = true;
 
@@ -97,7 +104,6 @@ if (args._[0] == 'list') {
 
 if (args._[0] == 'server' || args._[0] == 'serve') {
 
-	const bootstrapper = new (require('./src/bootstrapper'))();
 
 	bootstrapper.initAll().then(() => {
 

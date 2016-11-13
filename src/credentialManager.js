@@ -14,7 +14,6 @@ const Credential   = beameSDK.Credential;
 const Bootstrapper = require('./bootstrapper');
 const Constants    = require('../constants');
 const CommonUtils  = beameSDK.CommonUtils;
-const AuthToken    = beameSDK.AuthToken;
 
 class CredentialManager {
 
@@ -33,11 +32,13 @@ class CredentialManager {
 		};
 
 		return new Promise((resolve) => {
-				this._createZeroLevelCredential(token).then(metadata => {
+				CredentialManager._createZeroLevelCredential(token).then(metadata => {
 
 					logger.info(`Zero level credential created successfully on ${metadata.fqdn}`);
 
-					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this)).catch(__onRegistrationError)
+					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this)).then(()=> {
+						resolve(metadata);
+					}).catch(__onRegistrationError)
 
 				}).catch(__onRegistrationError);
 			}
@@ -65,14 +66,14 @@ class CredentialManager {
 
 				async.each(Object.keys(servers), (serverType, callback) => {
 
-					let t = CommonUtils.randomTimeout(100);
+					let t = CommonUtils.randomTimeout(20);
 
-					console.log(`${serverType} timeout = ${t}`);
+					logger.debug(`${serverType} timeout = ${t}`);
 
 					setTimeout(()=> {
 						logger.info(`Creating credentials for ${serverType}`);
 
-						CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType} + 47`, null).then(metadata=> {
+						CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, null).then(metadata=> {
 
 							logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
 
@@ -87,7 +88,7 @@ class CredentialManager {
 							logger.error(BeameLogger.formatError(error));
 							callback(error);
 						});
-					},t);
+					}, t);
 
 
 				}, (err) => {
@@ -116,21 +117,10 @@ class CredentialManager {
 
 		return new Promise((resolve, reject) => {
 
-			let cred = new Credential(BeameStore);
+				let cred = new Credential(BeameStore, 20);
 				cred.createEntityWithLocalCreds(parent_fqdn, name, email).then(resolve).catch(reject);
 			}
 		);
-
-		// return new Promise((resolve, reject) => {
-		//
-		// 		BeameStore.find(parent_fqdn, false).then(cred=> {
-		// 			let authToken = AuthToken.create({name, email}, cred, 10);
-		// 			cred.createEntityWithAuthServer(authToken, null, name, email).then(resolve).catch(reject);
-		// 			//cred.createEntityWithLocalCreds(parent_fqdn, name, email).then(resolve).catch(reject);
-		// 		}).catch(reject);
-		//
-		// 	}
-		// );
 
 	}
 
@@ -141,7 +131,7 @@ class CredentialManager {
 	 * @returns {Promise.<Object>}
 	 * @private
 	 */
-	_createZeroLevelCredential(token) {
+	static _createZeroLevelCredential(token) {
 
 		let cred = new Credential(BeameStore);
 
