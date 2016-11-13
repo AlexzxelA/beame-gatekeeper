@@ -7,8 +7,8 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
-const Constants = require('./constants');
-const Servers = Constants.CredentialType;
+const Constants   = require('./constants');
+const Servers     = Constants.CredentialType;
 const db_provider = Constants.DbProviders.Sqlite;
 
 const sqlite_db_name           = "beame_server.db";
@@ -47,31 +47,35 @@ const ConfigProps = {
 };
 
 const CredsConfigTemplate = {
-	[Servers.ZeroLevel]:       {
+	[Servers.ZeroLevel]:                   {
 		fqdn:   "",
 		server: false
 	},
-	[Servers.GatewayServer]:   {
+	[Servers.GatewayServer]:               {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.AuthServer]:      {
+	[Servers.CustomerAuthorizationServer]: {
+		fqdn:   "",
+		server: false
+	},
+	[Servers.BeameAuthorizationServer]:    {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.MatchingServer]:  {
+	[Servers.MatchingServer]:              {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.AdminServer]:     {
+	[Servers.AdminServer]:                 {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.WhispererServer]: {
+	[Servers.WhispererServer]:             {
 		fqdn:   "",
 		server: true
 	},
-	Users:                 {}
+	Users:                                 {}
 };
 
 module.exports = {

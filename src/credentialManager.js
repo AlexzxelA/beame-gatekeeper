@@ -37,7 +37,13 @@ class CredentialManager {
 					logger.info(`Zero level credential created successfully on ${metadata.fqdn}`);
 
 					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this)).then(()=> {
-						resolve(metadata);
+
+						this._bootstrapper.updateCredsFqdn(Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer), Constants.CredentialType.CustomerAuthorizationServer).then(()=> {
+							resolve(metadata);
+						}).catch(error => {
+							logger.error(BeameLogger.formatError(error));
+							resolve(metadata);
+						});
 					}).catch(__onRegistrationError)
 
 				}).catch(__onRegistrationError);
@@ -82,7 +88,7 @@ class CredentialManager {
 							}).catch(error => {
 								logger.error(BeameLogger.formatError(error));
 								callback(error);
-							})
+							});
 
 						}).catch(error => {
 							logger.error(BeameLogger.formatError(error));

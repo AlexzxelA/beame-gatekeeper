@@ -39,12 +39,13 @@ const RegistrationSource = {
 };
 
 const CredentialType = {
-	ZeroLevel:       "ZeroLevel",
-	GatewayServer:   "GatewayServer",
-	AuthServer:      "AuthServer",
-	MatchingServer:  "MatchingServer",
-	AdminServer:     "AdminServer",
-	WhispererServer: "WhispererServer"
+	ZeroLevel:                   "ZeroLevel",
+	GatewayServer:               "GatewayServer",
+	CustomerAuthorizationServer: "CustomerAuthorizationServer",
+	BeameAuthorizationServer:    "BeameAuthorizationServer",
+	MatchingServer:              "MatchingServer",
+	AdminServer:                 "AdminServer",
+	WhispererServer:             "WhispererServer"
 };
 
 
