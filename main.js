@@ -107,7 +107,7 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 	const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
 	const ServersManager = require('./src/serversManager');
 
-	function assertServersSettings(creds) {
+	const assertServersSettings = (creds) => {
 		return new Promise((resolve, reject) => {
 			if(!creds) {
 				console.log(getHelpMessage('no-certificates.txt'));
@@ -115,7 +115,7 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 			}
 			resolve(creds);
 		});
-	}
+	};
 
 	bootstrapper.initAll()
 		.then(getServersSettings)
