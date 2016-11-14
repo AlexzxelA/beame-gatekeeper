@@ -30,10 +30,14 @@
   "dependencies": {
     "async": "^2.1.2",
     "beame-sdk": "https://github.com/beameio/beame-sdk.git",
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
     "http-proxy": "^1.15.1",
     "minimist": "^1.2.0",
     "sequelize": "^3.24.8",
     "sequelize-cli": "^2.4.0",
+    "sns-validator": "^0.2.1",
+    "socket.io": "^1.5.1",
     "sqlite3": "^3.1.8"
   },
   "devDependencies": {

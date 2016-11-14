@@ -34,7 +34,7 @@ function getServicesList() {
 		admin: {name: 'Admin Panel', url: 'http://127.0.0.1:65002/'},
 		svc1: {name: 'Admin Panel', url: 'http://127.0.0.1:65500/'}
 	});
-};
+}
 
 // TODO: Check that websockets work
 // TODO: Look if this can help: https://github.com/senchalabs/connect
@@ -139,15 +139,16 @@ function handleSocketIoConnect(client) {
 }
 
 // Starts HTTPS server
+/**
+ * @param {Credential} cert
+ * @returns {Promise}
+ */
 function startRequestsHandler(cert) {
 	console.log('startRequestsHandler');
 	return new Promise((resolve, reject) => {
-		var serverCerts = {
-			key:  cert.getKey("PRIVATE_KEY"),
-			cert: cert.getKey("P7B"),
-			ca:   cert.getKey("CA")
-		};
+		var serverCerts = cert.getHttpsServerOptions();
 		const server = https.createServer(serverCerts, handleRequest);
+		/** @type {Socket} */
 		const io = socket_io(server);
 		io.on('connection', handleSocketIoConnect);
 		server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
@@ -159,15 +160,17 @@ function startRequestsHandler(cert) {
 }
 
 // Starts Beame tunnel that points to our HTTPS server
+/**
+ *
+ * @param {Credential} cert
+ * @param {Number} requestsHandlerPort
+ * @returns {Promise}
+ */
 function startTunnel([cert, requestsHandlerPort]) {
 	console.log('startTunnel');
 	return new Promise((resolve, reject) => {
 
-		var serverCerts = {
-			key:  cert.getKey("PRIVATE_KEY"),
-			cert: cert.getKey("P7B"),
-			ca:   cert.getKey("CA")
-		};
+		var serverCerts = cert.getHttpsServerOptions();
 		new ProxyClient("HTTPS", cert.fqdn,
 						cert.getMetadataKey('EDGE_FQDN'), 'localhost',
 						requestsHandlerPort, {},
