@@ -20,9 +20,8 @@
  * @property {Number} src
  */
 
-const apiConfig        = require('../config/api_config.json');
-const config           = require('../config/config');
-const EmailServices    = require('./ses');
+const apiConfig        = require('../../../config/api_config.json');
+
 const beameSDK         = require('beame-sdk');
 const module_name      = "AuthServices";
 const BeameLogger      = beameSDK.Logger;
@@ -32,11 +31,8 @@ const AuthToken        = beameSDK.AuthToken;
 const store            = new (beameSDK.BeameStore)();
 const provisionApi     = new (beameSDK.ProvApi)();
 const beameUtils       = beameSDK.BeameUtils;
-const apiEdgeActions   = apiConfig.Actions.Edge;
 const apiEntityActions = apiConfig.Actions.Entity;
-const dataService      = new (require('./dataServices'))();
-
-const EDGE_ADDR_FIELD = "edge_addr";
+var dataService      ;//= new (require('./dataServices'))();
 
 
 class AuthServices {
@@ -60,58 +56,13 @@ class AuthServices {
 		}
 	}
 
-	//region Edge
-	authorizeEdge(metadata) {
-
-		return new Promise((resolve, reject) => {
-
-				logger.debug(`authorize edge metadata ${CommonUtils.stringify(metadata)} for edge ${metadata.edge_addr}`);
-
-				if (!metadata.edge_addr) {
-					reject('Edge address required');
-					return;
-				}
-
-				if (beameUtils.isAmazon()) {
-					if (!metadata.hasOwnProperty("metadata") || !metadata.metadata) {
-						reject('Server metainfo required');
-						return;
-					}
-
-					logger.debug(`edge metadata received`, metadata.metadata);
-
-					const eC2AuthInfo = new beameSDK.EC2AuthInfo();
-
-					eC2AuthInfo.validate(metadata.metadata).then(onAuthorized.bind(this)).catch(reject);
-
-				}
-				else {
-					onAuthorized.bind(this)();
-				}
-
-
-				function onAuthorized() {
-
-					this._registerFqdn(apiEdgeActions.Register.endpoint, {"edge_addr": metadata[EDGE_ADDR_FIELD]}).then(function (payload) {
-						resolve(payload)
-					}).catch(reject);
-
-				}
-			}
-		);
-	}
-
-	//endregion
 
 	//region Entity registration
 	/**
 	 * @param {RegistrationData} data
-	 * @param {Boolean} send
 	 * @returns {Promise}
 	 */
-	saveRegistration(data, send) {
-
-		let sendEmail = send;
+	saveRegistration(data) {
 
 		return new Promise((resolve, reject) => {
 				dataService.saveRegistration(data).then(registrationId => {
@@ -129,37 +80,9 @@ class AuthServices {
 						});
 					}
 
-					if (sendEmail) {
 
-						let ses   = new EmailServices(),
-						    /**  @type {EmailRegistrationData} */
-						    token = {
-							    authToken:   authToken,
-							    name:        data.name,
-							    email:       data.email,
-							    authSrvFqdn: this._fqdn,
-							    src:         data.src
-						    };
+					updateHash();
 
-						switch (data.src) {
-							case config.RegistrationSource.NodeJSSDK:
-								ses.sendRegistrationEmail(token).then(updateHash).catch(reject);
-								break;
-							case config.RegistrationSource.InstaSSL:
-								ses.sendInstaSslRegistrationEmail(token).then(updateHash).catch(reject);
-								break;
-							case config.RegistrationSource.InstaServerSDK:
-								ses.sendInstaServerRegistrationEmail(token).then(updateHash).catch(reject);
-								break;
-							default:
-								updateHash();
-								break;
-						}
-
-					}
-					else {
-						updateHash();
-					}
 
 
 				}).catch(error=> {
@@ -173,15 +96,6 @@ class AuthServices {
 
 
 	/**
-	 *
-	 * * @returns {String}
-	 */
-	getMyFqdn() {
-		return this._fqdn;
-	}
-
-
-	/**
 	 * @param {Object} metadata
 	 * @param {SignatureToken} authToken
 	 * @param {String|null} [userAgent]
@@ -189,36 +103,36 @@ class AuthServices {
 	 */
 	authorizeEntity(metadata, authToken, userAgent) {
 		return new Promise((resolve, reject) => {
-
-				let hash = authToken.signedData.data;
-
-				dataService.findRegistrationRecordByHash(hash).then(record=> {
-					if (record) {
-						if (record.completed) {
-							reject('Registration already completed');
-							return;
-						}
-
-						metadata.name  = record.name;
-						metadata.email = record.email;
-						metadata.agree = record.agree;
-						metadata.src   = record.source;
-					}
-					else {
-						metadata.parent_fqdn = this._fqdn;
-						metadata.src         = config.RegistrationSource.Unknown;
-					}
-
-					metadata.userAgent = userAgent;
-
-					this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
-						dataService.updateRegistrationFqdn(hash, payload.fqdn);
-						payload.parent_fqdn = this._fqdn;
-						logger.debug(`authorizeEntity() resolving`, payload);
-						resolve(payload);
-					}).catch(reject);
-
-				}).catch(reject);
+			this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
+				//dataService.updateRegistrationFqdn(hash, payload.fqdn);
+				payload.parent_fqdn = this._fqdn;
+				logger.debug(`authorizeEntity() resolving`, payload);
+				resolve(payload);
+			}).catch(reject);
+				// let hash = authToken.signedData.data;
+				//
+				// dataService.findRegistrationRecordByHash(hash).then(record=> {
+				// 	if (record) {
+				// 		if (record.completed) {
+				// 			reject('Registration already completed');
+				// 			return;
+				// 		}
+				//
+				// 		metadata.name  = record.name;
+				// 		metadata.email = record.email;
+				// 		metadata.agree = record.agree;
+				// 		metadata.src   = record.source;
+				// 	}
+				// 	else {
+				// 		metadata.parent_fqdn = this._fqdn;
+				// 		metadata.src         = config.RegistrationSource.Unknown;
+				// 	}
+				//
+				// 	metadata.userAgent = userAgent;
+				//
+				//
+				//
+				// }).catch(reject);
 			}
 		);
 	}

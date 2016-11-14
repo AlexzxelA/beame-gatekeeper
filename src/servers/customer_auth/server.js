@@ -29,11 +29,17 @@ class CustomerAuthServer {
 		this._server = null;
 	}
 
-	start() {
+	/**
+	 * @param {Function|null} [cb]
+	 */
+	start(cb) {
 		beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
+
 			logger.debug(`Customer authorization server started on ${this._fqdn} `);
 
 			this._server = app;
+
+			cb && cb(app)
 
 		});
 	}

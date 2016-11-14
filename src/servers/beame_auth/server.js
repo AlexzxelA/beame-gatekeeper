@@ -3,30 +3,40 @@
  */
 
 "use strict";
+const async = require('async');
+
 
 const path = require('path');
 
 const utils = require('../../utils');
 
 
-const router     = require('../../routers/beame_auth');
+const Router     = require('../../routers/beame_auth');
 const public_dir = path.join(__dirname, '..', '..', '..', 'public');
 
-const beameSDK    = require('beame-sdk');
-const module_name = "BeameAuthServer";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
+const beameSDK     = require('beame-sdk');
+const module_name  = "BeameAuthServer";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const AuthServices = require('./authServices');
 
 class BeameAuthServer {
 
 	/**
 	 *
 	 * @param {String} fqdn
+	 * @param {String} matchingServerFqdn
 	 * @param {Router|null} [app]
 	 */
-	constructor(fqdn, app) {
-		this._fqdn   = fqdn;
-		this._app    = app || utils.setExpressApp(router, public_dir);
+	constructor(fqdn, matchingServerFqdn, app) {
+		this._fqdn = fqdn;
+
+		this._matchingServerFqdn = matchingServerFqdn;
+
+		this._authServices = new AuthServices(this._fqdn);
+
+		this._app = app || utils.setExpressApp((new Router(this._authServices)).router, public_dir);
+
 		this._server = null;
 	}
 
@@ -34,12 +44,41 @@ class BeameAuthServer {
 	 * @param {Function|null} [cb]
 	 */
 	start(cb) {
-		beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
-			logger.debug(`Beame authorization server started on ${this._fqdn} `);
 
-			this._server = app;
+		async.parallel([
+			callback=> {
+				beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
+						logger.debug(`Beame authorization server started on ${this._fqdn} `);
 
-			cb && cb(app);
+						this._server = app;
+
+						callback(null, true);
+					}, error=> {
+						callback(error, null)
+					}
+				);
+
+			},
+			callback => {
+				const WhispererServer = require('BeameWhisperer').Server;
+				const WhispererMode   = require('BeameWhisperer').WhispererMode;
+				let whispererServer   = new WhispererServer(
+					WhispererMode.PROVISION,
+					this._fqdn,
+					this._matchingServerFqdn,
+					this._app,
+					this._authServices,
+					60000);
+
+				whispererServer.start(callback);
+			}
+		], error=> {
+			if (error) {
+				cb && cb(error, null);
+				return;
+			}
+
+			cb && cb(null, this._server);
 		});
 	}
 

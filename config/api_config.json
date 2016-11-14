@@ -1,0 +1,21 @@
+{
+    "BaseUrl": "https://prov-staging.beameio.net",
+    "Actions": {
+        "Edge": {
+            "Register": {
+                "endpoint": "/api/v1/edge/register"
+            }
+        },
+        "Entity": {
+            "Register": {
+                "endpoint": "/api/v1/node/register"
+            },
+            "Subscribe": {
+                "endpoint": "/api/v1/node/subscribe"
+            },
+            "Unsubscribe": {
+                "endpoint": "/api/v1/node/unsubscribe"
+            }
+        }
+    }
+}

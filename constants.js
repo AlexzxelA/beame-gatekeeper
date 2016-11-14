@@ -45,7 +45,8 @@ const CredentialType = {
 	GatewayServer:            "GatewayServer",
 	BeameAuthorizationServer: "BeameAuthorizationServer",
 	MatchingServer:           "MatchingServer",
-	AdminServer:              "AdminServer"
+	AdminServer:              "AdminServer",
+	CustomerAuthServer:"CustomerAuthServer"
 };
 
 
