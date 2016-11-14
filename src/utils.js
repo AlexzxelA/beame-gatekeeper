@@ -19,15 +19,16 @@ function setExpressApp(router, staticDir) {
 
 	if (staticDir) {
 		app.use(express.static(staticDir));
+		setExpressAppCommonRoutes(app);
 	}
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
 	app.use('/', router);
-	app.use("*", function (req, res) {
+	app.use("*",  (req, res) => {
 		res.status(404).send('404');
 	});
 
-	setExpressAppCommonRoutes(app);
+
 
 	return app;
 }
