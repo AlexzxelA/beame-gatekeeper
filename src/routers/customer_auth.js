@@ -17,29 +17,17 @@ router.get('/register',  (req, res) => {
 });
 
 
-router.route('/save')
+router.route('/register/save')
 	.post((req, res) => {
 
-		/** @type {RegistrationData} */
-		// let data       = {
-		// 	email: req.body['email'],
-		// 	name:  req.body['name'],
-		// 	agree: req.body['agree'] ? true : false,
-		// 	src : parseInt(req.body['src']) || config.RegistrationSource.Unknown
-		// };
+		let data       = {
+			email: req.body['email'],
+			name:  req.body['name'],
+			user_id: req.body['user_id']
+		};
 
-		// authServices.saveRegistration(data, true).then(()=> {
-		//
-		// 	return res.json({
-		// 		"responseCode": 0,
-		// 		"responseDesc": "Please check your email and continue the registration process"
-		// 	});
-		// }).catch(error=> {
-		// 	return res.json({
-		// 		"responseCode": 1,
-		// 		"responseDesc": BeameLogger.formatError(error) || 'Oooops. Unexpected error. Please try again'
-		// 	});
-		// });
+		console.log(data);
+
 	});
 
 
