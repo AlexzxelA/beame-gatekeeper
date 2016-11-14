@@ -55,10 +55,6 @@ const CredsConfigTemplate = {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.CustomerAuthorizationServer]: {
-		fqdn:   "",
-		server: false
-	},
 	[Servers.BeameAuthorizationServer]:    {
 		fqdn:   "",
 		server: true
@@ -71,17 +67,18 @@ const CredsConfigTemplate = {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.WhispererServer]:             {
-		fqdn:   "",
-		server: true
-	},
 	Users:                                 {}
+};
+
+const CustomerAuthServersTemplate = {
+	"Servers":[]
 };
 
 module.exports = {
 	ConfigProps,
 
 	CredsConfigTemplate,
+	CustomerAuthServersTemplate,
 	SqliteConfigTemplate,
 
 	db_provider,

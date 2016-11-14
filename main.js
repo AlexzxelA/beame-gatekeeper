@@ -125,6 +125,53 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 	commandHandled = true;
 }
 
+if(args._[0] == 'setAuthServer'){
+
+	let fqdn = args['fqdn'];
+
+	if(!fqdn){
+		logger.error(`fqdn required`);
+		process.exit(1)
+	}
+
+	bootstrapper.registerCustomerAuthServer(fqdn).then(() =>{
+		process.exit(0);
+	}).catch(error=>{
+		logger.error(BeameLogger.formatError(error));
+		process.exit(1);
+	});
+
+
+	commandHandled = true;
+}
+
+if(args._[0] == 'initConfig'){
+
+
+	bootstrapper.initAll().then(() =>{
+		process.exit(0);
+	}).catch(error=>{
+		logger.error(BeameLogger.formatError(error));
+		process.exit(1);
+	});
+
+
+	commandHandled = true;
+}
+
+if(args._[0] == 'createServersCreds'){
+
+	credentialManager.createServersCredentials().then(() =>{
+		process.exit(0);
+	}).catch(error=>{
+		logger.error(BeameLogger.formatError(error));
+		process.exit(1);
+	});
+
+
+	commandHandled = true;
+}
+
 if (!commandHandled) {
 	console.error(`Unknown command: ${args._[0]}`);
 	process.exit(1);

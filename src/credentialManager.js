@@ -38,7 +38,7 @@ class CredentialManager {
 
 					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this)).then(()=> {
 
-						this._bootstrapper.updateCredsFqdn(Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer), Constants.CredentialType.CustomerAuthorizationServer).then(()=> {
+						this._bootstrapper.registerCustomerAuthServer(Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(()=> {
 							resolve(metadata);
 						}).catch(error => {
 							logger.error(BeameLogger.formatError(error));

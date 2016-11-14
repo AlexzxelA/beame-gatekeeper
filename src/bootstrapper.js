@@ -23,16 +23,20 @@ const CommonUtils = beameSDK.CommonUtils;
 const DirectoryServices = beameSDK.DirectoryServices;
 const dirServices       = new DirectoryServices();
 
-const Constants = require('../constants');
-const DbProviders   = Constants.DbProviders;
+const Constants   = require('../constants');
+const DbProviders = Constants.DbProviders;
 
-const AppConfigFileName      = Constants.AppConfigFileName;
-const CredsFileName          = Constants.CredsFileName;
+const AppConfigFileName           = Constants.AppConfigFileName;
+const CredsFileName               = Constants.CredsFileName;
+const CustomerAuthServersFileName = Constants.CustomerAuthServersFileName;
+
 const SqliteDbConfigFileName = Constants.SqliteDbConfigFileName;
 const BeameRootPath          = Constants.BeameRootPath;
 
-const CredsFolderPath      = Constants.CredsFolderPath;
-const CredsJsonPath        = Constants.CredsJsonPath;
+const CredsFolderPath             = Constants.CredsFolderPath;
+const CredsJsonPath               = Constants.CredsJsonPath;
+const CustomerAuthServersJsonPath = Constants.CustomerAuthServersJsonPath;
+
 const ConfigFolderPath     = Constants.ConfigFolderPath;
 const AppConfigJsonPath    = Constants.AppConfigJsonPath;
 const SqliteConfigJsonPath = Constants.SqliteConfigJsonPath;
@@ -69,7 +73,7 @@ class Bootstrapper {
 	initConfig(exit) {
 
 		return new Promise((resolve) => {
-				Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureCredsConfigJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(()=> {
+				Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureCredsConfigJson.bind(this)).then(this._ensureCustomerAuthServersJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(()=> {
 					logger.info(`Beame-insta-server config files ensured`);
 					resolve();
 					if (exit) {
@@ -325,6 +329,74 @@ class Bootstrapper {
 
 				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig)).then(()=> {
 					logger.debug(`${CredsFileName} saved in ${path.dirname(CredsJsonPath)}...`);
+					resolve();
+				}).catch(reject);
+
+			}
+		);
+	}
+
+	//endregion
+
+	// region Customer Auth servers config
+	registerCustomerAuthServer(fqdn) {
+		return new Promise((resolve, reject) => {
+				if (!fqdn) {
+					reject(`fqdn required`);
+					return;
+				}
+
+				let servers = DirectoryServices.readJSON(CustomerAuthServersJsonPath);
+
+				if (CommonUtils.isObjectEmpty(servers)) {
+					reject(`customer auth servers configuration file not found`);
+					return;
+				}
+
+				servers.Servers.push(fqdn);
+
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers)).then(()=> {
+					logger.info(`${fqdn} added to authorized customer servers...`);
+					resolve();
+				}).catch(reject);
+			}
+		);
+	}
+
+
+	/**
+	 * @returns {Promise}
+	 * @private
+	 */
+	_ensureCustomerAuthServersJson() {
+		return new Promise((resolve) => {
+				logger.debug(`ensuring ${CustomerAuthServersFileName}...`);
+
+				let isExists = DirectoryServices.doesPathExists(CustomerAuthServersJsonPath);
+
+				if (isExists) {
+					logger.debug(`${CredsFileName} found...`);
+					resolve();
+				}
+				else {
+					this._createCustomerAuthServersJson().then(resolve).catch(__onConfigError);
+				}
+			}
+		);
+	}
+
+	/**
+	 ** @returns {Promise}
+	 * @private
+	 */
+	_createCustomerAuthServersJson() {
+
+		return new Promise((resolve, reject) => {
+				let credsConfig = defaults.CustomerAuthServersTemplate;
+
+
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig)).then(()=> {
+					logger.debug(`${CustomerAuthServersFileName} saved in ${path.dirname(CustomerAuthServersJsonPath)}...`);
 					resolve();
 				}).catch(reject);
 

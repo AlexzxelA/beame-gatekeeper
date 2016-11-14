@@ -14,16 +14,18 @@ const BeameRootPath            = path.join(home, beame_server_folder_name);
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
 
-const AppConfigFileName      = "app_config.json";
-const CredsFileName          = "creds.json";
-const SqliteDbConfigFileName = "sqlite_config.json";
+const AppConfigFileName           = "app_config.json";
+const CredsFileName               = "creds.json";
+const CustomerAuthServersFileName = "auth_servers.json";
+const SqliteDbConfigFileName      = "sqlite_config.json";
 
 
-const CredsFolderPath      = path.join(BeameRootPath, CredsConfigFolder);
-const CredsJsonPath        = path.join(BeameRootPath, CredsConfigFolder, CredsFileName);
-const ConfigFolderPath     = path.join(BeameRootPath, ConfigFolder);
-const AppConfigJsonPath    = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
-const SqliteConfigJsonPath = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
+const CredsFolderPath             = path.join(BeameRootPath, CredsConfigFolder);
+const CredsJsonPath               = path.join(BeameRootPath, CredsConfigFolder, CredsFileName);
+const CustomerAuthServersJsonPath = path.join(BeameRootPath, CredsConfigFolder, CustomerAuthServersFileName);
+const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
+const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
+const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
 
 /**
  * Registration sources
@@ -39,13 +41,11 @@ const RegistrationSource = {
 };
 
 const CredentialType = {
-	ZeroLevel:                   "ZeroLevel",
-	GatewayServer:               "GatewayServer",
-	CustomerAuthorizationServer: "CustomerAuthorizationServer",
-	BeameAuthorizationServer:    "BeameAuthorizationServer",
-	MatchingServer:              "MatchingServer",
-	AdminServer:                 "AdminServer",
-	WhispererServer:             "WhispererServer"
+	ZeroLevel:                "ZeroLevel",
+	GatewayServer:            "GatewayServer",
+	BeameAuthorizationServer: "BeameAuthorizationServer",
+	MatchingServer:           "MatchingServer",
+	AdminServer:              "AdminServer"
 };
 
 
@@ -63,10 +63,12 @@ module.exports = {
 
 	AppConfigFileName,
 	CredsFileName,
+	CustomerAuthServersFileName,
 	SqliteDbConfigFileName,
 
 	CredsFolderPath,
 	CredsJsonPath,
+	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
 	AppConfigJsonPath,
 	SqliteConfigJsonPath
