@@ -58,7 +58,7 @@ app.post('/register/save', (req, res) => {
 				reject(`Failed getting signing credential ${signingFqdn}`);
 			});
 		});
-	};
+	}
 
 	function getEncryptToCred([signingFqdn, signingCred]) {
 		return new Promise((resolve, reject) => {
@@ -68,7 +68,7 @@ app.post('/register/save', (req, res) => {
 				reject(`Failed getting encrypt-to credential ${encryptTo}`);
 			});
 		});
-	};
+	}
 
 	function process([signingFqdn, signingCred, encryptToCred]) {
 		// TODO: move 600 to config
