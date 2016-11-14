@@ -12,6 +12,16 @@
 * ... ( provisioning flow ) ...
 * Authorization server receives end-of-provisioning notification and records admin
 
+# Registration flow
+* Browser surfs to customer authorization server
+* Customer authorization server - does custom things to authenticate the user
+* Customer authorization server sends user data (name, email, external user id) to gateway server
+* Gateway server sends (via customer authorization server): URL for accessing registration server (URL has proxying token + encrypted user data)
+* Browser redirects to given URL (gateway server entry point)
+* Gateway server processes proxying token and sets proxying-enabler-session-cookie
+* Browser redirects to given URL (gateway server which proxies to authorization service)
+
+
 # Login flow
 
 * Browser navigates to Gateway Server
