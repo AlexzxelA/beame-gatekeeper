@@ -1,10 +1,20 @@
 'use strict';
 
 const socket_io   = require('socket.io');
+const beameSDK    = require('beame-sdk');
+const BeameStore  = new beameSDK.BeameStore();
 
+// TODO: Session renewal?
 const messageHandlers = {
 	'auth': function(payload) {
+		// TODO: check which token
 		// TODO: return apps list + session token
+	},
+	'choose': function(payload) {
+		// Choose application - redirect app switchig URL on GW, auth token in URL
+	},
+	'logout': function(payload) {
+		// Redirect to cookie removing URL on GW
 	}
 };
 
