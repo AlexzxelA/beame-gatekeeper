@@ -4,6 +4,8 @@ const https       = require('https');
 const querystring = require('querystring');
 const url         = require('url');
 
+const express     = require('express');
+
 const httpProxy   = require('http-proxy');
 
 const beameSDK       = require('beame-sdk');
@@ -12,6 +14,9 @@ const BeameStore  = new beameSDK.BeameStore();
 
 const socket_io   = require('socket.io');
 
+const unauthenticatedApp = express();
+
+// unauthenticatedApp.use(express.static(path.join(__dirname, )));
 
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
@@ -47,8 +52,8 @@ proxy.on('error', (err, req, res) => {
 // Extracts URL token either from URL or from Cookie
 function extractAuthToken(req) {
 	// XXX: temp
-	return {'name': 'svc1'};
-	return 'INVALID';
+	// return {'name': 'svc1'};
+	// return 'INVALID';
 	return null;
 }
 
@@ -76,7 +81,7 @@ function proxyRequestToAuthServer(req, res) {
 
 function handleRequest(req, res) {
 
-	console.log(req.url);
+	// console.log(req.url);
 
 	// ---------- Beame services - no cookie token involved ----------
 	// These will move to Socket.IO
@@ -108,11 +113,7 @@ function handleRequest(req, res) {
 	}
 
 	if (!authToken) {
-		// Must get some authorization
-		// proxyRequestToAuthServer(req, res);
-		if(req.url == '/') {
-			// Show "sign in / sign up" page
-		}
+		unauthenticatedApp(req, res);
 		return;
 	}
 
