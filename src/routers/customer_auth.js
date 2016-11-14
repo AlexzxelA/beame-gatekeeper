@@ -30,9 +30,9 @@ app.post('/register/save', (req, res) => {
 			name:  req.body['name'],
 			user_id: req.body['user_id']
 		},
-	    isAuthenticated = isAuthenticated(data);
+	    auth_ok = isAuthenticated(data);
 
-		if(isAuthenticated){
+		if(auth_ok){
 
 			//TODO add call to GW here
 

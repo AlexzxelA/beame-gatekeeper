@@ -8,6 +8,7 @@ const url         = require('url');
 const express     = require('express');
 const httpProxy   = require('http-proxy');
 const socket_io   = require('socket.io');
+const bodyParser  = require('body-parser');
 
 const beameSDK    = require('beame-sdk');
 const ProxyClient = beameSDK.ProxyClient;
@@ -20,7 +21,12 @@ const unauthenticatedApp = express();
 
 unauthenticatedApp.use(express.static(path.join(__dirname, '..', '..', '..', 'public', 'pages', 'gw'), {index: 'welcome.html'}));
 utils.setExpressAppCommonRoutes(unauthenticatedApp);
+
+// Customer authorization app - start
+unauthenticatedApp.use(bodyParser.json());
+unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 unauthenticatedApp.use(cust_auth_app);
+// Customer authorization app - end
 
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
