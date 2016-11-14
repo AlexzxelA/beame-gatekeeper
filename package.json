@@ -28,6 +28,8 @@
   },
   "homepage": "https://github.com/beameio/beame-insta-server#readme",
   "dependencies": {
+    "BeameMatchingServer": "git+https://github.com/beameio/BeameMatchingServer.git",
+    "BeameWhisperer": "git+https://github.com/beameio/BeameWhisperer.git",
     "async": "^2.1.2",
     "beame-sdk": "https://github.com/beameio/beame-sdk.git",
     "body-parser": "^1.15.2",
