@@ -1,36 +1,17 @@
 "use strict";
 
 const https       = require('https');
-const path        = require('path');
 const querystring = require('querystring');
 const url         = require('url');
 
-const express     = require('express');
 const httpProxy   = require('http-proxy');
 const socket_io   = require('socket.io');
-const bodyParser  = require('body-parser');
 
 const beameSDK    = require('beame-sdk');
 const ProxyClient = beameSDK.ProxyClient;
 const BeameStore  = new beameSDK.BeameStore();
-const utils       = require('../../utils');
 
-const cust_auth_app  = require('../../routers/customer_auth');
-
-const unauthenticatedApp = express();
-
-// TODO: refactor - start
-
-unauthenticatedApp.use(express.static(path.join(__dirname, '..', '..', '..', 'public', 'pages', 'gw'), {index: 'welcome.html'}));
-utils.setExpressAppCommonRoutes(unauthenticatedApp);
-
-// Customer authorization app - start
-unauthenticatedApp.use(bodyParser.json());
-unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
-unauthenticatedApp.use(cust_auth_app);
-// Customer authorization app - end
-
-// TODO: refactor - end
+const unauthenticatedApp = require('./unauthenticatedApp');
 
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends

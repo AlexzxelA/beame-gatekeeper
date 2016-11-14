@@ -34,16 +34,26 @@ app.post('/register/save', (req, res) => {
 
 		if(auth_ok){
 
-			//TODO add call to GW here
-
 			const Bootstrapper = require('../bootstrapper');
 			const Constants    = require('../../constants');
+			const beameSDK     = require('beame-sdk');
+			const BeameStore   = new beameSDK.BeameStore();
 
-			return res.json({
-				"url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
-				"responseCode": 0,
-				"responseDesc": "Please check your email and continue the registration process"
+			//TODO add call to GW here
+			const encryptTo = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+			const signingFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.CustomerAuthorizationServer);
+			console.log('encryptTo', encryptTo);
+
+			BeameStore.find(encryptTo, false).then(encryptToCred => {
+				// TODO: Add timestamp? Maybe use Token?
+				// encryptToCred(signingFqdn, JSON.stringify(data), ...);
+				return res.json({
+					"url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
+					"responseCode": 0,
+					"responseDesc": "Please check your email and continue the registration process"
+				});
 			});
+
 		}
 		else{
 			return res.json({
