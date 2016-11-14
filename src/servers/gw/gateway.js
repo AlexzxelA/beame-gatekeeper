@@ -82,7 +82,7 @@ function proxyRequestToAuthServer(req, res) {
 
 function handleRequest(req, res) {
 
-	// console.log(req.url);
+	console.log('[GW] handleRequest', req.url);
 
 	// ---------- Beame services - no cookie token involved ----------
 	// These will move to Socket.IO
@@ -132,14 +132,6 @@ function handleRequest(req, res) {
 	});
 }
 
-function handleSocketIoConnect(client) {
-	// Browser controller will connect here
-	client.on('data', data => {
-		console.log('DATA', data);
-
-	});
-}
-
 // Starts HTTPS server
 /**
  * @param {Credential} cert
@@ -150,9 +142,7 @@ function startRequestsHandler(cert) {
 	return new Promise((resolve, reject) => {
 		var serverCerts = cert.getHttpsServerOptions();
 		const server = https.createServer(serverCerts, handleRequest);
-		/** @type {Socket} */
-		const io = socket_io(server);
-		io.on('connection', handleSocketIoConnect);
+		require('./browser_controller_socketio_api').start(server);
 		server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
 			const port = server.address().port;
 			console.log(`beame-insta-server listening port ${port}`);

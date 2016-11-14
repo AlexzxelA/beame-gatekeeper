@@ -3,6 +3,7 @@
  */
 "use strict";
 
+const bodyParser      = require('body-parser');
 const https           = require('https');
 const express         = require('express');
 const path            = require('path');
@@ -14,8 +15,7 @@ const path            = require('path');
  * @returns {Router}
  */
 function setExpressApp(router, staticDir) {
-	const bodyParser = require('body-parser');
-	let app          = express();
+	let app    = express();
 
 	if (staticDir) {
 		app.use(express.static(staticDir));
