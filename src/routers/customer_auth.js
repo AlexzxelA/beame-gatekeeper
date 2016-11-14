@@ -35,6 +35,9 @@ router.route('/register/save')
 	    isAuthenticated = isAuthenticated(data);
 
 		if(isAuthenticated){
+
+			//TODO add call to GW here
+
 			const Bootstrapper = require('../bootstrapper');
 			const Constants    = require('../../constants');
 
