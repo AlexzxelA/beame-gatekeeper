@@ -9,7 +9,7 @@ const messageHandlers = {
 };
 
 function sendError(client, error) {
-	client.emit('data', JSON.stringify({type: 'error', payload: error});
+	client.emit('data', JSON.stringify({type: 'error', payload: error}));
 }
 
 function onConnection(client) {
