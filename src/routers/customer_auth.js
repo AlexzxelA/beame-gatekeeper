@@ -5,13 +5,12 @@
 
 const path    = require('path');
 const request = require('request');
-const express      = require('express');
-const router       = express.Router();
+const express = require('express');
+const app     = express();
 
 const public_dir =  path.join(__dirname, '..', '..',  'public');
 
 const base_path = path.join(public_dir, 'pages', 'customer_auth');
-
 
 function isAuthenticated(data) {
 	//ADD CUSTOM LOGIC
@@ -19,13 +18,12 @@ function isAuthenticated(data) {
 	return true;
 }
 
-router.get('/register',  (req, res) => {
-	res.sendFile(path.join(base_path,'register.html'));
+app.get('/register',  (req, res) => {
+	res.sendFile(path.join(base_path, 'register.html'));
 });
 
 
-router.route('/register/save')
-	.post((req, res) => {
+app.post('/register/save', (req, res) => {
 
 		let data       = {
 			email: req.body['email'],
@@ -54,9 +52,7 @@ router.route('/register/save')
 			});
 		}
 
+});
 
 
-	});
-
-
-module.exports = router;
+module.exports = app;
