@@ -38,6 +38,8 @@ class BeameAuthServer {
 		this._app = app || utils.setExpressApp((new Router(this._authServices)).router, public_dir);
 
 		this._server = null;
+
+		this._whisperereServer = null;
 	}
 
 	/**
@@ -70,7 +72,15 @@ class BeameAuthServer {
 					this._authServices,
 					60000);
 
-				whispererServer.start(callback);
+				whispererServer.start((err, whisperer)=> {
+					if (!err) {
+						this._whisperereServer = whisperer;
+						callback();
+						return;
+					}
+
+					callback(err);
+				});
 			}
 		], error=> {
 			if (error) {
@@ -88,6 +98,11 @@ class BeameAuthServer {
 		if (this._server) {
 			this._server.close();
 			this._server = null;
+		}
+
+		if (this._whisperereServer) {
+			this._whisperereServer.close();
+			this._whisperereServer = null;
 		}
 	}
 }

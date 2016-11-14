@@ -26,7 +26,7 @@ class ServersManager {
 		}
 
 		this._settings = serversSettings;
-		this._servers = {};
+		this._servers  = {};
 	}
 
 	start() {
@@ -47,14 +47,14 @@ class ServersManager {
 
 					let customer_auth_server = new CustomerAuthServer(this._settings.GatewayServer.fqdn);
 
-					customer_auth_server.start((error,app)=>{
-							if(!error){
-								this._servers[Constants.CredentialType.CustomerAuthServer] = app;
-								callback()
-							}
-							else {
-								callback(error);
-							}
+					customer_auth_server.start((error, app)=> {
+						if (!error) {
+							this._servers[Constants.CredentialType.CustomerAuthServer] = app;
+							callback()
+						}
+						else {
+							callback(error);
+						}
 					});
 
 				},
@@ -64,10 +64,27 @@ class ServersManager {
 
 					let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
 
-					beame_auth_server.start((error,app)=>{
-						if(!error){
+					beame_auth_server.start((error, app) => {
+						if (!error) {
 							this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
 							callback()
+						}
+						else {
+							callback(error);
+						}
+					});
+				},
+
+				callback => {
+
+					const MatchingServer = require('BeameMatchingServer').Server;
+
+					let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn);
+
+					matching_server.start((error, app)=> {
+						if (!error) {
+							this._servers[Constants.CredentialType.MatchingServer] = app;
+							callback();
 						}
 						else {
 							callback(error);
@@ -77,7 +94,14 @@ class ServersManager {
 			],
 			error => {
 				if (error) {
-					//Object.key()
+					for(let type in this._servers){
+						//noinspection JSUnfilteredForInLoop
+						let server = this._servers[type];
+
+						if(server.stop && typeof  server.stop == "function"){
+							server.stop();
+						}
+					}
 				}
 			});
 
