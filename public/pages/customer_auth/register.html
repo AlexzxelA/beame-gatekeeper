@@ -111,10 +111,7 @@
         document.getElementById("overlay").style.display = "none";
     }
     function showSuccess(response) {
-        document.getElementById("register_form").style.display = "none";
-        document.getElementById("overlay-success").style.display = "block";
-        document.getElementById("success-message").innerHTML = response.responseDesc;
-        document.getElementById("overlay").style.display = "none";
+       window.location.href = response.url;
     }
 
     $(document).ready(function () {

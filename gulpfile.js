@@ -7,7 +7,7 @@ const gulp = require('gulp');
 const sass = require('gulp-sass');
 const rename = require("gulp-rename");
 
-gulp.task('gw_sass', function () {
+gulp.task('app_sass', function () {
 	gulp.src('./public/scss/app.scss')
 		.pipe(sass().on('error', (err) => {
 			console.error(' gulp sass error ',err);
