@@ -11,6 +11,9 @@ const unauthenticatedApp = express();
 // TODO: refactor - start
 
 unauthenticatedApp.use(express.static(path.join(__dirname, '..', '..', '..', 'public', 'pages', 'gw'), {index: 'welcome.html'}));
+unauthenticatedApp.get('/signin', (req, res) => {
+	res.sendFile(path.join(__dirname, '..', '..', '..', 'public', 'pages', 'gw', 'signin.html'));
+});
 utils.setExpressAppCommonRoutes(unauthenticatedApp);
 
 // Customer authorization app - start
