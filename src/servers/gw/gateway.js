@@ -19,6 +19,8 @@ const cust_auth_app  = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
 
+// TODO: refactor - start
+
 unauthenticatedApp.use(express.static(path.join(__dirname, '..', '..', '..', 'public', 'pages', 'gw'), {index: 'welcome.html'}));
 utils.setExpressAppCommonRoutes(unauthenticatedApp);
 
@@ -27,6 +29,8 @@ unauthenticatedApp.use(bodyParser.json());
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 unauthenticatedApp.use(cust_auth_app);
 // Customer authorization app - end
+
+// TODO: refactor - end
 
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
