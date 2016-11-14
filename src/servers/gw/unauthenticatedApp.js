@@ -3,7 +3,7 @@ const path = require('path');
 const express    = require('express');
 const bodyParser = require('body-parser');
 
-const public_dir = path.join(__dirname, '..', '..',  'public');
+const public_dir = path.join(__dirname, '..', '..', '..', 'public');
 const base_path  = path.join(public_dir, 'pages', 'gw');
 
 const utils         = require('../../utils');
