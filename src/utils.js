@@ -3,9 +3,9 @@
  */
 "use strict";
 
-const bodyParser      = require('body-parser');
 const https           = require('https');
 const express         = require('express');
+const path            = require('path');
 
 /**
  *
@@ -14,7 +14,8 @@ const express         = require('express');
  * @returns {Router}
  */
 function setExpressApp(router, staticDir) {
-	let app    = express();
+	const bodyParser = require('body-parser');
+	let app          = express();
 
 	if (staticDir) {
 		app.use(express.static(staticDir));
@@ -26,10 +27,18 @@ function setExpressApp(router, staticDir) {
 		res.status(404).send('404');
 	});
 
+	setExpressAppCommonRoutes(app);
+
 	return app;
+}
+
+function setExpressAppCommonRoutes(app) {
+	app.use('/css', express.static(path.join(__dirname, '..', 'public', 'css')));
+	app.use('/img', express.static(path.join(__dirname, '..', 'public', 'img')));
 }
 
 
 module.exports ={
-	setExpressApp
+	setExpressApp,
+	setExpressAppCommonRoutes
 };
