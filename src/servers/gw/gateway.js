@@ -16,6 +16,8 @@ const BeameStore  = new beameSDK.BeameStore();
 const unauthenticatedApp = express();
 
 unauthenticatedApp.use(express.static(path.join(__dirname, '..', '..', '..', 'public', 'pages', 'gw'), {index: 'welcome.html'}));
+unauthenticatedApp.use('/css', express.static(path.join(__dirname, '..', '..', '..', 'public', 'css')));
+unauthenticatedApp.use('/img', express.static(path.join(__dirname, '..', '..', '..', 'public', 'img')));
 
 const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
