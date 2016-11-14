@@ -19,7 +19,6 @@ function setExpressApp(router, staticDir) {
 
 	if (staticDir) {
 		app.use(express.static(staticDir));
-		setExpressAppCommonRoutes(app);
 	}
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
