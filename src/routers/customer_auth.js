@@ -70,15 +70,46 @@ app.post('/register/save', (req, res) => {
 		});
 	}
 
-	function process([signingFqdn, signingCred, encryptToCred]) {
+	function getRedirectUrl([signingFqdn, signingCred, encryptToCred]) {
 		// TODO: move 600 to config
-		const tokenWithUserData = AuthToken.create(JSON.stringify(data), signingCred, 600);
-		const encryptedData = encryptToCred.encrypt(encryptTo, JSON.stringify(tokenWithUserData), signingFqdn);
-		console.log('encryptedData', encryptedData);
-		return res.json({
-			"url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
-			"responseCode": 0,
-			"responseDesc": "Please check your email and continue the registration process"
+		return new Promise((resolve, reject) => {
+			const tokenWithUserData = AuthToken.create(JSON.stringify(data), signingCred, 600);
+			const encryptedData = encryptToCred.encrypt(encryptTo, JSON.stringify(tokenWithUserData), signingFqdn);
+			console.log('encryptedData', encryptedData);
+			// TODO: unhardcode URL and timeout below
+			const url = `https://${encryptTo}/customer-auth-done`;
+			// const url = `http://127.0.0.1:50000`;
+			request.post(
+				url,
+				{
+					json: {encryptedUserData: encryptedData},
+					timeout: 10000
+				},
+				function (error, response, body) {
+					if (error) {
+						console.log('getRedirectUrl error', error);
+						reject(`Failed to get redirect URL: ${error} at ${url}`);
+						return;
+					}
+					if (response.statusCode != 200) {
+						console.log('getRedirectUrl error (body)', body);
+						reject(`Failed to get redirect URL: ${body} at ${url}`);
+						return;
+					}
+					console.log('getRedirectUrl response', response);
+				}
+			);
+
+		});
+	}
+
+	function redirect(url) {
+		return new Promise((resolve, reject) => {
+			return res.json({
+				"url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
+				"responseCode": 0,
+				"responseDesc": "Please check your email and continue the registration process"
+			});
 		});
 	}
 
@@ -95,7 +126,8 @@ app.post('/register/save', (req, res) => {
 		.then(getSigningFqdn)
 		.then(getSigningCred)
 		.then(getEncryptToCred)
-		.then(process)
+		.then(getRedirectUrl)
+		.then(redirect)
 		.catch(sendError);
 
 });
