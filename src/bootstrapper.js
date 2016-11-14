@@ -363,6 +363,12 @@ class Bootstrapper {
 		);
 	}
 
+	static listCustomerAuthServers() {
+		return new Promise((resolve, reject) => {
+			resolve(DirectoryServices.readJSON(CustomerAuthServersJsonPath).Servers);
+		});
+	}
+
 
 	/**
 	 * @returns {Promise}
