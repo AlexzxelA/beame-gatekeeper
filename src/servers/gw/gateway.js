@@ -1,8 +1,12 @@
 "use strict";
 
+// Iz govna i palok
+// TODO: Go over all todo and XXX and fix
+
 const https       = require('https');
 const querystring = require('querystring');
 const url         = require('url');
+const cookie      = require('cookie');
 
 const httpProxy   = require('http-proxy');
 const socket_io   = require('socket.io');
@@ -51,7 +55,18 @@ function extractAuthToken(req) {
 	// XXX: temp
 	// return {'name': 'svc1'};
 	// return 'INVALID';
-	return null;
+	console.log('ET 0');
+	if(!req.headers.cookie) {
+		return null;
+	}
+	const cookies = cookie.parse(req.headers.cookie);
+	console.log('REQ COOK', cookies);
+	if(!cookies.proxy_enabling_token) {
+		return null;
+	}
+	// XXX: Validate proxy_enabling_token
+	const ret = JSON.parse(JSON.parse(cookies.proxy_enabling_token).signedData.data);
+	return JSON.parse(ret);
 }
 
 function addBeameHeaders(req) {
@@ -103,6 +118,7 @@ function handleRequest(req, res) {
 	// ---------- Proxied services - use cookie token ----------
 
 	const authToken = extractAuthToken(req);
+	console.log('handleRequest PT 0', authToken);
 
 	if (authToken == 'INVALID') {
 		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});
@@ -114,6 +130,14 @@ function handleRequest(req, res) {
 		return;
 	}
 
+	console.log('handleRequest PT 1', authToken.url);
+	if(authToken.url) {
+		console.log(`Proxying to authToken.url ${authToken.url}`);
+		proxy.web(req, res, {target: authToken.url});
+		// proxy.web(req, res, {target: 'http://google.com'});
+	}
+
+	/*
 	// If have have the token, we're proxying to an application
 	// TODO: make sure this .then() does not leak - getServicesList is singleton
 	// TODO: get only specific service, might be changed to talk to external DB
@@ -123,9 +147,9 @@ function handleRequest(req, res) {
 			return;
 		}
 		addBeameHeaders(req);
-		proxy.web(req, res, {target: services[authToken].url});
 		// TODO: set cookie to carry token
 	});
+	 */
 }
 
 // Starts HTTPS server

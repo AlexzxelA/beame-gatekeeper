@@ -33,6 +33,7 @@
     "async": "^2.1.2",
     "beame-sdk": "git+ssh://git@github.com/beameio/beame-sdk.git",
     "body-parser": "^1.15.2",
+    "cookie": "0.3.1",
     "express": "^4.14.0",
     "http-proxy": "^1.15.1",
     "minimist": "^1.2.0",
