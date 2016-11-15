@@ -4,16 +4,26 @@
 "use strict";
 
 /**
+ * @typedef {Object} ProvisionRegistrationToken
+ * @property {String} name
+ * @property {String} email
+ * @property {String} parent_fqdn
+ * @property {String} edge_fqdn
+ * @property {String} userAgent
+ */
+
+/**
  * @typedef {Object} RegistrationData
  * @property {String} name
  * @property {String} email
  * @property {String} userId
  * @property {String} pin
+ * @property {String} fqdn
  */
 
 
 const apiConfig        = require('../../../config/api_config.json');
-
+const Constants        = require('../../../constants');
 const beameSDK         = require('beame-sdk');
 const module_name      = "BeameAuthServices";
 const BeameLogger      = beameSDK.Logger;
@@ -51,29 +61,33 @@ class BeameAuthServices {
 	//region Entity registration
 	/**
 	 * @param {RegistrationData} data
+	 * @param {boolean} createAuthToken
 	 * @returns {Promise}
 	 */
-	saveRegistration(data) {
+	saveRegistration(data, createAuthToken = false) {
 
 		return new Promise((resolve, reject) => {
 				dataService.saveRegistration(data).then(registrationId => {
 
-					let dataToSign = {
-						    email: data.email,
-						    name:  data.name,
-						    rand:  CommonUtils.randomBytes()
-					    },
-					    authToken  = this._signData(dataToSign);
+					if (createAuthToken) {
+						let dataToSign = {
+							    email: data.email,
+							    name:  data.name,
+							    rand:  CommonUtils.randomBytes()
+						    },
+						    authToken  = this._signData(dataToSign);
 
-					function updateHash() {
-						dataService.updateRegistrationHash(registrationId, authToken).then(()=> {
-							resolve(authToken);
-						});
+						const updateHash = ()=> {
+							dataService.updateRegistrationHash(registrationId, authToken).then(()=> {
+								resolve(authToken);
+							});
+						};
+
+						updateHash();
 					}
-
-
-					updateHash();
-
+					else {
+						resolve();
+					}
 
 
 				}).catch(error=> {
@@ -85,8 +99,31 @@ class BeameAuthServices {
 		);
 	}
 
-	registerFqdn(){
+	/**
+	 * @param {RegistrationData} data
+	 * @returns {Promise}
+	 */
+	getRegisterFqdn(data) {
+		return new Promise((resolve, reject) => {
 
+				let metadata = BeameAuthServices._registrationDataToProvisionToken(data, this._fqdn);
+
+				this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
+					payload.parent_fqdn = this._fqdn;
+
+					logger.info(`Registration Fqdn received ${payload.fqdn}`);
+					logger.debug(`Entity registration completed `, payload);
+
+					data.fqdn = payload.fqdn;
+
+					dataService.saveRegistration(data).then(()=> {
+						resolve(payload);
+					}).catch(reject);
+
+
+				}).catch(reject);
+			}
+		);
 	}
 
 	/**
@@ -97,62 +134,37 @@ class BeameAuthServices {
 	 */
 	authorizeEntity(metadata, authToken, userAgent) {
 		return new Promise((resolve, reject) => {
-			this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
-				//dataService.updateRegistrationFqdn(hash, payload.fqdn);
-				payload.parent_fqdn = this._fqdn;
-				logger.debug(`authorizeEntity() resolving`, payload);
-				resolve(payload);
-			}).catch(reject);
-				// let hash = authToken.signedData.data;
-				//
-				// dataService.findRegistrationRecordByHash(hash).then(record=> {
-				// 	if (record) {
-				// 		if (record.completed) {
-				// 			reject('Registration already completed');
-				// 			return;
-				// 		}
-				//
-				// 		metadata.name  = record.name;
-				// 		metadata.email = record.email;
-				// 		metadata.agree = record.agree;
-				// 		metadata.src   = record.source;
-				// 	}
-				// 	else {
-				// 		metadata.parent_fqdn = this._fqdn;
-				// 		metadata.src         = config.RegistrationSource.Unknown;
-				// 	}
-				//
-				// 	metadata.userAgent = userAgent;
-				//
-				//
-				//
-				// }).catch(reject);
+
+				let hash = authToken.signedData.data;
+
+				dataService.findRegistrationRecordByHash(hash).then(record=> {
+					if (record) {
+						if (record.completed) {
+							reject('Registration already completed');
+							return;
+						}
+
+						metadata.name  = record.name;
+						metadata.email = record.email;
+						metadata.src   = record.source;
+					}
+					else {
+						metadata.parent_fqdn = this._fqdn;
+						metadata.src         = Constants.RegistrationSource.Unknown;
+					}
+
+					metadata.userAgent = userAgent;
+
+					this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
+						dataService.updateRegistrationFqdn(hash, payload.fqdn);
+						payload.parent_fqdn = this._fqdn;
+						logger.debug(`authorizeEntity() resolving`, payload);
+						resolve(payload);
+					}).catch(reject);
+
+				}).catch(reject);
 			}
 		);
-	}
-
-
-	/**
-	 *
-	 * @param {CertNotificationToken} token
-	 */
-	static markRegistrationAsCompleted(token) {
-
-		try {
-			//mark registration record if exists
-			dataService.markRegistrationAsCompleted(token.fqdn);
-
-			//load credentials
-			let creds = new beameSDK.Credential(store);
-			creds.initFromX509(token.x509, token.metadata);
-
-
-			logger.info(`credentials ${token.metadata.fqdn} loaded to store from sns notification`)
-		}
-		catch (error) {
-			console.log('FUCK! (2):', error.toString());
-			logger.error(BeameLogger.formatError(error));
-		}
 	}
 
 	/**
@@ -181,6 +193,86 @@ class BeameAuthServices {
 				// }).catch(reject);
 			}
 		);
+	}
+
+	//noinspection JSUnusedGlobalSymbols
+	/**
+	 * @param {String} pin
+	 * @returns {Promise}
+	 */
+	static deleteSession(pin) {
+		return dataService.deleteSession(pin);
+	}
+
+	/**
+	 * @param {RegistrationData} data
+	 * @returns {Promise}
+	 */
+	static saveSession(data) {
+		return dataService.saveSession(data);
+	}
+
+	/**
+	 *
+	 * @param {CertNotificationToken} token
+	 */
+	static markRegistrationAsCompleted(token) {
+		return new Promise((resolve, reject) => {
+				try {
+					//mark registration record if exists
+					dataService.markRegistrationAsCompleted(token.fqdn).then(registration => {
+
+						/** @type  {User} */
+						let User = {
+							name:           registration.name,
+							email:          registration.email,
+							externalUserId: registration.externalUserId,
+							fqdn:           registration.fqdn
+						};
+
+						dataService.saveUser(User).then(()=> {
+							//load credentials
+							let creds = new beameSDK.Credential(store);
+							creds.initFromX509(token.x509, token.metadata);
+
+
+							logger.info(`credentials ${token.metadata.fqdn} loaded to store from sns notification`)
+						}).catch(reject);
+
+
+					}).catch(reject);
+
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					reject(error);
+				}
+			}
+		);
+
+	}
+
+	/**
+	 *
+	 * @param {RegistrationData} data
+	 * @param {String|null} [userAgent]
+	 * @param {String|null} [parent_fqdn]
+	 * @returns {ProvisionRegistrationToken}
+	 * @private
+	 */
+	static _registrationDataToProvisionToken(data, parent_fqdn, userAgent) {
+
+		/** @type {ProvisionRegistrationToken} */
+		let token = {
+			name:        data.name,
+			email:       data.email,
+			userAgent:   userAgent,
+			parent_fqdn: parent_fqdn,
+			src:         Constants.RegistrationSource.InstaServerSDK
+		};
+
+		return token;
 	}
 
 	//endregion
@@ -260,15 +352,15 @@ class BeameAuthServices {
 		return AuthToken.create(sha, this._creds, 60 * 60 * 24 * 2);
 
 	}
+
 	//endregion
 
-
-	/**
-	 * @param {RegistrationData} data
-	 */
-	saveRegistrationSession(data){
-
+	//region user
+	validateUser(fqdn) {
+		return dataService.findUser(fqdn);
 	}
+
+	//endregion
 
 	getRequestAuthToken(req) {
 		return new Promise((resolve, reject) => {
@@ -307,6 +399,7 @@ class BeameAuthServices {
 			}
 		);
 	}
+
 }
 
 module.exports = BeameAuthServices;

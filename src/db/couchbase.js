@@ -10,31 +10,36 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
 class CouchbaseServices {
-	constructor(){
+	/**
+	 * @param {DataServicesSettings} options
+	 */
+	constructor() {
+		this._options = options;
 		logger.debug(`Couchbase services started`);
 	}
 
 
 	//region registration services
-	getRegistrations(){
+	getRegistrations() {
 
 	}
 
-	saveRegistration(data){
+	saveRegistration(data) {
 
 	}
 
-	deleteRegistration(id){
+	deleteRegistration(id) {
 
 	}
 
-	markRegistrationAsCompleted(fqdn){
+	markRegistrationAsCompleted(fqdn) {
 
 	}
 
-	updateRegistrationFqdn(hash, fqdn){
+	updateRegistrationFqdn(hash, fqdn) {
 
 	}
+
 	//endregion
 }
 

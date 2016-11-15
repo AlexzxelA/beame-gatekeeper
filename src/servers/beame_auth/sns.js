@@ -10,19 +10,19 @@
  * @property {Object} metadata
  */
 
-const beameSDK    = require('beame-sdk');
-const module_name = "SNS";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
+const beameSDK     = require('beame-sdk');
+const module_name  = "SNS";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
 const AuthServices = require('./authServices');
-const https     = require('https'),
-      validator = new (require('sns-validator'))();
+const https        = require('https'),
+      validator    = new (require('sns-validator'))();
 
 
 class SnsServices {
 
 	parseSnsMessage(message) {
-		logger.debug(`message received`,message);
+		logger.debug(`message received`, message);
 
 		return new Promise((resolve, reject) => {
 
@@ -38,18 +38,23 @@ class SnsServices {
 					switch (msgType) {
 						case 'SubscriptionConfirmation':
 							https.get(message['SubscribeURL'], (res) => {
+								//noinspection JSUnresolvedVariable
 								logger.info(`Subscribed to ${message.TopicArn}`);
 								resolve();
 							});
 							break;
 
 						case 'Notification':
+							//noinspection JSUnresolvedVariable
 							/** @type {CertNotificationToken} */
 							var token = beameSDK.CommonUtils.parse(message.Message);
 							if (token) {
-								AuthServices.markRegistrationAsCompleted(token);
+								AuthServices.markRegistrationAsCompleted(token).then(resolve).catch(resolve);
 							}
-							resolve();
+							else {
+								resolve();
+							}
+
 							break;
 						default:
 							reject('Unknown message type');
