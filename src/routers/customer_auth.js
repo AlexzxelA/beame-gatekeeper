@@ -28,11 +28,8 @@ app.get('/register',  (req, res) => {
 
 app.post('/register/save', (req, res) => {
 
-	let data       = {
-		email: req.body['email'],
-		name:  req.body['name'],
-		user_id: req.body['user_id']
-	};
+	let data = req.body; // name, email, user_id, code
+	console.log('DATA', data);
 
 	const Bootstrapper = require('../bootstrapper');
 	const Constants    = require('../../constants');

@@ -16,8 +16,6 @@ const cust_auth_app = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
 
-// TODO: refactor - start
-
 unauthenticatedApp.use(express.static(base_path, {index: 'welcome.html'}));
 unauthenticatedApp.get('/signin', (req, res) => {
 	res.sendFile(path.join(base_path, 'signin.html'));
@@ -68,10 +66,6 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		});
 });
 
-// Customer authorization app - start
 unauthenticatedApp.use(cust_auth_app);
-// Customer authorization app - end
-
-// TODO: refactor - end
 
 module.exports = unauthenticatedApp;
