@@ -41,22 +41,6 @@ class ServersManager {
 
 				},
 				callback => {
-					const CustomerAuthServer = require('../src/servers/customer_auth/server');
-
-					let customer_auth_server = new CustomerAuthServer(this._settings.GatewayServer.fqdn);
-
-					customer_auth_server.start((error, app)=> {
-						if (!error) {
-							this._servers[Constants.CredentialType.CustomerAuthServer] = app;
-							callback()
-						}
-						else {
-							callback(error);
-						}
-					});
-
-				},
-				callback => {
 
 					const BeameAuthServer = require('../src/servers/beame_auth/server');
 
