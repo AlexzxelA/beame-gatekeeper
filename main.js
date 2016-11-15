@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+process.env.BEAME_LOG_LEVEL = "DEBUG";
+
 
 /**
  * Should be synchronized with token from Auth Server

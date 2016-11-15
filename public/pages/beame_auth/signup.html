@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"  ng-app="WhispererWeb">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -11,7 +11,7 @@
           rel="stylesheet" type="text/css"/>
 
 </head>
-<body>
+<body  ng-controller="MainCtrl">
 
 <!-- IFRAME IS HIDDEN - add 'show' class to iframe to show it -->
 <iframe class="iframe-wide"></iframe>
@@ -44,7 +44,7 @@
                             </div>
                         </div>
                         <p class="signin-divider small">Or use ultrasound</p>
-                        <button type="button" class="signin-speaker button-off"></button>
+                        <welcome-template></welcome-template>
                     </div>
 
                 </form>
@@ -80,32 +80,34 @@
 </div>
 
 
-<script>
+<!--<script>-->
 
-    var soundButton = document.querySelector(".signin-speaker");
-    var overlaySigningin = document.getElementById("overlay");
-    var errorMessage = document.getElementById("error-message");
+    <!--var soundButton = document.querySelector(".signin-speaker");-->
+    <!--var overlaySigningin = document.getElementById("overlay");-->
+    <!--var errorMessage = document.getElementById("error-message");-->
 
-    soundButton.addEventListener("click", function () {
-        this.classList.toggle("button-on");
+    <!--soundButton.addEventListener("click", function () {-->
+        <!--this.classList.toggle("button-on");-->
 
-        setTimeout(function () {
-            overlaySigningin.classList.add("show");
-        }, 600);
+        <!--setTimeout(function () {-->
+            <!--overlaySigningin.classList.add("show");-->
+        <!--}, 600);-->
 
-        setTimeout(function () {
-            overlaySigningin.classList.remove("show");
-            soundButton.classList.remove("button-on");
-            errorMessage.classList.add("show");
-        }, 3000);
+        <!--setTimeout(function () {-->
+            <!--overlaySigningin.classList.remove("show");-->
+            <!--//soundButton.classList.remove("button-on");-->
+            <!--errorMessage.classList.add("show");-->
+        <!--}, 3000);-->
 
-    });
+    <!--});-->
 
-</script>
+<!--</script>-->
 <script src="https://cdn.socket.io/socket.io-1.4.0.js"></script>
 <script src="lib/jquery/jquery.min.js"></script>
 <script src="js/angular.min.js"></script>
+<script src="lib/kendo/kendo.qr.min.js"></script>
 <script src="js/crypto.js"></script>
-<script src="js/signup.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/whisperer.js"></script>
 </body>
 </html>

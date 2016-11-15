@@ -18,9 +18,10 @@ const OTP_refresh_rate = 10000;
 class QrMessaging {
 
 	/**
+	 * @param {String} fqdn
 	 * @param {MessagingCallbacks} callbacks
 	 */
-	constructor(callbacks) {
+	constructor(fqdn,callbacks) {
 
 		beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
 			if (!error) {
@@ -30,6 +31,7 @@ class QrMessaging {
 				this._edge = null;
 			}
 		});
+		this._fqdn = fqdn;
 		this._callbacks       = callbacks;
 		this._browserHost     = null;
 		this._otp             = "";
@@ -129,7 +131,7 @@ class QrMessaging {
 
 	_signBrowserHostname(socket) {
 		if (this._edge) {
-			let fqdn     = authServices.getMyFqdn(),
+			let fqdn     = this._fqdn,
 			    cred     = store.getCredential(fqdn),
 			    token    = authToken.create(this._browserHost, cred, 10),
 			    tokenStr = CommonUtils.stringify({

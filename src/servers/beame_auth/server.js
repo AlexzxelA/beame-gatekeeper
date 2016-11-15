@@ -111,9 +111,9 @@ class BeameAuthServer {
 		//noinspection JSUnresolvedFunction
 		socketio.of('whisperer').on('connection', this._onWhispererBrowserConnection.bind(this));
 		//noinspection JSUnresolvedFunction
-		socketio.of('mobile').on('connection', this._onQrBrowserConnection.bind(this));
+		socketio.of('mobile').on('connection', this._onMobileConnection.bind(this));
 		//noinspection JSUnresolvedFunction
-		socketio.of('qr').on('connection', this._onMobileConnection.bind(this));
+		socketio.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
 
 		return Promise.resolve();
 	}
@@ -137,7 +137,7 @@ class BeameAuthServer {
 	_initQrMessaging() {
 		const QrMessaging = require('../../qrMessaging');
 
-		this._qrMesaaging = new QrMessaging(this._callbacks);
+		this._qrMesaaging = new QrMessaging(this._fqdn,this._callbacks);
 
 		return Promise.resolve();
 	}
