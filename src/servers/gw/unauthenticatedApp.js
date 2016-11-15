@@ -67,7 +67,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 				reject('unauthenticatedApp/customer-auth-done/decrypt() failed');
 			}
 			console.log('TRACE: Decrypted payload', payload);
-			resolve(JSON.parse(payload));
+			resolve(payload);
 		});
 	};
 
