@@ -30,24 +30,21 @@ class SqliteServices {
 
 		this._options = options;
 
-		this._sequelize = new Sequelize(config["database"], config["username"], config["password"], {
-			dialect: 'sqlite',
+		const models = require("../../models/index");
 
-			pool:    {
-				max:  5,
-				min:  0,
-				idle: 10000
-			},
-			// SQLite only
-			storage: config["storage"]
+		this._sequelize = models.sequelize;
+
+		this._sequelize.sync().then(()=>{
+
+			this._models = {
+				sessions:      this._sequelize.models["Session"],
+				registrations: this._sequelize.models["Registration"],
+				users:         this._sequelize.models["User"],
+				services:      this._sequelize.models["Service"]
+			};
 		});
 
-		this._models = {
-			sessions:      this._sequelize.models["Sessions"],
-			registrations: this._sequelize.models["Registrations"],
-			users:         this._sequelize.models["Users"],
-			services:      this._sequelize.models["Services"]
-		};
+
 
 		logger.debug(`Sqlite services started`);
 	}

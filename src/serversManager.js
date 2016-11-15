@@ -13,7 +13,7 @@ const logger      = new BeameLogger(module_name);
 const CommonUtils = beameSDK.CommonUtils;
 
 
-const Constants    = require('../constants');
+const Constants = require('../constants');
 
 class ServersManager {
 	constructor(serversSettings) {
@@ -61,7 +61,7 @@ class ServersManager {
 
 					const MatchingServer = require('BeameMatchingServer').Server;
 
-					let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn);
+					let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
 
 					matching_server.start((error, app)=> {
 						if (!error) {
@@ -76,11 +76,11 @@ class ServersManager {
 			],
 			error => {
 				if (error) {
-					for(let type in this._servers){
+					for (let type in this._servers) {
 						//noinspection JSUnfilteredForInLoop
 						let server = this._servers[type];
 
-						if(server.stop && typeof  server.stop == "function"){
+						if (server.stop && typeof  server.stop == "function") {
 							server.stop();
 						}
 					}
