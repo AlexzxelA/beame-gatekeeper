@@ -1,4 +1,6 @@
 const path = require('path');
+const querystring = require('querystring');
+const url         = require('url');
 
 const express    = require('express');
 const bodyParser = require('body-parser');
@@ -27,7 +29,8 @@ unauthenticatedApp.use(bodyParser.json());
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
-	console.log('/customer-auth-done', req.body.encryptedUserData);
+	// console.log('/customer-auth-done', req.headers);
+	// console.log('/customer-auth-done', req.body.encryptedUserData);
 
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	console.log('beameAuthServerFqdn', beameAuthServerFqdn);
@@ -93,7 +96,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, 60);
 		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(tokenWithUserData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
 		console.log('replyWithUrl() URL', url);
-		res.send(url);
+		res.json({url});
 	}
 
 	// TODO: get signing token, validate signature, decrypt user data, encrypt user data for auth server, send URL to GW server for proxying to beame authorization server
@@ -109,6 +112,22 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		.catch((e) => {
 			console.error('/customer-auth-done error', e);
 		});
+});
+
+unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
+	// XXX: validate proxy_enable
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+	const qs = querystring.parse(url.parse(req.url).query);
+	console.log('QS', qs);
+	const proxyingDestination = `https://${beameAuthServerFqdn}`;
+	// XXX: unhardcode 86400
+	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), 86400).then(token => {
+		console.log('token', token);
+		res.cookie('proxy_enabling_token', token);
+		res.redirect(`https://${gwServerFqdn}/register?data=${encodeURIComponent(qs.data)}`);
+		res.end('Redirecting to GW for proxing to BeameAuthorizationServer');
+	});
 });
 
 unauthenticatedApp.use(cust_auth_app);

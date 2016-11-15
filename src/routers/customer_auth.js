@@ -93,8 +93,8 @@ app.post('/register/save', (req, res) => {
 						reject(`Failed to get redirect URL: ${body} at ${url}`);
 						return;
 					}
-					console.log('getRedirectUrl response', response);
-					resolve(response);
+					// console.log('getRedirectUrl response', body);
+					resolve(body.url);
 				}
 			);
 		});
