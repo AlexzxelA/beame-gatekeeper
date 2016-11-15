@@ -94,16 +94,17 @@ app.post('/register/save', (req, res) => {
 						return;
 					}
 					console.log('getRedirectUrl response', response);
+					resolve(response);
 				}
 			);
-
 		});
 	}
 
 	function redirect(url) {
 		return new Promise((resolve, reject) => {
 			return res.json({
-				"url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
+				// "url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
+				"url": url,
 				"responseCode": 0,
 				"responseDesc": "Please check your email and continue the registration process"
 			});
