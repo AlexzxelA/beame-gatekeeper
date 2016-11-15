@@ -29,6 +29,11 @@ unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 	console.log('/customer-auth-done', req.body.encryptedUserData);
 
+	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+	console.log('beameAuthServerFqdn', beameAuthServerFqdn);
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	let gwServerCredentials;
+
 	function assertGoodSignedBy(customerAuthServersFqdns) {
 		return new Promise((resolve, reject) => {
 			if(customerAuthServersFqdns.indexOf(req.body.encryptedUserData.signedBy) != -1) {
@@ -39,11 +44,11 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		});
 	};
 
-	function getDecryptingCredentials() {
-		var gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	function getGwServerCredentials() {
 		return new Promise((resolve, reject) => {
-			BeameStore.find(gwServerFqdn, false).then(decryptingCred => {
-				resolve(decryptingCred);
+			BeameStore.find(gwServerFqdn, false).then(gwServerCredentials_ => {
+				resolve(gwServerCredentials_);
+				gwServerCredentials = gwServerCredentials_;
 			}).catch(() => {
 				reject(`Failed getting decrypting credential ${gwServerFqdn}`);
 			});
@@ -71,14 +76,36 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		});
 	};
 
+	function getEncryptToCred(decryptedData) {
+		return new Promise((resolve, reject) => {
+			BeameStore.find(beameAuthServerFqdn, false).then(encryptToCred => {
+				resolve([decryptedData, encryptToCred]);
+			}).catch(() => {
+				reject(`Failed getting encrypt-to credential ${beameAuthServerFqdn}`);
+			});
+		});
+	}
+
+	function replyWithUrl([decryptedData, encryptToCred]) {
+		// console.log('replyWithUrl decryptedData', decryptedData);
+		const tokenWithUserData = AuthToken.create(JSON.stringify(decryptedData), gwServerCredentials, 600);
+		const encryptedData = encryptToCred.encrypt(beameAuthServerFqdn, JSON.stringify(tokenWithUserData), gwServerFqdn);
+		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, 60);
+		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(tokenWithUserData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+		console.log('replyWithUrl() URL', url);
+		res.send(url);
+	}
+
 	// TODO: get signing token, validate signature, decrypt user data, encrypt user data for auth server, send URL to GW server for proxying to beame authorization server
 
 	Bootstrapper.listCustomerAuthServers()
 		.then(assertGoodSignedBy)
-		.then(getDecryptingCredentials)
+		.then(getGwServerCredentials)
 		.then(decrypt)
 		.then(parseJson)
 		.then(AuthToken.validate)
+		.then(getEncryptToCred)
+		.then(replyWithUrl)
 		.catch((e) => {
 			console.error('/customer-auth-done error', e);
 		});
