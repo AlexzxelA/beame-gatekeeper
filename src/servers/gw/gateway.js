@@ -23,7 +23,8 @@ const proxy = httpProxy.createProxyServer({
 	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
 	xfwd: true,
 	// Verify SSL cert
-	secure: true
+	secure: true,
+	changeOrigin: true
 });
 
 const COOKIE_NAME = 'X-Beame-GW-Service-Token';
