@@ -96,7 +96,6 @@ app.post('/register/save', (req, res) => {
 					console.log('getRedirectUrl response', response);
 				}
 			);
-
 		});
 	}
 

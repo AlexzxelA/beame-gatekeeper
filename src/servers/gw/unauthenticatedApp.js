@@ -7,6 +7,7 @@ const Bootstrapper = require('../../bootstrapper');
 const Constants    = require('../../../constants');
 const beameSDK     = require('beame-sdk');
 const BeameStore   = new beameSDK.BeameStore();
+const AuthToken    = beameSDK.AuthToken;
 
 const public_dir = path.join(__dirname, '..', '..', '..', 'public');
 const base_path  = path.join(public_dir, 'pages', 'gw');
@@ -49,9 +50,24 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		});
 	};
 
+	function parseJson(json) {
+		return new Promise((resolve, reject) => {
+			try {
+				resolve(JSON.parse(json));
+			} catch(e) {
+				reject(`Failed to parse JSON: ${e}`);
+			}
+		});
+	}
+
 	function decrypt(decryptingCred) {
 		return new Promise((resolve, reject) => {
-			// CONTINUE HERE
+			let payload = decryptingCred.decrypt(req.body.encryptedUserData);
+			if (!payload) {
+				reject('unauthenticatedApp/customer-auth-done/decrypt() failed');
+			}
+			console.log('TRACE: Decrypted payload', payload);
+			resolve(JSON.parse(payload));
 		});
 	};
 
@@ -61,6 +77,8 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		.then(assertGoodSignedBy)
 		.then(getDecryptingCredentials)
 		.then(decrypt)
+		.then(parseJson)
+		.then(AuthToken.validate)
 		.catch((e) => {
 			console.error('/customer-auth-done error', e);
 		});
