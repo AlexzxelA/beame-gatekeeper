@@ -196,6 +196,25 @@ class Bootstrapper {
 		);
 	}
 
+	//region getters
+	get dbProvider(){
+		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
+	}
+
+	get sqliteConfig(){
+		let config = DirectoryServices.readJSON(SqliteConfigJsonPath);
+
+		if (CommonUtils.isObjectEmpty(config)){
+			//noinspection JSConstructorReturnsPrimitive
+			return null;
+		}
+
+		let env      = this._config[SqliteProps.EnvName];
+
+		return config[env];
+	}
+	//endregion
+
 	//region Beame folder
 	static _ensureBeameServerDir() {
 

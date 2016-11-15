@@ -173,7 +173,7 @@ if(args._[0] == 'createServersCreds'){
 }
 
 if (!commandHandled) {
-	console.error(`Unknown command: ${args._[0]}`);
+	logger.error(`Unknown command: ${args._[0]}`);
 	process.exit(1);
 }
 

@@ -13,8 +13,6 @@ const logger      = new BeameLogger(module_name);
 const CommonUtils = beameSDK.CommonUtils;
 
 
-const Bootstrapper = require('../src/bootstrapper');
-const bootstrapper = new Bootstrapper();
 const Constants    = require('../constants');
 
 class ServersManager {
@@ -36,7 +34,7 @@ class ServersManager {
 				callback => {
 
 					logger.info('Starting services');
-					console.log('SETTINGS', this._settings);
+					logger.debug('SETTINGS', this._settings);
 					const gws = require('./servers/gw/gateway');
 					gws.runServer(this._settings.GatewayServer.fqdn);
 					callback();

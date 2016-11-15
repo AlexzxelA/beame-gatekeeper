@@ -35,7 +35,7 @@ class CustomerAuthServer {
 	start(cb) {
 		beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
 
-			logger.debug(`Customer authorization server started on ${this._fqdn} `);
+			logger.info(`Customer authorization server started on ${this._fqdn}`);
 
 			this._server = app;
 

@@ -14,11 +14,11 @@ const utils = require('../../utils');
 const Router     = require('../../routers/beame_auth');
 const public_dir = path.join(__dirname, '..', '..', '..', 'public');
 
-const beameSDK     = require('beame-sdk');
-const module_name  = "BeameAuthServer";
-const BeameLogger  = beameSDK.Logger;
-const logger       = new BeameLogger(module_name);
-const AuthServices = require('./authServices');
+const beameSDK          = require('beame-sdk');
+const module_name       = "BeameAuthServer";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const BeameAuthServices = require('./authServices');
 
 class BeameAuthServer {
 
@@ -33,7 +33,7 @@ class BeameAuthServer {
 
 		this._matchingServerFqdn = matchingServerFqdn;
 
-		this._authServices = new AuthServices(this._fqdn);
+		this._authServices = new BeameAuthServices(this._fqdn);
 
 		this._app = app || utils.setExpressApp((new Router(this._authServices)).router, public_dir);
 
@@ -48,41 +48,13 @@ class BeameAuthServer {
 	start(cb) {
 
 		async.parallel([
-			callback=> {
-				beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
-						logger.debug(`Beame authorization server started on ${this._fqdn} `);
-
-						this._server = app;
-
-						callback(null, true);
-					}, error=> {
-						callback(error, null)
-					}
-				);
-
+			callback => {
+				this._startServer(callback)
 			},
 			callback => {
-				const WhispererServer = require('BeameWhisperer').Server;
-				const WhispererMode   = require('BeameWhisperer').WhispererMode;
-				let whispererServer   = new WhispererServer(
-					WhispererMode.PROVISION,
-					this._fqdn,
-					this._matchingServerFqdn,
-					this._app,
-					this._authServices,
-					60000);
-
-				whispererServer.start((err, whisperer)=> {
-					if (!err) {
-						this._whisperereServer = whisperer;
-						callback();
-						return;
-					}
-
-					callback(err);
-				});
+				this._startWhisperer(callback)
 			}
-		], error=> {
+		], error => {
 			if (error) {
 				cb && cb(error, null);
 				return;
@@ -92,6 +64,40 @@ class BeameAuthServer {
 		});
 	}
 
+	_startServer(callback){
+		beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
+				logger.info(`Beame authorization server started on ${this._fqdn} `);
+
+				this._server = app;
+
+				callback(null, true);
+			}, error=> {
+				callback(error, null)
+			}
+		);
+	}
+
+	_startWhisperer(callback){
+		const WhispererServer = require('BeameWhisperer').Server;
+		const WhispererMode   = require('BeameWhisperer').WhispererMode;
+		let whispererServer   = new WhispererServer(
+			WhispererMode.PROVISION,
+			this._fqdn,
+			this._matchingServerFqdn,
+			this._app,
+			this._authServices,
+			60000);
+
+		whispererServer.start((err, whisperer)=> {
+			if (!err) {
+				this._whisperereServer = whisperer;
+				callback();
+				return;
+			}
+
+			callback(err);
+		});
+	}
 
 	//noinspection JSUnusedGlobalSymbols
 	stop() {

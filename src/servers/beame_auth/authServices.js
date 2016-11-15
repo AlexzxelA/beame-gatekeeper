@@ -7,35 +7,26 @@
  * @typedef {Object} RegistrationData
  * @property {String} name
  * @property {String} email
- * @property {Boolean} agree
- * @property {RegistrationSource} src
+ * @property {String} userId
+ * @property {String} pin
  */
 
-/**
- * @typedef {Object} EmailRegistrationData
- * @property {String} name
- * @property {String} email
- * @property {String} authToken
- * @property {String} authSrvFqdn
- * @property {Number} src
- */
 
 const apiConfig        = require('../../../config/api_config.json');
 
 const beameSDK         = require('beame-sdk');
-const module_name      = "AuthServices";
+const module_name      = "BeameAuthServices";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
 const CommonUtils      = beameSDK.CommonUtils;
 const AuthToken        = beameSDK.AuthToken;
 const store            = new (beameSDK.BeameStore)();
 const provisionApi     = new (beameSDK.ProvApi)();
-const beameUtils       = beameSDK.BeameUtils;
 const apiEntityActions = apiConfig.Actions.Entity;
-var dataService      ;//= new (require('./dataServices'))();
+const dataService      = new (require('../../dataServices'))();
 
 
-class AuthServices {
+class BeameAuthServices {
 
 	/**
 	 *
@@ -94,6 +85,9 @@ class AuthServices {
 		);
 	}
 
+	registerFqdn(){
+
+	}
 
 	/**
 	 * @param {Object} metadata
@@ -168,7 +162,7 @@ class AuthServices {
 	_validateAuthToken(authToken) {
 		return new Promise((resolve, reject) => {
 
-				if (!AuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
+				if (!BeameAuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
 					reject('Unauthorized signature');
 					return;
 				}
@@ -207,7 +201,7 @@ class AuthServices {
 
 				var apiData = beameSDK.ProvApi.getApiData(endpoint, metadata);
 
-				logger.printStandardEvent(module_name, BeameLogger.StandardFlowEvent.Registering, "Edge server");
+				logger.printStandardEvent(module_name, BeameLogger.StandardFlowEvent.Registering, "New entity");
 
 				provisionApi.runRestfulAPI(apiData, (error, payload) => {
 					if (!error) {
@@ -266,10 +260,15 @@ class AuthServices {
 		return AuthToken.create(sha, this._creds, 60 * 60 * 24 * 2);
 
 	}
-
-
 	//endregion
 
+
+	/**
+	 * @param {RegistrationData} data
+	 */
+	saveRegistrationSession(data){
+
+	}
 
 	getRequestAuthToken(req) {
 		return new Promise((resolve, reject) => {
@@ -310,5 +309,5 @@ class AuthServices {
 	}
 }
 
-module.exports = AuthServices;
+module.exports = BeameAuthServices;
 

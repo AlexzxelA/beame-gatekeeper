@@ -8,7 +8,9 @@ const httpProxy   = require('http-proxy');
 const socket_io   = require('socket.io');
 
 const beameSDK    = require('beame-sdk');
-const ProxyClient = beameSDK.ProxyClient;
+const module_name = "InstaServerMain";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);const ProxyClient = beameSDK.ProxyClient;
 const BeameStore  = new beameSDK.BeameStore();
 
 const unauthenticatedApp = require('./unauthenticatedApp');
@@ -63,7 +65,7 @@ function addBeameHeaders(req) {
 }
 
 function sendError(req, res, code, err, extra_headers = {}) {
-	console.error(`Sending error: ${err}`);
+	logger.error(`Sending error: ${err}`);
 	res.writeHead(code, Object.assign({}, {'Content-Type': 'text/plain'}, extra_headers));
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
 }
@@ -76,7 +78,7 @@ function proxyRequestToAuthServer(req, res) {
 
 function handleRequest(req, res) {
 
-	console.log('[GW] handleRequest', req.url);
+	logger.debug('[GW] handleRequest', req.url);
 
 	// ---------- Beame services - no cookie token involved ----------
 	// These will move to Socket.IO
@@ -91,7 +93,7 @@ function handleRequest(req, res) {
 	if(req.url.startsWith('/beame/switch-app')) {
 		// 1. Set application authorization token cookie
 		// 2. Redirect to the application
-		console.log('SWITCHING APP', qs);
+		logger.info('SWITCHING APP', qs);
 		if(!qs || !qs.app_auth_token) {
 			sendError(req, res, 400, 'app_auth_token query string parameter is required');
 			return;
@@ -132,14 +134,14 @@ function handleRequest(req, res) {
  * @returns {Promise}
  */
 function startRequestsHandler(cert) {
-	console.log('startRequestsHandler');
+	logger.debug('startRequestsHandler');
 	return new Promise((resolve, reject) => {
 		var serverCerts = cert.getHttpsServerOptions();
 		const server = https.createServer(serverCerts, handleRequest);
 		require('./browser_controller_socketio_api').start(server);
 		server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
 			const port = server.address().port;
-			console.log(`beame-insta-server listening port ${port}`);
+			logger.debug(`beame-insta-server listening port ${port}`);
 			resolve([cert, port]);
 		});
 	});
@@ -153,7 +155,7 @@ function startRequestsHandler(cert) {
  * @returns {Promise}
  */
 function startTunnel([cert, requestsHandlerPort]) {
-	console.log('startTunnel');
+	logger.debug('startTunnel');
 	return new Promise((resolve, reject) => {
 
 		var serverCerts = cert.getHttpsServerOptions();
@@ -167,7 +169,7 @@ function startTunnel([cert, requestsHandlerPort]) {
 
 // Starts HTTPS server and Beame tunnel for it
 function runServer(fqdn) {
-	console.log(`Starting server at https://${fqdn}`);
+	logger.debug(`Starting server at https://${fqdn}`);
 	return BeameStore.find(fqdn, false)
 		.then(startRequestsHandler)
 		.then(startTunnel);
