@@ -27,11 +27,14 @@ function onRequestError(res, error, code) {
 
 class BeameAuthRouter {
 	constructor(authServices) {
+
+
 		this._authServices = authServices;
 
 		this._router = express.Router();
 
 		this._router.get('/', (req, res) => {
+
 			res.sendFile(path.join(base_path, 'signup.html'));
 		});
 
@@ -77,6 +80,7 @@ class BeameAuthRouter {
 			});
 		});
 	}
+
 
 	get router() {
 		return this._router;
