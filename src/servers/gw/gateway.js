@@ -106,7 +106,7 @@ function handleRequest(req, res) {
 		return;
 	}
 
-	if (!authToken || req.url == Constants.LogoutPath) {
+	if (!authToken || req.url == Constants.LogoutPath || req.url == Constants.AppSwitchPath) {
 		unauthenticatedApp(req, res);
 		return;
 	}

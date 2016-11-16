@@ -9,6 +9,7 @@ const home = os.homedir();
 
 const GatewayControllerPath = '/beame-gw';
 const LogoutPath = `${GatewayControllerPath}/logout`;
+const AppSwitchPath = `${GatewayControllerPath}/choose-app`;
 
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
@@ -64,6 +65,7 @@ module.exports = {
 
 	GatewayControllerPath,
 	LogoutPath,
+	AppSwitchPath,
 
 	BeameRootPath,
 

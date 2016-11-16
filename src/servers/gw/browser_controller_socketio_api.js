@@ -9,6 +9,28 @@ const AuthToken    = beameSDK.AuthToken;
 const utils        = require('../../utils');
 const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
+// TODO: actual list + cached health status in "online" field
+function listApplications() {
+	return Promise.resolve({
+		'Files sharing app': {
+			id: 1,
+			online: true
+		},
+		'Funny pictures album app': {
+			id: 2,
+			online: false
+		},
+		'Company calendar app': {
+			id: 3,
+			online: true
+		},
+		'Adult Chat': {
+			id: 4,
+			online: true
+		}
+	});
+}
+
 // TODO: Session renewal?
 const messageHandlers = {
 	'auth': function(payload, reply) {
@@ -22,27 +44,11 @@ const messageHandlers = {
 		// payload: {success: true/false, error: 'some str', apps: [{'App Name': {id: ..., online: true/false}}, ...]}
 		console.log('messageHandlers/auth');
 
-		// XXX really do it against authorization server
+		// XXX: use BeameAuthServices#validateUser()
 		function assertTokenFqdnIsAuthorized(token) {
 			return Promise.resolve(token);
 		}
 
-		function listApplications() {
-			return Promise.resolve({
-				'Files sharing app': {
-					id: 1,
-					online: true
-				},
-				'Funny pictures album app': {
-					id: 2,
-					online: false
-				},
-				'Company calendar app': {
-					id: 3,
-					online: true
-				}
-			});
-		}
 
 		function createSessionToken(apps) {
 			return new Promise((resolve, reject) => {
@@ -86,10 +92,47 @@ const messageHandlers = {
 		// Choose application - redirect app switchig URL on GW, auth token in URL
 		// --- request ---
 		// type: choose
-		// payload: {session_token: ..., app_id: ...}
+		// payload: {session_token: ..., id: ...}
 		// --- response ---
 		// type: 'redirect'
 		// payload: {success: true/false, url: ...}
+
+		function assertSignedByGw(session_token) {
+			let signedBy = JSON.parse(session_token).signedBy;
+			if (signedBy == gwServerFqdn) {
+				return Promise.resolve(session_token);
+			} else {
+				return Promise.reject(`messageHandlers/choose session_token must be signed by ${gwServerFqdn}, not ${signedBy}`);
+			}
+		}
+
+		function makePorxyEnablingToken() {
+			return utils.createAuthTokenByFqdn(
+				gwServerFqdn,
+				JSON.stringify({app_id: payload.id}),
+				86400
+			);
+		}
+
+		function respond(token) {
+			return new Promise((resolve, reject) => {
+				const url = `https://${gwServerFqdn}/beame-gw/choose-app&proxy_enable=${encodeURIComponent(token)}`;
+				console.log('respond() URL', url);
+				reply({
+					type: 'redirect',
+					payload: {
+						success: true,
+						url: url
+					}
+				});
+			});
+		}
+
+		assertSignedByGw(payload.session_token)
+			.then(AuthToken.validate)
+			.then(makePorxyEnablingToken)
+			.then(respond);
+
 	},
 	'logout': function(payload, reply) {
 		// Redirect to cookie removing URL on GW
