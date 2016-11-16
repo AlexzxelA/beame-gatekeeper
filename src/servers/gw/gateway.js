@@ -257,7 +257,7 @@ class GatewayServer {
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 
-				let options = {path: `${Constants.GatewayControllerPath}/insta-socket`};
+				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`};
 
 				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, (require('BeameWhisperer').WhispererMode).SESSION, callbacks,options);
 

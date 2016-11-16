@@ -20,7 +20,7 @@ $(document).ready(function () {
 	var UID = generateUID(24) + VirtualPrefix;
 	console.log('UID:', UID);
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = io.connect("/qr");//connect to origin
+	var socket = io.connect("/qr", {path: '/beame-gw-insta-socket'});//connect to origin
 
 	socket.on('connect', function () {
 		TMPsocketOrigin = socket;//remove towards prod
