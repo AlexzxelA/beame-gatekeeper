@@ -126,7 +126,7 @@ function handleRequest(req, res) {
 		return;
 	}
 
-	if (!authToken) {
+	if (!authToken || req.url == '/beame/logout') {
 		unauthenticatedApp(req, res);
 		return;
 	}

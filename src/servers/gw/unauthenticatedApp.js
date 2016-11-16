@@ -125,10 +125,20 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), 86400).then(token => {
 		console.log('token', token);
 		res.cookie('proxy_enabling_token', token);
+		res.append('X-Beame-Debug', 'Redirecting to GW for proxing to BeameAuthorizationServer');
 		res.redirect(`https://${gwServerFqdn}/register?data=${encodeURIComponent(qs.data)}`);
-		res.end('Redirecting to GW for proxing to BeameAuthorizationServer');
 	});
 });
+
+// TODO: move somewhere else, does not really belong here - start
+unauthenticatedApp.get('/beame/logout', (req, res) => {
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	res.clearCookie('proxy_enabling_token');
+	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
+	res.redirect(`https://${gwServerFqdn}`);
+
+});
+// TODO: move somewhere else, does not really belong here - end
 
 unauthenticatedApp.use(cust_auth_app);
 
