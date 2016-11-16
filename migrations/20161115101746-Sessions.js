@@ -13,12 +13,10 @@ module.exports = {
 			},
 			email:          {
 				type:      Sequelize.STRING,
-				unique:    true,
 				allowNull: true
 			},
 			externalUserId: {
 				type:      Sequelize.STRING,
-				unique:    true,
 				allowNull: true
 			},
 			pin:            {

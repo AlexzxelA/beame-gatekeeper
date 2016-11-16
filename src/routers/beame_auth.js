@@ -35,11 +35,10 @@ class BeameAuthRouter {
 
 		this._router.get('/', (req, res) => {
 
-
 			this._isRequestValid(req).then(data => {
 				this._authServices.saveSession(data);
 
-				res.sendFile(path.join(base_path, 'signup.html'));
+				res.sendFile(path.join(base_path, 'signup.html'),{});
 			}).catch(error=> {
 				logger.error(BeameLogger.formatError(error));
 				//TODO redirect to GW home
