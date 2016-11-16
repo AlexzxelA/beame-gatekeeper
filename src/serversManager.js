@@ -35,10 +35,16 @@ class ServersManager {
 
 					logger.info('Starting services');
 					logger.debug('SETTINGS', this._settings);
-					const gws = require('./servers/gw/gateway');
-					gws.runServer(this._settings.GatewayServer.fqdn);
-					callback();
-
+					const gws = new(require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn,this._settings.MatchingServer.fqdn);
+					gws.start((error, app) => {
+						if (!error) {
+							this._servers[Constants.CredentialType.GatewayServer] = app;
+							callback();
+						}
+						else {
+							callback(error);
+						}
+					});
 				},
 				callback => {
 
