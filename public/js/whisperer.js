@@ -133,7 +133,7 @@
 
 		//$scope.socketAlive = false;
 		$scope.playPIN     = false;
-		$scope.socket      = io.connect("/whisperer");
+		$scope.socket      = io.connect("/whisperer", {path: '/beame-gw-insta-socket'});
 
 
 		$scope.socket.on('wh_timeout', function (timeout) {
