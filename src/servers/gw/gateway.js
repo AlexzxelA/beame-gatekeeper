@@ -70,8 +70,13 @@ function extractAuthToken(req) {
 		return null;
 	}
 	// XXX: Validate proxy_enabling_token
-	const ret = JSON.parse(JSON.parse(cookies.proxy_enabling_token).signedData.data);
-	return JSON.parse(ret);
+	try {
+		const ret = JSON.parse(JSON.parse(cookies.proxy_enabling_token).signedData.data);
+		return JSON.parse(ret);
+	} catch(e) {
+		console.error(`Fail to parse proxy_enabling_token ${cookies.proxy_enabling_token}`);
+		return 'INVALID';
+	}
 }
 
 function addBeameHeaders(req) {
@@ -103,13 +108,13 @@ function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
 	// console.log('handleRequest PT 0', authToken);
 
-	if (authToken == 'INVALID') {
-		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});
+	if (!authToken || req.url == Constants.LogoutPath || req.url == Constants.AppSwitchPath) {
+		unauthenticatedApp(req, res);
 		return;
 	}
 
-	if (!authToken || req.url == Constants.LogoutPath || req.url == Constants.AppSwitchPath) {
-		unauthenticatedApp(req, res);
+	if (authToken == 'INVALID') {
+		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});
 		return;
 	}
 
@@ -124,6 +129,9 @@ function handleRequest(req, res) {
 		console.log(`Proxying to app_id ${authToken.app_id}`);
 		apps.appUrlById(authToken.app_id).then(url => {
 			proxy.web(req, res, {target: url});
+		}).catch(e => {
+			console.log(`Error handling authToken.app_id: ${e}`);
+			sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		});
 		// proxy.web(req, res, {target: 'http://google.com'});
 		return;

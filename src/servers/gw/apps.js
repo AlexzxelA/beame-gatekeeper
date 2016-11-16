@@ -24,16 +24,16 @@ function listApplications() {
 
 function appUrlById(id) {
 	if (id == 1) {
-		return Promise.resolve('https://en.wikipedia.org/wiki/Computer_file');
+		return Promise.resolve('https://en.wikipedia.org');
 	}
 	if (id == 2) {
-		return Promise.resolve('https://www.google.com/search?q=funny+pictures');
+		return Promise.resolve('https://www.google.com');
 	}
 	if (id == 3) {
-		return Promise.resolve('https://www.timeanddate.com/calendar/');
+		return Promise.resolve('https://www.timeanddate.com');
 	}
 	if (id == 4) {
-		return Promise.resolve('https://www.freechatnow.com/chat/adult');
+		return Promise.resolve('https://www.freechatnow.com');
 	}
 	return Promise.reject(`Unkonwn application ID ${id}`);
 	
