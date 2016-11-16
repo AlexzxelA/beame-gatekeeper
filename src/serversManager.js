@@ -78,6 +78,10 @@ class ServersManager {
 							callback(error);
 						}
 					});
+				},
+				callback => {
+					let chatApp = new (require('../apps/chat'))();
+					chatApp.start();
 				}
 			],
 			error => {

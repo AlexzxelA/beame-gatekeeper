@@ -15,7 +15,7 @@ function listApplications() {
 			id: 3,
 			online: true
 		},
-		'Adult Chat': {
+		'Simple chat': {
 			id: 4,
 			online: true
 		}
@@ -33,7 +33,7 @@ function appUrlById(id) {
 		return Promise.resolve('https://www.timeanddate.com');
 	}
 	if (id == 4) {
-		return Promise.resolve('https://www.freechatnow.com');
+		return Promise.resolve('http://127.0.0.1:65510');
 	}
 	return Promise.reject(`Unkonwn application ID ${id}`);
 	

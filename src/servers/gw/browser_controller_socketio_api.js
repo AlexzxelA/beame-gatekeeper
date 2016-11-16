@@ -30,7 +30,7 @@ const messageHandlers = {
 		// payload: token
 		// --- response ---
 		// type: 'authenticated'
-		// payload: {success: true/false, error: 'some str', apps: [{'App Name': {id: ..., online: true/false}}, ...]}
+		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {id: ..., online: true/false}}, ...]}
 		console.log('messageHandlers/auth');
 
 		// XXX: use BeameAuthServices#validateUser()
