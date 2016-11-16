@@ -44,7 +44,7 @@
 
         try {
             var reg_data = JSON.parse(decodeURIComponent(reg_data_cookie));
-
+            var stopAllRunningSessions = false;
             deleteCookie('beame_reg_data');
         } catch (e) {
             console.error(e);

@@ -45,7 +45,9 @@ class QrMessaging {
 	 * @param {Socket} socket
 	 */
 	onQrBrowserConnection(socket) {
-
+		socket.on('disconnect',()=>{
+			logger.debug('QR socket disconnected');
+		});
 		socket.on('browser_connected', (data) => {
 			logger.debug(`browser socket connected with:${data}`);
 			this._browserHost = data;
@@ -78,12 +80,13 @@ class QrMessaging {
 				registerFqdnFunc(metadata).then(payload => {
 					socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e=> {
+					socket.emit("mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
 					logger.error('error (authorizing mobile):', e)
 				});
 
 			}
 			else {
-				socket.emit("mobilePinInvalid", {'data': 'Failed to verify session'});
+				socket.emit("mobilePinInvalid", {'data': `PIN:${data.otp}>${this._otp},${this._otp_prev}`});
 			}
 		});
 
@@ -96,6 +99,10 @@ class QrMessaging {
 			if (data == this._browserHost) {
 				this._setNewOTP(socket);
 			}
+		});
+
+		socket.on('close_session',() =>{
+			clearInterval(this._renewOTP);
 		});
 	}
 

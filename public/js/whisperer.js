@@ -90,7 +90,7 @@
 		 }
 		 }*/
 		$scope.startPlaying = function () {
-			if ($scope.audio && $scope.socketAlive) {
+			if ($scope.audio){//} && $scope.socketAlive) {
 				console.log('playing: ' + $scope.pinData);
 				if ($scope.audio.playing === true)
 					$scope.audio.stop();
@@ -108,7 +108,7 @@
 			// if ($scope.showWelcome)
 			// 	document.getElementById("pin").innerHTML = "audio from server stopped";
 		};
-		$scope.pingSocket   = function () {
+		/*$scope.pingSocket   = function () {
 			if (!$scope.socketAlive) {
 				$scope.nowPinging = false;
 				return;
@@ -126,12 +126,12 @@
 					console.log('Socket disconnected. Audio stopped');
 				}
 			}, whispererTimeout);
-		};
+		};*/
 
 		//pingSocket();
-		$scope.keepAlive = 5;
+		//$scope.keepAlive = 5;
 
-		$scope.socketAlive = false;
+		//$scope.socketAlive = false;
 		$scope.playPIN     = false;
 		$scope.socket      = io.connect("/whisperer");
 
@@ -368,7 +368,7 @@
 
 		$scope.socket.on('disconnect', function () {
 			console.log('DISCONNECTED');
-			$scope.socketAlive = false;
+			//$scope.socketAlive = false;
 			$scope.stopPlaying();
 			//    document.getElementById("player").innerHTML = "-- Server disconnected --";
 		});
@@ -378,22 +378,29 @@
 			$scope.showConn = false;
 			tryDigest($scope);
 			$scope.pinData   = data;
-			$scope.keepAlive = 5;
+			//$scope.keepAlive = 5;
 			console.log('PIN:' + data);
 			if ($scope.showWelcome)
 				document.getElementById("pin").innerHTML = data;
 		});
 
 		$scope.socket.on('data', function (data) {
-			$scope.socketAlive = true;
-			console.log("data received:" + data.length);
+			if(stopAllRunningSessions){
+				$scope.socket.emit('close_session');
+				$scope.stopPlaying();
+				$scope.showPopup('Audio stopped');
+			}
+			else{
+				//$scope.socketAlive = true;
+				console.log("data received:" + data.length);
 
-			$scope.audioData = "data:audio/wav;base64," + escape(btoa(data));
-			if (!$scope.audio)
-				$scope.audio = new Audio();
-			$scope.startPlaying();
-			if (!$scope.nowPinging)
-				$scope.pingSocket();
+				$scope.audioData = "data:audio/wav;base64," + escape(btoa(data));
+				if (!$scope.audio)
+					$scope.audio = new Audio();
+				$scope.startPlaying();
+				//if (!$scope.nowPinging)
+				//	$scope.pingSocket();
+			}
 		});
 
 		// Welcome screen actions

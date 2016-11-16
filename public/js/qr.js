@@ -30,59 +30,66 @@ $(document).ready(function () {
 	});
 
 	socket.on('pinRenew',function (data) {
-		try {
-			var parsed = JSON.parse(data);
-			if (parsed['data'] && keyGenerated) {
-
-				window.crypto.subtle.exportKey('spki', keyPair.publicKey)
-					.then(function (keydata) {
-						var PK = arrayBufferToBase64String(keydata);
-						console.log('Public Key Is Ready:', PK, '==>', PK);
-						if (relayEndpoint.indexOf(TMPsocketRelay.io.engine.hostname) < 0) {
-							console.log('Crap(q)::',
-								relayEndpoint, '..', TMPsocketRelay.io.engine.hostname);
-							window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
-						}
-						else {
-							var QRdata  = {'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-								'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now(),'REG':reg_data};
-							socket.emit('QRdata',QRdata);
-							qrContainer = $('#qr');
-							try {
-								var dataStr = JSON.stringify(QRdata);
-								if (dataStr.length > 30) {
-									qrCode = dataStr;
-									console.log(dataStr);
-									qrContainer.empty();
-									qrContainer.kendoQRCode({
-										value:           dataStr,
-										errorCorrection: "L",
-										color:           "#000",
-										background:      "transparent",
-										padding:         0
-									});
+		if(stopAllRunningSessions){
+			console.log('QR session stopped from server');
+			resetQR();
+		}
+		else{
+			try {
+				var parsed = JSON.parse(data);
+				if (parsed['data'] && keyGenerated) {
+					console.log('Generating information packet');
+					window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+						.then(function (keydata) {
+							var PK = arrayBufferToBase64String(keydata);
+							console.log('Public Key Is Ready:', PK, '==>', PK);
+							if (relayEndpoint.indexOf(TMPsocketRelay.io.engine.hostname) < 0) {
+								console.log('Crap(q)::',
+									relayEndpoint, '..', TMPsocketRelay.io.engine.hostname);
+								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
+							}
+							else {
+								var QRdata  = {'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
+									'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now(),'REG':reg_data};
+								socket.emit('QRdata',QRdata);
+								qrContainer = $('#qr');
+								try {
+									var dataStr = JSON.stringify(QRdata);
+									if (dataStr.length > 30) {
+										qrCode = dataStr;
+										console.log(dataStr);
+										qrContainer.empty();
+										qrContainer.kendoQRCode({
+											value:           dataStr,
+											errorCorrection: "L",
+											color:           "#000",
+											background:      "transparent",
+											padding:         0
+										});
+									}
+									else {
+										console.log('data is short:', dataStr.length, ', data:', data);//resend qr
+									}
 								}
-								else {
-									console.log('data is short:', dataStr.length, ', data:', data);//resend qr
+								catch (e) {
+									console.log('Invalid QR data:', data);
 								}
 							}
-							catch (e) {
-								console.log('Invalid QR data:', data);
-							}
-						}
 
-						//exampleSocket.send(JSON.stringify({'type':'key','payload':{'data':PK, 'token':
-						//{'signedData':'key','signedBy':'signedBy','signature':'signature'}}}));
-					})
-					.catch(function (err) {
-						console.error('Export Public Key Failed', err);
-					});
+							//exampleSocket.send(JSON.stringify({'type':'key','payload':{'data':PK, 'token':
+							//{'signedData':'key','signedBy':'signedBy','signature':'signature'}}}));
+						})
+						.catch(function (err) {
+							console.error('Export Public Key Failed', err);
+						});
 
+				}
+			}
+			catch (e) {
+				console.log('Error:', e);
 			}
 		}
-		catch (e) {
-			console.log('Error:', e);
-		}
+
 
 	});
 
@@ -103,7 +110,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('relayEndpoint', function (data) {
-		console.log('relayEndpoint', data);
+		console.log('QR relayEndpoint', data);
 		generateKeyPairs(function (error, keydata) {
 			if (error) return;//send error to origin/show on browser
 			keyPair      = keydata.keyPair;
@@ -143,7 +150,8 @@ $(document).ready(function () {
 
 	});
 
-	socket.on('resetQR', function () {
+	resetQR = function () {
+		socket.emit('close_session');
 		console.log('QR read successfully - set green');
 		qrContainer.empty();
 		//noinspection JSUnresolvedFunction
@@ -154,6 +162,11 @@ $(document).ready(function () {
 			background:      "transparent",
 			padding:         0
 		});
+	};
+
+	socket.on('resetQR', function () {
+		stopAllRunningSessions = true;
+		resetQR();
 	});
 
 
