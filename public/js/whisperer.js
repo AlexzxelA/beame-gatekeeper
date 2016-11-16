@@ -133,7 +133,7 @@
 
 		//$scope.socketAlive = false;
 		$scope.playPIN     = false;
-		$scope.socket      = io.connect("/whisperer", {path: '/beame-gw-insta-socket'});
+		$scope.socket      = (reg_data)?io.connect("/whisperer"):io.connect("/whisperer", {path: '/beame-gw-insta-socket'});
 
 
 		$scope.socket.on('wh_timeout', function (timeout) {
@@ -292,8 +292,9 @@
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
+								var tmp_reg_data = (reg_data)?reg_data:"login";
 								var qrData = JSON.stringify({'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': UID,
-									'PIN': PIN, 'TYPE':'PROV', 'TIME':Date.now(),'REG':reg_data});
+									'PIN': PIN, 'TYPE':'PROV', 'TIME':Date.now(),'REG':tmp_reg_data});
 								console.log('sending qr data to whisperer %j',qrData);//XXX
 								$scope.socket.emit('init_mobile_session', qrData);
 							}

@@ -20,7 +20,7 @@ $(document).ready(function () {
 	var UID = generateUID(24) + VirtualPrefix;
 	console.log('UID:', UID);
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = io.connect("/qr", {path: '/beame-gw-insta-socket'});//connect to origin
+	var socket = (reg_data)?io.connect("/qr"):io.connect("/qr", {path: '/beame-gw-insta-socket'});//connect to origin
 
 	socket.on('connect', function () {
 		TMPsocketOrigin = socket;//remove towards prod
@@ -49,8 +49,9 @@ $(document).ready(function () {
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
+								var tmp_reg_data = (reg_data)?reg_data:"login";
 								var QRdata  = {'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-									'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now(),'REG':reg_data};
+									'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now(),'REG':tmp_reg_data};
 								socket.emit('QRdata',QRdata);
 								qrContainer = $('#qr');
 								try {
