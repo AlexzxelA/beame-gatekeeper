@@ -164,7 +164,9 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 		});
 });
 
-// TODO: move somewhere else, does not really belong here - start
+// XXX: When logging out destroy
+// (1) SocketIO session
+// (2) mark proxy enabling token as inactive in case browser does not delete it or it's stolen
 unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	res.clearCookie('proxy_enabling_token');
@@ -172,7 +174,6 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	res.redirect(`https://${gwServerFqdn}`);
 
 });
-// TODO: move somewhere else, does not really belong here - end
 
 unauthenticatedApp.use(cust_auth_app);
 

@@ -11,6 +11,15 @@ const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewaySe
 
 const apps = require('./apps');
 
+function assertSignedByGw(session_token) {
+	let signedBy = JSON.parse(session_token).signedBy;
+	if (signedBy == gwServerFqdn) {
+		return Promise.resolve(session_token);
+	} else {
+		return Promise.reject(`messageHandlers/choose session_token must be signed by ${gwServerFqdn}, not ${signedBy}`);
+	}
+}
+
 // TODO: Session renewal?
 const messageHandlers = {
 	'auth': function(payload, reply) {
@@ -77,15 +86,6 @@ const messageHandlers = {
 		// type: 'redirect'
 		// payload: {success: true/false, url: ...}
 
-		function assertSignedByGw(session_token) {
-			let signedBy = JSON.parse(session_token).signedBy;
-			if (signedBy == gwServerFqdn) {
-				return Promise.resolve(session_token);
-			} else {
-				return Promise.reject(`messageHandlers/choose session_token must be signed by ${gwServerFqdn}, not ${signedBy}`);
-			}
-		}
-
 		function makeProxyEnablingToken() {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
@@ -121,6 +121,34 @@ const messageHandlers = {
 		// --- response ---
 		// type: 'redirect'
 		// payload: {success: true/false, logout:true, url: ...}
+
+		function makeLogoutToken() {
+			return utils.createAuthTokenByFqdn(
+				gwServerFqdn,
+				JSON.stringify('Does not matter'),
+				60
+			);
+		}
+
+		function respond(token) {
+			return new Promise((resolve, reject) => {
+				const url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
+				console.log('respond() URL', url);
+				reply({
+					type: 'redirect',
+					payload: {
+						success: true,
+						logout: true,
+						url: url
+					}
+				});
+			});
+		}
+
+		assertSignedByGw(payload.session_token)
+			.then(AuthToken.validate)
+			.then(makeLogoutToken)
+			.then(respond);
 	}
 };
 
