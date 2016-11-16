@@ -130,6 +130,23 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	});
 });
 
+
+unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
+	// XXX: validate proxy_enable
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+	const qs = querystring.parse(url.parse(req.url).query);
+	console.log('QS', qs);
+	const proxyingDestination = `https://${beameAuthServerFqdn}`;
+	// XXX: unhardcode 86400
+	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({app_id: proxyingDestination}), 86400).then(token => {
+		console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
+		res.cookie('proxy_enabling_token', token);
+		res.append('X-Beame-Debug', 'Redirecting to GW for proxing after choosing an application on mobile');
+		res.redirect(`https://${gwServerFqdn}`);
+	});
+});
+
 // TODO: move somewhere else, does not really belong here - start
 unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
