@@ -18,6 +18,8 @@ const ProxyClient = beameSDK.ProxyClient;
 const BeameStore  = new beameSDK.BeameStore();
 const Constants = require('../../../constants');
 
+const apps = require('./apps');
+
 const unauthenticatedApp = require('./unauthenticatedApp');
 
 const proxy = httpProxy.createProxyServer({
@@ -118,7 +120,16 @@ function handleRequest(req, res) {
 		return;
 	}
 
-	sendError(req, res, 500, `Don't know how to proxy. Probably invalid prxying token.`);
+	if(authToken.app_id) {
+		console.log(`Proxying to app_id ${authToken.app_id}`);
+		apps.appUrlById(authToken.app_id).then(url => {
+			proxy.web(req, res, {target: url});
+		});
+		// proxy.web(req, res, {target: 'http://google.com'});
+		return;
+	}
+
+	sendError(req, res, 500, `Don't know how to proxy. Probably invalid proxying token.`);
 
 	/*
 	// If have have the token, we're proxying to an application

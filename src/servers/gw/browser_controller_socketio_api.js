@@ -9,27 +9,7 @@ const AuthToken    = beameSDK.AuthToken;
 const utils        = require('../../utils');
 const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
-// TODO: actual list + cached health status in "online" field
-function listApplications() {
-	return Promise.resolve({
-		'Files sharing app': {
-			id: 1,
-			online: true
-		},
-		'Funny pictures album app': {
-			id: 2,
-			online: false
-		},
-		'Company calendar app': {
-			id: 3,
-			online: true
-		},
-		'Adult Chat': {
-			id: 4,
-			online: true
-		}
-	});
-}
+const apps = require('./apps');
 
 // TODO: Session renewal?
 const messageHandlers = {
@@ -74,7 +54,7 @@ const messageHandlers = {
 
 		assertTokenFqdnIsAuthorized(payload.token)
 			.then(AuthToken.validate)
-			.then(listApplications)
+			.then(apps.listApplications)
 			.then(createSessionToken)
 			.then(respond)
 			.catch(e => {
@@ -106,7 +86,7 @@ const messageHandlers = {
 			}
 		}
 
-		function makePorxyEnablingToken() {
+		function makeProxyEnablingToken() {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
 				JSON.stringify({app_id: payload.id}),
@@ -116,7 +96,7 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise((resolve, reject) => {
-				const url = `https://${gwServerFqdn}/beame-gw/choose-app&proxy_enable=${encodeURIComponent(token)}`;
+				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
 				console.log('respond() URL', url);
 				reply({
 					type: 'redirect',
@@ -130,7 +110,7 @@ const messageHandlers = {
 
 		assertSignedByGw(payload.session_token)
 			.then(AuthToken.validate)
-			.then(makePorxyEnablingToken)
+			.then(makeProxyEnablingToken)
 			.then(respond);
 
 	},
