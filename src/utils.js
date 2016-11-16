@@ -24,6 +24,7 @@ function setExpressApp(router, staticDir) {
 	if (staticDir) {
 		app.use(express.static(staticDir));
 	}
+
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
 	app.use('/', router);

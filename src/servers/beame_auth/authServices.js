@@ -45,7 +45,10 @@ class BeameAuthServices {
 	 */
 	constructor(authServerFqdn, subscribeForChildCerts) {
 		this._fqdn  = authServerFqdn;
+
+		/** @type {Credential} */
 		this._creds = store.getCredential(authServerFqdn);
+
 		if (!this._creds) {
 			logger.fatal(`Server credential not found`);
 		}
@@ -105,6 +108,11 @@ class BeameAuthServices {
 	 */
 	getRegisterFqdn(data) {
 		return new Promise((resolve, reject) => {
+
+				if(!data.email && !data.user_id){
+					reject(`email or userId required for registration`);
+					return;
+				}
 
 				let metadata = BeameAuthServices._registrationDataToProvisionToken(data, this._fqdn);
 

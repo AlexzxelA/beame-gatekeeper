@@ -313,7 +313,7 @@ class SqliteServices {
 					model.findOne({
 						where: {
 							email:          data.email,
-							name:           data.email,
+							name:           data.name,
 							externalUserId: data.user_id
 						}
 					}).then(record=> {
