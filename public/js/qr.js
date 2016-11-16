@@ -39,13 +39,13 @@ $(document).ready(function () {
 						var PK = arrayBufferToBase64String(keydata);
 						console.log('Public Key Is Ready:', PK, '==>', PK);
 						if (relayEndpoint.indexOf(TMPsocketRelay.io.engine.hostname) < 0) {
-							console.log('Crap::',
+							console.log('Crap(q)::',
 								relayEndpoint, '..', TMPsocketRelay.io.engine.hostname);
 							window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 						}
 						else {
 							var QRdata  = {'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-								'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now()};
+								'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now(),'REG':reg_data};
 							socket.emit('QRdata',QRdata);
 							qrContainer = $('#qr');
 							try {
@@ -182,7 +182,7 @@ function initRelay(socket) {
 				var decryptedData = JSON.parse(atob(decryptedDataB64));
 				var key2import = decryptedData.pk;
 				importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
-					console.log("Successfully imported RSAOAEP PK from external source");
+					console.log("Successfully imported RSAOAEP PK from external source..",decryptedData);
 					sessionRSAPK = keydata;
 					window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 						.then(function (mobPK) {
@@ -190,7 +190,9 @@ function initRelay(socket) {
 								{
 									'pin':       decryptedData.otp,
 									'pk':        arrayBufferToBase64String(mobPK),
-									'edge_fqdn': decryptedData.edge_fqdn
+									'edge_fqdn': decryptedData.edge_fqdn,
+									'email' : decryptedData.reg_data.email,
+									'name'  : decryptedData.reg_data.name
 								});
 						})
 						.catch(function (error) {

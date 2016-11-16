@@ -147,7 +147,7 @@
 		});
 
 		$scope.socket.on('connect_ok', function (data) {
-			console.log('DATA >>>>>>> ' + JSON.stringify(data));
+			console.log('DATA >>>>>>> ' + JSON.stringify(data));//XXX
 			$scope.stopPlaying();
 			$scope.showPopup('Code matched');
 
@@ -208,17 +208,17 @@
 						var decryptedData = JSON.parse(atob(decryptedDataB64));
 						var key2import = decryptedData.pk;
 						importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
-							console.log("Successfully imported RSAOAEP PK from external source");
+							console.log("Successfully imported RSAOAEP PK from external source..",decryptedData);
 							sessionRSAPK = keydata;
 							window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 								.then(function (mobPK) {
 									$scope.socket.emit('InfoPacketResponse',
 										{
-											'pin':       data.payload.data.otp,
+											'pin':       decryptedData.otp,
 											'pk':        arrayBufferToBase64String(mobPK),
-											//'name':      data.payload.data.name,
-											//'email':     data.payload.data.email,
-											'edge_fqdn': data.payload.data.edge_fqdn
+											'edge_fqdn': decryptedData.edge_fqdn,
+											'email' : decryptedData.reg_data.email,
+											'name'  : decryptedData.reg_data.name
 										});
 								})
 								.catch(function (error) {
@@ -287,13 +287,13 @@
 							var PK = arrayBufferToBase64String(keydata);
 							console.log('Public Key Is Ready:', PK, '==>', PK);
 							if (relayEndpoint.indexOf(TMPSocketRelay.io.engine.hostname) < 0) {
-								console.log('Crap::', relayEndpoint, '..', TMPSocketRelay.io.engine.hostname);
+								console.log('Crap(w)::', relayEndpoint, '..', TMPSocketRelay.io.engine.hostname);
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
 								var qrData = JSON.stringify({'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': UID,
-									'PIN': PIN, 'TYPE':'PROV', 'TIME':Date.now()});
-								console.log('sending qr data to whisperer %j',qrData);
+									'PIN': PIN, 'TYPE':'PROV', 'TIME':Date.now(),'REG':reg_data});
+								console.log('sending qr data to whisperer %j',qrData);//XXX
 								$scope.socket.emit('init_mobile_session', qrData);
 							}
 
