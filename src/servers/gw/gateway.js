@@ -98,7 +98,7 @@ function handleRequest(req, res) {
 	logger.debug('[GW] handleRequest', req.url);
 
 	const authToken = extractAuthToken(req);
-	console.log('handleRequest PT 0', authToken);
+	// console.log('handleRequest PT 0', authToken);
 
 	if (authToken == 'INVALID') {
 		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});

@@ -20,7 +20,7 @@ function authenticate(data) {
 		console.log('data authenticated %j',data);
 
 		if (!data.email && !data.user_id) {
-			reject('Must have either email or user_id');
+			reject('You must enter either email or user_id');
 			return;
 		}
 
@@ -123,14 +123,14 @@ app.post('/register/save', (req, res) => {
 
 	function sendError(e) {
 		// Not sending specificError for security reasons
-		console.log('ERROR', e);
+		console.error('/register/save error', e);
 		return res.json({
 			"responseCode": 1,
 			"responseDesc": e
 		});
 	}
 
-	authenticate()
+	authenticate(data)
 		.then(getSigningFqdn)
 		.then(getSigningCred)
 		.then(getEncryptToCred)
