@@ -45,7 +45,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 				reject(`Signed by unauthorized fqdn: ${req.body.encryptedUserData.signedBy}. Should be one of ${customerAuthServersFqdns.join(',')}`);
 			}
 		});
-	};
+	}
 
 	function getGwServerCredentials() {
 		return new Promise((resolve, reject) => {
@@ -56,7 +56,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 				reject(`Failed getting decrypting credential ${gwServerFqdn}`);
 			});
 		});
-	};
+	}
 
 	function parseJson(json) {
 		return new Promise((resolve, reject) => {
@@ -77,7 +77,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 			console.log('TRACE: Decrypted payload', payload);
 			resolve(payload);
 		});
-	};
+	}
 
 	function getEncryptToCred(decryptedData) {
 		return new Promise((resolve, reject) => {
@@ -91,8 +91,8 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	function replyWithUrl([decryptedData, encryptToCred]) {
 		// console.log('replyWithUrl decryptedData', decryptedData);
-		const tokenWithUserData = AuthToken.create(JSON.stringify(decryptedData), gwServerCredentials, 600);
-		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, JSON.stringify(tokenWithUserData), gwServerFqdn));
+		const tokenWithUserData = AuthToken.create(decryptedData.signedData.data, gwServerCredentials, 600);
+		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, tokenWithUserData, gwServerFqdn));
 		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, 60);
 		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(encryptedData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
 		console.log('replyWithUrl() URL', url);

@@ -31,11 +31,9 @@ app.get('/register',  (req, res) => {
 app.post('/register/save', (req, res) => {
 
 	let data = req.body; // name, email, user_id, code
-	console.log('DATA', data);
+	data.pin = data.code || crypto.randomBytes(10).toString('base64');
 
-	if (!data.code) {
-		data.code = crypto.randomBytes(10).toString('base64');
-	}
+	console.log('DATA', data);
 
 	const Bootstrapper = require('../bootstrapper');
 	const Constants    = require('../../constants');

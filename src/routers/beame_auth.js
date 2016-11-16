@@ -11,13 +11,13 @@ const beameSDK    = require('beame-sdk');
 const module_name = "BeameAuthRouter";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
-const CommonUtils  = beameSDK.CommonUtils;
+const CommonUtils = beameSDK.CommonUtils;
 
 
 const public_dir = path.join(__dirname, '..', '..', 'public');
 const base_path  = path.join(public_dir, 'pages', 'beame_auth');
 
-const sns          = new (require("../servers/beame_auth/sns"))();
+const sns = new (require("../servers/beame_auth/sns"))();
 
 
 function onRequestError(res, error, code) {
@@ -35,7 +35,15 @@ class BeameAuthRouter {
 
 		this._router.get('/', (req, res) => {
 
-			res.sendFile(path.join(base_path, 'signup.html'));
+
+			this._isRequestValid(req).then(data => {
+				this._authServices.saveSession(data);
+
+				res.sendFile(path.join(base_path, 'signup.html'));
+			}).catch(error=> {
+				logger.error(BeameLogger.formatError(error));
+				//TODO redirect to GW home
+			});
 		});
 
 		this._router.route('/node/auth/register')
@@ -81,6 +89,17 @@ class BeameAuthRouter {
 		});
 	}
 
+
+	/**
+	 * @param req
+	 * @returns {Promise.<RegistrationData>}
+	 * @private
+	 */
+	_isRequestValid(req) {
+		let encryptedMessage = req.query && req.query["data"];
+
+		return encryptedMessage ? this._authServices.validateRegistrationToken(encryptedMessage) : Promise.reject(`auth token required`);
+	}
 
 	get router() {
 		return this._router;

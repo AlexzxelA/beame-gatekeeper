@@ -87,18 +87,18 @@ class SqliteServices {
 						where: {
 							email:          data.email,
 							name:           data.email,
-							externalUserId: data.userId
+							externalUserId: data.user_id
 						}
 					}).then(record=> {
 						if (record) {
-							reject(`Record for email ${data.email}, name ${data.name}, userId ${data.userId} already registered`);
+							reject(`Record for email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
 							return;
 						}
 
 						model.create({
 							name:           data.name,
 							email:          data.email,
-							externalUserId: data.userId,
+							externalUserId: data.user_id,
 							fqdn: data.fqdn || null
 						}).then(regs=> {
 							resolve(regs.id);
@@ -314,7 +314,7 @@ class SqliteServices {
 						where: {
 							email:          data.email,
 							name:           data.email,
-							externalUserId: data.userId
+							externalUserId: data.user_id
 						}
 					}).then(record=> {
 						if (record) {
@@ -324,7 +324,7 @@ class SqliteServices {
 						model.create({
 							name:           data.name,
 							email:          data.email,
-							externalUserId: data.userId,
+							externalUserId: data.user_id,
 							pin:            data.pin
 						}).then(session=> {
 

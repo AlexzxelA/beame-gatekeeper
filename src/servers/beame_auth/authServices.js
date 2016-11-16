@@ -16,7 +16,7 @@
  * @typedef {Object} RegistrationData
  * @property {String} name
  * @property {String} email
- * @property {String} userId
+ * @property {String} user_id
  * @property {String} pin
  * @property {String} fqdn
  */
@@ -181,16 +181,6 @@ class BeameAuthServices {
 
 				AuthToken.validate(authToken).then(resolve).catch(reject);
 
-				// this._getAuthTokenCred(authToken.signedBy).then(() => {
-				//
-				// 	if (AuthToken.validate(authToken)) {
-				//
-				// 		resolve()
-				// 	}
-				// 	else {
-				// 		reject(`Invalid auth token`);
-				// 	}
-				// }).catch(reject);
 			}
 		);
 	}
@@ -208,7 +198,7 @@ class BeameAuthServices {
 	 * @param {RegistrationData} data
 	 * @returns {Promise}
 	 */
-	static saveSession(data) {
+	saveSession(data) {
 		return dataService.saveSession(data);
 	}
 
@@ -319,23 +309,61 @@ class BeameAuthServices {
 	}
 
 	/**
-	 *
-	 * @param {String} fqdn
-	 * @returns {Promise}
-	 * @private
+	 * @param {String} encryptedMessage
+	 * @returns {Promise.<RegistrationData>}
 	 */
-	// _getAuthTokenCred(fqdn) {
-	// 	return new Promise((resolve, reject) => {
-	// 			var authCred = store.getCredential(fqdn);
-	// 			if (authCred) {
-	// 				resolve(authCred);
-	// 			}
-	// 			else {
-	// 				store.fetch(fqdn).then(resolve).catch(reject)
-	// 			}
-	// 		}
-	// 	);
-	// }
+	validateRegistrationToken(encryptedMessage) {
+		return new Promise((resolve, reject) => {
+				try {
+
+					let token = CommonUtils.parse(encryptedMessage,false);
+
+					if(!token){
+						reject('invalid message');
+						return;
+					}
+
+					let decryptedData = this._creds.decrypt(token);
+
+					if(!decryptedData){
+						reject(`invalid data`);
+						return;
+					}
+
+					let authToken = CommonUtils.parse(decryptedData,false);
+
+					if(!authToken){
+						reject('invalid auth token');
+						return;
+					}
+
+					this._validateAuthToken(authToken).then(() => {
+
+						/** @type {RegistrationData} */
+						let registrationData = CommonUtils.parse(authToken.signedData.data);
+
+						if(!registrationData){
+							reject('invalid registration data');
+							return;
+						}
+
+						if(!registrationData.pin){
+							reject(`pincode required`);
+							return;
+						}
+
+						resolve(registrationData);
+
+					}).catch(reject);
+
+
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+
+	}
 
 	//endregion
 
