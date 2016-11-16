@@ -18,6 +18,12 @@ function authenticate(data) {
 	//ADD CUSTOM LOGIC
 	return new Promise((resolve, reject) => {
 		console.log('data authenticated %j',data);
+
+		if (!data.email && !data.user_id) {
+			reject('Must have either email or user_id');
+			return;
+		}
+
 		resolve();
 		// or reject('Authentication failed')
 	});
