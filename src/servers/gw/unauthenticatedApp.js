@@ -92,9 +92,9 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 	function replyWithUrl([decryptedData, encryptToCred]) {
 		// console.log('replyWithUrl decryptedData', decryptedData);
 		const tokenWithUserData = AuthToken.create(JSON.stringify(decryptedData), gwServerCredentials, 600);
-		const encryptedData = encryptToCred.encrypt(beameAuthServerFqdn, JSON.stringify(tokenWithUserData), gwServerFqdn);
+		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, JSON.stringify(tokenWithUserData), gwServerFqdn));
 		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, 60);
-		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(tokenWithUserData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(encryptedData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
 		console.log('replyWithUrl() URL', url);
 		res.json({url});
 	}
