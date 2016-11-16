@@ -108,7 +108,8 @@ function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
 	// console.log('handleRequest PT 0', authToken);
 
-	if (!authToken || req.url == Constants.LogoutPath || req.url == Constants.AppSwitchPath) {
+	console.log('gateway handleRequest URL', req.url);
+	if (!authToken || req.url == Constants.LogoutPath || req.url.startsWith(Constants.AppSwitchPath)) {
 		unauthenticatedApp(req, res);
 		return;
 	}
