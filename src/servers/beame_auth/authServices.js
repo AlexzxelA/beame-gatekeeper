@@ -53,7 +53,7 @@ class BeameAuthServices {
 			logger.fatal(`Server credential not found`);
 		}
 
-		let subscribe = subscribeForChildCerts || false;
+		let subscribe = subscribeForChildCerts || true;
 
 		if (subscribe) {
 			this._creds.subscribeForChildRegistration(this._fqdn);
