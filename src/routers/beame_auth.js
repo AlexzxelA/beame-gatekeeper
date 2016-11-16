@@ -49,6 +49,7 @@ class BeameAuthRouter {
 			}).catch(error=> {
 				logger.error(BeameLogger.formatError(error));
 				//TODO redirect to GW home
+				res.redirect(Bootstrapper.getLogoutUrl())
 			});
 		});
 

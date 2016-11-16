@@ -169,7 +169,7 @@ class Bootstrapper {
 
 	static getLogoutUrl(){
 		let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-		return fqdn ? `https://${fqdn}/${Constants.LogoutPath}` : null;
+		return fqdn ? `https://${fqdn}${Constants.LogoutPath}` : null;
 	}
 
 	/**
@@ -204,6 +204,10 @@ class Bootstrapper {
 	//region getters
 	get dbProvider(){
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
+	}
+
+	get getRegistrationAuthTokenTtl(){
+		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : null;
 	}
 
 	get sqliteConfig(){
@@ -296,7 +300,7 @@ class Bootstrapper {
 
 					for (let prop in defaults) {
 						//noinspection JSUnfilteredForInLoop
-						if (typeof defaults[prop] === "string" && !config.hasOwnProperty(prop)) {
+						if ((typeof defaults[prop] === "string" || typeof defaults[prop] === "number") && !config.hasOwnProperty(prop)) {
 							updateFile   = true;
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = defaults[prop];

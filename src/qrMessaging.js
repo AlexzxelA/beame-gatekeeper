@@ -21,7 +21,7 @@ class QrMessaging {
 	 * @param {String} fqdn
 	 * @param {MessagingCallbacks} callbacks
 	 */
-	constructor(fqdn,callbacks) {
+	constructor(fqdn, callbacks) {
 
 		beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
 			if (!error) {
@@ -31,14 +31,14 @@ class QrMessaging {
 				this._edge = null;
 			}
 		});
-		this._fqdn = fqdn;
-		this._callbacks       = callbacks;
-		this._browserHost     = null;
-		this._otp             = "";
-		this._otp_prev        = "";
-		this._renewOTP        = null;
-		this._QRdata          = null;
-		this._edge            = null;
+		this._fqdn        = fqdn;
+		this._callbacks   = callbacks;
+		this._browserHost = null;
+		this._otp         = "";
+		this._otp_prev    = "";
+		this._renewOTP    = null;
+		this._QRdata      = null;
+		this._edge        = null;
 	}
 
 	/**
@@ -48,7 +48,7 @@ class QrMessaging {
 
 		socket.on('browser_connected', (data) => {
 			logger.debug(`browser socket connected with:${data}`);
-			this._browserHost     = data;
+			this._browserHost = data;
 			this._signBrowserHostname(socket);
 		});
 
@@ -63,14 +63,14 @@ class QrMessaging {
 					name:      data.name,
 					email:     data.email,
 					edge_fqdn: data.edge_fqdn,
-					pin:        data.pin,
-					user_data:  data.user_data,
+					pin:       data.pin,
+					user_id:   data.user_id,
 					rand:      CommonUtils.randomBytes()
 				};
 
 				let registerFqdnFunc = this._callbacks["RegisterFqdn"];
 
-				if(!registerFqdnFunc){
+				if (!registerFqdnFunc) {
 					logger.error(`registration callback not defined`);
 					return;
 				}
@@ -98,7 +98,6 @@ class QrMessaging {
 			}
 		});
 	}
-
 
 
 	/**

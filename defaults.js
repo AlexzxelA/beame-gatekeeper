@@ -16,6 +16,9 @@ const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
+//in sec
+const RegistrationAuthTokenTtl = 60;
+
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
 		"username":             "",
@@ -31,7 +34,8 @@ const SqliteConfigTemplate = {
 
 const ConfigProps = {
 	Settings: {
-		DbProvider: "db_provider"
+		DbProvider: "db_provider",
+		            RegistrationAuthTokenTtl
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -76,6 +80,8 @@ const CustomerAuthServersTemplate = {
 
 module.exports = {
 	ConfigProps,
+
+	RegistrationAuthTokenTtl,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,
