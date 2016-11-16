@@ -7,7 +7,9 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
-//DON'T change these settings
+const GatewayControllerPath = '/beame-gw';
+const LogoutPath = `${GatewayControllerPath}/logout`;
+
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
@@ -59,6 +61,9 @@ module.exports = {
 	RegistrationSource,
 	CredentialType,
 	DbProviders,
+
+	GatewayControllerPath,
+	LogoutPath,
 
 	BeameRootPath,
 

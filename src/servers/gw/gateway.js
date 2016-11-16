@@ -16,6 +16,7 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const ProxyClient = beameSDK.ProxyClient;
 const BeameStore  = new beameSDK.BeameStore();
+const Constants = require('../../../constants');
 
 const unauthenticatedApp = require('./unauthenticatedApp');
 
@@ -105,7 +106,7 @@ function handleRequest(req, res) {
 		return;
 	}
 
-	if (!authToken || req.url == '/beame-gw/logout') {
+	if (!authToken || req.url == Constants.LogoutPath) {
 		unauthenticatedApp(req, res);
 		return;
 	}

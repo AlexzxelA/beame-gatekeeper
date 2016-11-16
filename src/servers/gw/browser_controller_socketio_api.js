@@ -2,7 +2,7 @@
 
 const socket_io   = require('socket.io');
 const beameSDK    = require('beame-sdk');
-const BeameStore  = new beameSDK.BeameStore();
+const Constants   = require('../../../constants');
 
 // TODO: Session renewal?
 const messageHandlers = {
@@ -42,7 +42,7 @@ function onConnection(client) {
 		}
 		if (!data || !data.type || !data.payload) {
 			return sendError(client, 'Data must have "type" and "payload" fields');
-		};
+		}
 		if (!messageHandlers[data.type]) {
 			return sendError(client, `Don't know how to handle message of type ${data.type}`);
 		}
@@ -52,10 +52,10 @@ function onConnection(client) {
 
 // server - https.Server
 function start(server) {
-	const io = socket_io(server, {path: '/beame-gw/socket.io'});
+	const io = socket_io(server, {path: `${Constants.GatewayControllerPath}/socket.io`});
 	io.on('connection', onConnection);
 }
-	
+
 module.exports = {
 	start
 };

@@ -167,6 +167,11 @@ class Bootstrapper {
 		return zero ? (zero["fqdn"] === "" ? null : zero["fqdn"]) : null;
 	}
 
+	static getLogoutUrl(){
+		let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+		return fqdn ? `https://${fqdn}/${Constants.LogoutPath}` : null;
+	}
+
 	/**
 	 * @param {String} fqdn
 	 * @param {String} credType

@@ -131,7 +131,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 });
 
 // TODO: move somewhere else, does not really belong here - start
-unauthenticatedApp.get('/beame-gw/logout', (req, res) => {
+unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	res.clearCookie('proxy_enabling_token');
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
