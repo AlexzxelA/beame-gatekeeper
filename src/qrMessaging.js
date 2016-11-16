@@ -55,7 +55,7 @@ class QrMessaging {
 		socket.on('InfoPacketResponse', (data) => {
 			logger.debug('InfoPacketResponse:', data);
 			//createEntityWithAuthServer
-			if (this._verifyOTP(data.pin)) {
+			if (this._verifyOTP(data.otp)) {
 				clearInterval(this._renewOTP);
 				socket.emit('resetQR');
 
@@ -63,6 +63,8 @@ class QrMessaging {
 					name:      data.name,
 					email:     data.email,
 					edge_fqdn: data.edge_fqdn,
+					pin:        data.pin,
+					user_data:  data.user_data,
 					rand:      CommonUtils.randomBytes()
 				};
 

@@ -188,11 +188,13 @@ function initRelay(socket) {
 						.then(function (mobPK) {
 							TMPsocketOrigin.emit('InfoPacketResponse',
 								{
-									'pin':       decryptedData.otp,
+									'pin':       decryptedData.reg_data.pin,
+									'otp':       decryptedData.otp,
 									'pk':        arrayBufferToBase64String(mobPK),
 									'edge_fqdn': decryptedData.edge_fqdn,
 									'email' : decryptedData.reg_data.email,
-									'name'  : decryptedData.reg_data.name
+									'name'  : decryptedData.reg_data.name,
+									'user_id' : decryptedData.reg_data.user_id
 								});
 						})
 						.catch(function (error) {
