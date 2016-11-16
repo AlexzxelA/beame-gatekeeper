@@ -6,6 +6,8 @@
 const path    = require('path');
 const request = require('request');
 const express = require('express');
+const crypto  = require('crypto');
+
 const app     = express();
 
 const public_dir =  path.join(__dirname, '..', '..',  'public');
@@ -30,6 +32,10 @@ app.post('/register/save', (req, res) => {
 
 	let data = req.body; // name, email, user_id, code
 	console.log('DATA', data);
+
+	if (!data.code) {
+		data.code = crypto.randomBytes(10).toString('base64')
+	}
 
 	const Bootstrapper = require('../bootstrapper');
 	const Constants    = require('../../constants');

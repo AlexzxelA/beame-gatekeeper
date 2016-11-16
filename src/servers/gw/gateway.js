@@ -58,12 +58,10 @@ function extractAuthToken(req) {
 	// XXX: temp
 	// return {'name': 'svc1'};
 	// return 'INVALID';
-	console.log('ET 0');
 	if(!req.headers.cookie) {
 		return null;
 	}
 	const cookies = cookie.parse(req.headers.cookie);
-	console.log('REQ COOK', cookies);
 	if(!cookies.proxy_enabling_token) {
 		return null;
 	}
