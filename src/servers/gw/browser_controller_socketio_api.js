@@ -9,12 +9,21 @@ const messageHandlers = {
 	'auth': function(payload) {
 		// TODO: check which token
 		// TODO: return apps list + session token
+		// --- answer ---
+		// type: 'authenticated'
+		// payload: {success: true/false, apps: [{'App Name': app_d}, ...]}
 	},
 	'choose': function(payload) {
 		// Choose application - redirect app switchig URL on GW, auth token in URL
+		// --- answer ---
+		// type: 'redirect'
+		// payload: {success: true/false, url: ...}
 	},
 	'logout': function(payload) {
 		// Redirect to cookie removing URL on GW
+		// --- answer ---
+		// type: 'redirect'
+		// payload: {success: true/false, logout:true, url: ...}
 	}
 };
 
