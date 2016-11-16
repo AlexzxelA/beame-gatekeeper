@@ -34,7 +34,7 @@ app.post('/register/save', (req, res) => {
 	console.log('DATA', data);
 
 	if (!data.code) {
-		data.code = crypto.randomBytes(10).toString('base64')
+		data.code = crypto.randomBytes(10).toString('base64');
 	}
 
 	const Bootstrapper = require('../bootstrapper');
