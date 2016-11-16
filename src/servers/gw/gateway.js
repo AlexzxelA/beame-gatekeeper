@@ -13,7 +13,8 @@ const httpProxy   = require('http-proxy');
 const beameSDK    = require('beame-sdk');
 const module_name = "InstaServerMain";
 const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);const ProxyClient = beameSDK.ProxyClient;
+const logger      = new BeameLogger(module_name);
+const ProxyClient = beameSDK.ProxyClient;
 const BeameStore  = new beameSDK.BeameStore();
 
 const unauthenticatedApp = require('./unauthenticatedApp');
