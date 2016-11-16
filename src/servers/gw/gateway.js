@@ -9,7 +9,6 @@ const url         = require('url');
 const cookie      = require('cookie');
 
 const httpProxy   = require('http-proxy');
-const socket_io   = require('socket.io');
 
 const beameSDK    = require('beame-sdk');
 const module_name = "InstaServerMain";
@@ -24,7 +23,10 @@ const proxy = httpProxy.createProxyServer({
 	xfwd: true,
 	// Verify SSL cert
 	secure: true,
-	changeOrigin: true
+	// Set request hostname to hostname from destination URL
+	changeOrigin: true,
+	// Do proxy web sockets
+	ws: true
 });
 
 const COOKIE_NAME = 'X-Beame-GW-Service-Token';
@@ -96,28 +98,6 @@ function handleRequest(req, res) {
 
 	logger.debug('[GW] handleRequest', req.url);
 
-	// ---------- Beame services - no cookie token involved ----------
-	// These will move to Socket.IO
-
-	let qs = null;
-	// Don't want to parse all requests. It's a waste because most of them will be just proxied.
-	if(req.url.startsWith('/beame/')) {
-		qs = querystring.parse(url.parse(req.url).query);
-	}
-
-	// Probably /beame/save-token endpoint for storing token in cookie
-	if(req.url.startsWith('/beame/switch-app')) {
-		// 1. Set application authorization token cookie
-		// 2. Redirect to the application
-		logger.info('SWITCHING APP', qs);
-		if(!qs || !qs.app_auth_token) {
-			sendError(req, res, 400, 'app_auth_token query string parameter is required');
-			return;
-		}
-	}
-
-	// ---------- Proxied services - use cookie token ----------
-
 	const authToken = extractAuthToken(req);
 	console.log('handleRequest PT 0', authToken);
 
@@ -126,17 +106,19 @@ function handleRequest(req, res) {
 		return;
 	}
 
-	if (!authToken || req.url == '/beame/logout') {
+	if (!authToken || req.url == '/beame-gw/logout') {
 		unauthenticatedApp(req, res);
 		return;
 	}
 
-	console.log('handleRequest PT 1', authToken.url);
 	if(authToken.url) {
 		console.log(`Proxying to authToken.url ${authToken.url}`);
 		proxy.web(req, res, {target: authToken.url});
 		// proxy.web(req, res, {target: 'http://google.com'});
+		return;
 	}
+
+	sendError(req, res, 500, `Don't know how to proxy. Probably invalid prxying token.`);
 
 	/*
 	// If have have the token, we're proxying to an application

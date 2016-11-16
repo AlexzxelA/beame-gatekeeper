@@ -126,12 +126,12 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 		console.log('token', token);
 		res.cookie('proxy_enabling_token', token);
 		res.append('X-Beame-Debug', 'Redirecting to GW for proxing to BeameAuthorizationServer');
-		res.redirect(`https://${gwServerFqdn}/register?data=${encodeURIComponent(qs.data)}`);
+		res.redirect(`https://${gwServerFqdn}/?data=${encodeURIComponent(qs.data)}`);
 	});
 });
 
 // TODO: move somewhere else, does not really belong here - start
-unauthenticatedApp.get('/beame/logout', (req, res) => {
+unauthenticatedApp.get('/beame-gw/logout', (req, res) => {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	res.clearCookie('proxy_enabling_token');
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');

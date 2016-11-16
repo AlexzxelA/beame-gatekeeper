@@ -43,8 +43,8 @@ function onConnection(client) {
 
 // server - https.Server
 function start(server) {
-	const io = socket_io(server);
-	io.of('/beame/socket.io').on('connection', onConnection);
+	const io = socket_io(server, {path: '/beame-gw/socket.io'});
+	io.on('connection', onConnection);
 }
 	
 module.exports = {
