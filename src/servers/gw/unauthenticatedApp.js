@@ -134,20 +134,34 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 
 
 unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
-	// XXX: validate proxy_enable
+	// XXX: validate proxy_enable (make sure it's allowed to sign)
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	const qs = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
 	// XXX: unhardcode 86400
-	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({app_id: proxyingDestination}), 86400).then(token => {
-		console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
-		res.cookie('proxy_enabling_token', token);
-		res.append('X-Beame-Debug', 'Redirecting to GW for proxing after choosing an application on mobile');
-		res.redirect(`https://${gwServerFqdn}`);
-	}).catch(e => {
-		console.log('switch app error', e);
-	});
+
+	function respond(token) {
+		console.log('switch app token', token);
+		// XXX: why twice?
+		const app_id = JSON.parse(JSON.parse(token.signedData.data)).app_id;
+		console.log('switch app - app id', app_id);
+		return new Promise((resolve, reject) => {
+			utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({app_id}), 86400).then(token => {
+				console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
+				res.cookie('proxy_enabling_token', token);
+				res.append('X-Beame-Debug', 'Redirecting to GW for proxing after choosing an application on mobile');
+				res.append('X-Beame-Debug-Chosen-App-Id', app_id);
+				res.redirect(`https://${gwServerFqdn}`);
+			});
+		});
+	}
+
+	AuthToken.validate(qs.proxy_enable)
+		.then(respond)
+		.catch(e => {
+			console.log('switch app error', e);
+		});
 });
 
 // TODO: move somewhere else, does not really belong here - start

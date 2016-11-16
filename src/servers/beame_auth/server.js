@@ -3,9 +3,6 @@
  */
 
 "use strict";
-const async = require('async');
-
-
 const path = require('path');
 
 const utils = require('../../utils');
@@ -14,11 +11,12 @@ const utils = require('../../utils');
 const Router     = require('../../routers/beame_auth');
 const public_dir = path.join(__dirname, '..', '..', '..', 'public');
 
-const beameSDK          = require('beame-sdk');
-const module_name       = "BeameAuthServer";
-const BeameLogger       = beameSDK.Logger;
-const logger            = new BeameLogger(module_name);
-const BeameAuthServices = require('./authServices');
+const beameSDK               = require('beame-sdk');
+const module_name            = "BeameAuthServer";
+const BeameLogger            = beameSDK.Logger;
+const logger                 = new BeameLogger(module_name);
+const BeameAuthServices      = require('./authServices');
+const BeameInstaSocketServer = require('../../beameInstaSocketServer');
 
 class BeameAuthServer {
 
@@ -45,9 +43,8 @@ class BeameAuthServer {
 
 		this._server = null;
 
-		this._whispererManager = null;
+		this._socketServer = null;
 
-		this._qrMesaaging = null;
 	}
 
 	/**
@@ -60,13 +57,22 @@ class BeameAuthServer {
 
 				this._server = app;
 
+				/** @type {MessagingCallbacks} */
+				let callbacks = {
+					RegisterFqdn:  this._authServices.getRegisterFqdn.bind(this._authServices),
+					DeleteSession: BeameAuthServices.deleteSession
+				};
 
-				this._initWhispererManager()
-					.then(this._initQrMessaging.bind(this))
-					.then(this._startSocketioServer.bind(this))
-					.then(()=>{
-						cb && cb(null, this._server);
-					});
+				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, (require('BeameWhisperer').WhispererMode).PROVISION, callbacks);
+
+				beameInstaServer.start().then(socketio_server=> {
+					this._socketServer = socketio_server;
+					cb && cb(null, this._server);
+				}).catch(error=> {
+					this.stop();
+					cb && cb(error, null);
+				})
+
 
 			}, error=> {
 				cb && cb(error, null);
@@ -75,78 +81,14 @@ class BeameAuthServer {
 
 	}
 
-	/**
-	 * @param {Socket} socket
-	 * @private
-	 */
-	_onWhispererBrowserConnection(socket) {
-
-		this._whispererManager.onBrowserConnection(socket);
-	}
-
-	/**
-	 * @param {Socket} socket
-	 * @private
-	 */
-	_onQrBrowserConnection(socket) {
-		this._qrMesaaging.onQrBrowserConnection(socket);
-	}
-
-	/**
-	 * @param {Socket} socket
-	 * @private
-	 */
-	_onMobileConnection(socket) {
-		this._whispererManager.onMobileConnection(socket);
-	}
-
-	/**
-	 *
-	 * @private
-	 */
-	_startSocketioServer(){
-		/** @type {Socket} */
-		let socketio = require('socket.io')(this._server);
-
-		//noinspection JSUnresolvedFunction
-		socketio.of('whisperer').on('connection', this._onWhispererBrowserConnection.bind(this));
-		//noinspection JSUnresolvedFunction
-		socketio.of('mobile').on('connection', this._onMobileConnection.bind(this));
-		//noinspection JSUnresolvedFunction
-		socketio.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
-
-		return Promise.resolve();
-	}
-
-	_initWhispererManager() {
-
-		const WhispererManager = require('BeameWhisperer').Manager;
-		const WhispererMode    = require('BeameWhisperer').WhispererMode;
-
-
-		this._whispererManager = new WhispererManager(
-			WhispererMode.PROVISION,
-			this._fqdn,
-			this._matchingServerFqdn,
-			this._callbacks,
-			60000);
-
-		return Promise.resolve();
-	}
-
-	_initQrMessaging() {
-		const QrMessaging = require('../../qrMessaging');
-
-		this._qrMesaaging = new QrMessaging(this._fqdn,this._callbacks);
-
-		return Promise.resolve();
-	}
-
-	//noinspection JSUnusedGlobalSymbols
 	stop() {
 		if (this._server) {
 			this._server.close();
 			this._server = null;
+		}
+		if (this._socketServer) {
+			this._socketServer.stop();
+			this._socketServer = null;
 		}
 	}
 }
