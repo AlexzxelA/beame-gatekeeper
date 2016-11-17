@@ -5,9 +5,12 @@
 
 function startGatewaySession(authToken, relaySocket) {
 
-	var gw_socket = null, relay_socket;
+	var gw_socket = null, relay_socket = null;
 
 	function restartMobileRelaySocket(mob_relay_socket){
+
+		if(!mob_relay_socket) return;
+
 		relaySocket = mob_relay_socket;
 
 		relaySocket.removeAllListeners();
@@ -79,7 +82,10 @@ function startGatewaySession(authToken, relaySocket) {
 			delete payload.url;
 		}
 
-		relay_socket.emit('data', data);
+		if(relay_socket){
+			relay_socket.emit('data', data);
+		}
+
 
 		// For all types of packets
 		// Send payload to mobile device using mob_relay_socket
