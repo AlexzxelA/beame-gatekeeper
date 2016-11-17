@@ -29,6 +29,8 @@ function startGatewaySession(authToken, relaySocket) {
 
 		if (payload.html) {
 
+			stopAllRunningSessions = true;
+
 			removeLogin();
 
 			setIframeHtmlContent(payload.html);
@@ -99,12 +101,14 @@ function setIframeHtmlContent(html){
 	var iframe = document.getElementById('ifrm-content'),
 	    iframedoc = iframe.contentDocument || iframe.contentWindow.document;
 
+	iframe.style.display = 'block';
+
 	iframedoc.body.innerHTML = html;
 }
 
 function setIframeUrl(url){
 	var iframe = document.getElementById('ifrm-content');
-
+	iframe.style.display = 'block';
 	iframe.src = url;
 }
 

@@ -1,7 +1,7 @@
 'use strict';
 
-const fs                = require('fs');
-const path              = require('path');
+const fs   = require('fs');
+const path = require('path');
 
 const socket_io         = require('socket.io');
 const Bootstrapper      = require('../../bootstrapper');
@@ -15,9 +15,9 @@ const AuthToken         = beameSDK.AuthToken;
 const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-const apps = require('./apps');
+const apps              = require('./apps');
 
-var authServices        = null;
+var authServices = null;
 
 
 function assertSignedByGw(session_token) {
@@ -43,7 +43,17 @@ const messageHandlers = {
 		logger.debug('messageHandlers/auth');
 
 		function assertTokenFqdnIsAuthorized(token) {
-			return BeameAuthServices.validateUser(token.signedBy);
+			return new Promise((resolve, reject) => {
+					BeameAuthServices.validateUser(token.signedBy).then(user => {
+						logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
+						resolve(user);
+					}).catch(error => {
+						logger.error(`assertTokenFqdnIsAuthorized on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
+						reject(error);
+					})
+				}
+			);
+
 		}
 
 		function createSessionToken(apps) {
@@ -65,7 +75,7 @@ const messageHandlers = {
 					'public', 'pages', 'gw', 'logged-in-home.html'
 				);
 				fs.readFile(f, 'utf8', (err, page) => {
-					if(err) {
+					if (err) {
 						reject(err);
 						return;
 					}
@@ -131,8 +141,8 @@ const messageHandlers = {
 					type:    'redirect',
 					payload: {
 						success: true,
-						id: payload.id,
-						url: url
+						id:      payload.id,
+						url:     url
 					}
 				});
 			});
