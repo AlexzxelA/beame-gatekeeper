@@ -24,7 +24,7 @@ function listApplications() {
 
 function appUrlById(id) {
 	if (id == 1) {
-		return Promise.resolve('https://en.wikipedia.org');
+		return Promise.resolve('http://127.0.0.1:65511');
 	}
 	if (id == 2) {
 		return Promise.resolve('https://www.google.com');
