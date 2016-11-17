@@ -204,84 +204,91 @@ function initRelay(socket) {
 				tmpSocketID       = data.socketId;
 				var encryptedData = data.payload.data.data;
 				var success       = true;
-				decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, function (err, decryptedDataB64) {
-					if (!err) {
-						var decryptedData = JSON.parse(atob(decryptedDataB64));
-						var key2import    = decryptedData.pk;
-						importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
-							console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
-							sessionRSAPK = keydata;
-							window.crypto.subtle.exportKey('spki', keyPair.publicKey)
-								.then(function (mobPK) {
+				var decryptedData;
 
-									switch (auth_mode) {
-										case 'Provision':
-											TMPsocketOrigin.emit('InfoPacketResponse',
-												{
-													'pin':       decryptedData.reg_data.pin,
-													'otp':       decryptedData.otp,
-													'pk':        arrayBufferToBase64String(mobPK),
-													'edge_fqdn': decryptedData.edge_fqdn,
-													'email':     decryptedData.reg_data.email,
-													'name':      decryptedData.reg_data.name,
-													'user_id':   decryptedData.reg_data.user_id
-												});
-											break;
-										case 'Session':
-											startGatewaySession(decryptedData.token);
-											//TODO add ui logic
-											return;
-										default:
-											alert('Unknown Auth mode');
-											logout();
-											return;
-									}
+				var onPublicKeyImported = function (keydata) {
+					console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
+					sessionRSAPK = keydata;
+					window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+						.then(function (mobPK) {
 
-								})
-								.catch(function (error) {
-									TMPsocketOrigin.emit('InfoPacketResponseError',
-										{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
-									console.log('<*********< error >*********>:', error);
-								});
+							switch (auth_mode) {
+								case 'Provision':
+									TMPsocketOrigin.emit('InfoPacketResponse',
+										{
+											'pin':       decryptedData.reg_data.pin,
+											'otp':       decryptedData.otp,
+											'pk':        arrayBufferToBase64String(mobPK),
+											'edge_fqdn': decryptedData.edge_fqdn,
+											'email':     decryptedData.reg_data.email,
+											'name':      decryptedData.reg_data.name,
+											'user_id':   decryptedData.reg_data.user_id
+										});
+									break;
+								case 'Session':
+									startGatewaySession(decryptedData.token,TMPsocketRelay);
+									//TODO add ui logic
+									return;
+								default:
+									alert('Unknown Auth mode');
+									logout();
+									return;
+							}
 
-							window.crypto.subtle.exportKey('spki', keyPairSign.publicKey)
-								.then(function (keydata1) {
-									console.log('SignKey: ', arrayBufferToBase64String(keydata1));
-									encryptWithPK(keydata1, function (error, cipheredData) {
-										if (!error) {
-											console.log('Sending SignKey: ', JSON.stringify({
-												'type':    'signkey',
-												'payload': {'data': (cipheredData)}
-											}));
-											TMPsocketRelay.emit('data', {
-												'socketId': tmpSocketID,
-												'payload':  JSON.stringify({'type': 'signkey', 'data': (cipheredData)})
-											});
-										}
-										else {
-											success = false;
-											console.error('Data encryption failed: ', error);
-										}
-									});
-								})
-								.catch(function (err) {
-									success = false;
-									console.error('Export Public Sign Key Failed', err);
-								});
-
-
-							importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-								console.log("Successfully imported RSAPKCS PK from external source");
-								sessionRSAPKverify = keydata;
-							}).catch(function (err) {
-								success = false;
-								console.error('Import *Verify Key* Failed', err);
-							});
-
-						}).catch(function () {
-							console.log('Import *Encrypt Key* failed');
-							success = false;
+						})
+						.catch(function (error) {
+							TMPsocketOrigin.emit('InfoPacketResponseError',
+								{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
+							console.log('<*********< error >*********>:', error);
 						});
+
+					window.crypto.subtle.exportKey('spki', keyPairSign.publicKey)
+						.then(function (keydata1) {
+							console.log('SignKey: ', arrayBufferToBase64String(keydata1));
+							encryptWithPK(keydata1, function (error, cipheredData) {
+								if (!error) {
+									console.log('Sending SignKey: ', JSON.stringify({
+										'type':    'signkey',
+										'payload': {'data': (cipheredData)}
+									}));
+									TMPsocketRelay.emit('data', {
+										'socketId': tmpSocketID,
+										'payload':  JSON.stringify({'type': 'signkey', 'data': (cipheredData)})
+									});
+								}
+								else {
+									success = false;
+									console.error('Data encryption failed: ', error);
+								}
+							});
+						})
+						.catch(function (err) {
+							success = false;
+							console.error('Export Public Sign Key Failed', err);
+						});
+
+
+					importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+						console.log("Successfully imported RSAPKCS PK from external source");
+						sessionRSAPKverify = keydata;
+					}).catch(function (err) {
+						success = false;
+						console.error('Import *Verify Key* Failed', err);
+					});
+
+				};
+
+				var onError = function () {
+					console.log('Import *Encrypt Key* failed');
+					success = false;
+				};
+
+				var onMessageDecrypted = function (err, decryptedDataB64) {
+					if (!err) {
+						decryptedData = JSON.parse(atob(decryptedDataB64));
+						var key2import    = decryptedData.pk;
+
+						importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError);
 					}
 					else {
 						console.log('failed to decrypt mobile PK');
@@ -290,9 +297,12 @@ function initRelay(socket) {
 							'payload':  'failed to decrypt mobile PK'
 						});
 					}
-				});
+				};
+
+				decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, onMessageDecrypted );
 				return;
 			case 'registration_complete':
+				logout();
 				return;
 			default:
 				console.error('unknown payload type ' + type);

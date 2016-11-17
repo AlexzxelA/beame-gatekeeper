@@ -35,6 +35,8 @@ const IVsizeBruttoB64 = 24;
 const keyBlockSize    = 256;
 const padOffset       = 42;
 
+
+
 function generateUID(length) {
 	var text = "";
 	var possible = "_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef.ghijklmnopqrstuvwxyz0123456789.";
