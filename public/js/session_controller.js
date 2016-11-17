@@ -7,6 +7,10 @@ function startGatewaySession(authToken, relaySocket) {
 
 	var gw_socket = null, relay_socket = null;
 
+	// xxx - start
+	var xxx_session_token = null;
+	// xxx - end
+
 	restartMobileRelaySocket(relaySocket);
 
 	gw_socket = io.connect('/', {
@@ -35,6 +39,12 @@ function startGatewaySession(authToken, relaySocket) {
 		console.log('DATA %j', data);
 
 		var session_token, apps, type = data.type, payload = data.payload;
+
+		// xxx - start
+		if (payload.type == 'authenticated' && payload.success) {
+			xxx_session_token = payload.session_token;
+		}
+		// xxx - end
 
 		if (payload.html) {
 
@@ -104,6 +114,20 @@ function startGatewaySession(authToken, relaySocket) {
 		});
 
 	}
+
+	function chooseApp(id) {
+		gw_socket.emit('data',{
+			type: 'choose',
+			payload: {
+				id: id,
+				session_token: xxx_session_token
+			}
+		});
+	}
+
+	// xxx - start
+	window.xxx_choose_app = chooseApp;
+	// xxx - end
 }
 
 function setIframeHtmlContent(html){
