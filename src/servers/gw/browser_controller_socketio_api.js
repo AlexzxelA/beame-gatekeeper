@@ -5,7 +5,9 @@ const Bootstrapper      = require('../../bootstrapper');
 const Constants         = require('../../../constants');
 const beameSDK          = require('beame-sdk');
 const CommonUtils      = beameSDK.CommonUtils;
-const BeameStore        = new beameSDK.BeameStore();
+const module_name       = "BrowserControllerSocketAPI";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
 const AuthToken         = beameSDK.AuthToken;
 const BeameAuthServices = require('../beame_auth/authServices');
 const utils             = require('../../utils');
@@ -35,7 +37,7 @@ const messageHandlers = {
 		// --- response ---
 		// type: 'authenticated'
 		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {id: ..., online: true/false}}, ...]}
-		console.log('messageHandlers/auth');
+		logger.debug('messageHandlers/auth');
 
 		// XXX: use BeameAuthServices#validateUser()
 		function assertTokenFqdnIsAuthorized(token) {
@@ -55,7 +57,7 @@ const messageHandlers = {
 
 		function respond([apps, token]) {
 			return new Promise((resolve, reject) => {
-				console.log('messageHandlers/auth/respond token', token);
+				logger.debug('messageHandlers/auth/respond token', token);
 				reply({
 					type:    'authenticated',
 					payload: {
@@ -103,7 +105,7 @@ const messageHandlers = {
 		function respond(token) {
 			return new Promise((resolve, reject) => {
 				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
-				console.log('respond() URL', url);
+				logger.debug('respond() URL', url);
 				reply({
 					type:    'redirect',
 					payload: {
@@ -120,7 +122,7 @@ const messageHandlers = {
 			.then(makeProxyEnablingToken)
 			.then(respond)
 			.catch(e => {
-				console.log('choose error', e);
+				logger.error('choose error', e);
 			});
 
 	},
@@ -143,7 +145,7 @@ const messageHandlers = {
 		function respond(token) {
 			return new Promise((resolve, reject) => {
 				const url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
-				console.log('respond() URL', url);
+				logger.debug('respond() URL', url);
 				reply({
 					type:    'redirect',
 					payload: {
@@ -203,7 +205,7 @@ class BrowserControllerSocketioApi {
 
 	_onConnection(client) {
 		// Browser controller will connect here
-		console.log('[GW] handleSocketIoConnect');
+		logger.debug('[GW] handleSocketIoConnect');
 
 		function reply(data) {
 			client.emit('data', JSON.stringify(data));

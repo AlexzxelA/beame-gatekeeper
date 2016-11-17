@@ -22,6 +22,11 @@ module.exports = function (sequelize, DataTypes) {
 			externalUserId: {
 				type:      DataTypes.STRING,
 				allowNull: true
+			},
+			isActive:{
+				type: DataTypes.BOOLEAN,
+				allowNull : false,
+				defaultValue: true
 			}
 		},
 		{

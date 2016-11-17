@@ -400,6 +400,11 @@ class BeameAuthServices {
 						reject(`user ${fqdn} not found`);
 					}
 
+					if(!user.isActive){
+						reject(`user ${fqdn} is not active`);
+						return;
+					}
+
 					resolve({
 						fqdn:    fqdn,
 						name:    user.name,

@@ -108,7 +108,7 @@ function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
 	// console.log('handleRequest PT 0', authToken);
 
-	console.log('gateway handleRequest URL', req.url);
+	logger.debug('gateway handleRequest URL', req.url);
 	if (!authToken || req.url == Constants.LogoutPath || req.url.startsWith(Constants.AppSwitchPath)) {
 		unauthenticatedApp(req, res);
 		return;
@@ -120,7 +120,7 @@ function handleRequest(req, res) {
 	}
 
 	if (authToken.url) {
-		console.log(`Proxying to authToken.url ${authToken.url}`);
+		logger.debug(`Proxying to authToken.url ${authToken.url}`);
 		proxy.web(req, res, {target: authToken.url});
 		// proxy.web(req, res, {target: 'http://google.com'});
 		return;

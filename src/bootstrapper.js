@@ -41,7 +41,7 @@ const ConfigFolderPath     = Constants.ConfigFolderPath;
 const AppConfigJsonPath    = Constants.AppConfigJsonPath;
 const SqliteConfigJsonPath = Constants.SqliteConfigJsonPath;
 
-const __onConfigError = error=> {
+const __onConfigError = error => {
 	logger.error(error);
 	process.exit(1);
 };
@@ -58,7 +58,7 @@ class Bootstrapper {
 	 */
 	initAll() {
 		return new Promise((resolve) => {
-			this.initConfig(false).then(this.initDb.bind(this, false)).then(()=> {
+			this.initConfig(false).then(this.initDb.bind(this, false)).then(() => {
 				logger.info(`beame-insta-server bootstrapped successfully`);
 				resolve();
 			}).catch(__onConfigError);
@@ -73,7 +73,7 @@ class Bootstrapper {
 	initConfig(exit) {
 
 		return new Promise((resolve) => {
-				Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureCredsConfigJson.bind(this)).then(this._ensureCustomerAuthServersJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(()=> {
+				Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureCredsConfigJson.bind(this)).then(this._ensureCustomerAuthServersJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(() => {
 					logger.info(`Beame-insta-server config files ensured`);
 					resolve();
 					if (exit) {
@@ -102,7 +102,7 @@ class Bootstrapper {
 
 				switch (provider) {
 					case DbProviders.Sqlite:
-						this._ensureSqliteDir().then(this._migrateSqliteSchema.bind(this)).then(()=> {
+						this._ensureSqliteDir().then(this._migrateSqliteSchema.bind(this)).then(() => {
 							logger.info(`Beame-insta-server ${provider} DB updated successfully`);
 							resolve();
 							if (exit) {
@@ -134,7 +134,7 @@ class Bootstrapper {
 			let emptyServers = CommonUtils.filterHash(creds, (k, v) => v.fqdn === "");
 
 			if (!CommonUtils.isObjectEmpty(emptyServers)) {
-				Object.keys(emptyServers).forEach(key=>logger.info(`${key} not found`));
+				Object.keys(emptyServers).forEach(key => logger.info(`${key} not found`));
 				reject(`Credentials for following servers not found: ${Object.keys(emptyServers).join(',')}`);
 				return;
 			}
@@ -167,7 +167,7 @@ class Bootstrapper {
 		return zero ? (zero["fqdn"] === "" ? null : zero["fqdn"]) : null;
 	}
 
-	static getLogoutUrl(){
+	static getLogoutUrl() {
 		let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		return fqdn ? `https://${fqdn}${Constants.LogoutPath}` : null;
 	}
@@ -193,7 +193,7 @@ class Bootstrapper {
 
 				creds[credType]["fqdn"] = fqdn;
 
-				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds)).then(()=> {
+				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds)).then(() => {
 					logger.info(`${fqdn} saved as ${credType}...`);
 					resolve();
 				}).catch(reject);
@@ -202,26 +202,27 @@ class Bootstrapper {
 	}
 
 	//region getters
-	get dbProvider(){
+	get dbProvider() {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
 	}
 
-	get getRegistrationAuthTokenTtl(){
+	get getRegistrationAuthTokenTtl() {
 		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : null;
 	}
 
-	get sqliteConfig(){
+	get sqliteConfig() {
 		let config = DirectoryServices.readJSON(SqliteConfigJsonPath);
 
-		if (CommonUtils.isObjectEmpty(config)){
+		if (CommonUtils.isObjectEmpty(config)) {
 			//noinspection JSConstructorReturnsPrimitive
 			return null;
 		}
 
-		let env      = this._config[SqliteProps.EnvName];
+		let env = this._config[SqliteProps.EnvName];
 
 		return config[env];
 	}
+
 	//endregion
 
 	//region Beame folder
@@ -275,10 +276,10 @@ class Bootstrapper {
 
 				this._config = config;
 
-				dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config)).then(()=> {
+				dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config)).then(() => {
 					logger.debug(`${AppConfigFileName} saved in ${path.dirname(AppConfigJsonPath)}...`);
 					resolve();
-				}).catch(error=> {
+				}).catch(error => {
 					this._config = null;
 					reject(error);
 				});
@@ -315,10 +316,10 @@ class Bootstrapper {
 						return;
 					}
 
-					dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config, false)).then(()=> {
+					dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config, false)).then(() => {
 						logger.debug(`${AppConfigFileName} updated...`);
 						resolve();
-					}).catch(error=> {
+					}).catch(error => {
 						this._config = null;
 						reject(error);
 					});
@@ -355,7 +356,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				let credsConfig = defaults.CredsConfigTemplate;
 
-				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig)).then(()=> {
+				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig)).then(() => {
 					logger.debug(`${CredsFileName} saved in ${path.dirname(CredsJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -383,7 +384,7 @@ class Bootstrapper {
 
 				servers.Servers.push(fqdn);
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers)).then(()=> {
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers)).then(() => {
 					logger.info(`${fqdn} added to authorized customer servers...`);
 					resolve();
 				}).catch(reject);
@@ -429,7 +430,7 @@ class Bootstrapper {
 				let credsConfig = defaults.CustomerAuthServersTemplate;
 
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig)).then(()=> {
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig)).then(() => {
 					logger.debug(`${CustomerAuthServersFileName} saved in ${path.dirname(CustomerAuthServersJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -499,7 +500,7 @@ class Bootstrapper {
 				dbConfig[env]["password"] = CommonUtils.randomPassword(12);
 				dbConfig[env]["storage"]  = path.join(this._config[SqliteProps.StorageRoot], this._config[SqliteProps.DbName]);
 
-				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig)).then(()=> {
+				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig)).then(() => {
 					logger.debug(`${SqliteDbConfigFileName} saved in ${path.dirname(SqliteConfigJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -519,7 +520,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				//TODO implement https://github.com/sequelize/umzug
 				let action = path.join(__dirname, "..", "node_modules", ".bin", "sequelize"),
-				    args   = ["db:migrate", "--env", "production", "--config", SqliteConfigJsonPath];
+				    args   = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
 				try {
 					execFile(action, args, (error) => {

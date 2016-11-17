@@ -100,7 +100,7 @@ class QrMessaging {
 		});
 
 		socket.on('virtSrvConfig', (data) => {
-			console.log('<< virtSrvConfig:', data, '..', this._browserHost);
+			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);
 			if (data == this._browserHost) {
 				this._setNewOTP(socket);
 			}
@@ -137,7 +137,7 @@ class QrMessaging {
 		socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		this._renewOTP = setInterval(()=> {
 			this._generateOTP(24);
-			console.log('QRdata:', relay, '..', UID);
+			logger.debug('QRdata:', relay, '..', UID);
 			socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		}, OTP_refresh_rate);
 	}
