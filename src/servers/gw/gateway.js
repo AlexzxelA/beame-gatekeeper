@@ -23,7 +23,6 @@ const apps = require('./apps');
 const unauthenticatedApp = require('./unauthenticatedApp');
 
 const proxy = httpProxy.createProxyServer({
-	// TODO: X-Forwarded-For, X-Forwarded-Proto and friends
 	xfwd:         true,
 	// Verify SSL cert
 	secure:       true,
@@ -36,17 +35,9 @@ const proxy = httpProxy.createProxyServer({
 const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 
 // TODO: Audit trail?
-// TODO: Move socket.io to non-standard location as other applications might use it
 
-function getServicesList() {
-	return Promise.resolve({
-		admin: {name: 'Admin Panel', url: 'http://127.0.0.1:65002/'},
-		svc1:  {name: 'Admin Panel', url: 'http://127.0.0.1:65500/'}
-	});
-}
-
-// TODO: Check that websockets work
-// TODO: Look if this can help: https://github.com/senchalabs/connect
+// TODO: Check that websockets work (apparently wss:// fails when using socket.io)
+//       Look if this can help: https://github.com/senchalabs/connect
 
 // https://github.com/nodejitsu/node-http-proxy/blob/d8fb34471594f8899013718e77d99c2acbf2c6c9/examples/http/custom-proxy-error.js
 proxy.on('error', (err, req, res) => {
@@ -138,11 +129,11 @@ function handleRequest(req, res) {
 	}
 
 	if (authToken.app_id) {
-		console.log(`Proxying to app_id ${authToken.app_id}`);
+		logger.debug(`Proxying to app_id ${authToken.app_id}`);
 		apps.appUrlById(authToken.app_id).then(url => {
 			proxy.web(req, res, {target: url});
 		}).catch(e => {
-			console.log(`Error handling authToken.app_id: ${e}`);
+			logger.error(`Error handling authToken.app_id: ${e}`);
 			sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		});
 		// proxy.web(req, res, {target: 'http://google.com'});
@@ -151,19 +142,6 @@ function handleRequest(req, res) {
 
 	sendError(req, res, 500, `Don't know how to proxy. Probably invalid proxying token.`);
 
-	/*
-	 // If have have the token, we're proxying to an application
-	 // TODO: make sure this .then() does not leak - getServicesList is singleton
-	 // TODO: get only specific service, might be changed to talk to external DB
-	 getServicesList().then(services => {
-	 if(!services[authToken]) {
-	 sendError(req, res, 502, `Unknown service "${JSON.stringify(authToken)}" in token`);
-	 return;
-	 }
-	 addBeameHeaders(req);
-	 // TODO: set cookie to carry token
-	 });
-	 */
 }
 
 // Starts HTTPS server
