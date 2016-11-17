@@ -310,8 +310,8 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		$scope.pinData = data;
 		//$scope.keepAlive = 5;
 		console.log('PIN:' + data);
-		if ($scope.showWelcome)
-			document.getElementById("pin").innerHTML = data;
+		// if ($scope.showWelcome)
+		// 	document.getElementById("pin").innerHTML = data;
 	});
 
 	$scope.socket.on('data', function (data) {
