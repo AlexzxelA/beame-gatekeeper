@@ -133,7 +133,8 @@
 
 		//$scope.socketAlive = false;
 		$scope.playPIN     = false;
-		$scope.socket      = (reg_data)?io.connect("/whisperer"):io.connect("/whisperer", {path: '/beame-gw-insta-socket'});
+
+		$scope.socket      = io.connect("/whisperer", socketio_options);
 
 
 		$scope.socket.on('wh_timeout', function (timeout) {
@@ -227,11 +228,9 @@
 												});
 											break;
 										case 'Session':
-											TMPsocketOrigin.emit('InfoPacketResponse', {
-												'mode':      auth_mode,
-												token: decryptedData.token
-											});
-											break;
+											startGatewaySession(decryptedData.token);
+											//TODO add ui logic
+											return;
 										default:
 											alert('Unknown Auth mode');
 											logout();

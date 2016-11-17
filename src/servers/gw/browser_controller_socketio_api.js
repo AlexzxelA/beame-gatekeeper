@@ -4,14 +4,16 @@ const socket_io         = require('socket.io');
 const Bootstrapper      = require('../../bootstrapper');
 const Constants         = require('../../../constants');
 const beameSDK          = require('beame-sdk');
+const CommonUtils      = beameSDK.CommonUtils;
 const BeameStore        = new beameSDK.BeameStore();
 const AuthToken         = beameSDK.AuthToken;
 const BeameAuthServices = require('../beame_auth/authServices');
-var authServices        = null;
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-
 const apps = require('./apps');
+
+var authServices        = null;
+
 
 function assertSignedByGw(session_token) {
 	let signedBy = JSON.parse(session_token).signedBy;
@@ -37,9 +39,11 @@ const messageHandlers = {
 
 		// XXX: use BeameAuthServices#validateUser()
 		function assertTokenFqdnIsAuthorized(token) {
-			return Promise.resolve(token);
-		}
 
+			let authToken = CommonUtils.parse(token);
+
+			return  authToken ? BeameAuthServices.validateUser(authToken.signedBy) : Promise.reject(`invalid auth token`);
+		}
 
 		function createSessionToken(apps) {
 			return new Promise((resolve, reject) => {

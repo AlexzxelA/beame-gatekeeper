@@ -223,8 +223,9 @@ function initRelay(socket) {
 										});
 									break;
 								case 'Session':
-
-									break;
+									startGatewaySession(decryptedData.token);
+									//TODO add ui logic
+									return;
 								default:
 									alert('Unknown Auth mode');
 									logout();

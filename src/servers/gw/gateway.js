@@ -271,11 +271,9 @@ class GatewayServer {
 				const BeameAuthServices      = require('../beame_auth/authServices');
 				const BeameInstaSocketServer = require('../../beameInstaSocketServer');
 
-				let authServices = new BeameAuthServices(this._fqdn);
 
 				/** @type {MessagingCallbacks} */
 				let callbacks = {
-					Login:         authServices.validateUser.bind(authServices),
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 

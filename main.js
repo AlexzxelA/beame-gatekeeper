@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-process.env.BEAME_LOG_LEVEL = "DEBUG";
+//process.env.BEAME_LOG_LEVEL = "DEBUG";
 
 
 /**

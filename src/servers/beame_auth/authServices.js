@@ -44,7 +44,7 @@ class BeameAuthServices {
 	 * @param {Boolean|null} [subscribeForChildCerts]
 	 */
 	constructor(authServerFqdn, subscribeForChildCerts) {
-		this._fqdn  = authServerFqdn;
+		this._fqdn = authServerFqdn;
 
 		/** @type {Credential} */
 		this._creds = store.getCredential(authServerFqdn);
@@ -109,7 +109,7 @@ class BeameAuthServices {
 	getRegisterFqdn(data) {
 		return new Promise((resolve, reject) => {
 
-				if(!data.email && !data.user_id){
+				if (!data.email && !data.user_id) {
 					reject(`email or userId required for registration`);
 					return;
 				}
@@ -324,23 +324,23 @@ class BeameAuthServices {
 		return new Promise((resolve, reject) => {
 				try {
 
-					let token = CommonUtils.parse(encryptedMessage,false);
+					let token = CommonUtils.parse(encryptedMessage, false);
 
-					if(!token){
+					if (!token) {
 						reject('invalid message');
 						return;
 					}
 
 					let decryptedData = this._creds.decrypt(token);
 
-					if(!decryptedData){
+					if (!decryptedData) {
 						reject(`invalid data`);
 						return;
 					}
 
-					let authToken = CommonUtils.parse(decryptedData,false);
+					let authToken = CommonUtils.parse(decryptedData, false);
 
-					if(!authToken){
+					if (!authToken) {
 						reject('invalid auth token');
 						return;
 					}
@@ -350,12 +350,12 @@ class BeameAuthServices {
 						/** @type {RegistrationData} */
 						let registrationData = CommonUtils.parse(authToken.signedData.data);
 
-						if(!registrationData){
+						if (!registrationData) {
 							reject('invalid registration data');
 							return;
 						}
 
-						if(!registrationData.pin){
+						if (!registrationData.pin) {
 							reject(`pincode required`);
 							return;
 						}
@@ -392,8 +392,25 @@ class BeameAuthServices {
 	//endregion
 
 	//region user
-	validateUser(fqdn) {
-		return dataService.findUser(fqdn);
+	static validateUser(fqdn) {
+
+		return new Promise((resolve, reject) => {
+				dataService.findUser(fqdn).then(user=> {
+					if (user == null) {
+						reject(`user ${fqdn} not found`);
+					}
+
+					resolve({
+						fqdn:    fqdn,
+						name:    user.name,
+						email:   user.email,
+						user_id: user.externalUserId
+					});
+				}).catch(reject);
+			}
+		);
+
+
 	}
 
 	//endregion
