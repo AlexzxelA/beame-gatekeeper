@@ -84,7 +84,7 @@ const messageHandlers = {
 		// payload: {session_token: ..., id: ...}
 		// --- response ---
 		// type: 'redirect'
-		// payload: {success: true/false, url: ...}
+		// payload: {success: true/false, id: (same as in request), url: ...}
 
 		function makeProxyEnablingToken() {
 			return utils.createAuthTokenByFqdn(
@@ -102,6 +102,7 @@ const messageHandlers = {
 					type: 'redirect',
 					payload: {
 						success: true,
+						id: payload.id,
 						url: url
 					}
 				});
@@ -111,7 +112,10 @@ const messageHandlers = {
 		assertSignedByGw(payload.session_token)
 			.then(AuthToken.validate)
 			.then(makeProxyEnablingToken)
-			.then(respond);
+			.then(respond)
+			.catch(e => {
+				console.log('choose error', e);
+			});
 
 	},
 	'logout': function(payload, reply) {
