@@ -50,17 +50,17 @@ $(document).ready(function () {
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
-								var tmp_reg_data = (reg_data) ? reg_data : "login";
+
 								var QRdata       = {
 									'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-									'PIN':   parsed['data'], 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': tmp_reg_data
+									'PIN':   parsed['data'], 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': reg_data || 'login'
 								};
 								socket.emit('QRdata', QRdata);
 								qrContainer = $('#qr');
 								try {
 									var dataStr = JSON.stringify(QRdata);
 									if (dataStr.length > 30) {
-										qrCode = dataStr;
+										var qrCode = dataStr;
 										console.log(dataStr);
 										qrContainer.empty();
 										qrContainer.kendoQRCode({

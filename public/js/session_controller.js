@@ -48,13 +48,30 @@ function startGatewaySession(authToken, relaySocket) {
 	gw_socket = io.connect('/', {path: '/beame-gw/socket.io'});
 
 	gw_socket.on('connection',function(){
-		gw_socket.emit('')
+		gw_socket.emit('data',{
+			type:'auth',
+			payload: authToken
+		})
 	});
 
 	gw_socket.on('data', data => {
 		data = JSON.parse(data);
+
 		console.log('DATA %j', data);
-		var session_token, apps;
+
+		var session_token, apps, type = data.type, payload = data.payload;
+
+		switch (type){
+			case 'authenticated':
+				if(payload.success){
+
+				}
+				else{
+					alert('')
+				}
+				break;
+		}
+
 		if (data.type == 'authenticated') {
 			console.log('data/authenticated');
 			session_token = data.payload.session_token;
@@ -65,13 +82,6 @@ function startGatewaySession(authToken, relaySocket) {
 				payload: {
 					session_token: session_token,
 					id:            1
-				}
-			});
-			gw_socket.emit('data', {
-				type:    'choose',
-				payload: {
-					session_token: session_token,
-					id:            4
 				}
 			});
 
@@ -87,3 +97,6 @@ function startGatewaySession(authToken, relaySocket) {
 	});
 }
 
+function removeLogin(){
+	$('#login_form').remove();
+}

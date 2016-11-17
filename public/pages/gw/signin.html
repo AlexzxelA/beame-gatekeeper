@@ -14,6 +14,7 @@
     <script>
         var auth_mode = 'Session',
             stopAllRunningSessions = false,
+            reg_data = null,
             socketio_options = {path: '/beame-gw-insta-socket'};
 
     </script>
@@ -33,7 +34,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div id="login_form" class="row">
 
 
         <div class="column large-6 large-offset-1">
