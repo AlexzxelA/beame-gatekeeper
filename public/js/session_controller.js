@@ -11,6 +11,10 @@ function startGatewaySession(authToken, relaySocket) {
 
 	gw_socket = io.connect('/', {path: '/beame-gw/socket.io'});
 
+	gw_socket.on('error', function(e) {
+		console.error('Error in gw_socket', e);
+	});
+
 	gw_socket.on('connect',function(){
 
 		gw_socket.emit('data',{
