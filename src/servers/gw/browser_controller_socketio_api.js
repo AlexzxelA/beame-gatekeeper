@@ -111,6 +111,7 @@ const messageHandlers = {
 			.then(loadPage)
 			.then(respond)
 			.catch(e => {
+				logger.error(`auth error ${e}`);
 				reply({
 					type:    'authenticated',
 					payload: {
