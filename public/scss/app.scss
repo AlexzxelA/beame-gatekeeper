@@ -457,54 +457,43 @@ p + p {
 // QR and speaker box
 
 .box-signin {
-
-    background: $white;
+    background: #fff;
     margin: auto;
     padding: 30px 20px 15px;
-    box-shadow: 0 0 20px lighten($purple-bm, 50%);
+    box-shadow: 0 0 20px #e9dbf4;
     text-align: center;
+    width: 70%; }
+.box-signin .signin-qr {
     width: 70%;
-
-    .signin-qr {
-        width: 70%;
-        height: 70%;
-        min-width: 200px;
-        min-height: 200px;
-        display: inline-block;
-        font-size: 0;
-        svg {
-            max-width: 100%;
-        }
-    }
-    .signin-divider {
-        margin: 25px auto 15px;
-        color: $gray;
-        font-size: 15px;
-    }
-    .signin-speaker {
-        display: inline-block;
-        width: 80px;
-        height: 80px;
-        border-radius: 100%;
-        background: $purple-bm;
-        box-shadow: 0 2px 10px 5px lighten($purple-bm, 35%);
-        outline: none;
-        transform: scale(1);
-        transition: transform 0.1s;
-        background: url("../img/speaker-purple-off.svg") no-repeat center;
-        background-size: 105%;
-
-        &.button-on {
-            background: url("../img/speaker-purple-on.svg") no-repeat center;
-            background-size: 105%;
-        }
-        &:hover {
-            transform: scale(1.03);
-            transition: transform 0.1s;
-        }
-    }
-}
-
+    height: 70%;
+    min-width: 200px;
+    min-height: 200px;
+    display: inline-block;
+    font-size: 0; }
+.box-signin .signin-qr svg {
+    max-width: 100%; }
+.box-signin .signin-divider {
+    margin: 25px auto 15px;
+    color: #777;
+    font-size: 15px; }
+.box-signin .signin-speaker {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    border-radius: 100%;
+    background: #7030a0;
+    box-shadow: 0 2px 10px 5px #c6a0e3;
+    outline: none;
+    transform: scale(1);
+    transition: transform 0.1s;
+    background: url("../img/speaker-purple-off.svg") no-repeat center;
+    background-size: 105%; }
+.box-signin .signin-speaker.button-on {
+    background: url("../img/speaker-purple-on.svg") no-repeat center;
+    background-size: 105%; }
+.box-signin .signin-speaker:hover {
+    transform: scale(1.03);
+    transition: transform 0.1s; }
 // iframe
 .iframe-wide {
     display: none;
