@@ -38,7 +38,7 @@ function startGatewaySession(authToken, relaySocket) {
 
 		console.log('DATA %j', data);
 
-		var session_token, apps, type = data.type, payload = data.data;
+		var session_token, apps, type = data.type, payload = data.payload;
 
 		// xxx - start
 		if (type == 'authenticated' && payload.success) {
