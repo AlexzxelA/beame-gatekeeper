@@ -1,5 +1,10 @@
 'use strict';
 
+const beameSDK    = require('beame-sdk');
+const module_name = "FilesApp";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
+
 const port = 65511;
 const host = 'localhost';
 
@@ -8,8 +13,6 @@ const host = 'localhost';
 class Server {
 
 	start() {
-		console.log('Starting files');
-
 		var express = require('express');
 		var app = express();
 		var http = require('http').Server(app);
@@ -21,7 +24,7 @@ class Server {
 		app.use('/', serveIndex(__dirname + '/public', {'icons': true}));
 
 		http.listen(port, host, function(){
-			console.log(`listening on ${host}:${port}`);
+			logger.info(`Listening on ${host}:${port}`);
 		});
 
 		this._app = app;
