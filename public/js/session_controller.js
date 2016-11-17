@@ -18,7 +18,7 @@ function startGatewaySession(authToken, relaySocket) {
 		console.error('Error in gw_socket', e);
 	});
 
-	gw_socket.on('connect',function(){
+	gw_socket.once('connect',function(){
 
 		console.info('gw_socket connected');
 
