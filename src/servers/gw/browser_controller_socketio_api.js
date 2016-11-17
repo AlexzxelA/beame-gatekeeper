@@ -39,12 +39,8 @@ const messageHandlers = {
 		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {id: ..., online: true/false}}, ...]}
 		logger.debug('messageHandlers/auth');
 
-		// XXX: use BeameAuthServices#validateUser()
 		function assertTokenFqdnIsAuthorized(token) {
-
-			let authToken = CommonUtils.parse(token);
-
-			return  authToken ? BeameAuthServices.validateUser(authToken.signedBy) : Promise.reject(`invalid auth token`);
+			return BeameAuthServices.validateUser(token.signedBy);
 		}
 
 		function createSessionToken(apps) {
@@ -69,8 +65,8 @@ const messageHandlers = {
 			});
 		}
 
-		assertTokenFqdnIsAuthorized(payload.token)
-			.then(AuthToken.validate)
+		AuthToken.validate(payload.token)
+			.then(assertTokenFqdnIsAuthorized)
 			.then(apps.listApplications)
 			.then(createSessionToken)
 			.then(respond)
