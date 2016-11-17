@@ -63,7 +63,7 @@ class QrMessaging {
 		});
 
 		socket.on('InfoPacketResponse', (data) => {
-			logger.debug('InfoPacketResponse:', data);
+			logger.debug('QR InfoPacketResponse:', data);
 			//createEntityWithAuthServer
 			if (this._verifyOTP(data.otp)) {
 				clearInterval(this._renewOTP);

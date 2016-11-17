@@ -197,15 +197,16 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		});
 
 		WhTMPSocketRelay.on('data', function (data) {
+			whTmpSocketId = data.socketId;
 			processMobileData(WhTMPSocketRelay,$scope.socket, data);
 		});
 
 		WhTMPSocketRelay.on('create_connection', function () {
-			console.log('create_connection, ID = ', WhTMPSocketRelay.id);
+			console.log('Wh create_connection, ID = ', WhTMPSocketRelay.id);
 		});
 
 		WhTMPSocketRelay.on('hostRegistered', function (data) {
-			console.log('hostRegistered, ID = ', WhTMPSocketRelay.id, '.. hostname: ', data.Hostname);
+			console.log('Wh hostRegistered, ID = ', WhTMPSocketRelay.id, '.. hostname: ', data.Hostname);
 			if (keyGenerated) {
 				var WhUID = data.Hostname;
 				//noinspection JSUnresolvedFunction,JSUnresolvedVariable

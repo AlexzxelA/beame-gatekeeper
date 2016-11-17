@@ -163,6 +163,7 @@ $(document).ready(function () {
 	});
 
 	var resetQR = function () {
+		if(!qrContainer)return;
 		socket.emit('close_session');
 		console.log('QR read successfully - set green');
 		qrContainer.empty();
