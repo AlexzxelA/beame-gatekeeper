@@ -92,6 +92,7 @@ function startGatewaySession(authToken, relaySocket) {
 
 			processMobileData(WhTMPSocketRelay,gw_socket, data,function (decryptedData){
 				gw_socket.emit('data',decryptedData);
+				console.log('relaySocket data', decryptedData);
 				// var type = decryptedData.payload.data.type,
 				// 	session_token = decryptedData.payload.data.session_token;
 				//
