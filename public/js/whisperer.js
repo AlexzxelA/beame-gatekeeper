@@ -201,13 +201,13 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 
 		TMPSocketRelay.on('data', function (data) {
 
-			var type = data.payload.type;
+			var type = data.payload.data.type;
 
 			switch (type) {
 				case 'info_packet_response':
 					console.log('data = ', data.payload.data);
 					tmpSocketID       = data.socketId;
-					var encryptedData = data.payload.data;
+					var encryptedData = data.payload.data.data;
 					var success       = true;
 					decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, function (err, decryptedDataB64) {
 						if (!err) {
