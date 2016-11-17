@@ -9,7 +9,9 @@ const utils = require('../../utils');
 
 
 const Router     = require('../../routers/beame_auth');
-const public_dir = path.join(__dirname, '..', '..', '..', 'public');
+const Constants = require('../../../constants');
+
+const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 
 const beameSDK               = require('beame-sdk');
 const module_name            = "BeameAuthServer";

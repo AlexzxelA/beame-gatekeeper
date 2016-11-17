@@ -33,7 +33,7 @@ function startGatewaySession(authToken, relaySocket) {
 
 	});
 
-	gw_socket.on('data', data => {
+	gw_socket.on('data', function(data) {
 		data = JSON.parse(data);
 
 		console.log('DATA %j', data);

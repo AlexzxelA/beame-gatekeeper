@@ -12,7 +12,7 @@ const beameSDK     = require('beame-sdk');
 const BeameStore   = new beameSDK.BeameStore();
 const AuthToken    = beameSDK.AuthToken;
 
-const public_dir = path.join(__dirname, '..', '..', '..', 'public');
+const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'gw');
 
 const utils         = require('../../utils');

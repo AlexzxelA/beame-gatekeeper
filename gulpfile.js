@@ -16,7 +16,9 @@ const stripDebug   = require('gulp-strip-debug');
 const strip        = require('gulp-strip-comments');
 const inlinesource = require('gulp-inline-source');
 const htmlmin      = require('gulp-htmlmin');
-const gulpif       = require('gulp-if');
+const clean        = require('gulp-rimraf');
+
+const dist_folder_name = 'bin';
 
 gulp.task('sass', function () {
 	gulp.src('./public/scss/app.scss')
@@ -32,72 +34,64 @@ gulp.task("watch", function () {
 	gulp.watch("./public/scss/**/*.scss", ["sass"]);
 });
 
-function handlePage  (pagePath, htmlReplace)  {
-	try {
-		gulp.src(pagePath)
-			.pipe(gulpif(htmlReplace, htmlreplace({
-				'css': 'css/styles.min.css?v=' + new Date().getTime(),
-				'js':  'js/demo.min.js?v=' + new Date().getTime()
-			})))
-			// .pipe(htmlreplace({
-			// 	'css': 'css/styles.min.css?v=' + new Date().getTime(),
-			// 	'js':  'js/demo.min.js?v=' + new Date().getTime()
-			// }))
-			.pipe(htmlmin({collapseWhitespace: true}))
-			.pipe(inlinesource())
-			.pipe(gulp.dest('./bin/' + pagePath.substring(2)));
-	} catch (e) {
-		console.error('handle page ' + pagePath, e);
-	}
+function handlePage(pagePath, distPath) {
+
+	gulp.src(pagePath)
+		.pipe(htmlreplace({
+			'css': 'css/app.min.css?v=' + new Date().getTime(),
+			'js':  'js/app.min.js?v=' + new Date().getTime()
+		}))
+		.pipe(htmlmin({collapseWhitespace: true}))
+		.pipe(inlinesource())
+		.pipe(gulp.dest(distPath));
+
 }
 
-gulp.task('compile-production', ['sass'], function () {
+gulp.task('clean', function () {
+	return gulp.src(`${dist_folder_name}`, {read: false})
+		.pipe(clean());
+});
 
-	try {
-		gulp.src(
-			[
-			    './public/js/crypto.js',
-				'./public/js/session_controller.js',
-				'./public/js/qr.js',
-				'./public/js/whisperer.js'
-			]
-			)
-			.pipe(concat('app.min.js'))
-			.pipe(uglify())
-			.pipe(strip())
-			.pipe(stripDebug())
-			.pipe(gulp.dest('./bin/js/'));
-	} catch (e) {
-		console.error('js ', e);
-	}
+gulp.task('compile_css', function () {
+	gulp.src(['./public/css/app.css'])
+		.pipe(concat('app.min.css'))
+		.pipe(cleanCSS({compatibility: 'ie10'}))
+		.pipe(gulp.dest(`./${dist_folder_name}/css/`));
+});
 
 
-	try {
-		gulp.src(['./public/css/'])
-			.pipe(concat('styles.min.css'))
-			.pipe(cleanCSS({compatibility: 'ie10'}))
-			.pipe(gulp.dest('./bin/css/'));
-	} catch (e) {
-		console.error('css ', e);
-	}
+gulp.task('compile-production', ['clean', 'sass', 'compile_css'], function () {
+
+	gulp.src(
+		[
+			'./public/lib/jquery/jquery.min.js',
+			'./public/lib/angular/angular.min.js',
+			'./public/lib/kendo/kendo.qr.min.js',
+			'./public/js/crypto.js',
+			'./public/js/session_controller.js',
+			'./public/js/qr.js',
+			'./public/js/whisperer.js'
+		]
+		)
+		.pipe(concat('app.min.js'))
+		.pipe(uglify())
+		.pipe(strip())
+		.pipe(stripDebug())
+		.pipe(gulp.dest(`./${dist_folder_name}/js/`));
 
 
-	handlePage('./public/pages/gw/welcome.html', false);
-	handlePage('./public/pages/gw/signin.html', true);
-	handlePage('./public/pages/gw/logged-in-home.html', false);
-	handlePage('./public/pages/customer_auth/register.html', false);
-	handlePage('./public/pages/beame_auth/signup.html', true);
+	handlePage('./public/pages/gw/welcome.html', `./${dist_folder_name}/pages/gw/`);
+	handlePage('./public/pages/gw/signin.html', `./${dist_folder_name}/pages/gw/`);
+	handlePage('./public/pages/gw/logged-in-home.html', `./${dist_folder_name}/pages/gw/`);
+	handlePage('./public/pages/customer_auth/register.html', `./${dist_folder_name}/pages/customer_auth/`);
+	handlePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
 
 
-	try {
-		gulp.src('./public/js/utils.js').pipe(gulp.dest('./bin/js/'));
-		gulp.src('./public/img/**/*').pipe(gulp.dest('./bin/img/'));
-		gulp.src('./public/lib/**/*').pipe(gulp.dest('./bin/lib/'));
-		gulp.src('./public/templates/**/*').pipe(gulp.dest('./bin/templates/'));
-	} catch (e) {
+	gulp.src('./public/js/utils.js').pipe(gulp.dest(`./${dist_folder_name}/js/`));
+	gulp.src('./public/img/**/*').pipe(gulp.dest(`./${dist_folder_name}/img/`));
+	gulp.src('./public/lib/**/*').pipe(gulp.dest(`./${dist_folder_name}/lib/`));
+	gulp.src('./public/templates/**/*').pipe(gulp.dest(`./${dist_folder_name}/templates/`));
 
-		console.error('static ', e);
-	}
 
 });
 

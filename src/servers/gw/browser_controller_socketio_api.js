@@ -77,7 +77,7 @@ const messageHandlers = {
 				const f = path.join(
 					__dirname,
 					'..', '..', '..',
-					'public', 'pages', 'gw', 'logged-in-home.html'
+					Constants.WebRootFolder, 'pages', 'gw', 'logged-in-home.html'
 				);
 				fs.readFile(f, 'utf8', (err, page) => {
 					if (err) {

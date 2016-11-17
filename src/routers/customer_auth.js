@@ -7,10 +7,11 @@ const path    = require('path');
 const request = require('request');
 const express = require('express');
 const crypto  = require('crypto');
+const Constants = require('../../constants');
 
 const app     = express();
 
-const public_dir =  path.join(__dirname, '..', '..',  'public');
+const public_dir =  path.join(__dirname, '..', '..',  Constants.WebRootFolder);
 
 const base_path = path.join(public_dir, 'pages', 'customer_auth');
 

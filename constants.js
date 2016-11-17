@@ -7,6 +7,8 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
+const WebRootFolder = 'public';
+
 const GatewayControllerPath = '/beame-gw';
 const LogoutPath = `${GatewayControllerPath}/logout`;
 const AppSwitchPath = `${GatewayControllerPath}/choose-app`;
@@ -66,7 +68,7 @@ module.exports = {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"
 	},
-
+	WebRootFolder,
 	GatewayControllerPath,
 	LogoutPath,
 	AppSwitchPath,

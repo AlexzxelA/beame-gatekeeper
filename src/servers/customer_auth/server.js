@@ -7,9 +7,10 @@
 const path = require('path');
 
 const utils = require('../../utils');
+const Constants    = require('../../../constants');
 
 const router     = require('../../routers/customer_auth');
-const public_dir = path.join(__dirname, '..', '..', '..', 'public');
+const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 
 const beameSDK    = require('beame-sdk');
 const module_name = "CustomerAuthServer";

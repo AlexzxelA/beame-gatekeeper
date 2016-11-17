@@ -52,6 +52,11 @@ class QrMessaging {
 			//clearInterval(this._renewOTP);
 		});
 
+		socket.on('reconnect',()=>{
+			logger.debug('QR socket reconnected');
+			//clearInterval(this._renewOTP);
+		});
+
 		socket.on('browser_connected', (data) => {
 			logger.debug(`browser socket connected with:${data}`);
 			this._browserHost = data;
@@ -97,7 +102,6 @@ class QrMessaging {
 				socket.emit("mobilePinInvalid", {'data': `PIN:${data.otp}>${this._otp},${this._otp_prev}`});
 			}
 		});
-
 
 		socket.on('virtSrvConfig', (data) => {
 			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);

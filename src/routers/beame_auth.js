@@ -12,10 +12,9 @@ const module_name = "BeameAuthRouter";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const CommonUtils = beameSDK.CommonUtils;
-const Constants         = require('../../constants');
 const Bootstrapper      = require('../bootstrapper');
-
-const public_dir = path.join(__dirname, '..', '..', 'public');
+const Constants = require('../../constants');
+const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'beame_auth');
 
 const sns = new (require("../servers/beame_auth/sns"))();
@@ -88,6 +87,7 @@ class BeameAuthRouter {
 				res.set('Content-Type', 'application/x-pem-file');
 				res.send(cred.getKey("X509"));
 			}).catch(e => {
+				logger.error(e);
 				res.status(404);
 				// Not sending this as it might be security issue: res.json(e);
 				res.set('Content-Type', 'text/plain');

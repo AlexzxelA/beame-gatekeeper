@@ -11,7 +11,7 @@ const path       = require('path');
 const beameSDK   = require('beame-sdk');
 const BeameStore = new beameSDK.BeameStore();
 const AuthToken  = beameSDK.AuthToken;
-
+const Constants = require('../constants');
 /**
  *
  * @param router
@@ -37,7 +37,7 @@ function setExpressApp(router, staticDir) {
 }
 
 function setExpressAppCommonRoutes(app) {
-	app.use(express.static(path.join(__dirname, '..', 'public')));
+	app.use(express.static(path.join(__dirname, '..', Constants.WebRootFolder)));
 }
 
 function createAuthTokenByFqdn(fqdn, data, ttl) {
