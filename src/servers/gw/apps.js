@@ -4,38 +4,38 @@
 function listApplications() {
 	return Promise.resolve({
 		'Files sharing app': {
-			id: 1,
+			app_id: 1,
 			online: true
 		},
 		'Funny pictures album app': {
-			id: 2,
+			app_id: 2,
 			online: false
 		},
 		'Company calendar app': {
-			id: 3,
+			app_id: 3,
 			online: true
 		},
 		'Simple chat': {
-			id: 4,
+			app_id: 4,
 			online: true
 		}
 	});
 }
 
-function appUrlById(id) {
-	if (id == 1) {
+function appUrlById(app_id) {
+	if (app_id == 1) {
 		return Promise.resolve('http://127.0.0.1:65511');
 	}
-	if (id == 2) {
+	if (app_id == 2) {
 		return Promise.resolve('https://yahoo.com');
 	}
-	if (id == 3) {
+	if (app_id == 3) {
 		return Promise.resolve('https://www.timeanddate.com');
 	}
-	if (id == 4) {
+	if (app_id == 4) {
 		return Promise.resolve('http://127.0.0.1:65510');
 	}
-	return Promise.reject(`Unkonwn application ID ${id}`);
+	return Promise.reject(`Unkonwn application APP_ID ${app_id}`);
 
 }
 
