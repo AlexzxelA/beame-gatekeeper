@@ -90,7 +90,7 @@ class QrMessaging {
 					socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e=> {
 					socket.emit("mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
-					logger.error('error (authorizing mobile):', e)
+					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
 				});
 			}
 			else {

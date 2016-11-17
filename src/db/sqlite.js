@@ -11,7 +11,7 @@ const logger       = new BeameLogger(module_name);
 const bootstrapper = new (require('../bootstrapper'))();
 
 function onError(reject, error) {
-	logger.error(BeameLogger.formatError(error));
+	logger.error(BeameLogger.formatError(error),error);
 	reject(error);
 }
 
