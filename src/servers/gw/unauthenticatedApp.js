@@ -21,9 +21,12 @@ const cust_auth_app = require('../../routers/customer_auth');
 const unauthenticatedApp = express();
 
 unauthenticatedApp.use(express.static(base_path, {index: 'welcome.html'}));
+
 unauthenticatedApp.get('/signin', (req, res) => {
+	res.cookie('beame_logout_url',Bootstrapper.getLogoutUrl());
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
+
 utils.setExpressAppCommonRoutes(unauthenticatedApp);
 
 unauthenticatedApp.use(bodyParser.json());

@@ -212,18 +212,36 @@
 							sessionRSAPK = keydata;
 							window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 								.then(function (mobPK) {
-									$scope.socket.emit('InfoPacketResponse',
-										{
-											'pin':       decryptedData.reg_data.pin,
-											'pk':        arrayBufferToBase64String(mobPK),
-											'edge_fqdn': decryptedData.edge_fqdn,
-											'email' : decryptedData.reg_data.email,
-											'name'  : decryptedData.reg_data.name,
-											'user_id' : decryptedData.reg_data.user_id
-										});
+
+									switch (auth_mode) {
+										case 'Provision':
+											$scope.socket.emit('InfoPacketResponse',
+												{
+													'mode':      auth_mode,
+													'pin':       decryptedData.reg_data.pin,
+													'pk':        arrayBufferToBase64String(mobPK),
+													'edge_fqdn': decryptedData.edge_fqdn,
+													'email' : decryptedData.reg_data.email,
+													'name'  : decryptedData.reg_data.name,
+													'user_id' : decryptedData.reg_data.user_id
+												});
+											break;
+										case 'Session':
+											TMPsocketOrigin.emit('InfoPacketResponse', {
+												'mode':      auth_mode,
+												token: decryptedData.token
+											});
+											break;
+										default:
+											alert('Unknown Auth mode');
+											logout();
+											return;
+									}
+
+
 								})
 								.catch(function (error) {
-									$scope.socket.emit('InfoPacketResponse',
+									$scope.socket.emit('InfoPacketResponseError',
 										{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
 									console.log('<*********< error >*********>:', error);
 								});
@@ -314,6 +332,7 @@
 				console.log('end, ID = ', TMPSocketRelay.id);
 			});
 		}
+
 		$scope.socket.on('mobileProv1', function (data) {
 			if (data.data && TMPSocketRelay) {
 				var msg = {'socketId': tmpSocketID, 'payload': JSON.stringify(data)};

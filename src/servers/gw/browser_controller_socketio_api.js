@@ -1,13 +1,15 @@
 'use strict';
 
-const socket_io   = require('socket.io');
-const Bootstrapper = require('../../bootstrapper');
-const Constants    = require('../../../constants');
-const beameSDK     = require('beame-sdk');
-const BeameStore   = new beameSDK.BeameStore();
-const AuthToken    = beameSDK.AuthToken;
-const utils        = require('../../utils');
-const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+const socket_io         = require('socket.io');
+const Bootstrapper      = require('../../bootstrapper');
+const Constants         = require('../../../constants');
+const beameSDK          = require('beame-sdk');
+const BeameStore        = new beameSDK.BeameStore();
+const AuthToken         = beameSDK.AuthToken;
+const BeameAuthServices = require('../beame_auth/authServices');
+var authServices        = null;
+const utils             = require('../../utils');
+const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
 const apps = require('./apps');
 
@@ -22,7 +24,7 @@ function assertSignedByGw(session_token) {
 
 // TODO: Session renewal?
 const messageHandlers = {
-	'auth': function(payload, reply) {
+	'auth':   function (payload, reply) {
 		// TODO: validate token and check it belongs to one of the registered users
 		// TODO: return apps list + session token
 		// --- request ---
@@ -51,11 +53,11 @@ const messageHandlers = {
 			return new Promise((resolve, reject) => {
 				console.log('messageHandlers/auth/respond token', token);
 				reply({
-					type: 'authenticated',
+					type:    'authenticated',
 					payload: {
-						success: true,
+						success:       true,
 						session_token: token,
-						apps: apps
+						apps:          apps
 					}
 				});
 			});
@@ -68,16 +70,16 @@ const messageHandlers = {
 			.then(respond)
 			.catch(e => {
 				reply({
-					type: 'authenticated',
+					type:    'authenticated',
 					payload: {
 						success: false,
-						error: e.toString()
+						error:   e.toString()
 					}
 				});
 			});
 
 	},
-	'choose': function(payload, reply) {
+	'choose': function (payload, reply) {
 		// Choose application - redirect app switchig URL on GW, auth token in URL
 		// --- request ---
 		// type: choose
@@ -99,10 +101,10 @@ const messageHandlers = {
 				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
 				console.log('respond() URL', url);
 				reply({
-					type: 'redirect',
+					type:    'redirect',
 					payload: {
 						success: true,
-						url: url
+						url:     url
 					}
 				});
 			});
@@ -114,7 +116,7 @@ const messageHandlers = {
 			.then(respond);
 
 	},
-	'logout': function(payload, reply) {
+	'logout': function (payload, reply) {
 		// Redirect to cookie removing URL on GW
 		// type: logout
 		// payload: {session_token: ...}
@@ -135,11 +137,11 @@ const messageHandlers = {
 				const url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
 				console.log('respond() URL', url);
 				reply({
-					type: 'redirect',
+					type:    'redirect',
 					payload: {
 						success: true,
-						logout: true,
-						url: url
+						logout:  true,
+						url:     url
 					}
 				});
 			});
@@ -161,36 +163,60 @@ function sendError(client, error) {
 	client.emit('data', JSON.stringify({type: 'error', payload: error}));
 }
 
-function onConnection(client) {
-	// Browser controller will connect here
-	console.log('[GW] handleSocketIoConnect');
 
-	function reply(data) {
-		client.emit('data', JSON.stringify(data));
+class BrowserControllerSocketioApi {
+	constructor(fqdn) {
+		this._fqdn   = fqdn;
+		authServices = new BeameAuthServices(this._fqdn);
+		/** @type {Socket} */
+		this._socket_server = null;
 	}
 
-	client.on('data', data => {
-		try {
-			data = JSON.parse(data);
-		} catch(e) {
-			// nothing
+	start(server) {
+		return new Promise((resolve, reject) => {
+				try {
+					this._socket_server = socket_io(server, {path: `${Constants.GatewayControllerPath}/socket.io`});
+					this._socket_server.on('connection', this._onConnection);
+					resolve(this._socket_server);
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+
+	}
+
+	stop() {
+		if (this._socket_server) {
+			this._socket_server.close();
+			this._socket_server = null;
 		}
-		if (!data || !data.type || !data.payload) {
-			return sendError(client, 'Data must have "type" and "payload" fields');
+	}
+
+	_onConnection(client) {
+		// Browser controller will connect here
+		console.log('[GW] handleSocketIoConnect');
+
+		function reply(data) {
+			client.emit('data', JSON.stringify(data));
 		}
-		if (!messageHandlers[data.type]) {
-			return sendError(client, `Don't know how to handle message of type ${data.type}`);
-		}
-		messageHandlers[data.type](data.payload, reply);
-	});
+
+		client.on('data', data => {
+			try {
+				data = JSON.parse(data);
+			} catch (e) {
+				// nothing
+			}
+			if (!data || !data.type || !data.payload) {
+				return sendError(client, 'Data must have "type" and "payload" fields');
+			}
+			if (!messageHandlers[data.type]) {
+				return sendError(client, `Don't know how to handle message of type ${data.type}`);
+			}
+			messageHandlers[data.type](data.payload, reply);
+		});
+	}
 }
 
-// server - https.Server
-function start(server) {
-	const io = socket_io(server, {path: `${Constants.GatewayControllerPath}/socket.io`});
-	io.on('connection', onConnection);
-}
 
-module.exports = {
-	start
-};
+module.exports = BrowserControllerSocketioApi;

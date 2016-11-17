@@ -82,6 +82,7 @@ class ServersManager {
 				callback => {
 					let chatApp = new (require('../apps/chat'))();
 					chatApp.start();
+					callback();
 				}
 			],
 			error => {

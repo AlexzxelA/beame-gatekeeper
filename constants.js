@@ -62,6 +62,10 @@ module.exports = {
 	RegistrationSource,
 	CredentialType,
 	DbProviders,
+	AuthMode : {
+		"SESSION":   "Session",
+		"PROVISION": "Provision"
+	},
 
 	GatewayControllerPath,
 	LogoutPath,

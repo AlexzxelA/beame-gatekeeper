@@ -74,7 +74,7 @@ function extractAuthToken(req) {
 		const ret = JSON.parse(JSON.parse(cookies.proxy_enabling_token).signedData.data);
 		return JSON.parse(ret);
 	} catch (e) {
-		console.error(`Fail to parse proxy_enabling_token ${cookies.proxy_enabling_token}`);
+		logger.error(`Fail to parse proxy_enabling_token ${cookies.proxy_enabling_token}`);
 		return 'INVALID';
 	}
 }
@@ -191,6 +191,8 @@ class GatewayServer {
 		this._matchingServerFqdn = matchingServerFqdn;
 
 		this._server = null;
+		this._socketServer = null;
+		this._socketControllerServer = null;
 	}
 
 	/**
@@ -220,6 +222,11 @@ class GatewayServer {
 			this._socketServer.stop();
 			this._socketServer = null;
 		}
+
+		if (this._socketControllerServer) {
+			this._socketControllerServer.stop();
+			this._socketControllerServer = null;
+		}
 	}
 
 	_startRequestsHandler(cert) {
@@ -230,17 +237,32 @@ class GatewayServer {
 
 			this._server = https.createServer(serverCerts, handleRequest);
 
-			require('./browser_controller_socketio_api').start(this._server);
 
-			this._startSocketServer().then(()=>{
-				this._server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
-					const port = this._server.address().port;
-					logger.debug(`beame-insta-server listening port ${port}`);
-					resolve([cert, port]);
-				});
+			this._startBrowserControllerServer()
+				.then(this._startSocketServer.bind(this))
+				.then(()=>{
+							this._server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
+								const port = this._server.address().port;
+								logger.debug(`beame-insta-server listening port ${port}`);
+								resolve([cert, port]);
+							});
 			}).catch(reject)
 
 		});
+	}
+
+	_startBrowserControllerServer(){
+		return new Promise((resolve, reject) => {
+			const BrowserControllerSocketioApi = require('./browser_controller_socketio_api');
+
+			let controllerSocketio = new BrowserControllerSocketioApi(this._fqdn);
+
+				controllerSocketio.start(this._server).then(socketio_server=>{
+					this._socketControllerServer = socketio_server;
+					resolve();
+				}).catch(reject);
+			}
+		);
 	}
 
 	_startSocketServer() {
@@ -253,15 +275,15 @@ class GatewayServer {
 
 				/** @type {MessagingCallbacks} */
 				let callbacks = {
-					Login:         authServices.getRegisterFqdn.bind(authServices),
+					Login:         authServices.validateUser.bind(authServices),
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 
 				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`};
 
-				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, (require('BeameWhisperer').WhispererMode).SESSION, callbacks,options);
+				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, (require('BeameWhisperer').WhispererMode).SESSION, callbacks,options);
 
-				beameInstaServer.start().then(socketio_server=> {
+				beameInstaSocketServer.start().then(socketio_server => {
 					this._socketServer = socketio_server;
 					resolve();
 				}).catch(error=> {

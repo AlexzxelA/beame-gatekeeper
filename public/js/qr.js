@@ -2,9 +2,9 @@
  * Created by zenit1 on 25/09/2016.
  */
 
-var qrContainer       = null;
+var qrContainer   = null;
 var sessionRSAPK;
-var relayEndpoint     = "";
+var relayEndpoint = "";
 var sessionRSAPKverify;
 var tmpSocketID;
 var sessionAESkey;
@@ -12,29 +12,30 @@ var sessionIV;
 var keyPair;
 var keyPairSign;
 
-var keyGenerated      = false;
+var keyGenerated = false;
 var TMPsocketRelay;
 var TMPsocketOrigin;
 
 $(document).ready(function () {
 	var UID = generateUID(24) + VirtualPrefix;
 	console.log('UID:', UID);
+
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = (reg_data)?io.connect("/qr"):io.connect("/qr", {path: '/beame-gw-insta-socket'});//connect to origin
+	var socket = io.connect("/qr", socketio_options);
 
 	socket.on('connect', function () {
 		TMPsocketOrigin = socket;//remove towards prod
 		if (!relayEndpoint) {
-			socket.emit('browser_connected',UID);
+			socket.emit('browser_connected', UID);
 		}
 	});
 
-	socket.on('pinRenew',function (data) {
-		if(stopAllRunningSessions){
+	socket.on('pinRenew', function (data) {
+		if (stopAllRunningSessions) {
 			console.log('QR session stopped from server');
 			resetQR();
 		}
-		else{
+		else {
 			try {
 				var parsed = JSON.parse(data);
 				if (parsed['data'] && keyGenerated) {
@@ -49,10 +50,12 @@ $(document).ready(function () {
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
-								var tmp_reg_data = (reg_data)?reg_data:"login";
-								var QRdata  = {'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-									'PIN': parsed['data'], 'TYPE':'PROV','TIME':Date.now(),'REG':tmp_reg_data};
-								socket.emit('QRdata',QRdata);
+								var tmp_reg_data = (reg_data) ? reg_data : "login";
+								var QRdata       = {
+									'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
+									'PIN':   parsed['data'], 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': tmp_reg_data
+								};
+								socket.emit('QRdata', QRdata);
 								qrContainer = $('#qr');
 								try {
 									var dataStr = JSON.stringify(QRdata);
@@ -114,8 +117,8 @@ $(document).ready(function () {
 		console.log('QR relayEndpoint', data);
 		generateKeyPairs(function (error, keydata) {
 			if (error) return;//send error to origin/show on browser
-			keyPair      = keydata.keyPair;
-			keyPairSign  = keydata.keyPairSign;
+			keyPair     = keydata.keyPair;
+			keyPairSign = keydata.keyPairSign;
 
 			keyGenerated = true;
 			try {
@@ -151,13 +154,18 @@ $(document).ready(function () {
 
 	});
 
-	resetQR = function () {
+	socket.on('disconnect', function () {
+		console.log('DISCONNECTED');
+		resetQR();
+	});
+
+	var resetQR = function () {
 		socket.emit('close_session');
 		console.log('QR read successfully - set green');
 		qrContainer.empty();
 		//noinspection JSUnresolvedFunction
 		qrContainer.kendoQRCode({
-			value: "{\"message\":\"QR used, reload the page to get new QR\"}",
+			value:           "{\"message\":\"QR used, reload the page to get new QR\"}",
 			errorCorrection: "L",
 			color:           "#0F9239",
 			background:      "transparent",
@@ -173,7 +181,7 @@ $(document).ready(function () {
 
 //window.location.host window.location.href
 	$(window).on('resize', function () {
-		if(qrContainer){
+		if (qrContainer) {
 			if (qrContainer.data("kendoQRCode"))  qrContainer.data("kendoQRCode").redraw();
 		}
 	});
@@ -188,31 +196,44 @@ function initRelay(socket) {
 
 	TMPsocketRelay.on('data', function (data) {
 		console.log('data = ', data.payload.data);
-		tmpSocketID = data.socketId;
-		var encryptedData      = data.payload.data;
-		var success = true;
+		tmpSocketID       = data.socketId;
+		var encryptedData = data.payload.data;
+		var success       = true;
 		decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, function (err, decryptedDataB64) {
 			if (!err) {
 				var decryptedData = JSON.parse(atob(decryptedDataB64));
-				var key2import = decryptedData.pk;
+				var key2import    = decryptedData.pk;
 				importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
-					console.log("Successfully imported RSAOAEP PK from external source..",decryptedData);
+					console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
 					sessionRSAPK = keydata;
 					window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 						.then(function (mobPK) {
-							TMPsocketOrigin.emit('InfoPacketResponse',
-								{
-									'pin':       decryptedData.reg_data.pin,
-									'otp':       decryptedData.otp,
-									'pk':        arrayBufferToBase64String(mobPK),
-									'edge_fqdn': decryptedData.edge_fqdn,
-									'email' : decryptedData.reg_data.email,
-									'name'  : decryptedData.reg_data.name,
-									'user_id' : decryptedData.reg_data.user_id
-								});
+
+							switch (auth_mode) {
+								case 'Provision':
+									TMPsocketOrigin.emit('InfoPacketResponse',
+										{
+											'pin':       decryptedData.reg_data.pin,
+											'otp':       decryptedData.otp,
+											'pk':        arrayBufferToBase64String(mobPK),
+											'edge_fqdn': decryptedData.edge_fqdn,
+											'email':     decryptedData.reg_data.email,
+											'name':      decryptedData.reg_data.name,
+											'user_id':   decryptedData.reg_data.user_id
+										});
+									break;
+								case 'Session':
+
+									break;
+								default:
+									alert('Unknown Auth mode');
+									logout();
+									return;
+							}
+
 						})
 						.catch(function (error) {
-							TMPsocketOrigin.emit('InfoPacketResponse',
+							TMPsocketOrigin.emit('InfoPacketResponseError',
 								{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
 							console.log('<*********< error >*********>:', error);
 						});
