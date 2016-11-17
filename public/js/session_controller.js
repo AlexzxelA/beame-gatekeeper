@@ -7,6 +7,53 @@ function startGatewaySession(authToken, relaySocket) {
 
 	var gw_socket = null, relay_socket = null;
 
+	restartMobileRelaySocket(relaySocket);
+
+	gw_socket = io.connect('/', {path: '/beame-gw/socket.io'});
+
+	gw_socket.on('connect',function(){
+
+		gw_socket.emit('data',{
+			type:'auth',
+			payload: {token:authToken}
+		})
+
+	});
+
+	gw_socket.on('data', data => {
+		data = JSON.parse(data);
+
+		console.log('DATA %j', data);
+
+		var session_token, apps, type = data.type, payload = data.payload;
+
+		if (payload.html) {
+
+			removeLogin();
+
+			setIframeHtmlContent(payload.html);
+			// Happens on 'authenticated' type event
+			// Show full screen div with payload.html
+			delete payload.html;
+		}
+
+		if (payload.url) {
+			setIframeUrl(payload.url);
+			// Redirect the main frame to payload.url
+			delete payload.url;
+		}
+
+		if(relay_socket){
+			relay_socket.emit('data', data);
+		}
+
+
+		// For all types of packets
+		// Send payload to mobile device using mob_relay_socket
+
+
+	});
+
 	function restartMobileRelaySocket(mob_relay_socket){
 
 		if(!mob_relay_socket) return;
@@ -46,52 +93,6 @@ function startGatewaySession(authToken, relaySocket) {
 		});
 
 	}
-
-	restartMobileRelaySocket(relaySocket);
-
-
-	gw_socket = io.connect('/', {path: '/beame-gw/socket.io'});
-
-	gw_socket.on('connection',function(){
-		gw_socket.emit('data',{
-			type:'auth',
-			payload: authToken
-		})
-	});
-
-	gw_socket.on('data', data => {
-		data = JSON.parse(data);
-
-		console.log('DATA %j', data);
-
-		var session_token, apps, type = data.type, payload = data.payload;
-
-		if (payload.html) {
-
-			removeLogin();
-
-			setIframeHtmlContent(payload.html);
-			// Happens on 'authenticated' type event
-			// Show full screen div with payload.html
-			delete payload.html;
-		}
-
-		if (payload.url) {
-			setIframeUrl(payload.url);
-			// Redirect the main frame to payload.url
-			delete payload.url;
-		}
-
-		if(relay_socket){
-			relay_socket.emit('data', data);
-		}
-
-
-		// For all types of packets
-		// Send payload to mobile device using mob_relay_socket
-
-
-	});
 }
 
 function setIframeHtmlContent(html){
