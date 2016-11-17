@@ -61,39 +61,52 @@ function startGatewaySession(authToken, relaySocket) {
 
 		var session_token, apps, type = data.type, payload = data.payload;
 
-		switch (type){
-			case 'authenticated':
-				if(payload.success){
-
-				}
-				else{
-					alert('')
-				}
-				break;
+		if (payload.html) {
+			// Happens on 'authenticated' type event
+			// Show full screen div with payload.html
+			delete payload.html;
 		}
 
-		if (data.type == 'authenticated') {
-			console.log('data/authenticated');
-			session_token = data.payload.session_token;
-			apps          = data.payload.apps;
-
-			gw_socket.emit('data', {
-				type:    'choose',
-				payload: {
-					session_token: session_token,
-					id:            1
-				}
-			});
-
-			setTimeout(() => {
-				gw_socket.emit('data', {
-					type:    'logout',
-					payload: {
-						session_token: session_token
-					}
-				});
-			}, 1000);
+		if (payload.url) {
+			// Redirect the main frame to payload.url
+			// Maybe: delete payload.url;
 		}
+
+		// For all types of packets
+		// Send payload to mobile device using mob_relay_socket
+
+		// switch (type){
+		// 	case 'authenticated':
+		// 		if(payload.success){
+		// 		}
+		// 		else{
+		// 			alert('Authentication failed. Please try to log in again.');
+		// 		}
+		// 		break;
+		// }
+
+		// if (data.type == 'authenticated') {
+		// 	console.log('data/authenticated');
+		// 	session_token = data.payload.session_token;
+		// 	apps          = data.payload.apps;
+		//
+		// 	gw_socket.emit('data', {
+		// 		type:    'choose',
+		// 		payload: {
+		// 			session_token: session_token,
+		// 			id:            1
+		// 		}
+		// 	});
+		//
+		// 	setTimeout(() => {
+		// 		gw_socket.emit('data', {
+		// 			type:    'logout',
+		// 			payload: {
+		// 				session_token: session_token
+		// 			}
+		// 		});
+		// 	}, 1000);
+		// }
 	});
 }
 
