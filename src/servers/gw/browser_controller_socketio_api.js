@@ -59,7 +59,8 @@ const messageHandlers = {
 					payload: {
 						success:       true,
 						session_token: token,
-						apps:          apps
+						apps:          apps,
+						url:           `https://${gwServerFqdn}/pages/gw/logged-in-home.html`
 					}
 				});
 			});
