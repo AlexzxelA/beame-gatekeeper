@@ -6,16 +6,11 @@
 /**
  * Created by filip on 18/07/2016.
  */
-var PIN          = null,
-    UID          = null,
-    keyPair,
-    keyPairSign,
-    keyGenerated = false,
-    TMPSocketRelay,
-    tmpSocketID,
-    relayEndpoint,
-    sessionRSAPK,
-    sessionRSAPKverify;
+var WhPIN          = null,
+    WhUID          = null,
+    WhTMPSocketRelay,
+    whTmpSocketId,
+    WhRelayEndpoint;
 
 var app = angular.module("WhispererWeb", []);
 
@@ -179,15 +174,17 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		$scope.stopPlaying();
 		$scope.showPopup('Code matched');
 
-		PIN = data.pin;
-		UID = generateUID(24) + VirtualPrefix;
+		WhPIN = data.pin;
+		WhUID = generateUID(24) + VirtualPrefix;
 
 		generateKeyPairs(function (error, data) {
 			if (error) return;
-			keyPair      = data.keyPair;
-			keyPairSign  = data.keyPairSign;
-			keyGenerated = true;
-			$scope.socket.emit('virtSrvConfig', {'UID': UID});
+			if(!keyGenerated){
+				keyPair      = data.keyPair;
+				keyPairSign  = data.keyPairSign;
+				keyGenerated = true;
+			}
+			$scope.socket.emit('virtSrvConfig', {'UID': WhUID});
 		});
 
 	});
@@ -195,36 +192,36 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 
 	function initRelay() {
 
-		TMPSocketRelay.on('disconnect', function () {
-			console.log('disconnected, ID = ', TMPSocketRelay.id);
+		WhTMPSocketRelay.on('disconnect', function () {
+			console.log('disconnected, ID = ', WhTMPSocketRelay.id);
 		});
 
-		TMPSocketRelay.on('data', function (data) {
-			processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, data);
+		WhTMPSocketRelay.on('data', function (data) {
+			processMobileData(WhTMPSocketRelay,$scope.socket, data);
 		});
 
-		TMPSocketRelay.on('create_connection', function () {
-			console.log('create_connection, ID = ', TMPSocketRelay.id);
+		WhTMPSocketRelay.on('create_connection', function () {
+			console.log('create_connection, ID = ', WhTMPSocketRelay.id);
 		});
 
-		TMPSocketRelay.on('hostRegistered', function (data) {
-			console.log('hostRegistered, ID = ', TMPSocketRelay.id, '.. hostname: ', data.Hostname);
+		WhTMPSocketRelay.on('hostRegistered', function (data) {
+			console.log('hostRegistered, ID = ', WhTMPSocketRelay.id, '.. hostname: ', data.Hostname);
 			if (keyGenerated) {
-				var UID = data.Hostname;
+				var WhUID = data.Hostname;
 				//noinspection JSUnresolvedFunction,JSUnresolvedVariable
 				window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 					.then(function (keydata) {
 						var PK = arrayBufferToBase64String(keydata);
 						console.log('Public Key Is Ready:', PK, '==>', PK);
-						if (relayEndpoint.indexOf(TMPSocketRelay.io.engine.hostname) < 0) {
-							console.log('Crap(w)::', relayEndpoint, '..', TMPSocketRelay.io.engine.hostname);
+						if (WhRelayEndpoint.indexOf(WhTMPSocketRelay.io.engine.hostname) < 0) {
+							console.log('Crap(w)::', WhRelayEndpoint, '..', WhTMPSocketRelay.io.engine.hostname);
 							window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 						}
 						else {
 							var tmp_reg_data = (reg_data) ? reg_data : "login";
 							var qrData       = JSON.stringify({
-								'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': UID,
-								'PIN':   PIN, 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': tmp_reg_data
+								'relay': 'https://' + WhRelayEndpoint, 'PK': PK, 'UID': WhUID,
+								'PIN':   WhPIN, 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': tmp_reg_data
 							});
 							console.log('sending qr data to whisperer %j', qrData);//XXX
 							$scope.socket.emit('init_mobile_session', qrData);
@@ -237,20 +234,20 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 			}
 		});
 
-		TMPSocketRelay.on('error', function () {
-			console.log('error, ID = ', TMPSocketRelay.id);
+		WhTMPSocketRelay.on('error', function () {
+			console.log('error, ID = ', WhTMPSocketRelay.id);
 		});
 
-		TMPSocketRelay.on('_end', function () {
-			console.log('end, ID = ', TMPSocketRelay.id);
+		WhTMPSocketRelay.on('_end', function () {
+			console.log('end, ID = ', WhTMPSocketRelay.id);
 		});
 	}
 
 	$scope.socket.on('mobileProv1', function (data) {
-		if (data.data && TMPSocketRelay) {
-			var msg = {'socketId': tmpSocketID, 'payload': JSON.stringify(data)};
+		if (data.data && WhTMPSocketRelay) {
+			var msg = {'socketId': whTmpSocketId, 'payload': JSON.stringify(data)};
 			console.log('******** Sedning:: ', msg);
-			TMPSocketRelay.emit('data', msg);
+			WhTMPSocketRelay.emit('data', msg);
 		}
 	});
 
@@ -258,20 +255,20 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		console.log('relayEndpoint', data);
 		try {
 			var parsedData = JSON.parse(data);
-			relayEndpoint  = parsedData['data'];
-			var lclTarget  = "https://" + relayEndpoint + "/control";
+			WhRelayEndpoint  = parsedData['data'];
+			var lclTarget  = "https://" + WhRelayEndpoint + "/control";
 
-			if (relayEndpoint) {
+			if (WhRelayEndpoint) {
 				//noinspection ES6ModulesDependencies,NodeModulesDependencies
-				TMPSocketRelay = io.connect(lclTarget);
-				TMPSocketRelay.on('connect', function () {
-					console.log('Connected, ID = ', TMPSocketRelay.id);
-					TMPSocketRelay.emit('register_server',
+				WhTMPSocketRelay = io.connect(lclTarget);
+				WhTMPSocketRelay.on('connect', function () {
+					console.log('Connected, ID = ', WhTMPSocketRelay.id);
+					WhTMPSocketRelay.emit('register_server',
 						{
 							'payload': {
 								'socketId':      null,
-								'hostname':      UID,
-								//'signedData':UID,
+								'hostname':      WhUID,
+								//'signedData':WhUID,
 								'signature':     parsedData['signature'],
 								//'signedBy':window.location.hostname,
 								'type':          'HTTPS',

@@ -2,21 +2,21 @@
  * Created by zenit1 on 25/09/2016.
  */
 
-var qrContainer   = null;
-var sessionRSAPK;
-var relayEndpoint = "";
-var sessionRSAPKverify;
-var tmpSocketID;
+
+
+
 var sessionAESkey;
 var sessionIV;
-var keyPair;
-var keyPairSign;
-
-var keyGenerated = false;
-var TMPsocketRelay;
-var TMPsocketOrigin;
+var QrTMPsocketRelay;
+var QrTMPsocketOrigin;
+var qrTmpSocketID;
+var qrRelayEndpoint = "";
+var qrContainer   = null;
 
 $(document).ready(function () {
+
+
+
 	var UID = generateUID(24) + VirtualPrefix;
 	console.log('UID:', UID);
 
@@ -24,8 +24,9 @@ $(document).ready(function () {
 	var socket = io.connect("/qr", socketio_options);
 
 	socket.on('connect', function () {
-		TMPsocketOrigin = socket;//remove towards prod
-		if (!relayEndpoint) {
+
+		QrTMPsocketOrigin = socket;//remove towards prod
+		if (!qrRelayEndpoint) {console.log('CONNECT QR');
 			socket.emit('browser_connected', UID);
 		}
 	});
@@ -37,6 +38,7 @@ $(document).ready(function () {
 		}
 		else {
 			try {
+				console.log('RENEW QR');
 				var parsed = JSON.parse(data);
 				if (parsed['data'] && keyGenerated) {
 					console.log('Generating information packet');
@@ -44,15 +46,15 @@ $(document).ready(function () {
 						.then(function (keydata) {
 							var PK = arrayBufferToBase64String(keydata);
 							console.log('Public Key Is Ready:', PK, '==>', PK);
-							if (relayEndpoint.indexOf(TMPsocketRelay.io.engine.hostname) < 0) {
+							if (qrRelayEndpoint.indexOf(QrTMPsocketRelay.io.engine.hostname) < 0) {
 								console.log('Crap(q)::',
-									relayEndpoint, '..', TMPsocketRelay.io.engine.hostname);
+									qrRelayEndpoint, '..', QrTMPsocketRelay.io.engine.hostname);
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
 
 								var QRdata       = {
-									'relay': 'https://' + relayEndpoint, 'PK': PK, 'UID': parsed['UID'],
+									'relay': 'https://' + qrRelayEndpoint, 'PK': PK, 'UID': parsed['UID'],
 									'PIN':   parsed['data'], 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': reg_data || 'login'
 								};
 								socket.emit('QRdata', QRdata);
@@ -98,18 +100,18 @@ $(document).ready(function () {
 	});
 
 	socket.on('mobileProv1', function (data) {
-		if (data.data && TMPsocketRelay) {
-			var msg = {'socketId': tmpSocketID, 'payload': JSON.stringify(data)};
+		if (data.data && QrTMPsocketRelay) {
+			var msg = {'socketId': qrTmpSocketID, 'payload': JSON.stringify(data)};
 			console.log('******** Sedning:: ', msg);
-			TMPsocketRelay.emit('data', msg);
+			QrTMPsocketRelay.emit('data', msg);
 		}
 	});
 
 	socket.on('mobilePinInvalid', function (data) {
-		if (data.data && TMPsocketRelay) {
-			var msg = {'socketId': tmpSocketID, 'payload': JSON.stringify(data)};
+		if (data.data && QrTMPsocketRelay) {
+			var msg = {'socketId': qrTmpSocketID, 'payload': JSON.stringify(data)};
 			console.log('******** Sedning:: ', msg);
-			TMPsocketRelay.emit('data', msg);
+			QrTMPsocketRelay.emit('data', msg);
 		}
 	});
 
@@ -117,20 +119,21 @@ $(document).ready(function () {
 		console.log('QR relayEndpoint', data);
 		generateKeyPairs(function (error, keydata) {
 			if (error) return;//send error to origin/show on browser
-			keyPair     = keydata.keyPair;
-			keyPairSign = keydata.keyPairSign;
-
-			keyGenerated = true;
+			if(!keyGenerated){
+				keyPair     = keydata.keyPair;
+				keyPairSign = keydata.keyPairSign;
+				keyGenerated = true;
+			}
 			try {
 				var parsedData = JSON.parse(data);
-				relayEndpoint  = parsedData['data'];
-				var lclTarget  = "https://" + relayEndpoint + "/control";
-				if (relayEndpoint) {
+				qrRelayEndpoint  = parsedData['data'];
+				var lclTarget  = "https://" + qrRelayEndpoint + "/control";
+				if (qrRelayEndpoint) {
 					//noinspection ES6ModulesDependencies,NodeModulesDependencies
-					TMPsocketRelay = io.connect(lclTarget);
-					TMPsocketRelay.on('connect', function () {
-						console.log('Connected, ID = ', TMPsocketRelay.id);
-						TMPsocketRelay.emit('register_server',
+					QrTMPsocketRelay = io.connect(lclTarget);
+					QrTMPsocketRelay.on('connect', function () {
+						console.log('Connected, ID = ', QrTMPsocketRelay.id);
+						QrTMPsocketRelay.emit('register_server',
 							{
 								'payload': {
 									'socketId':      null,
@@ -190,32 +193,32 @@ $(document).ready(function () {
 
 function initRelay(socket) {
 
-	TMPsocketRelay.on('disconnect', function () {
-		console.log('disconnected, ID = ', TMPsocketRelay.id);
+	QrTMPsocketRelay.on('disconnect', function () {
+		console.log('disconnected, ID = ', QrTMPsocketRelay.id);
 	});
 
-	TMPsocketRelay.on('data', function (data) {
-
-		processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, data);
+	QrTMPsocketRelay.on('data', function (data) {
+		qrTmpSocketID = data.socketId;
+		processMobileData(QrTMPsocketRelay,QrTMPsocketOrigin, data);
 
 	});
 
-	TMPsocketRelay.on('create_connection', function () {
-		console.log('create_connection, ID = ', TMPsocketRelay.id);
+	QrTMPsocketRelay.on('create_connection', function () {
+		console.log('create_connection, ID = ', QrTMPsocketRelay.id);
 	});
 
-	TMPsocketRelay.on('hostRegistered', function (data) {
-		console.log('hostRegistered, ID = ', TMPsocketRelay.id, '.. hostname: ', data.Hostname);
+	QrTMPsocketRelay.on('hostRegistered', function (data) {
+		console.log('hostRegistered, ID = ', QrTMPsocketRelay.id, '.. hostname: ', data.Hostname);
 
 		socket.emit('virtSrvConfig', data.Hostname);
 		//noinspection JSUnresolvedFunction,JSUnresolvedVariabl
 	});
 
-	TMPsocketRelay.on('error', function () {
-		console.log('error, ID = ', TMPsocketRelay.id);
+	QrTMPsocketRelay.on('error', function () {
+		console.log('error, ID = ', QrTMPsocketRelay.id);
 	});
 
-	TMPsocketRelay.on('_end', function () {
-		console.log('end, ID = ', TMPsocketRelay.id);
+	QrTMPsocketRelay.on('_end', function () {
+		console.log('end, ID = ', QrTMPsocketRelay.id);
 	});
 }

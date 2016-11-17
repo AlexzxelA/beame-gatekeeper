@@ -25,7 +25,9 @@ var RSAPKCS = {//verify signature only
 	publicExponent: new Uint8Array([1, 0, 1]),
 	hash: {name: "SHA-256"}
 };
-
+var keyPair;
+var keyPairSign;
+var keyGenerated = false;
 const VirtualPrefix =".virt.beameio.net";
 const PKBlockSize     = 256;
 //noinspection JSUnusedGlobalSymbols
@@ -34,6 +36,8 @@ const AESkeySize      = 16;
 const IVsizeBruttoB64 = 24;
 const keyBlockSize    = 256;
 const padOffset       = 42;
+var sessionRSAPK;
+var sessionRSAPKverify;
 
 
 
@@ -126,7 +130,6 @@ function decryptDataWithRSAkey(msgParsed, encryption, SK, cb) {
 		var finalLength = 0;
 
 		for(j=0; j< values.length;j++){
-			console.log('ValuePK>>>>>>>> ',ab2str(values[j]));
 			finalLength += values[j].byteLength;
 		}
 		var joinedData = new Uint8Array(finalLength);
@@ -221,7 +224,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 			});
 	});
 }
-function processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, data){
+function processMobileData(TMPsocketRelay,TMPsocketOrigin, data){
 
 	var type = data.payload.data.type;
 
@@ -235,11 +238,11 @@ function processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, d
 			var onPublicKeyImported = function (keydata) {
 				console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
 				sessionRSAPK = keydata;
-				initCryptoSession(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, data, decryptedData);
+				initCryptoSession(TMPsocketRelay,TMPsocketOrigin, data, decryptedData);
 			};
 
-			function onError(e) {
-				console.log('Import *Encrypt Key* failed:',e);
+			function onError() {
+				console.log('Import *Encrypt Key* failed');
 			}
 
 
@@ -249,7 +252,13 @@ function processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, d
 					decryptedData = JSON.parse(atob(decryptedDataB64));
 					var key2import    = decryptedData.pk;
 
-					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError(e));
+					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError());
+					importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+						console.log("Successfully imported RSAPKCS PK from external source");
+						sessionRSAPKverify = keydata;
+					}).catch(function (err) {
+						console.error('Import *Verify Key* Failed', err);
+					});
 				}
 				else {
 					console.log('failed to decrypt mobile PK');
@@ -270,8 +279,8 @@ function processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, d
 			return;
 	}
 }
-function initCryptoSession(relaySocket, originSocket,  keysEncrypt, keysSign,  data, decryptedData) {
-	window.crypto.subtle.exportKey('spki', keysEncrypt.publicKey)
+function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
+	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
 
 			switch (auth_mode) {
@@ -305,7 +314,7 @@ function initCryptoSession(relaySocket, originSocket,  keysEncrypt, keysSign,  d
 			console.log('<*********< error >*********>:', error);
 		});
 
-	window.crypto.subtle.exportKey('spki', keysSign.publicKey)
+	window.crypto.subtle.exportKey('spki', keyPairSign.publicKey)
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
 			encryptWithPK(keydata1, function (error, cipheredData) {
@@ -328,13 +337,7 @@ function initCryptoSession(relaySocket, originSocket,  keysEncrypt, keysSign,  d
 			console.error('Export Public Sign Key Failed', err);
 		});
 
-	importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-		console.log("Successfully imported RSAPKCS PK from external source");
-		sessionRSAPKverify = keydata;
-	}).catch(function (err) {
-		success = false;
-		console.error('Import *Verify Key* Failed', err);
-	});
+
 }
 
 function str2ab(str) {
