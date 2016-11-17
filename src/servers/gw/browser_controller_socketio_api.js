@@ -44,7 +44,7 @@ const messageHandlers = {
 		// payload: token
 		// --- response ---
 		// type: 'authenticated'
-		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {id: ..., online: true/false}}, ...]}
+		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {app_id: ..., online: true/false}}, ...]}
 		logger.debug('messageHandlers/auth');
 
 		function assertTokenFqdnIsAuthorized(token) {
@@ -125,15 +125,15 @@ const messageHandlers = {
 		// Choose application - redirect app switchig URL on GW, auth token in URL
 		// --- request ---
 		// type: choose
-		// payload: {session_token: ..., id: ...}
+		// payload: {session_token: ..., app_id: ...}
 		// --- response ---
 		// type: 'redirect'
-		// payload: {success: true/false, id: (same as in request), url: ...}
+		// payload: {success: true/false, app_id: (same as in request), url: ...}
 
 		function makeProxyEnablingToken() {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
-				JSON.stringify({app_id: payload.id}),
+				JSON.stringify({app_id: payload.app_id}),
 				86400
 			);
 		}
@@ -146,7 +146,7 @@ const messageHandlers = {
 					type:    'redirect',
 					payload: {
 						success: true,
-						id:      payload.id,
+						app_id:  payload.app_id,
 						url:     url
 					}
 				});
