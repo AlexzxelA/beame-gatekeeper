@@ -41,8 +41,9 @@ function startGatewaySession(authToken, relaySocket) {
 		var session_token, apps, type = data.type, payload = data.payload;
 
 		// xxx - start
-		if (payload.type == 'authenticated' && payload.success) {
+		if (type == 'authenticated' && payload.success) {
 			xxx_session_token = payload.session_token;
+			console.warn('session token', xxx_session_token);
 		}
 		// xxx - end
 
@@ -116,6 +117,7 @@ function startGatewaySession(authToken, relaySocket) {
 	}
 
 	function chooseApp(id) {
+		console.log('chooseApp', id, xxx_session_token);
 		gw_socket.emit('data',{
 			type: 'choose',
 			payload: {

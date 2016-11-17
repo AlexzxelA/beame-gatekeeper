@@ -21,7 +21,12 @@ var authServices = null;
 
 
 function assertSignedByGw(session_token) {
-	let signedBy = JSON.parse(session_token).signedBy;
+	let signedBy;
+	try {
+		signedBy = JSON.parse(session_token).signedBy;
+	} catch(e) {
+		return Promise.reject(e);
+	}
 	if (signedBy == gwServerFqdn) {
 		return Promise.resolve(session_token);
 	} else {
@@ -153,7 +158,7 @@ const messageHandlers = {
 			.then(makeProxyEnablingToken)
 			.then(respond)
 			.catch(e => {
-				logger.error('choose error', e);
+				logger.error(`choose error: ${e}`);
 			});
 
 	},
