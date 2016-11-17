@@ -41,9 +41,9 @@ const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 
 // https://github.com/nodejitsu/node-http-proxy/blob/d8fb34471594f8899013718e77d99c2acbf2c6c9/examples/http/custom-proxy-error.js
 proxy.on('error', (err, req, res) => {
-	console.error('--- Proxy error - start ---');
-	console.error(err);
-	console.error('--- Proxy error - end ---');
+	logger.error('--- Proxy error - start ---');
+	logger.error(err);
+	logger.error('--- Proxy error - end ---');
 	res.writeHead(502, {'Content-Type': 'text/plain'});
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
 });
@@ -107,7 +107,6 @@ function handleRequest(req, res) {
 	logger.debug('[GW] handleRequest', req.url);
 
 	const authToken = extractAuthToken(req);
-	// console.log('handleRequest PT 0', authToken);
 
 	logger.debug('gateway handleRequest URL', req.url);
 	if (!authToken || req.url == Constants.LogoutPath || req.url.startsWith(Constants.AppSwitchPath)) {
