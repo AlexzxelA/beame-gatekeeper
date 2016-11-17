@@ -66,7 +66,13 @@ function startGatewaySession(authToken, relaySocket) {
 		}
 
 		if(relay_socket){
-			relay_socket.emit('data', data);
+			var msg = {
+				'socketId': relay_socket.beame_relay_socket_id,
+				'payload': JSON.stringify(data)
+			};
+			console.log('******** Sedning:: ', msg);
+			// QrTMPsocketRelay.emit('data', msg);
+			relay_socket.emit('data', msg);
 		}
 
 
