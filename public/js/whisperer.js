@@ -209,6 +209,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		WhTMPSocketRelay.on('data', function (data) {
 			whTmpSocketId = data.socketId;
 			processMobileData(WhTMPSocketRelay,$scope.socket, data);
+			WhTMPSocketRelay.beame_relay_socket_id = data.socketId;
 		});
 
 		WhTMPSocketRelay.on('create_connection', function () {

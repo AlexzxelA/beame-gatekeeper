@@ -201,6 +201,7 @@ function initRelay(socket) {
 	QrTMPsocketRelay.on('data', function (data) {
 		qrTmpSocketID = data.socketId;
 		processMobileData(QrTMPsocketRelay,QrTMPsocketOrigin, data);
+		QrTMPsocketRelay.beame_relay_socket_id = data.socketId;
 
 	});
 
