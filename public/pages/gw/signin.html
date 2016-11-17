@@ -5,11 +5,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign in</title>
-    <link rel="stylesheet" href="../../css/app.css">
 
-    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800"
-          rel="stylesheet" type="text/css"/>
 
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800" rel="stylesheet" type="text/css"/>
+
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+
+    <!-- Scripts -->
+    <!-- build:js -->
     <script src="js/utils.js"></script>
     <script>
         var auth_mode = 'Session',
@@ -18,7 +24,7 @@
             socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true};
 
     </script>
-
+    <!-- endbuild -->
 </head>
 <body  ng-controller="MainCtrl">
 
@@ -92,11 +98,16 @@
 
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="lib/jquery/jquery.min.js"></script>
-<script src="js/angular.min.js"></script>
+<script src="lib/angular/angular.min.js"></script>
 <script src="lib/kendo/kendo.qr.min.js"></script>
+
+<!-- Scripts -->
+<!-- build:js -->
 <script src="js/crypto.js"></script>
 <script src="js/session_controller.js"></script>
 <script src="js/qr.js"></script>
 <script src="js/whisperer.js"></script>
+<!-- endbuild -->
+
 </body>
 </html>

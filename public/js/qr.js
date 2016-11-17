@@ -159,7 +159,7 @@ $(document).ready(function () {
 
 	socket.on('disconnect', function () {
 		console.log('DISCONNECTED');
-		resetQR();
+		//resetQR();
 	});
 
 	var resetQR = function () {

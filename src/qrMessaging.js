@@ -49,7 +49,7 @@ class QrMessaging {
 
 		socket.on('disconnect',()=>{
 			logger.debug('QR socket disconnected');
-			clearInterval(this._renewOTP);
+			//clearInterval(this._renewOTP);
 		});
 
 		socket.on('browser_connected', (data) => {

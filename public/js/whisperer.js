@@ -87,19 +87,27 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 	$scope.startPlaying = function () {
 		if ($scope.audio) {//} && $scope.socketAlive) {
 			console.log('playing: ' + $scope.pinData);
-			if ($scope.audio.playing === true)
-				$scope.audio.stop();
-			$scope.audio.src  = $scope.audioData;
-			$scope.audio.loop = true;
-			$scope.audio.play();
-			$scope.audio.playing = true;
+			try {
+				if ($scope.audio.playing === true)
+					$scope.audio.stop();
+				$scope.audio.src  = $scope.audioData;
+				$scope.audio.loop = true;
+				$scope.audio.play();
+				$scope.audio.playing = true;
+			} catch (e) {
+				console.error('start playing',e);
+			}
 		}
 	};
 	$scope.stopPlaying  = function () {
-		if ($scope.audio) {
-			$scope.audio.pause();
-			$scope.audio.playing = false;
-			$scope.audio.loop = false;
+		try {
+			if ($scope.audio) {
+				$scope.audio.pause();
+				$scope.audio.playing = false;
+				$scope.audio.loop    = false;
+			}
+		} catch (e) {
+			console.error('stop playing',e);
 		}
 
 		// if ($scope.showWelcome)
@@ -302,7 +310,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 	$scope.socket.on('disconnect', function () {
 		console.log('DISCONNECTED');
 		//$scope.socketAlive = false;
-		$scope.stopPlaying();
+		//$scope.stopPlaying();
 		//    document.getElementById("player").innerHTML = "-- Server disconnected --";
 	});
 

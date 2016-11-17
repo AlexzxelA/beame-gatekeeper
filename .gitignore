@@ -42,3 +42,5 @@ stuff
 data/beame_server.db
 /config/config.json
 public/css
+
+bin

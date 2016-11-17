@@ -49,11 +49,9 @@ function generateUID(length) {
 }
 
 function generateKeyPairs(cb) {
-	//noinspection JSUnresolvedFunction,JSUnresolvedVariable
 	window.crypto.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"])
 		.then(function (key) {
 			console.log('RSA KeyPair', key);
-			//noinspection JSUnresolvedFunction,JSUnresolvedVariable
 			window.crypto.subtle.generateKey(RSAPKCS, true, ["sign"])
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
@@ -84,8 +82,7 @@ function encryptWithPK(data, cb) {
 		var dataToEncrypt = data.slice(i * dataToEncryptSize, i * dataToEncryptSize + chunkSize);
 		inputArray.push(dataToEncrypt);
 	}
-	//noinspection JSUnresolvedFunction,JSUnresolvedVariable
-	Promise.all(inputArray.map(inData => window.crypto.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))).then(values => {
+	Promise.all(inputArray.map(function(inData) {return window.crypto.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData)})).then(function(values) {
 		var finalLength = 0;
 
 		for (j = 0; j < values.length; j++) {
@@ -99,7 +96,7 @@ function encryptWithPK(data, cb) {
 			joinedData.set(new Uint8Array(values[j]), offset);
 			offset += values[j].byteLength;
 		}
-		//console.log('data::::::: ',Array.apply([],joinedData).join(","));
+		//
 		cb(null, ab2str(joinedData));
 	});
 }
@@ -124,7 +121,7 @@ function decryptDataWithRSAkey(msgParsed, encryption, SK, cb) {
 			console.log('found padding <', chunkSize, '>');
 		}
 	}
-	Promise.all(inputArray.map(inData => window.crypto.subtle.decrypt(encryption, SK, inData))).then(values => {
+	Promise.all(inputArray.map(function(inData) {return window.crypto.subtle.decrypt(encryption, SK, inData)})).then(function(values) {
 		var finalLength = 0;
 
 		for (j = 0; j < values.length; j++) {
@@ -144,7 +141,6 @@ function decryptDataWithRSAkey(msgParsed, encryption, SK, cb) {
 	});
 }
 
-//noinspection JSUnusedGlobalSymbols
 function encryptWithSymK(data, plainData, cb) {
 	if (sessionAESkey) {
 		var abData = str2ab(data);
@@ -223,12 +219,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 	});
 }
 
-/**
- * @param {Socket} TMPsocketRelay
- * @param {Socket} TMPsocketOrigin
- * @param {Object} data
- * @param {Function|null} [cb]
- */
+
 function processMobileData(TMPsocketRelay, TMPsocketOrigin, data, cb) {
 
 	var type = data.payload.data.type;
