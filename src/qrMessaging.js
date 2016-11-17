@@ -39,7 +39,6 @@ class QrMessaging {
 		this._otp         = "";
 		this._otp_prev    = "";
 		this._renewOTP    = null;
-		this._QRdata      = null;
 		this._edge        = null;
 	}
 
@@ -47,9 +46,12 @@ class QrMessaging {
 	 * @param {Socket} socket
 	 */
 	onQrBrowserConnection(socket) {
+
 		socket.on('disconnect',()=>{
 			logger.debug('QR socket disconnected');
+			clearInterval(this._renewOTP);
 		});
+
 		socket.on('browser_connected', (data) => {
 			logger.debug(`browser socket connected with:${data}`);
 			this._browserHost = data;
@@ -84,6 +86,7 @@ class QrMessaging {
 				}
 
 				registerFqdnFunc(metadata).then(payload => {
+					this._deleteSession(data.pin);
 					socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e=> {
 					socket.emit("mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
@@ -95,9 +98,6 @@ class QrMessaging {
 			}
 		});
 
-		socket.on('QRdata', (data) => {
-			this._QRdata = data;
-		});
 
 		socket.on('virtSrvConfig', (data) => {
 			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);
@@ -111,6 +111,16 @@ class QrMessaging {
 		});
 	}
 
+	_deleteSession(pin){
+		let deleteSessionFunc = this._callbacks["DeleteSession"];
+
+		if (!deleteSessionFunc) {
+			logger.error(`delete session callback not defined`);
+			return;
+		}
+
+		deleteSessionFunc(pin);
+	}
 
 	/**
 	 * * @param {String} OTP

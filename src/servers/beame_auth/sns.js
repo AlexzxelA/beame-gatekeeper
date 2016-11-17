@@ -14,7 +14,7 @@ const beameSDK     = require('beame-sdk');
 const module_name  = "SNS";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
-const AuthServices = require('./authServices');
+const AuthServices = require('../../authServices');
 const https        = require('https'),
       validator    = new (require('sns-validator'))();
 

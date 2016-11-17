@@ -240,7 +240,9 @@ class SqliteServices {
 		return new Promise((resolve, reject) => {
 				logger.debug(`try delete session by id ${id}`);
 				let model = this._models.sessions;
-				model.destroy({where: {id: id}}).then(resolve).catch(reject);
+				model.destroy({where: {id: id}}).then(resolve).catch(error=>{
+					logger.error(`delete session with id ${id} error ${BeameLogger.formatError(error)}` , error)
+				});
 			}
 		);
 	}
@@ -291,6 +293,7 @@ class SqliteServices {
 
 				ids.forEach(id=> {
 					setTimeout(()=> {
+						logger.debug(`deleting session ${id}`);
 						this.deleteSessionById(id)
 					}, timeout);
 				})

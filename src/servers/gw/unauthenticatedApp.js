@@ -33,9 +33,6 @@ unauthenticatedApp.use(bodyParser.json());
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
-	// console.log('/customer-auth-done', req.headers);
-	// console.log('/customer-auth-done', req.body.encryptedUserData);
-
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	console.log('beameAuthServerFqdn', beameAuthServerFqdn);
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);

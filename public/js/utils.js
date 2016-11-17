@@ -22,5 +22,5 @@ function getCookie(cname) {
 }
 
 function logout(){
-	window.location.href = getCookie('beame_logout_url');
+	window.location.href = decodeURIComponent(getCookie('beame_logout_url'));
 }
