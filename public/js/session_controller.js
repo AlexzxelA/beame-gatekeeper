@@ -9,13 +9,18 @@ function startGatewaySession(authToken, relaySocket) {
 
 	restartMobileRelaySocket(relaySocket);
 
-	gw_socket = io.connect('/', {path: '/beame-gw/socket.io'});
+	gw_socket = io.connect('/', {
+		path: '/beame-gw/socket.io',
+		'force new connection': true
+	});
 
 	gw_socket.on('error', function(e) {
 		console.error('Error in gw_socket', e);
 	});
 
 	gw_socket.on('connect',function(){
+
+		console.info('gw_socket connected');
 
 		gw_socket.emit('data',{
 			type:'auth',
