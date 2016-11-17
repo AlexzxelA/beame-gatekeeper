@@ -102,7 +102,6 @@ function encryptWithPK(data, cb) {
 }
 
 function decryptDataWithRSAkey(msgParsed, encryption, SK, cb) {
-	console.log("decryptDataWithRSAkey Encrypted Data::", msgParsed);
 
 	var keyBA    = str2ab(window.atob(msgParsed));
 	var dataSize = keyBA.byteLength;
@@ -300,7 +299,7 @@ function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
 						});
 					break;
 				case 'Session':
-					startGatewaySession(decryptedData.token, relaySocket);
+					startGatewaySession(decryptedData.payload.token, relaySocket);
 					return;
 				default:
 					alert('Unknown Auth mode');

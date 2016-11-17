@@ -5,7 +5,7 @@
 
 function startGatewaySession(authToken, relaySocket) {
 
-	var gw_socket = null, relay_socket = null;
+	var gw_socket = null, relay_socket = relaySocket;
 
 	// xxx - start
 	var xxx_session_token = null;
