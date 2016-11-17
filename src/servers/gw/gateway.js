@@ -109,7 +109,7 @@ function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
 
 	logger.debug('gateway handleRequest URL', req.url);
-	if (!authToken || req.url == Constants.LogoutPath || req.url.startsWith(Constants.AppSwitchPath)) {
+	if (!authToken || req.url.startsWith(Constants.LogoutPath) || req.url.startsWith(Constants.AppSwitchPath)) {
 		unauthenticatedApp(req, res);
 		return;
 	}
