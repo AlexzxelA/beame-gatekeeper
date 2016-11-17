@@ -10,13 +10,12 @@ class Server {
 	start() {
 		console.log('Starting chat server');
 
-		var app = require('express')();
+		var express = require('express');
+		var app = express();
 		var http = require('http').Server(app);
 		var io = require('socket.io')(http);
 
-		app.get('/', function(req, res){ res.sendFile(__dirname + '/index.html');});
-		app.get('/main.js', function(req, res){ res.sendFile(__dirname + '/main.js');});
-		app.get('/style.css', function(req, res){ res.sendFile(__dirname + '/style.css');});
+		app.use('/', express.static(__dirname + '/public'));
 
 		var numUsers = 0;
 
