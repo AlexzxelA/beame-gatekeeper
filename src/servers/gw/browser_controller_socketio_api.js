@@ -216,7 +216,7 @@ class BrowserControllerSocketioApi {
 	start(server) {
 		return new Promise((resolve, reject) => {
 				try {
-					this._socket_server = socket_io(server, {path: `${Constants.GatewayControllerPath}/socket.io`});
+					this._socket_server = socket_io(server, {path: `${Constants.GatewayControllerPath}/socket.io`,force:true});
 					this._socket_server.on('connection', this._onConnection);
 					resolve(this._socket_server);
 				} catch (e) {

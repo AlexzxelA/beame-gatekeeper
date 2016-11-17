@@ -108,6 +108,7 @@ class QrMessaging {
 
 		socket.on('close_session',() =>{
 			clearInterval(this._renewOTP);
+			socket.disconnect();
 		});
 	}
 
