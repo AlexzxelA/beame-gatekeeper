@@ -52,10 +52,10 @@ $(document).ready(function () {
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
-
+								var qrType = (auth_mode == "Provision")?"PROV":"LOGIN";
 								var QRdata       = {
 									'relay': 'https://' + qrRelayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-									'PIN':   parsed['data'], 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': reg_data || 'login'
+									'PIN':   parsed['data'], 'TYPE': qrType, 'TIME': Date.now(), 'REG': reg_data || 'login'
 								};
 								socket.emit('QRdata', QRdata);
 								qrContainer = $('#qr');

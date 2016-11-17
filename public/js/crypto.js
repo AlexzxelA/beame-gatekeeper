@@ -102,6 +102,7 @@ function encryptWithPK(data, cb) {
 }
 
 function decryptDataWithRSAkey(msgParsed, encryption, SK, cb) {
+	console.log("decryptDataWithRSAkey Encrypted Data::", msgParsed);
 
 	var keyBA    = str2ab(window.atob(msgParsed));
 	var dataSize = keyBA.byteLength;
