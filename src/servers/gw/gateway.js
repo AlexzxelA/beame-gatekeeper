@@ -57,6 +57,13 @@ proxy.on('error', (err, req, res) => {
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
 });
 
+proxy.on('proxyRes', (proxyRes, req, res) => {
+	if(proxyRes.statusCode == 301) {
+		proxyRes.statusCode = 302;
+		proxyRes.statusMessage = 'Found';
+	}
+});
+
 // Extracts URL token either from URL or from Cookie
 function extractAuthToken(req) {
 	// XXX: temp
