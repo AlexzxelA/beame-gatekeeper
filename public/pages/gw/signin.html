@@ -15,7 +15,7 @@
         var auth_mode = 'Session',
             stopAllRunningSessions = false,
             reg_data = null,
-            socketio_options = {path: '/beame-gw-insta-socket'};
+            socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true};
 
     </script>
 
@@ -24,7 +24,7 @@
 
 
 <!-- IFRAME IS HIDDEN - add 'show' class to iframe to show it -->
-<iframe  id="ifrm-content" class="iframe-wide"></iframe>
+<iframe class="iframe-wide"></iframe>
 
 <div class="main-wrapper">
 
