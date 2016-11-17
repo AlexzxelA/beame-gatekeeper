@@ -15,7 +15,7 @@
     <script>
         var auth_mode = 'Provision',
             stopAllRunningSessions = false,
-            socketio_options = {},
+            socketio_options = {'force new connection': true},
             reg_data;
 
         function _logout(){
