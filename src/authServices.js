@@ -22,8 +22,8 @@
  */
 
 
-const apiConfig        = require('../../../config/api_config.json');
-const Constants        = require('../../../constants');
+const apiConfig        = require('../config/api_config.json');
+const Constants        = require('../constants');
 const beameSDK         = require('beame-sdk');
 const module_name      = "BeameAuthServices";
 const BeameLogger      = beameSDK.Logger;
@@ -33,7 +33,9 @@ const AuthToken        = beameSDK.AuthToken;
 const store            = new (beameSDK.BeameStore)();
 const provisionApi     = new (beameSDK.ProvApi)();
 const apiEntityActions = apiConfig.Actions.Entity;
-const dataService      = new (require('../../dataServices'))();
+const Bootstrapper = require('./bootstrapper');
+const bootstrapper = new Bootstrapper();
+const dataService      = new (require('./dataServices'))({session_timeout:bootstrapper.getSessionRecordDeleteTimeout || 1000 * 60 * 2});
 
 
 class BeameAuthServices {
@@ -202,6 +204,7 @@ class BeameAuthServices {
 		return dataService.deleteSession(pin);
 	}
 
+	//noinspection JSMethodCanBeStatic
 	/**
 	 * @param {RegistrationData} data
 	 * @returns {Promise}
@@ -261,16 +264,13 @@ class BeameAuthServices {
 	 */
 	static _registrationDataToProvisionToken(data, parent_fqdn, userAgent) {
 
-		/** @type {ProvisionRegistrationToken} */
-		let token = {
+		return {
 			name:        data.name,
 			email:       data.email,
 			userAgent:   userAgent,
 			parent_fqdn: parent_fqdn,
 			src:         Constants.RegistrationSource.InstaServerSDK
 		};
-
-		return token;
 	}
 
 	//endregion

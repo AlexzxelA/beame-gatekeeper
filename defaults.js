@@ -17,7 +17,8 @@ const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 //in sec
-const RegistrationAuthTokenTtl = 60;
+const RegistrationAuthTokenTtl   = 60;
+const SessionRecordDeleteTimeout = 1000 * 60;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -35,7 +36,8 @@ const SqliteConfigTemplate = {
 const ConfigProps = {
 	Settings: {
 		DbProvider: "db_provider",
-		            RegistrationAuthTokenTtl
+		RegistrationAuthTokenTtl,
+		SessionRecordDeleteTimeout
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -51,37 +53,38 @@ const ConfigProps = {
 };
 
 const CredsConfigTemplate = {
-	[Servers.ZeroLevel]:                   {
+	[Servers.ZeroLevel]:                {
 		fqdn:   "",
 		server: false
 	},
-	[Servers.GatewayServer]:               {
+	[Servers.GatewayServer]:            {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.BeameAuthorizationServer]:    {
+	[Servers.BeameAuthorizationServer]: {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.MatchingServer]:              {
+	[Servers.MatchingServer]:           {
 		fqdn:   "",
 		server: true
 	},
-	[Servers.AdminServer]:                 {
+	[Servers.AdminServer]:              {
 		fqdn:   "",
 		server: true
 	},
-	Users:                                 {}
+	Users:                              {}
 };
 
 const CustomerAuthServersTemplate = {
-	"Servers":[]
+	"Servers": []
 };
 
 module.exports = {
 	ConfigProps,
 
 	RegistrationAuthTokenTtl,
+	SessionRecordDeleteTimeout,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

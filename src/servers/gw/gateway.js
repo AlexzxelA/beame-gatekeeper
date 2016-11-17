@@ -256,7 +256,7 @@ class GatewayServer {
 	_startSocketServer() {
 
 		return new Promise((resolve, reject) => {
-				const BeameAuthServices      = require('../beame_auth/authServices');
+				const BeameAuthServices      = require('../../authServices');
 				const BeameInstaSocketServer = require('../../beameInstaSocketServer');
 
 

@@ -210,6 +210,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : null;
 	}
 
+	get getSessionRecordDeleteTimeout() {
+		return this._config && this._config[SettingsProps.SessionRecordDeleteTimeout] ? this._config[SettingsProps.SessionRecordDeleteTimeout] : null;
+	}
+
 	get sqliteConfig() {
 		let config = DirectoryServices.readJSON(SqliteConfigJsonPath);
 
