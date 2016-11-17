@@ -221,6 +221,121 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 			});
 	});
 }
+function processMobileData(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, data){
+
+	var type = data.payload.data.type;
+
+	switch (type) {
+		case 'info_packet_response':
+			console.log('info_packet_response data = ', data.payload.data);
+			tmpSocketID       = data.socketId;
+			var encryptedData = data.payload.data.data;
+			var decryptedData;
+
+			var onPublicKeyImported = function (keydata) {
+				console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
+				sessionRSAPK = keydata;
+				initCryptoSession(TMPsocketRelay,TMPsocketOrigin,keyPair,keyPairSign, data, decryptedData);
+			};
+
+			function onError(e) {
+				console.log('Import *Encrypt Key* failed:',e);
+			}
+
+
+
+			var onMessageDecrypted = function (err, decryptedDataB64) {
+				if (!err) {
+					decryptedData = JSON.parse(atob(decryptedDataB64));
+					var key2import    = decryptedData.pk;
+
+					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError(e));
+				}
+				else {
+					console.log('failed to decrypt mobile PK');
+					TMPsocketRelay.emit('data', {
+						'socketId': tmpSocketID,
+						'payload':  'failed to decrypt mobile PK'
+					});
+				}
+			};
+
+			decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, onMessageDecrypted );
+			return;
+		case 'registration_complete':
+			logout();
+			return;
+		default:
+			console.error('unknown payload type ' + type);
+			return;
+	}
+}
+function initCryptoSession(relaySocket, originSocket,  keysEncrypt, keysSign,  data, decryptedData) {
+	window.crypto.subtle.exportKey('spki', keysEncrypt.publicKey)
+		.then(function (mobPK) {
+
+			switch (auth_mode) {
+				case 'Provision':
+					console.log('InfoPacketResponse to ');
+					originSocket.emit('InfoPacketResponse',
+						{
+							'pin':       decryptedData.reg_data.pin,
+							'otp':       decryptedData.otp,
+							'pk':        arrayBufferToBase64String(mobPK),
+							'edge_fqdn': decryptedData.edge_fqdn,
+							'email':     decryptedData.reg_data.email,
+							'name':      decryptedData.reg_data.name,
+							'user_id':   decryptedData.reg_data.user_id
+						});
+					break;
+				case 'Session':
+					startGatewaySession(decryptedData.token,relaySocket);
+					//TODO add ui logic
+					return;
+				default:
+					alert('Unknown Auth mode');
+					logout();
+					return;
+			}
+
+		})
+		.catch(function (error) {
+			originSocket.emit('InfoPacketResponseError',
+				{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
+			console.log('<*********< error >*********>:', error);
+		});
+
+	window.crypto.subtle.exportKey('spki', keysSign.publicKey)
+		.then(function (keydata1) {
+			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
+			encryptWithPK(keydata1, function (error, cipheredData) {
+				if (!error) {
+					console.log('Sending SignKey: ', JSON.stringify({
+						'type':    'signkey',
+						'payload': {'data': (cipheredData)}
+					}));
+					relaySocket.emit('data', {
+						'socketId': data.socketId,
+						'payload':  JSON.stringify({'type': 'signkey', 'data': (cipheredData)})
+					});
+				}
+				else {
+					console.error('Data encryption failed: ', error);
+				}
+			});
+		})
+		.catch(function (err) {
+			console.error('Export Public Sign Key Failed', err);
+		});
+
+	importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+		console.log("Successfully imported RSAPKCS PK from external source");
+		sessionRSAPKverify = keydata;
+	}).catch(function (err) {
+		success = false;
+		console.error('Import *Verify Key* Failed', err);
+	});
+}
 
 function str2ab(str) {
 	var buf = new ArrayBuffer(str.length );//* 2); // 2 bytes for each char

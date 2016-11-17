@@ -137,7 +137,7 @@ class QrMessaging {
 		socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		this._renewOTP = setInterval(()=> {
 			this._generateOTP(24);
-			logger.debug('QRdata:', relay, '..', UID);
+			//logger.debug('QRdata:', relay, '..', UID);
 			socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		}, OTP_refresh_rate);
 	}
