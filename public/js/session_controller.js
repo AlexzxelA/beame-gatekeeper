@@ -89,21 +89,31 @@ function startGatewaySession(authToken, relaySocket) {
 		});
 
 		relaySocket.on('data',function(data){
-			var type = data.payload.data.type;
 
-			switch (type) {
-				case 'choose':
-					return;
-				case 'logout':
-					gw_socket.emit('data',{
-						type:'logout',
+			processMobileData(WhTMPSocketRelay,gw_socket, data,function (decryptedData){
+				gw_socket.emit('data',decryptedData);
+				// var type = decryptedData.payload.data.type,
+				// 	session_token = decryptedData.payload.data.session_token;
+				//
+				// var payload = {session_token: session_token};
+				//
+				// switch (type) {
+				// 	case 'choose':
+				// 		payload.app_id = decryptedData.payload.data.app_id;
+				// 		break;
+				// 	case 'logout':
+				// 		break;
+				// 	default:
+				// 		console.error('mobile socket:: unknown payload type ' + type);
+				// 		return;
+				// }
 
-					});
-					return;
-				default:
-					console.error('mobile socket:: unknown payload type ' + type);
-					return;
-			}
+				// gw_socket.emit('data',{
+				// 	type: type,
+				// 	payload: payload
+				// });
+
+			});
 		});
 
 		relaySocket.on('error', function () {
@@ -116,30 +126,6 @@ function startGatewaySession(authToken, relaySocket) {
 
 	}
 
-	function chooseApp(id) {
-		console.log('chooseApp', id, xxx_session_token);
-		gw_socket.emit('data',{
-			type: 'choose',
-			payload: {
-				id: id,
-				session_token: xxx_session_token
-			}
-		});
-	}
-
-	function logout() {
-		gw_socket.emit('data',{
-			type: 'logout',
-			payload: {
-				session_token: xxx_session_token
-			}
-		});
-	}
-
-	// xxx - start
-	window.xxx_choose_app = chooseApp;
-	window.xxx_logout = logout;
-	// xxx - end
 }
 
 function setIframeHtmlContent(html){

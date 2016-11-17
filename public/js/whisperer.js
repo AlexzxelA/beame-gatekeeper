@@ -92,11 +92,13 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 			$scope.audio.src  = $scope.audioData;
 			$scope.audio.loop = true;
 			$scope.audio.play();
+			$scope.audio.playing = true;
 		}
 	};
 	$scope.stopPlaying  = function () {
 		if ($scope.audio) {
 			$scope.audio.pause();
+			$scope.audio.playing = false;
 			$scope.audio.loop = false;
 		}
 
@@ -312,7 +314,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		//$scope.keepAlive = 5;
 		console.log('PIN:' + data);
 		// if ($scope.showWelcome)
-		// 	document.getElementById("pin").innerHTML = data;
+		 	document.getElementById("pin").innerHTML = data;
 	});
 
 	$scope.socket.on('data', function (data) {
