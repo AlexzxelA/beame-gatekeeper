@@ -57,6 +57,9 @@ proxy.on('error', (err, req, res) => {
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
 });
 
+// 301 responses are cached by browser so we can no longer proxy,
+// browsers hitting gateway will automatically be redirected to
+// another site. Rewriting 301 to 302 responses.
 proxy.on('proxyRes', (proxyRes, req, res) => {
 	if(proxyRes.statusCode == 301) {
 		proxyRes.statusCode = 302;
