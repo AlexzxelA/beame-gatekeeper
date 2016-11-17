@@ -171,6 +171,7 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 // (1) SocketIO session
 // (2) mark proxy enabling token as inactive in case browser does not delete it or it's stolen
 unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
+	console.log('unauthenticatedApp/get/logout: Logging out');
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	res.clearCookie('proxy_enabling_token');
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');

@@ -109,10 +109,12 @@ function handleRequest(req, res) {
 	// console.log('handleRequest PT 0', authToken);
 
 	console.log('gateway handleRequest URL', req.url);
-	if (!authToken || req.url == Constants.LogoutPath || req.url.startsWith(Constants.AppSwitchPath)) {
+	if (!authToken || req.url.startsWith(Constants.LogoutPath) || req.url.startsWith(Constants.AppSwitchPath)) {
+		console.log(`unauthenticatedApp will handle ${req.url}`);
 		unauthenticatedApp(req, res);
 		return;
 	}
+	console.log(`unauthenticatedApp did not handle ${req.url}`);
 
 	if (authToken == 'INVALID') {
 		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});
