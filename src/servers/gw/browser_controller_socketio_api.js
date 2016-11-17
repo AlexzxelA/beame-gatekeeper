@@ -1,10 +1,13 @@
 'use strict';
 
+const fs                = require('fs');
+const path              = require('path');
+
 const socket_io         = require('socket.io');
 const Bootstrapper      = require('../../bootstrapper');
 const Constants         = require('../../../constants');
 const beameSDK          = require('beame-sdk');
-const CommonUtils      = beameSDK.CommonUtils;
+const CommonUtils       = beameSDK.CommonUtils;
 const module_name       = "BrowserControllerSocketAPI";
 const BeameLogger       = beameSDK.Logger;
 const logger            = new BeameLogger(module_name);
@@ -51,7 +54,27 @@ const messageHandlers = {
 			});
 		}
 
-		function respond([apps, token]) {
+		// TODO: move it from public/pages/gw/ somewhere else
+		//       the page should not be publically accessible
+		//       it's just for logged in users
+		function loadPage([apps, token]) {
+			return new Promise((resolve, reject) => {
+				const f = path.join(
+					__dirname,
+					'..', '..', '..',
+					'public', 'pages', 'gw', 'logged-in-home.html'
+				);
+				fs.readFile(f, 'utf8', (err, page) => {
+					if(err) {
+						reject(err);
+						return;
+					}
+					resolve([apps, token, page]);
+				});
+			});
+		}
+
+		function respond([apps, token, page]) {
 			return new Promise((resolve, reject) => {
 				logger.debug('messageHandlers/auth/respond token', token);
 				reply({
@@ -60,7 +83,7 @@ const messageHandlers = {
 						success:       true,
 						session_token: token,
 						apps:          apps,
-						url:           `https://${gwServerFqdn}/pages/gw/logged-in-home.html`
+						html:          page
 					}
 				});
 			});
@@ -70,6 +93,7 @@ const messageHandlers = {
 			.then(assertTokenFqdnIsAuthorized)
 			.then(apps.listApplications)
 			.then(createSessionToken)
+			.then(loadPage)
 			.then(respond)
 			.catch(e => {
 				reply({
