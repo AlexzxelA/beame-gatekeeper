@@ -126,7 +126,33 @@ function startGatewaySession(authToken, relaySocket) {
 
 	}
 
+	function chooseApp(id) {
+		console.log('chooseApp', id, xxx_session_token);
+		gw_socket.emit('data',{
+			type: 'choose',
+			payload: {
+				id: id,
+				session_token: xxx_session_token
+			}
+		});
+	}
+
+	function logout() {
+		gw_socket.emit('data',{
+			type: 'logout',
+			payload: {
+				session_token: xxx_session_token
+			}
+		});
+	}
+
+	// xxx - start
+	window.xxx_choose_app = chooseApp;
+	window.xxx_logout = logout;
+	// xxx - end
 }
+
+
 
 function setIframeHtmlContent(html){
 	var iframe = document.getElementById('ifrm-content'),
