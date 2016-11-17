@@ -127,8 +127,18 @@ function startGatewaySession(authToken, relaySocket) {
 		});
 	}
 
+	function logout() {
+		gw_socket.emit('data',{
+			type: 'logout',
+			payload: {
+				session_token: xxx_session_token
+			}
+		});
+	}
+
 	// xxx - start
 	window.xxx_choose_app = chooseApp;
+	window.xxx_logout = logout;
 	// xxx - end
 }
 
