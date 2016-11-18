@@ -18,7 +18,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 //in sec
 const RegistrationAuthTokenTtl   = 60;
-const SessionRecordDeleteTimeout = 1000 * 60;
+const SessionRecordDeleteTimeout = 1000 * 60 * 10;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {

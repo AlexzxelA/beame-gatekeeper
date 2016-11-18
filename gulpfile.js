@@ -18,7 +18,7 @@ const inlinesource = require('gulp-inline-source');
 const htmlmin      = require('gulp-htmlmin');
 const clean        = require('gulp-rimraf');
 
-const dist_folder_name = 'bin';
+const dist_folder_name = 'dist';
 
 gulp.task('sass', function () {
 	gulp.src('./public/scss/app.scss')
@@ -60,7 +60,7 @@ gulp.task('compile_css', function () {
 });
 
 
-gulp.task('compile-production', ['clean', 'sass', 'compile_css'], function () {
+gulp.task('compile-production', ['sass', 'compile_css'], function () {
 
 	gulp.src(
 		[

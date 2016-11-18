@@ -12,10 +12,10 @@ const BeameLogger      = beameSDK.Logger;
 const store            = new beameSDK.BeameStore();
 //const Credential   = new beameSDK.Credential(store);
 const logger           = new BeameLogger(module_name);
-const OTP_refresh_rate = 10000;
-const Constants    = require('../constants');
-const Bootstrapper = require('./bootstrapper');
-const bootstrapper = new Bootstrapper();
+const OTP_refresh_rate = 1000 * 30;
+const Constants        = require('../constants');
+const Bootstrapper     = require('./bootstrapper');
+const bootstrapper     = new Bootstrapper();
 
 class QrMessaging {
 
@@ -47,12 +47,12 @@ class QrMessaging {
 	 */
 	onQrBrowserConnection(socket) {
 
-		socket.on('disconnect',()=>{
+		socket.on('disconnect', () => {
 			logger.debug('QR socket disconnected');
 			//clearInterval(this._renewOTP);
 		});
 
-		socket.on('reconnect',()=>{
+		socket.on('reconnect', () => {
 			logger.debug('QR socket reconnected');
 			//clearInterval(this._renewOTP);
 		});
@@ -63,7 +63,7 @@ class QrMessaging {
 			this._signBrowserHostname(socket);
 		});
 
-		socket.on('InfoPacketResponseError',(data)=>{
+		socket.on('InfoPacketResponseError', (data) => {
 			logger.error(`Qr Messaging InfoPacketResponseError`, error);
 		});
 
@@ -93,7 +93,7 @@ class QrMessaging {
 				registerFqdnFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
 					socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
-				}).catch(e=> {
+				}).catch(e => {
 					socket.emit("mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
 					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
 				});
@@ -110,13 +110,13 @@ class QrMessaging {
 			}
 		});
 
-		socket.on('close_session',() =>{
+		socket.on('close_session', () => {
 			clearInterval(this._renewOTP);
 			socket.disconnect();
 		});
 	}
 
-	_deleteSession(pin){
+	_deleteSession(pin) {
 		let deleteSessionFunc = this._callbacks["DeleteSession"];
 
 		if (!deleteSessionFunc) {
@@ -150,7 +150,7 @@ class QrMessaging {
 		let relay = this._edge.endpoint,
 		    UID   = this._browserHost;
 		socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
-		this._renewOTP = setInterval(()=> {
+		this._renewOTP = setInterval(() => {
 			this._generateOTP(24);
 			//logger.debug('QRdata:', relay, '..', UID);
 			socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));

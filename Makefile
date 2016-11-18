@@ -14,9 +14,9 @@ default:
 build:
 	$(CHRONIC) npm install
 	$(CHRONIC) npm shrinkwrap
-	$(CHRONIC) gulp app_sass cust_auth__sass
+	$(CHRONIC) gulp clean compile-production
 	mkdir -p build
-	$(CHRONIC) rsync -aP --delete --exclude={'/public/scss','/node_modules/gulp-sass***'} --include={'/src/***','/node_modules/***','/config/***','/migrations/***','/public/***','/admin/***','/package.json'} --exclude='*'   ./ ./build/$(BUILD_NUMBER)/
+	$(CHRONIC) rsync -aP --delete --exclude={'/public/scss','/node_modules/gulp-sass***'} --include={'/src/***','/apps/***','/node_modules/***','/config/***','/migrations/***','/models/***','/help-messages/***','/public/***','/bin/***','/admin/***','/main.js','/defaults.js','/constants.js','/package.json'} --exclude='*'   ./ ./build/$(BUILD_NUMBER)/
 	jq '.build={buildNumber: $(BUILD_NUMBER), commit:"$(GIT_COMMIT)", branch:"$(GIT_BRANCH)", job:"$(JOB_NAME)"}' build/$(BUILD_NUMBER)/package.json >build/$(BUILD_NUMBER)/package.json.new
 	mv build/$(BUILD_NUMBER)/package.json.new build/$(BUILD_NUMBER)/package.json
 	rm build/*.tar.gz || true

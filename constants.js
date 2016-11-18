@@ -7,7 +7,7 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
-const WebRootFolder = 'public';
+const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
 const GatewayControllerPath = '/beame-gw';
 const LogoutPath = `${GatewayControllerPath}/logout`;
