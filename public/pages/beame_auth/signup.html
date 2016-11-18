@@ -15,55 +15,14 @@
     <!-- endbuild -->
 
 
-    <script src="js/utils.js"></script>
-
-    <script>
-        var auth_mode = 'Provision',
-            stopAllRunningSessions = false,
-            socketio_options = {'force new connection': true, transports: ['polling']},
-            reg_data;
-
-        function _logout(){
-            deleteCookie('beame_reg_data');
-            logout();
-        }
-
-        var reg_data_cookie = getCookie('beame_reg_data');
-
-        if(!reg_data_cookie){
-            alert('Registration data required');
-            _logout();
-        }
-
-        try {
-            reg_data = JSON.parse(decodeURIComponent(reg_data_cookie));
-            deleteCookie('beame_reg_data');
-        } catch (e) {
-            console.error(e);
-            _logout();
-        }
-
-
-    </script>
-
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
-
-    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.core.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.color.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.popup.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.drawing.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.dataviz.core.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.dataviz.qrcode.min.js"></script>
-
     <!-- Scripts -->
-    <!-- build:js -->
-
-    <script src="js/crypto.js"></script>
-    <script src="js/qr.js"></script>
-    <script src="js/whisperer.js"></script>
+    <!-- build:signup-js-head -->
+    <script src="js/utils.js"></script>
+    <script src="js/signup.js"></script>
     <!-- endbuild -->
+
+
+
 </head>
 <body  ng-controller="MainCtrl">
 
@@ -130,29 +89,20 @@
 </div>
 
 
-<!--<script>-->
+<!-- Scripts -->
+<!-- build:lib -->
+<script src="lib/socket.io-1.4.5.min.js"></script>
+<script src="lib/angular-1.5.7.min.js"></script>
+<script src="lib/jquery-2.2.4.min.js"></script>
+<script src="lib/kendo-2016.3.1118.qr.min.js"></script>
+<!-- endbuild -->
 
-    <!--var soundButton = document.querySelector(".signin-speaker");-->
-    <!--var overlaySigningin = document.getElementById("overlay");-->
-    <!--var errorMessage = document.getElementById("error-message");-->
-
-    <!--soundButton.addEventListener("click", function () {-->
-        <!--this.classList.toggle("button-on");-->
-
-        <!--setTimeout(function () {-->
-            <!--overlaySigningin.classList.add("show");-->
-        <!--}, 600);-->
-
-        <!--setTimeout(function () {-->
-            <!--overlaySigningin.classList.remove("show");-->
-            <!--//soundButton.classList.remove("button-on");-->
-            <!--errorMessage.classList.add("show");-->
-        <!--}, 3000);-->
-
-    <!--});-->
-
-<!--</script>-->
-
+<!-- Scripts -->
+<!-- build:js -->
+<script src="js/crypto.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/whisperer.js"></script>
+<!-- endbuild -->
 
 </body>
 </html>

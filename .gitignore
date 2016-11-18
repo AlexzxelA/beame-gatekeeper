@@ -45,3 +45,6 @@ public/css
 build
 bin
 dist
+local_config/
+npm-shrinkwrap.json
+
