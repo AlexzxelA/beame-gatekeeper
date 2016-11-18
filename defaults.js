@@ -19,7 +19,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 //in sec
 const RegistrationAuthTokenTtl      = 60;
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
-const KillSocketOnDisconnectTimeout = 1000 * 60 * 1;
+const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
 const SqliteConfigTemplate = {
