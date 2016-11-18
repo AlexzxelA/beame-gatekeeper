@@ -92,6 +92,7 @@ class QrMessaging {
 
 				registerFqdnFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
+					logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 					socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					socket.emit("mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
@@ -152,7 +153,7 @@ class QrMessaging {
 		socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		this._renewOTP = setInterval(() => {
 			this._generateOTP(24);
-			//logger.debug('QRdata:', relay, '..', UID);
+			logger.debug(`QR pin renewal `,{'data': this._otp, 'relay': relay, 'UID': UID});
 			socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		}, OTP_refresh_rate);
 	}
