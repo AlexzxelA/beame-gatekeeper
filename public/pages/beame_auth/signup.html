@@ -16,6 +16,7 @@
 
 
     <script src="js/utils.js"></script>
+
     <script>
         var auth_mode = 'Provision',
             stopAllRunningSessions = false,
@@ -45,6 +46,19 @@
 
     </script>
 
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+
+
+
+    <!-- Scripts -->
+    <!-- build:js -->
+    <script src="lib/jquery/jquery.min.js"></script>
+    <script src="lib/angular/angular.min.js"></script>
+    <script src="lib/kendo/kendo.qr.min.js"></script>
+    <script src="js/crypto.js"></script>
+    <script src="js/qr.js"></script>
+    <script src="js/whisperer.js"></script>
+    <!-- endbuild -->
 </head>
 <body  ng-controller="MainCtrl">
 
@@ -133,19 +147,7 @@
     <!--});-->
 
 <!--</script>-->
-<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 
-
-
-<!-- Scripts -->
-<!-- build:js -->
-<script src="lib/jquery/jquery.min.js"></script>
-<script src="lib/angular/angular.min.js"></script>
-<script src="lib/kendo/kendo.qr.min.js"></script>
-<script src="js/crypto.js"></script>
-<script src="js/qr.js"></script>
-<script src="js/whisperer.js"></script>
-<!-- endbuild -->
 
 </body>
 </html>
