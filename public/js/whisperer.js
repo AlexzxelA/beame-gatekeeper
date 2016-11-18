@@ -88,8 +88,11 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		if ($scope.audio) {//} && $scope.socketAlive) {
 			console.log('playing: ' + $scope.pinData);
 			try {
-				if ($scope.audio.playing === true)
-					$scope.audio.stop();
+				if ($scope.audio.playing === true ){
+					$scope.audio.pause();
+					$scope.audio.currentTime = 0;
+
+				}
 				$scope.audio.src  = $scope.audioData;
 				$scope.audio.loop = true;
 				$scope.audio.play();
