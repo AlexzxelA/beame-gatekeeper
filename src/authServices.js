@@ -35,7 +35,7 @@ const provisionApi     = new (beameSDK.ProvApi)();
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = new Bootstrapper();
-const dataService      = new (require('./dataServices'))({session_timeout:bootstrapper.getSessionRecordDeleteTimeout || 1000 * 60 * 2});
+const dataService      = new (require('./dataServices'))({session_timeout:bootstrapper.sessionRecordDeleteTimeout || 1000 * 60 * 2});
 
 
 class BeameAuthServices {

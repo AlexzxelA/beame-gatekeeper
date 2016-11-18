@@ -92,7 +92,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	function replyWithUrl([decryptedData, encryptToCred]) {
 		// console.log('replyWithUrl decryptedData', decryptedData);
-		let ttl = bootstrapper.getRegistrationAuthTokenTtl || 600;
+		let ttl = bootstrapper.registrationAuthTokenTtl;
 		const tokenWithUserData = AuthToken.create(decryptedData.signedData.data, gwServerCredentials, ttl);
 		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, tokenWithUserData, gwServerFqdn));
 		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, 60);

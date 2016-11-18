@@ -4,39 +4,26 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sign in</title>
+<title>Sign in</title>
 
 
-    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800" rel="stylesheet" type="text/css"/>
+<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800" rel="stylesheet" type="text/css"/>
 
-    <!-- Styles -->
-    <!-- build:css -->
-    <link rel="stylesheet" href="css/app.css">
-    <!-- endbuild -->
-
-
-    <script src="js/utils.js"></script>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<!-- Styles -->
+<!-- build:css -->
+<link rel="stylesheet" href="css/app.css">
+<!-- endbuild -->
 
 
-    <!-- Scripts -->
-    <!-- build:js -->
-    <script src="lib/jquery/jquery.min.js"></script>
-    <script src="lib/angular/angular.min.js"></script>
-    <script src="lib/kendo/kendo.qr.min.js"></script>
-    <script src="js/crypto.js"></script>
-    <script src="js/session_controller.js"></script>
-    <script src="js/qr.js"></script>
-    <script src="js/whisperer.js"></script>
-    <!-- endbuild -->
+<script src="js/utils.js"></script>
 
-    <script>
-        var auth_mode = 'Session',
-            stopAllRunningSessions = false,
-            reg_data = null,
-            socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true, transports: ['polling']};
+<script>
+	var auth_mode = 'Session',
+	    stopAllRunningSessions = false,
+	    reg_data = null,
+	    socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true, transports: ['polling']};
 
-    </script>
+</script>
 
 </head>
 <body  ng-controller="MainCtrl">
@@ -108,7 +95,24 @@
     </div>
 </div>
 
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
 
+<script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.core.min.js"></script>
+<script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.color.min.js"></script>
+<script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.popup.min.js"></script>
+<script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.drawing.min.js"></script>
+<script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.dataviz.core.min.js"></script>
+<script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.dataviz.qrcode.min.js"></script>
+
+<!-- Scripts -->
+<!-- build:js -->
+<script src="js/crypto.js"></script>
+<script src="js/session_controller.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/whisperer.js"></script>
+<!-- endbuild -->
 
 </body>
 </html>

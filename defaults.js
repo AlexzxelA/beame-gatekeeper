@@ -17,8 +17,10 @@ const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 //in sec
-const RegistrationAuthTokenTtl   = 60;
-const SessionRecordDeleteTimeout = 1000 * 60 * 10;
+const RegistrationAuthTokenTtl      = 60;
+const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
+const KillSocketOnDisconnectTimeout = 1000 * 60 * 1;
+const WhispererSendPinInterval      = 1000 * 60;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -37,7 +39,9 @@ const ConfigProps = {
 	Settings: {
 		DbProvider: "db_provider",
 		RegistrationAuthTokenTtl,
-		SessionRecordDeleteTimeout
+		SessionRecordDeleteTimeout,
+		KillSocketOnDisconnectTimeout,
+		WhispererSendPinInterval
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -83,6 +87,8 @@ const CustomerAuthServersTemplate = {
 module.exports = {
 	ConfigProps,
 
+	KillSocketOnDisconnectTimeout,
+	WhispererSendPinInterval,
 	RegistrationAuthTokenTtl,
 	SessionRecordDeleteTimeout,
 

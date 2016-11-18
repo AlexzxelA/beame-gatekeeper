@@ -33,13 +33,14 @@ class QrMessaging {
 				this._edge = null;
 			}
 		});
-		this._fqdn        = fqdn;
-		this._callbacks   = callbacks;
-		this._browserHost = null;
-		this._otp         = "";
-		this._otp_prev    = "";
-		this._renewOTP    = null;
-		this._edge        = null;
+		this._fqdn          = fqdn;
+		this._callbacks     = callbacks;
+		this._browserHost   = null;
+		this._otp           = "";
+		this._otp_prev      = "";
+		this._renewOTP      = null;
+		this._edge          = null;
+		this._socketTimeout = bootstrapper.killSocketOnDisconnectTimeout;
 	}
 
 	/**
@@ -49,12 +50,18 @@ class QrMessaging {
 
 		socket.on('disconnect', () => {
 			logger.debug('QR socket disconnected');
-			//clearInterval(this._renewOTP);
+
+			setTimeout(()=>{
+				logger.debug('QR socket closing');
+
+				clearInterval(this._renewOTP);
+
+			},this._socketTimeout);
+
 		});
 
 		socket.on('reconnect', () => {
 			logger.debug('QR socket reconnected');
-			//clearInterval(this._renewOTP);
 		});
 
 		socket.on('browser_connected', (data) => {
@@ -153,7 +160,7 @@ class QrMessaging {
 		socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		this._renewOTP = setInterval(() => {
 			this._generateOTP(24);
-			logger.debug(`QR pin renewal `,{'data': this._otp, 'relay': relay, 'UID': UID});
+			logger.debug(`QR pin renewal `, {'data': this._otp, 'relay': relay, 'UID': UID});
 			socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 		}, OTP_refresh_rate);
 	}
