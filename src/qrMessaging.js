@@ -13,7 +13,6 @@ const store            = new beameSDK.BeameStore();
 //const Credential   = new beameSDK.Credential(store);
 const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
-const Constants        = require('../constants');
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = new Bootstrapper();
 
@@ -94,7 +93,7 @@ class QrMessaging {
 		});
 
 		socket.on('InfoPacketResponseError', (data) => {
-			logger.error(`Qr Messaging InfoPacketResponseError`, error);
+			logger.error(`Qr Messaging InfoPacketResponseError ${BeameLogger.formatError(error)}`, data);
 		});
 
 		socket.on('InfoPacketResponse', (data) => {

@@ -54,7 +54,7 @@ class BeameAuthServer {
 	 */
 	start(cb) {
 
-		beameSDK.BaseHttpsServer(this._fqdn, {}, this._app, (data, app) => {
+		beameSDK.BeameServer(this._fqdn,  this._app, (data, app) => {
 				logger.info(`Beame authorization server started on ${this._fqdn} `);
 
 				this._server = app;

@@ -121,7 +121,7 @@ class BeameAuthServices {
 				this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
 					payload.parent_fqdn = this._fqdn;
 
-					logger.info(`   Registration Fqdn received ${payload.fqdn}`);
+					logger.info(`Registration Fqdn received ${payload.fqdn}`);
 					logger.debug(`Entity registration completed `, payload);
 
 					data.fqdn = payload.fqdn;

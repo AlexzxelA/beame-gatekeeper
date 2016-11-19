@@ -171,7 +171,7 @@ gulp.task('deploy', ['compile'], function () {
 
 	gulp.src([`./${dist_folder_name}/css/app.min.css`])
 		.pipe(rename("insta-server/css/app.min.css"))
-		.pipe(gzip())
+		.pipe(gzip());
 
 	gulp.src([`./${dist_folder_name}/img/***`])
 		.pipe(rename(function (path) {
