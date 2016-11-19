@@ -160,26 +160,29 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		$scope.stopPlaying();
 		$scope.showPopup('Code matched');
 
-		var mob_socket = io.connect('https://' + data.clientFqdn + "/whisperer");
+		if(data.clientFqdn){
+			var mob_socket = io.connect('https://' + data.clientFqdn + "/whisperer");
 
-		mob_socket.on('connect', function () {
+			mob_socket.on('connect', function () {
 
-			$scope.showPopup('Mobile connected: verifying session token');
+				$scope.showPopup('Mobile connected: verifying session token');
 
-			mob_socket.emit('session_token', data);
-		});
+				mob_socket.emit('session_token', data);
+			});
 
-		mob_socket.on('your_id', function (message) {
+			mob_socket.on('your_id', function (message) {
 
-			$scope.showPopup('Mobile connected: message received "' + message + '"');
+				$scope.showPopup('Mobile connected: message received "' + message + '"');
 
-		});
+			});
 
-		mob_socket.on('sign_error', function (message) {
+			mob_socket.on('sign_error', function (message) {
 
-			$scope.showPopup('Mobile connected: signature error received "' + message + '"');
+				$scope.showPopup('Mobile connected: signature error received "' + message + '"');
 
-		});
+			});
+		}
+
 	});
 
 	$scope.socket.on('start_provision_session', function (data) {
@@ -233,10 +236,12 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 							window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 						}
 						else {
-							var tmp_reg_data = (reg_data) ? reg_data : "login";
+							var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+							var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+
 							var qrData       = JSON.stringify({
 								'relay': 'https://' + WhRelayEndpoint, 'PK': PK, 'UID': WhUID,
-								'PIN':   WhPIN, 'TYPE': 'PROV', 'TIME': Date.now(), 'REG': tmp_reg_data
+								'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
 							});
 							console.log('sending qr data to whisperer %j', qrData);//XXX
 							$scope.socket.emit('init_mobile_session', qrData);
