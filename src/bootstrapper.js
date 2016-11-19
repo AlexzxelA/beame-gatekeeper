@@ -206,12 +206,20 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
 	}
 
-	get getRegistrationAuthTokenTtl() {
+	get registrationAuthTokenTtl() {
 		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : null;
 	}
 
-	get getSessionRecordDeleteTimeout() {
+	get sessionRecordDeleteTimeout() {
 		return this._config && this._config[SettingsProps.SessionRecordDeleteTimeout] ? this._config[SettingsProps.SessionRecordDeleteTimeout] : null;
+	}
+
+	get killSocketOnDisconnectTimeout() {
+		return this._config && this._config[SettingsProps.KillSocketOnDisconnectTimeout] ? this._config[SettingsProps.KillSocketOnDisconnectTimeout] : null;
+	}
+
+	get whispererSendPinInterval() {
+		return this._config && this._config[SettingsProps.WhispererSendPinInterval] ? this._config[SettingsProps.WhispererSendPinInterval] : null;
 	}
 
 	get sqliteConfig() {
@@ -502,7 +510,7 @@ class Bootstrapper {
 
 				dbConfig[env]["username"] = this._config[SqliteProps.AdminUserName];
 				dbConfig[env]["password"] = CommonUtils.randomPassword(12);
-				dbConfig[env]["storage"]  = path.join(this._config[SqliteProps.StorageRoot], this._config[SqliteProps.DbName]);
+				dbConfig[env]["storage"]  = path.join(process.env.BEAME_SERVERS_AUTH_DATA_DIR || this._config[SqliteProps.StorageRoot], this._config[SqliteProps.DbName]);
 
 				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig)).then(() => {
 					logger.debug(`${SqliteDbConfigFileName} saved in ${path.dirname(SqliteConfigJsonPath)}...`);

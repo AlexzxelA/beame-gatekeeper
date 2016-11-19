@@ -195,7 +195,7 @@ class GatewayServer {
 			.then(this._startRequestsHandler.bind(this))
 			.then(startTunnel)
 			.then(()=>{
-				logger.debug(`Gateway server started at https://${this._fqdn}`);
+				logger.info(`Gateway server started at https://${this._fqdn}`);
 				cb && cb(null,this._server);
 			}).catch(error=>{
 				logger.error(error);

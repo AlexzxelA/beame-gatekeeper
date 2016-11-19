@@ -12,11 +12,10 @@ const BeameLogger      = beameSDK.Logger;
 const store            = new beameSDK.BeameStore();
 //const Credential   = new beameSDK.Credential(store);
 const logger           = new BeameLogger(module_name);
-const OTP_refresh_rate = 10000;
-const Constants    = require('../constants');
-const Bootstrapper = require('./bootstrapper');
-const bootstrapper = new Bootstrapper();
-
+const OTP_refresh_rate = 1000 * 30;
+const Constants        = require('../constants');
+const Bootstrapper     = require('./bootstrapper');
+const bootstrapper     = new Bootstrapper();
 
 class QrMessaging {
 
@@ -34,13 +33,14 @@ class QrMessaging {
 				this._edge = null;
 			}
 		});
-		this._fqdn        = fqdn;
-		this._callbacks   = callbacks;
-		this._browserHost = null;
-		this._otp         = "";
-		this._otp_prev    = "";
-		this._renewOTP    = null;
-		this._edge        = null;
+		this._fqdn          = fqdn;
+		this._callbacks     = callbacks;
+		this._browserHost   = null;
+		this._otp           = "";
+		this._otp_prev      = "";
+		this._renewOTP      = null;
+		this._edge          = null;
+		this._socketTimeout = bootstrapper.killSocketOnDisconnectTimeout;
 		this._pendingCommand = {};
 		this._lastCommand = null;
 	}
@@ -67,11 +67,19 @@ class QrMessaging {
 			this._pendingCommand[data] = 0;
 		});
 
-		socket.on('disconnect',()=>{
-			logger.info('QR socket disconnected');
+		socket.on('disconnect', () => {
+			logger.debug('QR socket disconnected');
+
+			setTimeout(()=>{
+				logger.debug('QR socket closing');
+
+				clearInterval(this._renewOTP);
+
+			},this._socketTimeout);
+
 		});
 
-		socket.on('reconnect',()=>{
+		socket.on('reconnect', () => {
 			logger.debug('QR socket reconnected');
 			if(this._lastCommand && this._pendingCommand[this._lastCommand]){
 				console.log('Re-sending command after reconnect');
@@ -85,7 +93,7 @@ class QrMessaging {
 			this._signBrowserHostname(socket);
 		});
 
-		socket.on('InfoPacketResponseError',(data)=>{
+		socket.on('InfoPacketResponseError', (data) => {
 			logger.error(`Qr Messaging InfoPacketResponseError`, error);
 		});
 
@@ -115,6 +123,7 @@ class QrMessaging {
 
 				registerFqdnFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
+					logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 					this._sendWithAck(socket,"mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e=> {
 					this._sendWithAck(socket,"mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
@@ -132,17 +141,17 @@ class QrMessaging {
 		socket.on('virtSrvConfig', (data) => {
 			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);
 			console.log('QR socket ID:',socket.id);
-			
+
 			this._sendWithAck(socket,'startQrSession',OTP_refresh_rate);
 		});
 
-		socket.on('close_session',() =>{
+		socket.on('close_session', () => {
 			clearInterval(this._renewOTP);
 			socket.disconnect();
 		});
 	}
 
-	_deleteSession(pin){
+	_deleteSession(pin) {
 		let deleteSessionFunc = this._callbacks["DeleteSession"];
 
 		if (!deleteSessionFunc) {
@@ -199,7 +208,6 @@ class QrMessaging {
 			this._sendWithAck(socket,"edgeError", "Network problems, please try again later");
 		}
 	}
-
 
 
 }

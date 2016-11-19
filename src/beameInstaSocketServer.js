@@ -17,6 +17,9 @@ const module_name       = "BeameInstaSocketServer";
 const BeameLogger       = beameSDK.Logger;
 const logger            = new BeameLogger(module_name);
 
+const Bootstrapper = require('./bootstrapper');
+const bootstrapper = new Bootstrapper();
+
 class BeameInstaSocketServer {
 
 	/**
@@ -117,7 +120,8 @@ class BeameInstaSocketServer {
 			this._fqdn,
 			this._matchingServerFqdn,
 			this._callbacks,
-			60000);
+			bootstrapper.whispererSendPinInterval,
+			bootstrapper.killSocketOnDisconnectTimeout);
 
 		return Promise.resolve();
 	}

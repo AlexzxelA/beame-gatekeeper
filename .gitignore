@@ -42,5 +42,9 @@ stuff
 data/beame_server.db
 /config/config.json
 public/css
-
+build
 bin
+dist
+local_config/
+npm-shrinkwrap.json
+
