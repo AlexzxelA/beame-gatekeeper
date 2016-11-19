@@ -414,8 +414,6 @@ class BeameAuthServices {
 				}).catch(reject);
 			}
 		);
-
-
 	}
 
 	//endregion

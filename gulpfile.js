@@ -26,11 +26,11 @@ const compilePage = (pagePath, distPath) => {
 
 	gulp.src(pagePath)
 		.pipe(htmlreplace({
-			'css':            'https://cdn.beame.io/insta-server/css/app.min.css',
-			'js':             'https://cdn.beame.io/insta-server/js/app.min.js',
-			'lib':            'https://cdn.beame.io/insta-server/js/lib.min.js',
-			'signin-js-head': 'https://cdn.beame.io/insta-server/js/signin.min.js',
-			'signup-js-head': 'https://cdn.beame.io/insta-server/js/signup.min.js'
+			'css':            'https://cdn.beame.io/insta-server/css/app.min.css?v=' + new Date().getTime(),
+			'js':             'https://cdn.beame.io/insta-server/js/app.min.js?v=' + new Date().getTime(),
+			'lib':            'https://cdn.beame.io/insta-server/js/lib.min.js?v=' + new Date().getTime(),
+			'signin-js-head': 'https://cdn.beame.io/insta-server/js/signin.min.js?v=' + new Date().getTime(),
+			'signup-js-head': 'https://cdn.beame.io/insta-server/js/signup.min.js?v=' + new Date().getTime()
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
@@ -47,11 +47,9 @@ gulp.task('sass', function () {
 		.pipe(gulp.dest('./public/css/'));
 });
 
-
 gulp.task("watch", function () {
 	gulp.watch("./public/scss/**/*.scss", ["sass"]);
 });
-
 
 gulp.task('clean', () => {
 	return gulp.src(`${dist_folder_name}`, {read: false})

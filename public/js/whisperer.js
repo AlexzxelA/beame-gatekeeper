@@ -6,8 +6,8 @@
 /**
  * Created by filip on 18/07/2016.
  */
-var WhPIN          = null,
-    WhUID          = null,
+var WhPIN = null,
+    WhUID = null,
     WhTMPSocketRelay,
     whTmpSocketId,
     WhRelayEndpoint;
@@ -88,7 +88,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		if ($scope.audio) {//} && $scope.socketAlive) {
 			console.log('playing: ' + $scope.pinData);
 			try {
-				if ($scope.audio.playing === true ){
+				if ($scope.audio.playing === true) {
 					$scope.audio.pause();
 					$scope.audio.currentTime = 0;
 
@@ -98,7 +98,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 				$scope.audio.play();
 				$scope.audio.playing = true;
 			} catch (e) {
-				console.error('start playing',e);
+				console.error('start playing', e);
 			}
 		}
 	};
@@ -110,7 +110,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 				$scope.audio.loop    = false;
 			}
 		} catch (e) {
-			console.error('stop playing',e);
+			console.error('stop playing', e);
 		}
 
 		// if ($scope.showWelcome)
@@ -192,7 +192,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 
 		generateKeyPairs(function (error, data) {
 			if (error) return;
-			if(!keyGenerated){
+			if (!keyGenerated) {
 				keyPair      = data.keyPair;
 				keyPairSign  = data.keyPairSign;
 				keyGenerated = true;
@@ -211,7 +211,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 
 		WhTMPSocketRelay.on('data', function (data) {
 			whTmpSocketId = data.socketId;
-			processMobileData(WhTMPSocketRelay,$scope.socket, data);
+			processMobileData(WhTMPSocketRelay, $scope.socket, data);
 			WhTMPSocketRelay.beame_relay_socket_id = data.socketId;
 		});
 
@@ -269,9 +269,9 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 	$scope.socket.on('relayEndpoint', function (data) {
 		console.log('relayEndpoint', data);
 		try {
-			var parsedData = JSON.parse(data);
-			WhRelayEndpoint  = parsedData['data'];
-			var lclTarget  = "https://" + WhRelayEndpoint + "/control";
+			var parsedData  = JSON.parse(data);
+			WhRelayEndpoint = parsedData['data'];
+			var lclTarget   = "https://" + WhRelayEndpoint + "/control";
 
 			if (WhRelayEndpoint) {
 				//noinspection ES6ModulesDependencies,NodeModulesDependencies
@@ -325,8 +325,10 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		$scope.pinData = data;
 		//$scope.keepAlive = 5;
 		console.log('PIN:' + data);
-		// if ($scope.showWelcome)
-		 	document.getElementById("pin").innerHTML = data;
+		var pinElement = document.getElementById("pin");
+		if (pinElement) {
+			pinElement.innerHTML = data;
+		}
 	});
 
 	$scope.socket.on('data', function (data) {

@@ -21,7 +21,7 @@ $(document).ready(function () {
 	console.log('UID:', UID);
 
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = io.connect("/qr");//, socketio_options);
+	var socket = io.connect("/qr", socketio_options);
 	console.log('QR window ready');
 	socket.on('connect', function () {
 		console.log('QR socket connected, ',qrRelayEndpoint);
