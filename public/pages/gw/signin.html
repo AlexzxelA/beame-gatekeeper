@@ -15,26 +15,13 @@
     <!-- endbuild -->
 
 
-    <script src="js/utils.js"></script>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-
-
-    <!-- Scripts -->
-    <!-- build:js -->
-    <script src="lib/jquery/jquery.min.js"></script>
-    <script src="lib/angular/angular.min.js"></script>
-    <script src="lib/kendo/kendo.qr.min.js"></script>
-    <script src="js/crypto.js"></script>
-    <script src="js/session_controller.js"></script>
-    <script src="js/qr.js"></script>
-    <script src="js/whisperer.js"></script>
-    <!-- endbuild -->
+   <!-- endbuild -->
 
     <script>
         var auth_mode = 'Session',
             stopAllRunningSessions = false,
             reg_data = null,
-            socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true, transports: ['polling']};
+            socketio_options = {path: '/beame-gw-insta-socket'};//, 'force new connection': true, transports: ['websocket']};
 
     </script>
 
@@ -107,6 +94,19 @@
         </svg>
     </div>
 </div>
+<script src="js/utils.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+
+
+<!-- Scripts -->
+<!-- build:js -->
+<script src="lib/jquery/jquery.min.js"></script>
+<script src="lib/angular/angular.min.js"></script>
+<script src="lib/kendo/kendo.qr.min.js"></script>
+<script src="js/crypto.js"></script>
+<script src="js/session_controller.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/whisperer.js"></script>
 
 
 

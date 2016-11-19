@@ -63,6 +63,8 @@ function extractAuthToken(req) {
 	// XXX: temp
 	// return {'name': 'svc1'};
 	// return 'INVALID';
+	//return {url:'https://vq42pbxwj6sac3ue.zw7sp0wuxwhw8cps.v1.d.beameio.net'};
+	//console.log('extractAuthToken:',req.url);
 	if (!req.headers.cookie) {
 		return null;
 	}

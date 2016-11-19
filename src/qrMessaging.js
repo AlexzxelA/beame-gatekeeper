@@ -17,6 +17,7 @@ const Constants    = require('../constants');
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = new Bootstrapper();
 
+
 class QrMessaging {
 
 	/**
@@ -40,6 +41,15 @@ class QrMessaging {
 		this._otp_prev    = "";
 		this._renewOTP    = null;
 		this._edge        = null;
+		this._pendingCommand = {};
+		this._lastCommand = null;
+	}
+
+	_sendWithAck(sock, type, msg){
+		this._pendingCommand[type] = msg;
+		this._lastCommand = type;
+		console.log('QR Sending 0:',type);
+		sock.emit(type, msg);
 	}
 
 	/**
@@ -47,14 +57,26 @@ class QrMessaging {
 	 */
 	onQrBrowserConnection(socket) {
 
+
+		logger.info('<<< QR Browser just connected >>>');
+
+
+
+		socket.on('ack',(data)=>{
+			console.log('QR Clearing for', data);
+			this._pendingCommand[data] = 0;
+		});
+
 		socket.on('disconnect',()=>{
-			logger.debug('QR socket disconnected');
-			//clearInterval(this._renewOTP);
+			logger.info('QR socket disconnected');
 		});
 
 		socket.on('reconnect',()=>{
 			logger.debug('QR socket reconnected');
-			//clearInterval(this._renewOTP);
+			if(this._lastCommand && this._pendingCommand[this._lastCommand]){
+				console.log('Re-sending command after reconnect');
+				this._sendWithAck(socket, this._lastCommand, this._pendingCommand[this._lastCommand]);
+			}
 		});
 
 		socket.on('browser_connected', (data) => {
@@ -71,8 +93,9 @@ class QrMessaging {
 			logger.debug('QR InfoPacketResponse:', data);
 			//createEntityWithAuthServer
 			if (this._verifyOTP(data.otp)) {
+				console.log('QR Cleared QR interval!', socket.id);
 				clearInterval(this._renewOTP);
-				socket.emit('resetQR');
+				 this._sendWithAck(socket,'resetQR');
 
 				let metadata = {
 					name:      data.name,
@@ -92,22 +115,25 @@ class QrMessaging {
 
 				registerFqdnFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
-					socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
+					this._sendWithAck(socket,"mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e=> {
-					socket.emit("mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
+					this._sendWithAck(socket,"mobileProv1", {'data': 'User data validation failed', 'type': 'mobileSessionFail'});
 					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
 				});
 			}
 			else {
-				socket.emit("mobilePinInvalid", {'data': `PIN:${data.otp}>${this._otp},${this._otp_prev}`});
+				this._sendWithAck(socket,"mobilePinInvalid", {'data': `PIN:${data.otp}>${this._otp},${this._otp_prev}`});
 			}
 		});
-
+		socket.on('pinRequest',()=>{
+			console.log('QR pinRequest');
+			this._setNewOTP(socket);
+		});
 		socket.on('virtSrvConfig', (data) => {
 			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);
-			if (data == this._browserHost) {
-				this._setNewOTP(socket);
-			}
+			console.log('QR socket ID:',socket.id);
+			
+			this._sendWithAck(socket,'startQrSession',OTP_refresh_rate);
 		});
 
 		socket.on('close_session',() =>{
@@ -149,12 +175,13 @@ class QrMessaging {
 		this._generateOTP(24);
 		let relay = this._edge.endpoint,
 		    UID   = this._browserHost;
-		socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
-		this._renewOTP = setInterval(()=> {
+		this._sendWithAck(socket,"pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
+		/*this._renewOTP = setInterval(()=> {
 			this._generateOTP(24);
-			//logger.debug('QRdata:', relay, '..', UID);
-			socket.emit("pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
-		}, OTP_refresh_rate);
+			logger.debug('>>> this._otp:', this._otp);
+			console.log('QR..ID:', socket.id);
+			this._sendWithAck(socket,"pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
+		}, OTP_refresh_rate);*/
 	}
 
 	_signBrowserHostname(socket) {
@@ -167,11 +194,12 @@ class QrMessaging {
 				    'signature': token
 			    });
 
-			socket.emit("relayEndpoint", tokenStr);
+			this._sendWithAck(socket,"relayEndpoint", tokenStr);
 		} else {
-			socket.emit("edgeError", "Network problems, please try again later");
+			this._sendWithAck(socket,"edgeError", "Network problems, please try again later");
 		}
 	}
+
 
 
 }
