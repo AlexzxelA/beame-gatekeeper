@@ -24,6 +24,7 @@ class QrMessaging {
 	 */
 	constructor(fqdn, callbacks) {
 
+		this._edge          = null;
 		beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
 			if (!error) {
 				this._edge = payload;
@@ -38,7 +39,6 @@ class QrMessaging {
 		this._otp           = "";
 		this._otp_prev      = "";
 		this._renewOTP      = null;
-		this._edge          = null;
 		this._socketTimeout = bootstrapper.killSocketOnDisconnectTimeout;
 		this._pendingCommand = {};
 		this._lastCommand = null;
