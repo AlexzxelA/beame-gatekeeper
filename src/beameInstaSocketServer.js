@@ -99,6 +99,8 @@ class BeameInstaSocketServer {
 	 */
 	_startSocketioServer(){
 
+		logger.info(`BeameInstaSocketServer SOCKET OPTIONS ${JSON.stringify(this._socket_options)}`);
+
 		this._socketioServer = require('socket.io')(this._server,this._socket_options);
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('whisperer').on('connection', this._onWhispererBrowserConnection.bind(this));

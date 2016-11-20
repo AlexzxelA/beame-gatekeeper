@@ -52,6 +52,9 @@ function startGatewaySession(authToken, relaySocket) {
 			}
 
 		}
+		else if(type == 'redirect'  && payload.logout){
+			$('#info-module').hide();
+		}
 		// xxx - end
 
 		if (payload.html) {
