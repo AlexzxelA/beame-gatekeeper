@@ -92,7 +92,7 @@ class ServersManager {
 			error => {
 				if (error) {
 
-					logger.error(`server startin error ${BeameLogger.formatError(error)}`);
+					logger.error(`server starting error ${BeameLogger.formatError(error)}`);
 
 					for (let type in this._servers) {
 						//noinspection JSUnfilteredForInLoop

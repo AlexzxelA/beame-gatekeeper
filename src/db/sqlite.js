@@ -28,7 +28,7 @@ class SqliteServices {
 			return;
 		}
 
-		this._options = options;
+		this._socket_options = options;
 
 		const models = require("../../models/index");
 
@@ -285,7 +285,7 @@ class SqliteServices {
 	 */
 	_setSessionTtl(ids) {
 		return new Promise((resolve) => {
-				let timeout = this._options.session_timeout;
+				let timeout = this._socket_options.session_timeout;
 				if (!timeout) {
 					resolve();
 					return;

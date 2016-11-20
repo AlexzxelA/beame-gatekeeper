@@ -24,7 +24,7 @@ class DataServices {
 	 */
 	constructor(options) {
 
-		this._options = options || {};
+		this._socket_options = options || {};
 
 		this._dbProvider = bootstrapper.dbProvider;
 		this._dbService = null;
@@ -36,11 +36,11 @@ class DataServices {
 
 		switch (this._dbProvider){
 			case DbProviders.Sqlite:
-				this._dbService = new(require('./db/sqlite'))(this._options);
+				this._dbService = new(require('./db/sqlite'))(this._socket_options);
 				break;
 
 			case DbProviders.Couchbase:
-				this._dbService = new(require('./db/couchbase'))(this._options);
+				this._dbService = new(require('./db/couchbase'))(this._socket_options);
 				break;
 
 			default:

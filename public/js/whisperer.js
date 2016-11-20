@@ -185,8 +185,8 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 
 	});
 
-	$scope.socket.on('start_provision_session', function (data) {
-		console.log('start_provision_session %j', data);
+	$scope.socket.on('init_mobile_session', function (data) {
+		console.log('init_mobile_session %j', data);
 		$scope.stopPlaying();
 		$scope.showPopup('Code matched');
 

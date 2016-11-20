@@ -29,9 +29,9 @@ class BeameInstaSocketServer {
 	 * @param {Router|null} [srv]
 	 * @param {String} mode
 	 * @param {MessagingCallbacks} callbacks
-	 * @param {Object|null} [options]
+	 * @param {Object|null} [socket_options]
 	 */
-	constructor(srv, fqdn, matchingServerFqdn, mode, callbacks, options) {
+	constructor(srv, fqdn, matchingServerFqdn, mode, callbacks, socket_options) {
 		this._fqdn = fqdn;
 
 		this._whispererMode = mode;
@@ -40,7 +40,7 @@ class BeameInstaSocketServer {
 
 		this._callbacks = callbacks;
 
-		this._options = options || {};
+		this._socket_options = socket_options || {};
 
 		/** @type {Socket|null} */
 		this._socketioServer = null;
@@ -99,7 +99,7 @@ class BeameInstaSocketServer {
 	 */
 	_startSocketioServer(){
 
-		this._socketioServer = require('socket.io')(this._server,this._options);
+		this._socketioServer = require('socket.io')(this._server,this._socket_options);
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('whisperer').on('connection', this._onWhispererBrowserConnection.bind(this));
 		//noinspection JSUnresolvedFunction
@@ -121,7 +121,9 @@ class BeameInstaSocketServer {
 			this._matchingServerFqdn,
 			this._callbacks,
 			bootstrapper.whispererSendPinInterval,
-			bootstrapper.killSocketOnDisconnectTimeout);
+			bootstrapper.killSocketOnDisconnectTimeout,
+			this._socket_options
+		);
 
 		return Promise.resolve();
 	}

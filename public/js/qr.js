@@ -80,7 +80,7 @@ $(document).ready(function () {
 								var qrType = (auth_mode == "Provision")?"PROV":"LOGIN";
 								var QRdata       = {
 									'relay': 'https://' + qrRelayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-									'PIN':   parsed['data'], 'TYPE': qrType, 'TIME': Date.now(), 'REG': reg_data || 'login'
+									'PIN':   parsed['data'], 'TYPE': qrType, 'SOCKET_OPT' : socketio_options ,'TIME': Date.now(), 'REG': reg_data || 'login'
 								};
 								//console.log('QR DATA:',QRdata);
 								socket.emit('QRdata', QRdata);
@@ -89,10 +89,10 @@ $(document).ready(function () {
 									var dataStr = JSON.stringify(QRdata);
 									if (dataStr.length > 30) {
 										var qrCode = dataStr;
-										console.log(dataStr);
+										console.log(qrCode);
 										qrContainer.empty();
 										qrContainer.kendoQRCode({
-											value:           dataStr,
+											value:           qrCode,
 											errorCorrection: "L",
 											color:           "#000",
 											background:      "transparent",
