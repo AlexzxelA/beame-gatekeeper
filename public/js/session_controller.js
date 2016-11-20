@@ -38,12 +38,19 @@ function startGatewaySession(authToken, relaySocket) {
 
 		console.log('DATA %j', data);
 
-		var session_token, apps, type = data.type, payload = data.payload;
+		var session_token, apps, type = data.type, payload = data.payload, user = payload.user;
 
 		// xxx - start
 		if (type == 'authenticated' && payload.success) {
 			xxx_session_token = payload.session_token;
 			console.warn('session token', xxx_session_token);
+
+			if(user){
+				$('#conn-to').html('connected to ' + user.fqdn);
+				$('#user-name').html('Hello, ' + (user.name || user.email || user.user_id));
+				$('#info-module').show();
+			}
+
 		}
 		// xxx - end
 
