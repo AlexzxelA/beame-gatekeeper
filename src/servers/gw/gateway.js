@@ -58,8 +58,6 @@ proxy.on('proxyRes', (proxyRes, req, res) => {
 	}
 	// XXX - can not be like this in production - start
 	if(proxyRes.statusCode == 404) {
-		console.log('proxyRes', proxyRes);
-		console.log('res', res);
 		// http://stackoverflow.com/questions/34684139/how-to-add-headers-to-node-http-proxy-response
 		proxyRes.statusCode = 302;
 		proxyRes.statusMessage = 'Found';
