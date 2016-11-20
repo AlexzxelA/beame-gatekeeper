@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
     up: function(queryInterface, Sequelize) {
-      
+
             return queryInterface.createTable('Users',            {
                 "id": {
                     "type": "INTEGER",
@@ -19,12 +19,10 @@ module.exports = {
                 },
                 "email": {
                     "type": "VARCHAR(255)",
-                    "unique": true,
                     "allowNull": true
                 },
                 "externalUserId": {
                     "type": "VARCHAR(255)",
-                    "unique": true,
                     "allowNull": true
                 },
                 "createdAt": {
