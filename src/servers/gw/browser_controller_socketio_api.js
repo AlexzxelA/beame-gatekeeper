@@ -47,15 +47,18 @@ const messageHandlers = {
 		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {app_id: ..., online: true/false}}, ...]}
 		logger.debug('messageHandlers/auth');
 
+		let authenticatedUserInfo = null;
+
 		function assertTokenFqdnIsAuthorized(token) {
 			return new Promise((resolve, reject) => {
 					BeameAuthServices.validateUser(token.signedBy).then(user => {
 						logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
+						authenticatedUserInfo = user;
 						resolve(user);
 					}).catch(error => {
 						logger.error(`assertTokenFqdnIsAuthorized on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
 						reject(error);
-					})
+					});
 				}
 			);
 
@@ -98,7 +101,8 @@ const messageHandlers = {
 						success:       true,
 						session_token: token,
 						apps:          apps,
-						html:          page
+						html:          page,
+						user:          authenticatedUserInfo
 					}
 				});
 			});

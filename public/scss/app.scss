@@ -160,7 +160,7 @@ p + p {
         height: 28px;
         left: 0;
         top: 0;
-        background: url("img/'check-purple.svg") center no-repeat;
+        background: url("/img/'check-purple.svg") center no-repeat;
         background-size: 100%;
         @media screen and (max-width: 540px) {
             top: 0;
@@ -486,10 +486,10 @@ p + p {
     outline: none;
     transform: scale(1);
     transition: transform 0.1s;
-    background: url("img/'speaker-purple-off.svg") no-repeat center;
+    background: url("/img/speaker-purple-off.svg") no-repeat center;
     background-size: 105%; }
 .box-signin .signin-speaker.button-on {
-    background: url("img/'speaker-purple-on.svg") no-repeat center;
+    background: url("/img/speaker-purple-on.svg") no-repeat center;
     background-size: 105%; }
 .box-signin .signin-speaker:hover {
     transform: scale(1.03);

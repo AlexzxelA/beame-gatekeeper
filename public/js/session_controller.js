@@ -159,8 +159,6 @@ function startGatewaySession(authToken, relaySocket) {
 	// xxx - end
 }
 
-
-
 function setIframeHtmlContent(html){
 	var iframe = document.getElementById('ifrm-content'),
 	    iframedoc = iframe.contentDocument || iframe.contentWindow.document;
