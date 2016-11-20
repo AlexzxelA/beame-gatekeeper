@@ -10,6 +10,7 @@ const cookie      = require('cookie');
 
 const httpProxy = require('http-proxy');
 
+const Bootstrapper = require('../../bootstrapper');
 const beameSDK    = require('beame-sdk');
 const module_name = "GatewayServer";
 const BeameLogger = beameSDK.Logger;
@@ -17,7 +18,6 @@ const logger      = new BeameLogger(module_name);
 const ProxyClient = beameSDK.ProxyClient;
 const BeameStore  = new beameSDK.BeameStore();
 const Constants   = require('../../../constants');
-
 const apps = require('./apps');
 
 const unauthenticatedApp = require('./unauthenticatedApp');
@@ -56,6 +56,17 @@ proxy.on('proxyRes', (proxyRes, req, res) => {
 		proxyRes.statusCode = 302;
 		proxyRes.statusMessage = 'Found';
 	}
+	// XXX - can not be like this in production - start
+	if(proxyRes.statusCode == 404) {
+		console.log('proxyRes', proxyRes);
+		console.log('res', res);
+		// http://stackoverflow.com/questions/34684139/how-to-add-headers-to-node-http-proxy-response
+		proxyRes.statusCode = 302;
+		proxyRes.statusMessage = 'Found';
+		proxyRes.headers['x-beame-debug-redirect-reason'] = 'error 404 from upstream';
+		proxyRes.headers['location'] = Bootstrapper.getLogoutUrl();
+	}
+	// XXX - can not be like this in production - end
 });
 
 // Extracts URL token either from URL or from Cookie
