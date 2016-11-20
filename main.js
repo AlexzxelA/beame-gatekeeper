@@ -3,6 +3,16 @@
 
 //process.env.BEAME_LOG_LEVEL = "DEBUG";
 
+// Ensure correct NodeJS version - start
+const process = require('process');
+const semver = require('semver');
+const pjson = require('./package.json');
+if(!semver.satisfies(process.versions.node, pjson.engines.node)) {
+	console.error(`Beame-insta-server requires NodeJS version ${pjson.engines.node}. Running with version ${process.versions.node}. Exiting.`);
+	process.exit(2);
+}
+// Ensure correct NodeJS version - end
+
 
 /**
  * Should be synchronized with token from Auth Server

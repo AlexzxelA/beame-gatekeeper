@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Gateway TLS (SSL) server for authenticated access to your services",
   "main": "index.js",
-  "engine": "node >= 6.9.1",
+  "engines": {"node": ">= 6.9.1"},
   "bin": {
     "beame-insta-server": "main.js"
   },
@@ -38,6 +38,7 @@
     "http-proxy": "^1.15.1",
     "minimist": "^1.2.0",
     "request": "^2.78.0",
+    "semver": "^5.3.0",
     "sequelize": "^3.24.8",
     "sequelize-cli": "^2.4.0",
     "sns-validator": "^0.2.1",
