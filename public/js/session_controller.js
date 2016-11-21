@@ -46,15 +46,15 @@ function startGatewaySession(authToken, relaySocket) {
 			console.warn('session token', xxx_session_token);
 
 			if(user){
-				$('#conn-to').html('connected to ' + user.fqdn);
-				$('#user-name').html('Hello, ' + (user.name || user.email || user.user_id));
-				$('#info-module').show();
+				//$('#conn-to').html('connected to ' + user.fqdn);
+				// $('#user-name').html('Hello, ' + (user.name || user.email || user.user_id));
+				// $('#info-module').show();
 			}
 
 		}
-		else if(type == 'redirect'  && payload.logout){
-			$('#info-module').hide();
-		}
+		// else if(type == 'redirect'  && payload.logout){
+		// 	$('#info-module').hide();
+		// }
 		// xxx - end
 
 		if (payload.html) {
