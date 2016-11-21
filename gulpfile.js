@@ -20,7 +20,6 @@ const clean         = require('gulp-rimraf');
 const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
-const runSequence = require('run-sequence');
 
 const bucket_dir = 'insta-server-dev';
 
@@ -161,10 +160,7 @@ gulp.task('compile-static', () => {
 	gulp.src('./public/templates/**/*').pipe(gulp.dest(`./${dist_folder_name}/templates/`));
 });
 
-gulp.task('compile', ['compile-css', 'compile-js', 'compile-pages', 'compile-static'], (callback) => {
-
-
-});
+gulp.task('compile', ['compile-css', 'compile-js', 'compile-pages', 'compile-static']);
 
 gulp.task('upload-to-S3', callback => {
 	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
@@ -194,9 +190,4 @@ gulp.task('upload-to-S3', callback => {
 
 	callback();
 
-});
-
-
-gulp.task('build', (callback)=> {
-	runSequence('clean', 'sass', 'compile' , 'upload-to-S3', callback);
 });
