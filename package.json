@@ -67,6 +67,7 @@
     "gulp-strip-comments": "^2.4.3",
     "gulp-strip-debug": "^1.1.0",
     "gulp-uglify": "^1.5.4",
+    "run-sequence": "^1.2.2",
     "uglify-js": "^2.7.4"
   }
 }

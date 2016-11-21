@@ -20,6 +20,7 @@ const clean         = require('gulp-rimraf');
 const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
+const runSequence = require('run-sequence');
 
 const bucket_dir = 'insta-server-dev';
 
@@ -32,7 +33,7 @@ const getVersion = () => {
 
 	let date = new Date();
 
-	return date.getFullYear() +
+	return '' + date.getFullYear() +
 		pad2(date.getMonth() + 1) +
 		pad2(date.getDate()) +
 		pad2(date.getHours()) +
@@ -40,17 +41,22 @@ const getVersion = () => {
 		pad2(date.getSeconds());
 };
 
-const version = getVersion();
+const version = process.env.version || getVersion();
+
+console.log(`version is ${version} ${typeof version}`);
 
 const compilePage = (pagePath, distPath) => {
 
+	let cdn_folder_path = `https://cdn.beame.io/${bucket_dir}/${version}/`;
+
 	gulp.src(pagePath)
 		.pipe(htmlreplace({
-			'css':            `https://cdn.beame.io/${bucket_dir}/${version}/css/app.min.css`,
-			'js':             `https://cdn.beame.io/${bucket_dir}/${version}/js/app.min.js`,
-			'lib':            `https://cdn.beame.io/${bucket_dir}/${version}/js/lib.min.js`,
-			'signin-js-head': `https://cdn.beame.io/${bucket_dir}/${version}/js/signin.min.js`,
-			'signup-js-head': `https://cdn.beame.io/${bucket_dir}/${version}/js/signup.min.js`
+			'css':            `${cdn_folder_path}css/app.min.css`,
+			'js':             `${cdn_folder_path}js/app.min.js`,
+			'lib':            `${cdn_folder_path}js/lib.min.js`,
+			'signin-js-head': `${cdn_folder_path}js/signin.min.js`,
+			'signup-js-head': `${cdn_folder_path}js/signup.min.js`,
+			'logo':`<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
@@ -61,31 +67,31 @@ const compilePage = (pagePath, distPath) => {
 const compileJs = (funcArray, dist_name, optimize) => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
-		// .pipe(rename({
-		// 	prefix: `${version}/`
-		// }))
 		.pipe(gulpif(optimize, uglify()))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
 		.pipe(gulp.dest(`./${dist_folder_name}/js/`));
 };
 
-
 const compileCss = (funcArray, dist_name) => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
-		// .pipe(rename({
-		// 	prefix: `${version}/`
-		// }))
 		.pipe(modifyCssUrls({
-			modify: (url) => {
-				return `/${bucket_dir}/${version}/${url}`;
-			}
-			// ,prepend: 'https://fancycdn.com/'
+			// modify: (url) => {
+			// 	return `/${bucket_dir}/${version}/${url}`;
+			// }
+			prepend: `/${bucket_dir}/${version}`
 			// ,append: '?cache-buster'
 		}))
 		.pipe(cleanCSS({compatibility: 'ie10'}))
 		.pipe(gulp.dest(`./${dist_folder_name}/css/`));
+};
+
+const uploadFile = (name, aws, options) => {
+	gulp.src([`./${dist_folder_name}/${name}`])
+		.pipe(rename(`${bucket_dir}/${version}/${name}`))
+		.pipe(gzip())
+		.pipe(s3(aws, options));
 };
 
 gulp.task('sass', function () {
@@ -150,53 +156,34 @@ gulp.task('compile-pages', () => {
 	compilePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
 });
 
-
-gulp.task('compile', ['sass', 'compile-css', 'compile-js', 'compile-pages'], () => {
-
+gulp.task('compile-static', () => {
 	gulp.src('./public/img/**/*').pipe(gulp.dest(`./${dist_folder_name}/img/`));
 	gulp.src('./public/templates/**/*').pipe(gulp.dest(`./${dist_folder_name}/templates/`));
+});
+
+gulp.task('compile', ['compile-css', 'compile-js', 'compile-pages', 'compile-static'], (callback) => {
 
 
 });
 
-gulp.task('deploy', ['compile'], function () {
-	var options = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true};
+gulp.task('upload-to-S3', callback => {
+	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
+	    config                       = require('./local_config/aws_config.json'),
+	    key = config.aws_key, secret = config.aws_secret,
+	    aws                          = {
+		    "key":    key,
+		    "secret": secret,
+		    "bucket": config.bucket,
+		    "region": "us-east-1"
+	    };
 
-	var config = require('./local_config/aws_config.json');
+	console.log(`upload starting ${getVersion()}`);
 
-	var key = config.aws_key, secret = config.aws_secret;
-
-	var aws = {
-		"key":    key,
-		"secret": secret,
-		"bucket": config.bucket,
-		"region": "us-east-1"
-	};
-
-	gulp.src([`./${dist_folder_name}/js/app.min.js`])
-		.pipe(rename(`${bucket_dir}/${version}/js/app.min.js`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
-
-	gulp.src([`./${dist_folder_name}/js/lib.min.js`])
-		.pipe(rename(`${bucket_dir}/${version}/js/lib.min.js`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
-
-	gulp.src([`./${dist_folder_name}/js/signin.min.js`])
-		.pipe(rename(`${bucket_dir}/${version}/js/signin.min.js`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
-
-	gulp.src([`./${dist_folder_name}/js/signup.min.js`])
-		.pipe(rename(`${bucket_dir}/${version}/js/signup.min.js`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
-
-	gulp.src([`./${dist_folder_name}/css/app.min.css`])
-		.pipe(rename(`${bucket_dir}/${version}/css/app.min.css`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
+	uploadFile('js/app.min.js', aws, options);
+	uploadFile('js/lib.min.js', aws, options);
+	uploadFile('js/signin.min.js', aws, options);
+	uploadFile('js/signup.min.js', aws, options);
+	uploadFile('css/app.min.css', aws, options);
 
 	gulp.src([`./${dist_folder_name}/img/***`])
 		.pipe(rename(function (path) {
@@ -205,19 +192,11 @@ gulp.task('deploy', ['compile'], function () {
 		.pipe(gzip())
 		.pipe(s3(aws, options));
 
+	callback();
 
-	// setTimeout(function () {
-	// 	var cf_settings = {
-	// 		distribution:    config.beame_cdn_distribution, // Cloudfront distribution ID
-	// 		paths:           [`/${bucket_dir}/*`],                 // Paths to invalidate
-	// 		accessKeyId:     key,               // AWS Access Key ID
-	// 		secretAccessKey: secret,        // AWS Secret Access Key
-	// 		wait:            false                     // Whether to wait until invalidation is completed (default: false)
-	// 	};
-	//
-	// 	gulp.src('*')
-	// 		.pipe(cloudfront(cf_settings));
-	//
-	// }, 1000 * 10);
+});
 
+
+gulp.task('build', (callback)=> {
+	runSequence('clean', 'sass', 'compile' , 'upload-to-S3', callback);
 });
