@@ -17,7 +17,12 @@ const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 //in sec
-const RegistrationAuthTokenTtl      = 60 * 10;
+const RegistrationAuthTokenTtl = 60 * 10;
+const ProxyInitiatingTtl       = 60 * 10;
+const ProxySessionTtl          = 86400;
+const BrowserSessionTtl        = 86400;
+
+// in millisec
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
@@ -37,11 +42,14 @@ const SqliteConfigTemplate = {
 
 const ConfigProps = {
 	Settings: {
-		DbProvider: "db_provider",
-		RegistrationAuthTokenTtl,
-		SessionRecordDeleteTimeout,
-		KillSocketOnDisconnectTimeout,
-		WhispererSendPinInterval
+		DbProvider:                    "db_provider",
+		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
+		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
+		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
+		WhispererSendPinInterval:      "WhispererSendPinInterval",
+		ProxyInitiatingTtl:            "ProxyInitiatingTtl",
+		ProxySessionTtl:               "ProxySessionTtl",
+		BrowserSessionTtl:             "BrowserSessionTtl"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -87,10 +95,13 @@ const CustomerAuthServersTemplate = {
 module.exports = {
 	ConfigProps,
 
+	SessionRecordDeleteTimeout,
 	KillSocketOnDisconnectTimeout,
 	WhispererSendPinInterval,
 	RegistrationAuthTokenTtl,
-	SessionRecordDeleteTimeout,
+	ProxyInitiatingTtl,
+	ProxySessionTtl,
+	BrowserSessionTtl,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

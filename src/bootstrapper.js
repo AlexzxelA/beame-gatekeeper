@@ -210,6 +210,18 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : null;
 	}
 
+	get proxyInitiatingTtl() {
+		return this._config && this._config[SettingsProps.ProxyInitiatingTtl] ? this._config[SettingsProps.ProxyInitiatingTtl] : null;
+	}
+
+	get proxySessionTtl() {
+		return this._config && this._config[SettingsProps.ProxySessionTtl] ? this._config[SettingsProps.ProxySessionTtl] : null;
+	}
+
+	get browserSessionTtl() {
+		return this._config && this._config[SettingsProps.BrowserSessionTtl] ? this._config[SettingsProps.BrowserSessionTtl] : null;
+	}
+
 	get sessionRecordDeleteTimeout() {
 		return this._config && this._config[SettingsProps.SessionRecordDeleteTimeout] ? this._config[SettingsProps.SessionRecordDeleteTimeout] : null;
 	}

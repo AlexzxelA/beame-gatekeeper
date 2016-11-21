@@ -97,6 +97,9 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 				$scope.audio.loop = true;
 				$scope.audio.play();
 				$scope.audio.playing = true;
+
+				tryDigest($scope);
+
 			} catch (e) {
 				console.error('start playing', e);
 			}
@@ -108,6 +111,8 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 				$scope.audio.pause();
 				$scope.audio.playing = false;
 				$scope.audio.loop    = false;
+
+				tryDigest($scope);
 			}
 		} catch (e) {
 			console.error('stop playing', e);
@@ -159,30 +164,6 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		console.log('DATA >>>>>>> ' + JSON.stringify(data));//XXX
 		$scope.stopPlaying();
 		$scope.showPopup('Code matched');
-
-		if(data.clientFqdn){
-			var mob_socket = io.connect('https://' + data.clientFqdn + "/whisperer");
-
-			mob_socket.on('connect', function () {
-
-				$scope.showPopup('Mobile connected: verifying session token');
-
-				mob_socket.emit('session_token', data);
-			});
-
-			mob_socket.on('your_id', function (message) {
-
-				$scope.showPopup('Mobile connected: message received "' + message + '"');
-
-			});
-
-			mob_socket.on('sign_error', function (message) {
-
-				$scope.showPopup('Mobile connected: signature error received "' + message + '"');
-
-			});
-		}
-
 	});
 
 	$scope.socket.on('init_mobile_session', function (data) {

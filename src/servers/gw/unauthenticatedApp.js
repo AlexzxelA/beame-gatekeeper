@@ -92,12 +92,17 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	function replyWithUrl([decryptedData, encryptToCred]) {
 		// console.log('replyWithUrl decryptedData', decryptedData);
-		let ttl = bootstrapper.registrationAuthTokenTtl;
-		const tokenWithUserData = AuthToken.create(decryptedData.signedData.data, gwServerCredentials, ttl);
+		let registrationTtl = bootstrapper.registrationAuthTokenTtl,
+		    proxyInitTtl = bootstrapper.proxyInitiatingTtl;
+
+		const tokenWithUserData = AuthToken.create(decryptedData.signedData.data, gwServerCredentials, registrationTtl);
 		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, tokenWithUserData, gwServerFqdn));
-		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, 60);
+		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, proxyInitTtl);
+
 		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(encryptedData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+
 		console.log('replyWithUrl() URL', url);
+
 		res.json({url});
 	}
 
@@ -123,8 +128,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	const qs = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
 	const proxyingDestination = `https://${beameAuthServerFqdn}`;
-	// XXX: unhardcode 86400
-	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), 86400).then(token => {
+	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
 		console.log('token', token);
 		res.cookie('proxy_enabling_token', token);
 		res.append('X-Beame-Debug', 'Redirecting to GW for proxing to BeameAuthorizationServer');
@@ -136,18 +140,17 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	const qs = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
-	// XXX: unhardcode 86400
+
 
 	function respond(token) {
 		console.log('switch app token', token);
 		// XXX: why twice?
 		const app_id = JSON.parse(JSON.parse(token.signedData.data)).app_id;
 		console.log('switch app - app id', app_id);
-		return new Promise((resolve, reject) => {
-			utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({app_id}), 86400).then(token => {
+		return new Promise(() => {
+			utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({app_id}), utils.createAuthTokenByFqdn).then(token => {
 				console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
 				res.cookie('proxy_enabling_token', token);
 				res.append('X-Beame-Debug', 'Redirecting to GW for proxing after choosing an application on mobile');

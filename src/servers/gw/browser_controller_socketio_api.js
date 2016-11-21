@@ -5,6 +5,7 @@ const path = require('path');
 
 const socket_io         = require('socket.io');
 const Bootstrapper      = require('../../bootstrapper');
+const bootstrapper      = new Bootstrapper();
 const Constants         = require('../../../constants');
 const beameSDK          = require('beame-sdk');
 const CommonUtils       = beameSDK.CommonUtils;
@@ -24,7 +25,7 @@ function assertSignedByGw(session_token) {
 	let signedBy;
 	try {
 		signedBy = JSON.parse(session_token).signedBy;
-	} catch(e) {
+	} catch (e) {
 		return Promise.reject(e);
 	}
 	if (signedBy == gwServerFqdn) {
@@ -66,7 +67,7 @@ const messageHandlers = {
 
 		function createSessionToken(apps) {
 			return new Promise((resolve, reject) => {
-				utils.createAuthTokenByFqdn(gwServerFqdn, 'Does not matter', 86400)
+				utils.createAuthTokenByFqdn(gwServerFqdn, 'Does not matter', bootstrapper.browserSessionTtl)
 					.then(token => resolve([apps, token]))
 					.catch(e => reject(e));
 			});
@@ -140,7 +141,7 @@ const messageHandlers = {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
 				JSON.stringify({app_id: payload.app_id}),
-				86400
+				utils.createAuthTokenByFqdn
 			);
 		}
 
@@ -227,7 +228,10 @@ class BrowserControllerSocketioApi {
 	start(server) {
 		return new Promise((resolve, reject) => {
 				try {
-					this._socket_server = socket_io(server, {path: `${Constants.GatewayControllerPath}/socket.io`,force:true});
+					this._socket_server = socket_io(server, {
+						path:  `${Constants.GatewayControllerPath}/socket.io`,
+						force: true
+					});
 					this._socket_server.on('connection', this._onConnection);
 					resolve(this._socket_server);
 				} catch (e) {

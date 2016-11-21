@@ -79,7 +79,7 @@ const compileCss = (funcArray, dist_name) => {
 		// }))
 		.pipe(modifyCssUrls({
 			modify: (url) => {
-				return `/${bucket_dir}/${version}${url}`;
+				return `/${bucket_dir}/${version}/${url}`;
 			}
 			// ,prepend: 'https://fancycdn.com/'
 			// ,append: '?cache-buster'
