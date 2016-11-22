@@ -11,7 +11,7 @@ const logger       = new BeameLogger(module_name);
 const bootstrapper = new (require('../bootstrapper'))();
 
 function onError(reject, error) {
-	logger.error(BeameLogger.formatError(error),error);
+	logger.error(BeameLogger.formatError(error), error);
 	reject(error);
 }
 
@@ -34,7 +34,7 @@ class SqliteServices {
 
 		this._sequelize = models.sequelize;
 
-		this._sequelize.sync().then(()=>{
+		this._sequelize.sync().then(() => {
 
 			this._models = {
 				sessions:      this._sequelize.models["Session"],
@@ -43,7 +43,6 @@ class SqliteServices {
 				services:      this._sequelize.models["Service"]
 			};
 		});
-
 
 
 		logger.debug(`Sqlite services started`);
@@ -56,14 +55,14 @@ class SqliteServices {
 				let model = this._models.registrations;
 
 				//noinspection JSUnresolvedFunction
-				model.findAll({order: 'id DESC'}).then(models=> {
-						let records = models.map(item=> {
+				model.findAll({order: 'id DESC'}).then(models => {
+						let records = models.map(item => {
 							return item.dataValues
 						});
 						resolve(records);
 					}
 				).catch(
-					error=> {
+					error => {
 						logger.error(error);
 						resolve([]);
 					}
@@ -89,7 +88,7 @@ class SqliteServices {
 							name:           data.name,
 							externalUserId: data.user_id
 						}
-					}).then(record=> {
+					}).then(record => {
 						if (record) {
 							reject(`Record for email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
 							return;
@@ -99,8 +98,8 @@ class SqliteServices {
 							name:           data.name,
 							email:          data.email,
 							externalUserId: data.user_id,
-							fqdn: data.fqdn || null
-						}).then(regs=> {
+							fqdn:           data.fqdn || null
+						}).then(regs => {
 							resolve(regs.id);
 						}).catch(onError.bind(this, reject));
 
@@ -136,13 +135,13 @@ class SqliteServices {
 						where: {
 							fqdn: fqdn
 						}
-					}).then(record=> {
+					}).then(record => {
 						if (!record) {
 							reject(logger.formatErrorMessage(`Registration record not found`));
 							return;
 						}
 
-						record.update({completed: true}).then(regs=> {
+						record.update({completed: true}).then(regs => {
 							resolve(regs.dataValues);
 						}).catch(onError.bind(this, reject));
 
@@ -169,9 +168,9 @@ class SqliteServices {
 	updateRegistrationHash(id, sign) {
 		return new Promise((resolve, reject) => {
 				try {
-					let registration = this.RegistrationModel();
+					let registration = this._models.registrations;
 					//noinspection JSUnresolvedFunction
-					registration.findById(id).then(record=> {
+					registration.findById(id).then(record => {
 						if (!record) {
 							reject(logger.formatErrorMessage(`Registration record not found`));
 							return;
@@ -189,7 +188,7 @@ class SqliteServices {
 						    hash       = signedData.data,
 						    valid_till = signedData.valid_till;
 
-						record.update({hash: hash, hashValidTill: valid_till}).then(regs=> {
+						record.update({hash: hash, hashValidTill: valid_till}).then(regs => {
 							resolve(regs.dataValues);
 						}).catch(onError.bind(this, reject));
 
@@ -217,10 +216,10 @@ class SqliteServices {
 						where: {
 							hash: hash
 						}
-					}).then(record=> {
+					}).then(record => {
 						resolve(record ? record.dataValues : null);
 
-					}).catch(error=> {
+					}).catch(error => {
 						logger.error(BeameLogger.formatError(error));
 						resolve(null);
 					});
@@ -233,6 +232,7 @@ class SqliteServices {
 			}
 		);
 	}
+
 	//endregion
 
 	//region session
@@ -240,8 +240,8 @@ class SqliteServices {
 		return new Promise((resolve, reject) => {
 				logger.debug(`try delete session by id ${id}`);
 				let model = this._models.sessions;
-				model.destroy({where: {id: id}}).then(resolve).catch(error=>{
-					logger.error(`delete session with id ${id} error ${BeameLogger.formatError(error)}` , error)
+				model.destroy({where: {id: id}}).then(resolve).catch(error => {
+					logger.error(`delete session with id ${id} error ${BeameLogger.formatError(error)}`, error)
 				});
 			}
 		);
@@ -260,7 +260,7 @@ class SqliteServices {
 				let model = this._models.sessions;
 
 				//noinspection JSUnresolvedFunction
-				model.findAll({where: {pin: pin}}).then(records=> {
+				model.findAll({where: {pin: pin}}).then(records => {
 					if (records.length == 1) {
 						return this.deleteSessionById(records[0].dataValues.id);
 					}
@@ -269,7 +269,7 @@ class SqliteServices {
 
 					return this._setSessionTtl(ids);
 
-				}).catch(error=> {
+				}).catch(error => {
 					logger.error(`deleteSessionByPin ${pin} error ${BeameLogger.formatError(error)}`);
 					resolve();
 				});
@@ -291,8 +291,8 @@ class SqliteServices {
 					return;
 				}
 
-				ids.forEach(id=> {
-					setTimeout(()=> {
+				ids.forEach(id => {
+					setTimeout(() => {
 						logger.debug(`deleting session ${id}`);
 						this.deleteSessionById(id)
 					}, timeout);
@@ -319,7 +319,7 @@ class SqliteServices {
 							name:           data.name,
 							externalUserId: data.user_id
 						}
-					}).then(record=> {
+					}).then(record => {
 						if (record) {
 							this.deleteSessionById(record.id)
 						}
@@ -329,7 +329,7 @@ class SqliteServices {
 							email:          data.email,
 							externalUserId: data.user_id,
 							pin:            data.pin
-						}).then(session=> {
+						}).then(session => {
 
 							this._setSessionTtl([session.id]);
 
@@ -346,28 +346,24 @@ class SqliteServices {
 			}
 		);
 	}
+
 	//endregion
 
 	//region user
 	/**
 	 * @param {User} user
 	 */
-	saveUser(user){
+	saveUser(user) {
 		return new Promise((resolve, reject) => {
-				this.findUser(user.fqdn).then(record=>{
-					if(record){
+				this.findUser(user.fqdn).then(record => {
+					if (record) {
 						reject(`User with FQDN ${user.fqdn} already exists`);
 						return;
 					}
 
 					let model = this._models.users;
 
-					model.create({
-						name:           user.name,
-						email:          user.email,
-						externalUserId: user.externalUserId,
-						fqdn:            user.fqdn
-					}).then(()=> {
+					model.create(user).then(() => {
 
 						resolve();
 
@@ -377,21 +373,74 @@ class SqliteServices {
 			}
 		);
 	}
+
 	/**
 	 * @param fqdn
 	 * @returns {Promise.<User>}
 	 */
-	findUser(fqdn){
+	findUser(fqdn) {
 		return new Promise((resolve, reject) => {
 				let model = this._models.users;
 
 				//noinspection JSUnresolvedFunction
-				model.findOne({where:{fqdn:fqdn}}).then(user=>{
+				model.findOne({where: {fqdn: fqdn}}).then(user => {
 					user ? resolve(user.dataValues) : resolve(null);
 				}).catch(reject);
 			}
 		);
 	}
+
+	/**
+	 * Search users by predicated query
+	 * @param {Object} predicate
+	 */
+	searchUsers(predicate) {
+		return new Promise((resolve, reject) => {
+				let model = this._models.users;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({where: predicate}).then(users => {
+					let records = users.map(item => {
+						return item.dataValues
+					});
+					resolve(records);
+				}).catch(reject);
+			}
+		);
+	}
+
+
+	/**
+	 * Update login info , like LastActiveDate
+	 * @param fqdn
+	 */
+	updateLoginInfo(fqdn) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.users;
+					//noinspection JSUnresolvedFunction
+					model.findOne({
+						where: {
+							fqdn: fqdn
+						}
+					}).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`User record not found`));
+							return;
+						}
+						record.update({lastActiveDate: new Date()}).then(resolve).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
 	//endregion
 }
 

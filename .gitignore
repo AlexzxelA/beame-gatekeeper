@@ -46,5 +46,7 @@ build
 bin
 dist
 local_config/
+tools/
+tools/dash.html
 npm-shrinkwrap.json
 

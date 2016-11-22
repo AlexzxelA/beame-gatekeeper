@@ -135,6 +135,24 @@ class DataServices {
 	findUser(fqdn){
 		return this._dbService.findUser(fqdn);
 	}
+
+	/**
+	 *
+	 * @param predicate
+	 * @returns {Promise}
+	 */
+	searchUsers(predicate){
+		return this._dbService.searchUsers(predicate);
+	}
+
+	/**
+	 * @param fqdn
+	 * @returns {*}
+	 */
+	updateLoginInfo(fqdn){
+		return this._dbService.updateLoginInfo(fqdn);
+	}
+
 	//endregion
 }
 
