@@ -65,7 +65,7 @@ class BeameAuthServer {
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 
-				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, (require('BeameWhisperer').WhispererMode).PROVISION, callbacks);
+				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
 
 				beameInstaServer.start().then(socketio_server=> {
 					this._socketServer = socketio_server;

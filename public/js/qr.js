@@ -13,6 +13,9 @@ var qrTmpSocketID;
 var qrRelayEndpoint = "";
 var qrContainer   = null;
 var qrSession = null;
+var matchingFqdn = null;
+var serviceName = null;
+
 $(document).ready(function () {
 
 
@@ -43,14 +46,18 @@ $(document).ready(function () {
 		console.log('Session failed from server. Network issue.');
 	});
 
-	socket.on('startQrSession',function (refreshRate) {
+	socket.on('startQrSession',function (data) {
+		if(data){
+			matchingFqdn = data.matching || matchingFqdn;
+			serviceName  = data.service || serviceName;
+		}
 		socket.emit('ack','startQrSession');
 		socket.emit('pinRequest');
 		if(!qrSession){
 			qrSession = setInterval(function () {
 				console.log('QR requesting data');
 				socket.emit('pinRequest');
-			},refreshRate);
+			},data.refresh_rate);
 		}
 	});
 
@@ -79,10 +86,19 @@ $(document).ready(function () {
 							else {
 								var qrType = (auth_mode == "Provision")?"PROV":"LOGIN";
 								var QRdata       = {
-									'relay': 'https://' + qrRelayEndpoint, 'PK': PK, 'UID': parsed['UID'],
-									'PIN':   parsed['data'], 'TYPE': qrType, 'SOCKET_OPT' : socketio_options ,'TIME': Date.now(), 'REG': reg_data || 'login'
+									'relay': 'https://' + qrRelayEndpoint,
+									'PK': PK,
+									'UID': parsed['UID'],
+									'PIN':   parsed['data'],
+									'TYPE': qrType,
+									'SOCKET_OPT' : socketio_options ,
+									'TIME': Date.now(),
+									'REG': reg_data || 'login',
+									'matching': matchingFqdn,
+									'service' : serviceName
+
 								};
-								//console.log('QR DATA:',QRdata);
+								console.log('QR DATA:',QRdata);
 								socket.emit('QRdata', QRdata);
 								qrContainer = $('#qr');
 								try {

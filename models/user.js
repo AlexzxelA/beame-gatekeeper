@@ -1,32 +1,41 @@
 'use strict';
 module.exports = function (sequelize, DataTypes) {
 	return sequelize.define('User', {
-			id:             {
+			id:               {
 				type:          DataTypes.INTEGER,
 				primaryKey:    true,
 				autoIncrement: true
 			},
-			fqdn:           {
+			fqdn:             {
 				type:      DataTypes.STRING,
 				unique:    true,
 				allowNull: false
 			},
-			name:           {
+			name:             {
 				type:      DataTypes.STRING,
 				allowNull: true
 			},
-			email:          {
+			email:            {
 				type:      DataTypes.STRING,
 				allowNull: true
 			},
-			externalUserId: {
+			externalUserId:   {
 				type:      DataTypes.STRING,
 				allowNull: true
 			},
-			isActive:{
-				type: DataTypes.BOOLEAN,
-				allowNull : false,
+			isAdmin:         {
+				type:         DataTypes.BOOLEAN,
+				allowNull:    false,
+				defaultValue: false
+			},
+			isActive:         {
+				type:         DataTypes.BOOLEAN,
+				allowNull:    false,
 				defaultValue: true
+			},
+			lastActiveDate: {
+				type:      DataTypes.DATE,
+				allowNull: true
 			}
 		},
 		{

@@ -9,7 +9,6 @@ const url         = require('url');
 const cookie      = require('cookie');
 
 const httpProxy = require('http-proxy');
-
 const Bootstrapper = require('../../bootstrapper');
 const beameSDK    = require('beame-sdk');
 const module_name = "GatewayServer";
@@ -278,7 +277,7 @@ class GatewayServer {
 
 				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`};
 
-				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, (require('BeameWhisperer').WhispererMode).SESSION, callbacks,options);
+				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.SESSION, callbacks,options);
 
 				beameInstaSocketServer.start().then(socketio_server => {
 					this._socketServer = socketio_server;

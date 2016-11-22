@@ -10,8 +10,8 @@ const home = os.homedir();
 const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
 const GatewayControllerPath = '/beame-gw';
-const LogoutPath = `${GatewayControllerPath}/logout`;
-const AppSwitchPath = `${GatewayControllerPath}/choose-app`;
+const LogoutPath            = `${GatewayControllerPath}/logout`;
+const AppSwitchPath         = `${GatewayControllerPath}/choose-app`;
 
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
@@ -31,6 +31,8 @@ const CustomerAuthServersJsonPath = path.join(BeameRootPath, CredsConfigFolder, 
 const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
 const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
 const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
+
+const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
 /**
  * Registration sources
@@ -62,9 +64,10 @@ const DbProviders = {
 
 module.exports = {
 	RegistrationSource,
+	LoadBalancerURL,
 	CredentialType,
 	DbProviders,
-	AuthMode : {
+	AuthMode: {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"
 	},

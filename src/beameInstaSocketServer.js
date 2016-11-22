@@ -12,10 +12,10 @@
  * @property {Function|null} [Login]
  */
 
-const beameSDK          = require('beame-sdk');
-const module_name       = "BeameInstaSocketServer";
-const BeameLogger       = beameSDK.Logger;
-const logger            = new BeameLogger(module_name);
+const beameSDK    = require('beame-sdk');
+const module_name = "BeameInstaSocketServer";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
 
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = new Bootstrapper();
@@ -34,7 +34,7 @@ class BeameInstaSocketServer {
 	constructor(srv, fqdn, matchingServerFqdn, mode, callbacks, socket_options) {
 		this._fqdn = fqdn;
 
-		this._whispererMode = mode;
+		this._authMode = mode;
 
 		this._matchingServerFqdn = matchingServerFqdn;
 
@@ -50,19 +50,21 @@ class BeameInstaSocketServer {
 		this._whispererManager = null;
 
 		this._qrMesaaging = null;
+
+		this._serviceName = bootstrapper.serviceName;
 	}
 
 
 	start() {
 
 		return new Promise((resolve, reject) => {
-			this._initWhispererManager()
-				.then(this._initQrMessaging.bind(this))
-				.then(this._startSocketioServer.bind(this))
-				.then(()=>{
-					logger.info(`Server started on ${this._fqdn}`);
-					resolve(this._socketioServer);
-				}).catch(reject);
+				this._initWhispererManager()
+					.then(this._initQrMessaging.bind(this))
+					.then(this._startSocketioServer.bind(this))
+					.then(() => {
+						logger.info(`Server started on ${this._fqdn}`);
+						resolve(this._socketioServer);
+					}).catch(reject);
 			}
 		);
 
@@ -97,11 +99,11 @@ class BeameInstaSocketServer {
 	 *
 	 * @private
 	 */
-	_startSocketioServer(){
+	_startSocketioServer() {
 
 		logger.info(`BeameInstaSocketServer SOCKET OPTIONS ${JSON.stringify(this._socket_options)}`);
 
-		this._socketioServer = require('socket.io')(this._server,this._socket_options);
+		this._socketioServer = require('socket.io')(this._server, this._socket_options);
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('whisperer').on('connection', this._onWhispererBrowserConnection.bind(this));
 		//noinspection JSUnresolvedFunction
@@ -114,26 +116,27 @@ class BeameInstaSocketServer {
 
 	_initWhispererManager() {
 
-		const WhispererManager = require('BeameWhisperer').Manager;
+		const WhispererManager = require('./paring/whisperer_manager');
 
 
 		this._whispererManager = new WhispererManager(
-			this._whispererMode,
+			this._authMode,
 			this._fqdn,
 			this._matchingServerFqdn,
 			this._callbacks,
+			this._socket_options,
 			bootstrapper.whispererSendPinInterval,
 			bootstrapper.killSocketOnDisconnectTimeout,
-			this._socket_options
+			this._serviceName
 		);
 
 		return Promise.resolve();
 	}
 
 	_initQrMessaging() {
-		const QrMessaging = require('./qrMessaging');
+		const QrMessaging = require('./paring/qr_messaging');
 
-		this._qrMesaaging = new QrMessaging(this._fqdn,this._callbacks);
+		this._qrMesaaging = new QrMessaging(this._fqdn, this._matchingServerFqdn, this._callbacks, this._serviceName);
 
 		return Promise.resolve();
 	}

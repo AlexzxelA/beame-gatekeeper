@@ -13,16 +13,18 @@ const store            = new beameSDK.BeameStore();
 //const Credential   = new beameSDK.Credential(store);
 const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
-const Bootstrapper     = require('./bootstrapper');
+const Bootstrapper     = require('../bootstrapper');
 const bootstrapper     = new Bootstrapper();
 
 class QrMessaging {
 
 	/**
 	 * @param {String} fqdn
+	 * @param {String} matchingServerFqdn
 	 * @param {MessagingCallbacks} callbacks
+	 * @param {String} serviceName
 	 */
-	constructor(fqdn, callbacks) {
+	constructor(fqdn, matchingServerFqdn, callbacks, serviceName) {
 
 		this._edge = null;
 		beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
@@ -33,15 +35,17 @@ class QrMessaging {
 				this._edge = null;
 			}
 		});
-		this._fqdn           = fqdn;
-		this._callbacks      = callbacks;
-		this._browserHost    = null;
-		this._otp            = "";
-		this._otp_prev       = "";
-		this._renewOTP       = null;
-		this._socketTimeout  = bootstrapper.killSocketOnDisconnectTimeout;
-		this._pendingCommand = {};
-		this._lastCommand    = null;
+		this._fqdn               = fqdn;
+		this._callbacks          = callbacks;
+		this._browserHost        = null;
+		this._otp                = "";
+		this._otp_prev           = "";
+		this._renewOTP           = null;
+		this._socketTimeout      = bootstrapper.killSocketOnDisconnectTimeout;
+		this._pendingCommand     = {};
+		this._lastCommand        = null;
+		this._serviceName        = serviceName;
+		this._matchingServerFqdn = matchingServerFqdn;
 	}
 
 	_sendWithAck(sock, type, msg) {
@@ -122,6 +126,9 @@ class QrMessaging {
 				registerFqdnFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
 					logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
+					//add service name and matching fqdn for use on mobile
+					payload.matching = this._matchingServerFqdn;
+					payload.service  = this._serviceName;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					this._sendWithAck(socket, "mobileProv1", {
@@ -143,7 +150,11 @@ class QrMessaging {
 			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);
 			console.log('QR socket ID:', socket.id);
 
-			this._sendWithAck(socket, 'startQrSession', OTP_refresh_rate);
+			this._sendWithAck(socket, 'startQrSession', {
+				refresh_rate: OTP_refresh_rate,
+				matching:     this._matchingServerFqdn,
+				service:      this._serviceName
+			});
 		});
 
 		socket.on('close_session', () => {

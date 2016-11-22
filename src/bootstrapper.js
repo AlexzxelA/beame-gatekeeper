@@ -234,6 +234,11 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.WhispererSendPinInterval] ? this._config[SettingsProps.WhispererSendPinInterval] : null;
 	}
 
+	get serviceName() {
+		return this._config && this._config[SettingsProps.ServiceName] ? this._config[SettingsProps.ServiceName] : null;
+	}
+
+
 	get sqliteConfig() {
 		let config = DirectoryServices.readJSON(SqliteConfigJsonPath);
 
@@ -300,7 +305,7 @@ class Bootstrapper {
 
 				this._config = config;
 
-				dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config)).then(() => {
+			this._saveAppConfigFile().then(() => {
 					logger.debug(`${AppConfigFileName} saved in ${path.dirname(AppConfigJsonPath)}...`);
 					resolve();
 				}).catch(error => {
@@ -340,7 +345,7 @@ class Bootstrapper {
 						return;
 					}
 
-					dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(config, false)).then(() => {
+					this._saveAppConfigFile().then(() => {
 						logger.debug(`${AppConfigFileName} updated...`);
 						resolve();
 					}).catch(error => {
@@ -351,6 +356,25 @@ class Bootstrapper {
 				} catch (error) {
 					reject(error);
 				}
+			}
+		);
+	}
+
+
+	_saveAppConfigFile(){
+		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, false));
+	}
+
+	setServiceName(name) {
+		return new Promise((resolve, reject) => {
+				if (!name) {
+					reject(`name required`);
+					return;
+				}
+
+				this._config[SettingsProps.ServiceName] = name;
+
+				return this._saveAppConfigFile();
 			}
 		);
 	}

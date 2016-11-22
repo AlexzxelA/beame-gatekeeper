@@ -171,6 +171,27 @@ if(args._[0] == 'initConfig'){
 	commandHandled = true;
 }
 
+if(args._[0] == 'setName'){
+
+	let name = args['name'];
+
+	if(!name){
+		logger.error(`name required`);
+		process.exit(1)
+	}
+
+	bootstrapper.setServiceName(name).then(() =>{
+		consol.info(`Insta-server service name set to ${name} successfully`);
+		process.exit(0);
+	}).catch(error=>{
+		logger.error(BeameLogger.formatError(error));
+		process.exit(1);
+	});
+
+
+	commandHandled = true;
+}
+
 if(args._[0] == 'createServersCreds'){
 
 	credentialManager.createServersCredentials().then(() =>{
