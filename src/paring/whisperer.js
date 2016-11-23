@@ -124,7 +124,10 @@ class Whisperer {
 				let sessionRetry = setInterval(() => {
 					if (this._mobileSocket) {
 						clearInterval(sessionRetry);
-						this._mobileSocket.emit('session_data', qrData);
+						let qrDataObj = JSON.parse(qrData);
+						qrDataObj['service'] = this._serviceName;
+						qrDataObj['matching'] = this._matchingServerFqdn;
+						this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
 					}
 					else {
 						if (retryCount++ > 10) {
