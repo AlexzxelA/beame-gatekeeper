@@ -141,7 +141,7 @@ const messageHandlers = {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
 				JSON.stringify({app_id: payload.app_id}),
-				utils.createAuthTokenByFqdn
+				bootstrapper.proxySessionTtl
 			);
 		}
 
