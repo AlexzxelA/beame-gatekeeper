@@ -20,7 +20,8 @@ const Constants   = require('../../../constants');
 const apps = require('./apps');
 
 const unauthenticatedApp = require('./unauthenticatedApp');
-const configApp = require('./configApp');
+const configApp          = require('./configApp');
+const adminApp           = new (require('../admin/server'))().app;
 
 const proxy = httpProxy.createProxyServer({
 	xfwd:         true,
@@ -296,7 +297,7 @@ class GatewayServer {
 				}).catch(error=> {
 					this.stop();
 					reject(error);
-				})
+				});
 			}
 		);
 	}

@@ -50,19 +50,17 @@ const messageHandlers = {
 
 		let authenticatedUserInfo = null;
 
-		function assertTokenFqdnIsAuthorized(token) {
+		function loginUser(token) {
 			return new Promise((resolve, reject) => {
-					BeameAuthServices.loginUser(token.signedBy).then(user => {
-						logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
-						authenticatedUserInfo = user;
-						resolve(user);
-					}).catch(error => {
-						logger.error(`assertTokenFqdnIsAuthorized on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
-						reject(error);
-					});
-				}
-			);
-
+				BeameAuthServices.loginUser(token.signedBy).then(user => {
+					logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
+					authenticatedUserInfo = user;
+					resolve(user);
+				}).catch(error => {
+					logger.error(`loginUser on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
+					reject(error);
+				});
+			});
 		}
 
 		function createSessionToken(apps) {
@@ -110,7 +108,7 @@ const messageHandlers = {
 		}
 
 		AuthToken.validate(payload.token)
-			.then(assertTokenFqdnIsAuthorized)
+			.then(loginUser)
 			.then(apps.listApplications)
 			.then(createSessionToken)
 			.then(loadPage)

@@ -1,8 +1,8 @@
 'use strict';
 
 // TODO: actual list + cached health status in "online" field
-function listApplications() {
-	return Promise.resolve({
+function listApplications(user) {
+	let ret = {
 		'Files sharing app': {
 			app_id: 1,
 			online: true
@@ -19,7 +19,14 @@ function listApplications() {
 			app_id: 4,
 			online: true
 		}
-	});
+	};
+	if(user.isAdmin) {
+		ret['Insta server admin app'] = {
+			app_id: 0,
+			online: true
+		};
+	}
+	return Promise.resolve(ret);
 }
 
 function appUrlById(app_id) {
