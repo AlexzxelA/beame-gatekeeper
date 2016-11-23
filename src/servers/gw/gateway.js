@@ -55,6 +55,7 @@ proxy.on('proxyRes', (proxyRes, req, res) => {
 		proxyRes.statusCode = 302;
 		proxyRes.statusMessage = 'Found';
 	}
+	// TODO: Also change 308 to 307
 	// XXX - can not be like this in production - start
 	if(proxyRes.statusCode == 404) {
 		// http://stackoverflow.com/questions/34684139/how-to-add-headers-to-node-http-proxy-response
