@@ -45,8 +45,9 @@ $(document).ready(function () {
 		console.log('Session failed from server. Network issue.');
 	});
 
-	socket.on('startQrSession', function (data) {
-		if (data) {
+	socket.on('startQrSession',function (data) {
+		console.log('Starting QR session with data:', data);
+		if(data){
 			matchingFqdn = data.matching || matchingFqdn;
 			serviceName  = data.service || serviceName;
 		}
@@ -83,19 +84,17 @@ $(document).ready(function () {
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
-								var qrType = (auth_mode == "Provision") ? "PROV" : "LOGIN";
-								var QRdata = {
-									'relay':      'https://' + qrRelayEndpoint,
-									'PK':         PK,
-									'UID':        parsed['UID'],
-									'PIN':        parsed['data'],
-									'TYPE':       qrType,
-									'SOCKET_OPT': socketio_options,
-									'TIME':       Date.now(),
-									'REG':        reg_data || 'login',
-									'matching':   matchingFqdn,
-									'service':    serviceName
-
+								var qrType = (auth_mode == "Provision")?"PROV":"LOGIN";
+								var QRdata       = {
+									'relay': 'https://' + qrRelayEndpoint,
+									'PK': PK,
+									'UID': parsed['UID'],
+									'PIN':   parsed['data'],
+									'TYPE': qrType,
+									'TIME': Date.now(),
+									'REG': reg_data || 'login',
+									'matching': matchingFqdn,
+									'service' : serviceName
 								};
 								console.log('QR DATA:', QRdata);
 								socket.emit('QRdata', QRdata);
