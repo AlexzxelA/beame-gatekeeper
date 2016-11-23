@@ -47,6 +47,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
+		console.log('Starting QR session with data:', data);
 		if(data){
 			matchingFqdn = data.matching || matchingFqdn;
 			serviceName  = data.service || serviceName;
@@ -91,12 +92,10 @@ $(document).ready(function () {
 									'UID': parsed['UID'],
 									'PIN':   parsed['data'],
 									'TYPE': qrType,
-									'SOCKET_OPT' : socketio_options ,
 									'TIME': Date.now(),
 									'REG': reg_data || 'login',
 									'matching': matchingFqdn,
 									'service' : serviceName
-
 								};
 								console.log('QR DATA:',QRdata);
 								socket.emit('QRdata', QRdata);
