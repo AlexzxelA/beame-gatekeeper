@@ -57,6 +57,21 @@ class BeameAuthRouter {
 			});
 		});
 
+		this._router.post('/sns', function (req, res) {
+			let body_array = [];
+			req.on('data', (chunk) => {
+				body_array.push(chunk);
+			});
+			req.on('end', () => {
+				let msg = body_array.join('');
+				logger.debug('sns message received', msg);
+				sns.parseSnsMessage(CommonUtils.parse(msg)).then(()=> {
+					res.sendStatus(200);
+				});
+			});
+		});
+
+		//still not implemented
 		this._router.route('/node/auth/register')
 			.post((req, res) => {
 
@@ -71,20 +86,6 @@ class BeameAuthRouter {
 					});
 				}
 			);
-
-		this._router.post('/sns', function (req, res) {
-			let body_array = [];
-			req.on('data', (chunk) => {
-				body_array.push(chunk);
-			});
-			req.on('end', () => {
-				let msg = body_array.join('');
-				logger.debug('sns message received', msg);
-				sns.parseSnsMessage(CommonUtils.parse(msg)).then(()=> {
-					res.sendStatus(200);
-				});
-			});
-		});
 
 		this._router.get('/certs/:fqdn', function (req, res) {
 			const BeameStore = new beameSDK.BeameStore();

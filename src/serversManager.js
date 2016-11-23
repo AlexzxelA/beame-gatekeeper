@@ -64,23 +64,23 @@ class ServersManager {
 					});
 				},
 				//
-				// callback => {
-				//
-				// 	const AdminServer = require('../src/servers/admin/server');
-				//
-				// 	let admin_server = new AdminServer(this._settings.AdminServer.fqdn);
-				//
-				// 	admin_server.start((error, app) => {
-				// 		if (!error) {
-				// 			logger.info(`Admin server started on https://${this._settings.AdminServer.fqdn}`);
-				// 			this._servers[Constants.CredentialType.AdminServer] = app;
-				// 			callback()
-				// 		}
-				// 		else {
-				// 			callback(error);
-				// 		}
-				// 	});
-				// },
+				callback => {
+
+					const AdminServer = require('../src/servers/admin/server');
+
+					let admin_server = new AdminServer(this._settings.AdminServer.fqdn);
+
+					admin_server.start((error, app) => {
+						if (!error) {
+							logger.info(`Admin server started on https://${this._settings.AdminServer.fqdn}`);
+							this._servers[Constants.CredentialType.AdminServer] = app;
+							callback()
+						}
+						else {
+							callback(error);
+						}
+					});
+				},
 
 				callback => {
 

@@ -169,13 +169,24 @@ if(args._[0] == 'initConfig'){
 	commandHandled = true;
 }
 
-if(args._[0] == 'initConfig'){
-	bootstrapper.initAll().then(() =>{
+if(args._[0] == 'setName'){
+
+	let name = args['name'];
+
+	if(!name){
+		logger.error(`name required`);
+		process.exit(1)
+	}
+
+	bootstrapper.setServiceName(name).then(() =>{
+		consol.info(`Insta-server service name set to ${name} successfully`);
 		process.exit(0);
 	}).catch(error=>{
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});
+
+
 	commandHandled = true;
 }
 
@@ -185,13 +196,13 @@ if(args._[0] == 'getConfigURL' || args._[0] == 'getConfigUrl' || args._[0] == 'c
 	const proxyInitTtl = bootstrapper.proxyInitiatingTtl;
 
 	// TODO: move 600 to config
-	function makeProxyEnablingToken() {
+	const makeProxyEnablingToken = () => {
 		return utils.createAuthTokenByFqdn(
 			gwServerFqdn,
 			JSON.stringify({allowConfigApp: true}),
 			600
 		);
-	}
+	};
 
 	// TODO: move app switching URL to config
 	makeProxyEnablingToken().then(proxyEnablingToken => {

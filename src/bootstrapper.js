@@ -337,8 +337,7 @@ class Bootstrapper {
 					    updateFile = false;
 
 					if (CommonUtils.isObjectEmpty(config)) {
-						reject(`${AppConfigFileName} file corrupted`);
-						return;
+						return this._createAppConfigJson();
 					}
 
 					for (let prop in defaults) {
