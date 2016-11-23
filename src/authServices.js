@@ -25,7 +25,7 @@
 const apiConfig        = require('../config/api_config.json');
 const Constants        = require('../constants');
 const beameSDK         = require('beame-sdk');
-const module_name      = "BeameAuthServices";
+const module_name      = "BeameAdminServices";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
 const CommonUtils      = beameSDK.CommonUtils;
@@ -33,9 +33,9 @@ const AuthToken        = beameSDK.AuthToken;
 const store            = new (beameSDK.BeameStore)();
 const provisionApi     = new (beameSDK.ProvApi)();
 const apiEntityActions = apiConfig.Actions.Entity;
-const Bootstrapper = require('./bootstrapper');
-const bootstrapper = new Bootstrapper();
-const dataService      = new (require('./dataServices'))({session_timeout:bootstrapper.sessionRecordDeleteTimeout || 1000 * 60 * 2});
+const Bootstrapper     = require('./bootstrapper');
+const bootstrapper     = new Bootstrapper();
+const dataService      = new (require('./dataServices'))({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
 
 
 class BeameAuthServices {
@@ -82,8 +82,8 @@ class BeameAuthServices {
 						    },
 						    authToken  = this._signData(dataToSign);
 
-						const updateHash = ()=> {
-							dataService.updateRegistrationHash(registrationId, authToken).then(()=> {
+						const updateHash = () => {
+							dataService.updateRegistrationHash(registrationId, authToken).then(() => {
 								resolve(authToken);
 							});
 						};
@@ -95,7 +95,7 @@ class BeameAuthServices {
 					}
 
 
-				}).catch(error=> {
+				}).catch(error => {
 					console.log('FUCK! (1):', error.toString());
 					logger.error(BeameLogger.formatError(error));
 					reject(error);
@@ -126,7 +126,7 @@ class BeameAuthServices {
 
 					data.fqdn = payload.fqdn;
 
-					dataService.saveRegistration(data).then(()=> {
+					dataService.saveRegistration(data).then(() => {
 						resolve(payload);
 					}).catch(reject);
 
@@ -147,7 +147,7 @@ class BeameAuthServices {
 
 				let hash = authToken.signedData.data;
 
-				dataService.findRegistrationRecordByHash(hash).then(record=> {
+				dataService.findRegistrationRecordByHash(hash).then(record => {
 					if (record) {
 						if (record.completed) {
 							reject('Registration already completed');
@@ -223,26 +223,27 @@ class BeameAuthServices {
 					//mark registration record if exists
 					dataService.markRegistrationAsCompleted(token.fqdn).then(registration => {
 
-						/** @type  {User} */
-						let User = {
-							name:           registration.name,
-							email:          registration.email,
-							externalUserId: registration.externalUserId,
-							fqdn:           registration.fqdn
-						};
 
-						dataService.saveUser(User).then(()=> {
-							//load credentials
-							let creds = new beameSDK.Credential(store);
-							creds.initFromX509(token.x509, token.metadata);
+						BeameAuthServices.IsAdminCreated().then(created => {
+							/** @type  {User} */
+							let User = {
+								name:           registration.name,
+								email:          registration.email,
+								externalUserId: registration.externalUserId,
+								fqdn:           registration.fqdn,
+								isAdmin:        created != true
+							};
 
+							dataService.saveUser(User).then(() => {
+								//load credentials
+								let creds = new beameSDK.Credential(store);
+								creds.initFromX509(token.x509, token.metadata);
 
-							logger.info(`credentials ${token.metadata.fqdn} loaded to store from sns notification`)
-						}).catch(reject);
-
+								logger.info(`credentials ${token.metadata.fqdn} loaded to store from sns notification`)
+							}).catch(reject);
+						});
 
 					}).catch(reject);
-
 
 				}
 				catch (error) {
@@ -392,15 +393,42 @@ class BeameAuthServices {
 	//endregion
 
 	//region user
+	static IsAdminCreated() {
+		return new Promise((resolve, reject) => {
+				dataService.searchUsers({"isAdmin": true}).then(admins => {
+					resolve(admins.length > 0);
+				}).catch(error => {
+					logger.error(`IsAdminCreated error ${BeameLogger.formatError(error)}`);
+					resolve(false);
+				});
+			}
+		);
+	}
+
+	static loginUser(fqdn) {
+		return new Promise((resolve, reject) => {
+				BeameAuthServices.validateUser(fqdn).then(user => {
+					dataService.updateLoginInfo(fqdn).then(() => {
+						resolve(user);
+					}).catch(error => {
+						logger.error(`update last login for user ${fqdn} failed with ${BeameLogger.formatError(error)}`);
+						resolve(user);
+					});
+
+				}).catch(reject);
+			}
+		);
+	}
+
 	static validateUser(fqdn) {
 
 		return new Promise((resolve, reject) => {
-				dataService.findUser(fqdn).then(user=> {
+				dataService.findUser(fqdn).then(user => {
 					if (user == null) {
 						reject(`user ${fqdn} not found`);
 					}
 
-					if(!user.isActive){
+					if (!user.isActive) {
 						reject(`user ${fqdn} is not active`);
 						return;
 					}
@@ -409,6 +437,7 @@ class BeameAuthServices {
 						fqdn:    fqdn,
 						name:    user.name,
 						email:   user.email,
+						isAdmin: user.isAdmin,
 						user_id: user.externalUserId
 					});
 				}).catch(reject);

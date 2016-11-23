@@ -8,14 +8,14 @@
  * @property {Number} session_timeout
  */
 
-const beameSDK    = require('beame-sdk');
-const module_name = "DataServices";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-const Bootstrapper      = require('./bootstrapper');
-const bootstrapper      = new Bootstrapper();
-const Constants   = require('../constants');
-const DbProviders = Constants.DbProviders;
+const beameSDK     = require('beame-sdk');
+const module_name  = "DataServices";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const Bootstrapper = require('./bootstrapper');
+const bootstrapper = new Bootstrapper();
+const Constants    = require('../constants');
+const DbProviders  = Constants.DbProviders;
 
 class DataServices {
 
@@ -24,23 +24,23 @@ class DataServices {
 	 */
 	constructor(options) {
 
-		this._socket_options = options || {};
+		this._options = options || {};
 
 		this._dbProvider = bootstrapper.dbProvider;
-		this._dbService = null;
+		this._dbService  = null;
 
-		if(!this._dbProvider){
+		if (!this._dbProvider) {
 			logger.error(`Db Provider not defined`);
 			return;
 		}
 
-		switch (this._dbProvider){
+		switch (this._dbProvider) {
 			case DbProviders.Sqlite:
-				this._dbService = new(require('./db/sqlite'))(this._socket_options);
+				this._dbService = new (require('./db/sqlite'))(this._options);
 				break;
 
 			case DbProviders.Couchbase:
-				this._dbService = new(require('./db/couchbase'))(this._socket_options);
+				this._dbService = new (require('./db/couchbase'))(this._options);
 				break;
 
 			default:
@@ -51,7 +51,7 @@ class DataServices {
 	}
 
 	//region registration services
-	getRegistrations(){
+	getRegistrations() {
 		return this._dbService.getRegistrations();
 	}
 
@@ -60,11 +60,11 @@ class DataServices {
 	 * @param {RegistrationData} data
 	 * @returns {Promise}
 	 */
-	saveRegistration(data){
+	saveRegistration(data) {
 		return this._dbService.saveRegistration(data);
 	}
 
-	deleteRegistration(id){
+	deleteRegistration(id) {
 		return this._dbService.deleteRegistration(id);
 	}
 
@@ -72,7 +72,7 @@ class DataServices {
 	 * @param {String} fqdn
 	 * @returns {Promise.<Registration>}
 	 */
-	markRegistrationAsCompleted(fqdn){
+	markRegistrationAsCompleted(fqdn) {
 		return this._dbService.markRegistrationAsCompleted(fqdn);
 	}
 
@@ -80,7 +80,7 @@ class DataServices {
 	 * @param id
 	 * @param {SignatureToken|String} sign
 	 */
-	updateRegistrationHash(id, sign){
+	updateRegistrationHash(id, sign) {
 		return this._dbService.updateRegistrationHash(id, sign);
 	}
 
@@ -89,7 +89,7 @@ class DataServices {
 	 * @param {String} fqdn
 	 * @returns {*}
 	 */
-	updateRegistrationFqdn(hash, fqdn){
+	updateRegistrationFqdn(hash, fqdn) {
 		return this._dbService.updateRegistrationFqdn(hash, fqdn);
 	}
 
@@ -97,9 +97,10 @@ class DataServices {
 	 * @param {String} hash
 	 * @returns {Promise}
 	 */
-	findRegistrationRecordByHash(hash){
+	findRegistrationRecordByHash(hash) {
 		return this._dbService.findRegistrationRecordByHash(hash);
 	}
+
 	//endregion
 
 	//region sessions
@@ -107,7 +108,7 @@ class DataServices {
 	 * @param {RegistrationData} data
 	 * @returns {Promise}
 	 */
-	saveSession(data){
+	saveSession(data) {
 		return this._dbService.saveSession(data);
 	}
 
@@ -115,16 +116,17 @@ class DataServices {
 	 * @param {String} pin
 	 * @returns {Promise}
 	 */
-	deleteSession(pin){
+	deleteSession(pin) {
 		return this._dbService.deleteSessionByPin(pin);
 	}
+
 	//endregion
 
 	//region user
 	/**
 	 * @param {User} user
 	 */
-	saveUser(user){
+	saveUser(user) {
 		return this._dbService.saveUser(user);
 	}
 
@@ -132,9 +134,36 @@ class DataServices {
 	 * @param fqdn
 	 * @returns {Promise.<User>}
 	 */
-	findUser(fqdn){
+	findUser(fqdn) {
 		return this._dbService.findUser(fqdn);
 	}
+
+	/**
+	 *
+	 * @param predicate
+	 * @returns {Promise}
+	 */
+	searchUsers(predicate) {
+		return this._dbService.searchUsers(predicate);
+	}
+
+	/**
+	 * @param fqdn
+	 * @returns {*}
+	 */
+	updateLoginInfo(fqdn) {
+		return this._dbService.updateLoginInfo(fqdn);
+	}
+
+	updateUser(user) {
+		return this._dbService.updateUser(user);
+	}
+
+	getUsers() {
+		return this._dbService.getUsers();
+	}
+
+
 	//endregion
 }
 

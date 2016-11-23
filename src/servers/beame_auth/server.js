@@ -33,15 +33,15 @@ class BeameAuthServer {
 
 		this._matchingServerFqdn = matchingServerFqdn;
 
-		this._authServices = new BeameAuthServices(this._fqdn);
+		this._adminServices = new BeameAuthServices(this._fqdn);
 
 		/** @type {MessagingCallbacks} */
 		this._callbacks = {
-			RegisterFqdn:  this._authServices.getRegisterFqdn.bind(this._authServices),
+			RegisterFqdn:  this._adminServices.getRegisterFqdn.bind(this._adminServices),
 			DeleteSession: BeameAuthServices.deleteSession
 		};
 
-		this._app = app || utils.setExpressApp((new Router(this._authServices)).router, public_dir);
+		this._app = app || utils.setExpressApp((new Router(this._adminServices)).router, public_dir);
 
 		this._server = null;
 
@@ -61,7 +61,7 @@ class BeameAuthServer {
 
 				/** @type {MessagingCallbacks} */
 				let callbacks = {
-					RegisterFqdn:  this._authServices.getRegisterFqdn.bind(this._authServices),
+					RegisterFqdn:  this._adminServices.getRegisterFqdn.bind(this._adminServices),
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 

@@ -40,7 +40,7 @@ class BeameInstaSocketServer {
 
 		this._callbacks = callbacks;
 
-		this._socket_options = socket_options || {};
+		this._options = socket_options || {};
 
 		/** @type {Socket|null} */
 		this._socketioServer = null;
@@ -101,9 +101,10 @@ class BeameInstaSocketServer {
 	 */
 	_startSocketioServer() {
 
-		logger.info(`BeameInstaSocketServer SOCKET OPTIONS ${JSON.stringify(this._socket_options)}`);
+		logger.info(`BeameInstaSocketServer started`);
+		logger.debug(`BeameInstaSocketServer starting with options ${JSON.stringify(this._options)}`);
 
-		this._socketioServer = require('socket.io')(this._server, this._socket_options);
+		this._socketioServer = require('socket.io')(this._server, this._options);
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('whisperer').on('connection', this._onWhispererBrowserConnection.bind(this));
 		//noinspection JSUnresolvedFunction
@@ -124,7 +125,7 @@ class BeameInstaSocketServer {
 			this._fqdn,
 			this._matchingServerFqdn,
 			this._callbacks,
-			this._socket_options,
+			this._options,
 			bootstrapper.whispererSendPinInterval,
 			bootstrapper.killSocketOnDisconnectTimeout,
 			this._serviceName

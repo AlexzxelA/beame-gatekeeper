@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insta server admin dashboard</title>
+
+    <link href="//kendo.cdn.telerik.com/2016.3.1118/styles/kendo.common.min.css" rel="stylesheet"/>
+    <link href="//kendo.cdn.telerik.com/2016.3.1118/styles/kendo.flat.min.css" rel="stylesheet"/>
+
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+    <script src="lib/jquery-2.2.4.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.web.min.js"></script>
+
+    <script>
+
+		$(document).ready(function () {
+			$("#menu").kendoMenu();
+
+		});
+
+    </script>
+
+    <style>
+        .config-list {
+            font-size: 13px
+        }
+
+        .config-list > li {
+            padding: 5px 0
+        }
+
+        .config-list > li > label {
+            width: 210px;
+            display: inline-flex
+        }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+
+    <div class="row">
+        <div class="column large-6 large-offset-1 end">
+            <div class="logo"><a href="//www.beame.io/">
+                <!-- build:logo -->
+                <img src="../../img/logo.svg">
+                <!-- endbuild -->
+            </a></div>
+        </div>
+    </div>
+
+    <div class="row">
+
+
+        <div id="toolbar">
+            <nav>
+                <ul id="menu">
+                    <li><a id="showDash" href="#">Dashboard</a></li>
+                    <li><a id="showUsers" href="#/users">Users</a></li>
+                    <li><a id="showRegs" href="#/regs">Registrations</a></li>
+                </ul>
+            </nav>
+            <div id="app-wrapper"></div>
+        </div>
+
+    </div>
+</div>
+<script type="text/x-kendo-template" id="home">
+
+    <div style="padding: 10px">
+        <h4>Service: <span data-bind="text: AppConfig.ServiceName"></span></h4>
+
+        <ul id="panelbar" style="width: 600px">
+            <li>
+                Creds
+                <div style="padding: 7px">
+                    <ul class="config-list">
+                        <li>
+                            <label>Zero Level</label>
+                            <span data-bind="text:Creds.ZeroLevel.fqdn"></span>
+                        </li>
+
+                        <li>
+                            <label>Gateway Server</label>
+                            <span data-bind="text:Creds.GatewayServer.fqdn"></span>
+                        </li>
+
+                        <li>
+                            <label>Beame Authorization Server</label>
+                            <span data-bind="text:Creds.BeameAuthorizationServer.fqdn"></span>
+                        </li>
+
+                        <li>
+                            <label>Matching Server</label>
+                            <span data-bind="text:Creds.MatchingServer.fqdn"></span>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <li>
+                AppConfig
+
+                <div style="padding: 7px">
+                    <ul class="config-list">
+                        <li>
+                            <label>Service name</label>
+                            <input type="text" class='k-textbox' data-bind="value: AppConfig.ServiceName"
+                                   id="ServiceName"/>
+                        </li>
+
+
+                        <li>
+                            <label>Browser Session Ttl (sec)</label>
+                            <input data-role="numerictextbox" data-bind="value:AppConfig.BrowserSessionTtl"
+                                   id="BrowserSessionTtl" type="text" data-spinners="false" data-format="{0:D}"/>
+                        </li>
+
+                        <li>
+                            <label>Proxy Initiating Ttl (sec)</label>
+                            <input data-role="numerictextbox" data-bind="value:AppConfig.ProxyInitiatingTtl"
+                                   id="ProxyInitiatingTtl" type="text" data-spinners="false" data-format="{0:D}"/>
+                        </li>
+
+                        <li>
+                            <label>Proxy Session Ttl (sec)</label>
+                            <input data-role="numerictextbox" data-bind="value:AppConfig.ProxySessionTtl"
+                                   id="ProxySessionTtl" type="text" data-spinners="false" data-format="{0:D}"/>
+                        </li>
+
+                        <li>
+                            <label>Registration Token Ttl (sec)</label>
+                            <input data-role="numerictextbox" data-bind="value:AppConfig.RegistrationAuthTokenTtl"
+                                   id="RegistrationAuthTokenTtl" type="text" data-spinners="false"
+                                   data-format="{0:D}"/>
+                        </li>
+
+
+                        <li>
+                            <label>Session Record Delete Timeout (millisec)</label>
+                            <input data-role="numerictextbox" data-bind="value:AppConfig.SessionRecordDeleteTimeout"
+                                   id="SessionRecordDeleteTimeout" type="text" data-spinners="false"
+                                   data-format="{0:D}"/>
+                        </li>
+
+                        <li>
+                            <label>Whisperer Send PinInterval (millisec)</label>
+                            <input data-role="numerictextbox" data-bind="value:AppConfig.WhispererSendPinInterval"
+                                   id="WhispererSendPinInterval" type="text" data-spinners="false"
+                                   data-format="{0:D}"/>
+                        </li>
+
+
+                    </ul>
+                </div>
+            </li>
+            <li>
+                Db Config
+                <div style="padding: 7px">
+                    <ul class="config-list">
+                        <li>
+                            <label>Storage</label>
+                            <span data-bind="text: DbConfig.storage"></span>
+                        </li>
+
+
+                        <li>
+                            <label>Username</label>
+                            <span data-bind="text: DbConfig.username"></span>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+        </ul>
+
+    </div>
+
+</script>
+
+<script type="text/x-kendo-template" id="regs">
+    <h3>Registrations Report</h3>
+    <div id="reg-grid"></div>
+</script>
+
+<script type="text/x-kendo-template" id="user">
+    <h3>Users Report</h3>
+    <div id="user-grid"></div>
+</script>
+
+<script src="lib/jszip.min.js"></script>
+<script src="js/admin.js"></script>
+
+<script>
+
+	$(document).ready(function () {
+		initAdminRouters();
+		$(document).ready(function () {
+		});
+	});
+
+</script>
+</body>
+</html>

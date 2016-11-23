@@ -52,7 +52,7 @@ const messageHandlers = {
 
 		function assertTokenFqdnIsAuthorized(token) {
 			return new Promise((resolve, reject) => {
-					BeameAuthServices.validateUser(token.signedBy).then(user => {
+					BeameAuthServices.loginUser(token.signedBy).then(user => {
 						logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
 						authenticatedUserInfo = user;
 						resolve(user);
@@ -141,7 +141,7 @@ const messageHandlers = {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
 				JSON.stringify({app_id: payload.app_id}),
-				utils.createAuthTokenByFqdn
+				bootstrapper.proxySessionTtl
 			);
 		}
 

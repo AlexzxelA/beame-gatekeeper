@@ -25,6 +25,9 @@ const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
 
+const tools_folder_name = 'tools';
+const tools_bucket_dir = 'insta-server-meta';
+
 const getVersion = () => {
 	const pad2 = (n) => {
 		return (n < 10 ? '0' : '') + n;
@@ -100,6 +103,15 @@ gulp.task('sass', function () {
 			process.exit(1);
 		}))
 		.pipe(gulp.dest('./public/css/'));
+});
+
+gulp.task('sass-tools', function () {
+	gulp.src('./public/scss/app.scss')
+		.pipe(sass().on('error', (err) => {
+			console.error(' gulp sass error ', err);
+			process.exit(1);
+		}))
+		.pipe(gulp.dest('./tools/css/'));
 });
 
 gulp.task('watch', function () {
@@ -184,6 +196,40 @@ gulp.task('upload-to-S3', callback => {
 	gulp.src([`./${dist_folder_name}/img/***`])
 		.pipe(rename(function (path) {
 			path.dirname += `/${bucket_dir}/${version}/img`;
+		}))
+		.pipe(gzip())
+		.pipe(s3(aws, options));
+
+	callback();
+
+});
+
+
+gulp.task('upload-tools-to-S3',['sass-tools'], callback => {
+	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
+	    config                       = require('./local_config/aws_config.json'),
+	    key = config.aws_key, secret = config.aws_secret,
+	    aws                          = {
+		    "key":    key,
+		    "secret": secret,
+		    "bucket": config.bucket,
+		    "region": "us-east-1"
+	    };
+
+	gulp.src([`./${tools_folder_name}/insta-servers.html`])
+		.pipe(rename(`${tools_bucket_dir}/insta-servers.html`))
+		.pipe(gzip())
+		.pipe(s3(aws, options));
+
+
+	gulp.src([`./${tools_folder_name}/css/app.css`])
+		.pipe(rename(`${tools_bucket_dir}/css/app.css`))
+		.pipe(gzip())
+		.pipe(s3(aws, options));
+
+	gulp.src([`./${tools_folder_name}/img/***`])
+		.pipe(rename(function (path) {
+			path.dirname += `/${tools_bucket_dir}/img`;
 		}))
 		.pipe(gzip())
 		.pipe(s3(aws, options));

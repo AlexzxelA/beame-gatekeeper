@@ -47,7 +47,7 @@ class Whisperer {
 		this._socket = socket;
 
 		/** @type {Object} */
-		this._socket_options = socket_options;
+		this._options = socket_options;
 
 		/** @type {Socket} */
 		this._mobileSocket = null;
@@ -292,7 +292,9 @@ class Whisperer {
 			timeout:        this._sendPinInterval,
 			whispererFqdn:  this._fqdn,
 			mode:           this._mode,
-			socket_options: this._socket_options
+			socket_options: this._options,
+			matching:       this._matchingServerFqdn,
+			service:        this._serviceName
 		};
 
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);

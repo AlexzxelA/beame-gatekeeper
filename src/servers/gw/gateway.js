@@ -20,6 +20,7 @@ const Constants   = require('../../../constants');
 const apps = require('./apps');
 
 const unauthenticatedApp = require('./unauthenticatedApp');
+const configApp = require('./configApp');
 
 const proxy = httpProxy.createProxyServer({
 	xfwd:         true,
@@ -55,6 +56,7 @@ proxy.on('proxyRes', (proxyRes, req, res) => {
 		proxyRes.statusCode = 302;
 		proxyRes.statusMessage = 'Found';
 	}
+	// TODO: Also change 308 to 307
 	// XXX - can not be like this in production - start
 	if(proxyRes.statusCode == 404) {
 		// http://stackoverflow.com/questions/34684139/how-to-add-headers-to-node-http-proxy-response
@@ -149,6 +151,13 @@ function handleRequest(req, res) {
 		return;
 	}
 
+	// Internal proxying to configuration application
+	if(authToken.allowConfigApp) {
+		console.log('Proxying to config app');
+		configApp(req, res);
+		return;
+	}
+
 	sendError(req, res, 500, `Don't know how to proxy. Probably invalid proxying token.`);
 
 }
@@ -177,6 +186,8 @@ function startTunnel([cert, requestsHandlerPort]) {
 			requestsHandlerPort, {},
 			null, serverCerts);
 
+		resolve();
+
 	});
 }
 
@@ -203,7 +214,7 @@ class GatewayServer {
 			.then(this._startRequestsHandler.bind(this))
 			.then(startTunnel)
 			.then(()=>{
-				logger.info(`Gateway server started at https://${this._fqdn}`);
+				logger.debug(`Gateway server started at https://${this._fqdn}`);
 				cb && cb(null,this._server);
 			}).catch(error=>{
 				logger.error(error);

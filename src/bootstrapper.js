@@ -238,7 +238,6 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.ServiceName] ? this._config[SettingsProps.ServiceName] : null;
 	}
 
-
 	get sqliteConfig() {
 		let config = DirectoryServices.readJSON(SqliteConfigJsonPath);
 
@@ -250,6 +249,20 @@ class Bootstrapper {
 		let env = this._config[SqliteProps.EnvName];
 
 		return config[env];
+	}
+
+	get appConfig() {
+		return this._config;
+	}
+
+	get creds() {
+		let creds = DirectoryServices.readJSON(CredsJsonPath);
+
+		if (CommonUtils.isObjectEmpty(creds)) {
+			return {};
+		}
+
+		return creds;
 	}
 
 	//endregion
@@ -305,7 +318,7 @@ class Bootstrapper {
 
 				this._config = config;
 
-			this._saveAppConfigFile().then(() => {
+				this._saveAppConfigFile().then(() => {
 					logger.debug(`${AppConfigFileName} saved in ${path.dirname(AppConfigJsonPath)}...`);
 					resolve();
 				}).catch(error => {
@@ -361,7 +374,7 @@ class Bootstrapper {
 	}
 
 
-	_saveAppConfigFile(){
+	_saveAppConfigFile() {
 		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, false));
 	}
 
