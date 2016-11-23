@@ -20,6 +20,7 @@ const Constants   = require('../../../constants');
 const apps = require('./apps');
 
 const unauthenticatedApp = require('./unauthenticatedApp');
+const configApp = require('./configApp');
 
 const proxy = httpProxy.createProxyServer({
 	xfwd:         true,
@@ -149,6 +150,14 @@ function handleRequest(req, res) {
 		// proxy.web(req, res, {target: 'http://google.com'});
 		return;
 	}
+
+	// Internal proxying to configuration application
+	if(authToken.allowConfigApp) {
+		console.log('Proxying to config app');
+		return;
+	}
+
+	console.log('authToken', authToken);
 
 	sendError(req, res, 500, `Don't know how to proxy. Probably invalid proxying token.`);
 

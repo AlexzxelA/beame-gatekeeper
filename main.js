@@ -39,6 +39,8 @@ const Constants         = require('./constants');
 const Bootstrapper      = require('./src/bootstrapper');
 const bootstrapper      = new Bootstrapper();
 const credentialManager = new (require('./src/credentialManager'))();
+const AuthToken         = beameSDK.AuthToken;
+const utils             = require('./src/utils');
 
 
 var commandHandled = false;
@@ -158,36 +160,48 @@ if(args._[0] == 'setAuthServer'){
 }
 
 if(args._[0] == 'initConfig'){
-
-
 	bootstrapper.initAll().then(() =>{
 		process.exit(0);
 	}).catch(error=>{
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});
-
-
 	commandHandled = true;
 }
 
-if(args._[0] == 'setName'){
-
-	let name = args['name'];
-
-	if(!name){
-		logger.error(`name required`);
-		process.exit(1)
-	}
-
-	bootstrapper.setServiceName(name).then(() =>{
-		consol.info(`Insta-server service name set to ${name} successfully`);
+if(args._[0] == 'initConfig'){
+	bootstrapper.initAll().then(() =>{
 		process.exit(0);
 	}).catch(error=>{
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});
+	commandHandled = true;
+}
 
+if(args._[0] == 'getConfigURL' || args._[0] == 'getConfigUrl' || args._[0] == 'config'){
+
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	const proxyInitTtl = bootstrapper.proxyInitiatingTtl;
+
+	// TODO: move 600 to config
+	function makeProxyEnablingToken() {
+		return utils.createAuthTokenByFqdn(
+			gwServerFqdn,
+			JSON.stringify({allowConfigApp: true}),
+			600
+		);
+	}
+
+	// TODO: move app switching URL to config
+	makeProxyEnablingToken().then(proxyEnablingToken => {
+		console.log('proxyEnablingToken', proxyEnablingToken);
+		const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+		console.log("Please use the following URL to configure beame-insta-server");
+		console.log(`You can start using this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command - ${args._[0]})`);
+		console.log(`Don't forget to run the server with 'beame-insta-server serve' command`);
+		console.log(url);
+	});
 
 	commandHandled = true;
 }
