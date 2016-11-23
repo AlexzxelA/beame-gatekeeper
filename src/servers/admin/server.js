@@ -22,8 +22,8 @@ class BeameAdminServer {
 
 	/**
 	 *
-	 * @param {String} fqdn
-	 * @param {Router|null} [app]
+	 * @param {String|undefined|null} [fqdn]
+	 * @param {Router|undefined|null} [app]
 	 */
 	constructor(fqdn, app) {
 		this._fqdn = fqdn;
@@ -44,6 +44,11 @@ class BeameAdminServer {
 	 * @param {Function|null} [cb]
 	 */
 	start(cb) {
+
+		if(!this._fqdn){
+			cb && cb(`Fqdn not defined for admin server`,null);
+			return;
+		}
 
 		beameSDK.BaseHttpsServer(this._fqdn, {}, this._app, (data, app) => {
 				logger.info(`Beame authorization server started on ${this._fqdn} `);
