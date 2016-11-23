@@ -43,10 +43,9 @@ data/beame_server.db
 /config/config.json
 public/css
 build
-bin
+bower_components
 dist
 local_config/
-tools/
-tools/dash.html
+tools
 npm-shrinkwrap.json
 

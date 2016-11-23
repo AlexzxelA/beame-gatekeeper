@@ -28,7 +28,7 @@ class SqliteServices {
 			return;
 		}
 
-		this._socket_options = options;
+		this._options = options;
 
 		const models = require("../../models/index");
 
@@ -285,7 +285,7 @@ class SqliteServices {
 	 */
 	_setSessionTtl(ids) {
 		return new Promise((resolve) => {
-				let timeout = this._socket_options.session_timeout;
+				let timeout = this._options.session_timeout;
 				if (!timeout) {
 					resolve();
 					return;
@@ -409,7 +409,6 @@ class SqliteServices {
 		);
 	}
 
-
 	/**
 	 * Update login info , like LastActiveDate
 	 * @param fqdn
@@ -437,6 +436,56 @@ class SqliteServices {
 					logger.error(BeameLogger.formatError(error));
 					onError(reject, error);
 				}
+			}
+		);
+	}
+
+
+	/**
+	 *
+	 * @param {User} user
+	 */
+	updateUser(user) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.users;
+					//noinspection JSUnresolvedFunction
+					model.findById(user.id).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`User record not found`));
+							return;
+						}
+						record.update({isAdmin: user.isAdmin,isActive:user.isActive}).then(resolve).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
+	getUsers() {
+		return new Promise((resolve) => {
+				logger.debug(`try fetch users`);
+				let model = this._models.users;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({order: 'id DESC'}).then(models => {
+						let records = models.map(item => {
+							return item.dataValues
+						});
+						resolve(records);
+					}
+				).catch(
+					error => {
+						logger.error(error);
+						resolve([]);
+					}
+				);
 			}
 		);
 	}

@@ -9,6 +9,9 @@ const Bootstrapper = require('../../bootstrapper');
 const bootstrapper = new Bootstrapper();
 const Constants    = require('../../../constants');
 const beameSDK     = require('beame-sdk');
+const module_name = "GwUnauthenticatedApp";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
 const BeameStore   = new beameSDK.BeameStore();
 const AuthToken    = beameSDK.AuthToken;
 
@@ -34,7 +37,7 @@ unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
-	console.log('beameAuthServerFqdn', beameAuthServerFqdn);
+	logger.debug('beameAuthServerFqdn', beameAuthServerFqdn);
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	let gwServerCredentials;
 

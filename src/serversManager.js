@@ -33,11 +33,11 @@ class ServersManager {
 		async.parallel([
 				callback => {
 
-					logger.info('Starting services');
 					logger.debug('SETTINGS', this._settings);
 					const gws = new(require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn,this._settings.MatchingServer.fqdn);
 					gws.start((error, app) => {
 						if (!error) {
+							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
 							callback();
 						}
@@ -54,7 +54,26 @@ class ServersManager {
 
 					beame_auth_server.start((error, app) => {
 						if (!error) {
+							logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
 							this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
+							callback()
+						}
+						else {
+							callback(error);
+						}
+					});
+				},
+
+				callback => {
+
+					const AdminServer = require('../src/servers/admin/server');
+
+					let admin_server = new AdminServer(this._settings.AdminServer.fqdn);
+
+					admin_server.start((error, app) => {
+						if (!error) {
+							logger.info(`Admin server started on https://${this._settings.AdminServer.fqdn}`);
+							this._servers[Constants.CredentialType.AdminServer] = app;
 							callback()
 						}
 						else {
@@ -71,6 +90,7 @@ class ServersManager {
 
 					matching_server.start((error, app)=> {
 						if (!error) {
+							logger.info(`Matching server started on https://${this._settings.MatchingServer.fqdn}`);
 							this._servers[Constants.CredentialType.MatchingServer] = app;
 							callback();
 						}
@@ -87,6 +107,7 @@ class ServersManager {
 				callback => {
 					let chatApp = new (require('../apps/files'))();
 					chatApp.start();
+					callback();
 				}
 			],
 			error => {

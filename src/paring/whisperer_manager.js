@@ -35,7 +35,7 @@ class WhisperersManager {
 		this._fqdn = fqdn;
 
 		/** @type {Object} */
-		this._socket_options = socket_options || {};
+		this._options = socket_options || {};
 
 		/** @type {AuthMode} */
 		this._mode = mode;
@@ -62,7 +62,7 @@ class WhisperersManager {
 	 */
 	onBrowserConnection(socket) {
 
-		let whisperer = new Whisperer(this._mode, socket, this._fqdn, this._matchingServerFqdn, this._callbacks,  this._socket_options, this._sendPinInterval, this._socketDisconnectTimeout,this._serviceName);
+		let whisperer = new Whisperer(this._mode, socket, this._fqdn, this._matchingServerFqdn, this._callbacks,  this._options, this._sendPinInterval, this._socketDisconnectTimeout,this._serviceName);
 
 		this.whisperers[whisperer.sessionId] = whisperer;
 

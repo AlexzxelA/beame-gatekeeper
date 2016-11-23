@@ -25,7 +25,7 @@
 const apiConfig        = require('../config/api_config.json');
 const Constants        = require('../constants');
 const beameSDK         = require('beame-sdk');
-const module_name      = "BeameAuthServices";
+const module_name      = "BeameAdminServices";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
 const CommonUtils      = beameSDK.CommonUtils;
@@ -35,7 +35,7 @@ const provisionApi     = new (beameSDK.ProvApi)();
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = new Bootstrapper();
-const dataService      = new (require('./dataServices'))({session_timeout: bootstrapper.sessionRecordDeleteTimeout || 1000 * 60 * 2});
+const dataService      = new (require('./dataServices'))({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
 
 
 class BeameAuthServices {
