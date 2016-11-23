@@ -46,41 +46,41 @@ class ServersManager {
 						}
 					});
 				},
-				callback => {
-
-					const BeameAuthServer = require('../src/servers/beame_auth/server');
-
-					let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
-
-					beame_auth_server.start((error, app) => {
-						if (!error) {
-							logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
-							this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
-							callback()
-						}
-						else {
-							callback(error);
-						}
-					});
-				},
-
-				callback => {
-
-					const AdminServer = require('../src/servers/admin/server');
-
-					let admin_server = new AdminServer(this._settings.AdminServer.fqdn);
-
-					admin_server.start((error, app) => {
-						if (!error) {
-							logger.info(`Admin server started on https://${this._settings.AdminServer.fqdn}`);
-							this._servers[Constants.CredentialType.AdminServer] = app;
-							callback()
-						}
-						else {
-							callback(error);
-						}
-					});
-				},
+				// callback => {
+				//
+				// 	const BeameAuthServer = require('../src/servers/beame_auth/server');
+				//
+				// 	let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
+				//
+				// 	beame_auth_server.start((error, app) => {
+				// 		if (!error) {
+				// 			logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
+				// 			this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
+				// 			callback()
+				// 		}
+				// 		else {
+				// 			callback(error);
+				// 		}
+				// 	});
+				// },
+				//
+				// callback => {
+				//
+				// 	const AdminServer = require('../src/servers/admin/server');
+				//
+				// 	let admin_server = new AdminServer(this._settings.AdminServer.fqdn);
+				//
+				// 	admin_server.start((error, app) => {
+				// 		if (!error) {
+				// 			logger.info(`Admin server started on https://${this._settings.AdminServer.fqdn}`);
+				// 			this._servers[Constants.CredentialType.AdminServer] = app;
+				// 			callback()
+				// 		}
+				// 		else {
+				// 			callback(error);
+				// 		}
+				// 	});
+				// },
 
 				callback => {
 

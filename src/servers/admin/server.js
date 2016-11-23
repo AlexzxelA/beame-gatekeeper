@@ -28,12 +28,16 @@ class BeameAdminServer {
 	constructor(fqdn, app) {
 		this._fqdn = fqdn;
 
-		this._adminServices = new BeameAdminServices(this._fqdn);
+		this._adminServices = new BeameAdminServices();
 
 		this._app = app || utils.setExpressApp((new Router(this._adminServices)).router, public_dir);
 
 		this._server = null;
 
+	}
+
+	get app(){
+		return this._app;
 	}
 
 	/**
