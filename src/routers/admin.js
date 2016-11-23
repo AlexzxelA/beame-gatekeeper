@@ -21,7 +21,6 @@ class AdminRouter {
 		this._initRoutes();
 	}
 
-
 	_initRoutes() {
 		//region static
 		this._router.get('/', (req, res) => {
@@ -45,7 +44,6 @@ class AdminRouter {
 		});
 		//endregion
 
-
 		this._router.get('/settings/get', (req, res) => {
 			this._adminServices.getSettings().then(data => {
 				res.json(data);
@@ -65,7 +63,6 @@ class AdminRouter {
 			});
 		});
 
-
 		this._router.post('/user/update', (req, res) => {
 			let user = req.body;
 			this._adminServices.updateUser(user).then(
@@ -76,7 +73,6 @@ class AdminRouter {
 				res.json(array);
 			});
 		});
-
 
 		this._router.get('/registration/list', (req, res) => {
 			this._adminServices.getRegistrations().then(
