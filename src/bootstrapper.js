@@ -255,6 +255,7 @@ class Bootstrapper {
 		return this._config;
 	}
 
+	//noinspection JSMethodCanBeStatic
 	get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
@@ -453,7 +454,7 @@ class Bootstrapper {
 	}
 
 	static listCustomerAuthServers() {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			resolve(DirectoryServices.readJSON(CustomerAuthServersJsonPath).Servers);
 		});
 	}
