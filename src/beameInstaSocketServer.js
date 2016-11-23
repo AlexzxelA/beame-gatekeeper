@@ -117,7 +117,7 @@ class BeameInstaSocketServer {
 
 	_initWhispererManager() {
 
-		const WhispererManager = require('./paring/whisperer_manager');
+		const WhispererManager = require('./pairing/whisperer_manager');
 
 
 		this._whispererManager = new WhispererManager(
@@ -135,7 +135,7 @@ class BeameInstaSocketServer {
 	}
 
 	_initQrMessaging() {
-		const QrMessaging = require('./paring/qr_messaging');
+		const QrMessaging = require('./pairing/qr_messaging');
 
 		this._qrMesaaging = new QrMessaging(this._fqdn, this._matchingServerFqdn, this._callbacks, this._serviceName);
 

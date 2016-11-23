@@ -407,7 +407,7 @@ class BeameAuthServices {
 
 	static loginUser(fqdn) {
 		return new Promise((resolve, reject) => {
-				BeameAuthServices.validateUser(fqdn).then(user => {
+				BeameAuthServices.findUser(fqdn).then(user => {
 					dataService.updateLoginInfo(fqdn).then(() => {
 						resolve(user);
 					}).catch(error => {
@@ -420,7 +420,7 @@ class BeameAuthServices {
 		);
 	}
 
-	static validateUser(fqdn) {
+	static findUser(fqdn) {
 
 		return new Promise((resolve, reject) => {
 				dataService.findUser(fqdn).then(user => {
