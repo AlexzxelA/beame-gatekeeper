@@ -197,10 +197,12 @@ if(args._[0] == 'getConfigURL' || args._[0] == 'getConfigUrl' || args._[0] == 'c
 	makeProxyEnablingToken().then(proxyEnablingToken => {
 		console.log('proxyEnablingToken', proxyEnablingToken);
 		const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
-		console.log("Please use the following URL to configure beame-insta-server");
+		console.log("--------------------------------------------------");
+		console.log("Please use the URL below to configure beame-insta-server");
 		console.log(`You can start using this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command - ${args._[0]})`);
 		console.log(`Don't forget to run the server with 'beame-insta-server serve' command`);
 		console.log(url);
+		console.log("--------------------------------------------------");
 	});
 
 	commandHandled = true;
