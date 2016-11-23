@@ -145,14 +145,13 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 
 
 	function respond(token) {
-		console.log('switch app token', token);
 		// XXX: why twice?
 		const switchAppInfo = JSON.parse(JSON.parse(token.signedData.data));
 		console.log('switch app - info', switchAppInfo);
 		const switchAppInfoJSON = JSON.stringify(switchAppInfo);
 		return new Promise(() => {
 			utils.createAuthTokenByFqdn(gwServerFqdn, switchAppInfoJSON, bootstrapper.proxySessionTtl).then(token => {
-				console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
+				// console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
 				res.cookie('proxy_enabling_token', token);
 				res.append('X-Beame-Debug', 'Redirecting to GW for proxing after choosing an application on mobile');
 				res.append('X-Beame-Debug-App-Info', switchAppInfoJSON);
