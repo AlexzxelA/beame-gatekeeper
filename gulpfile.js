@@ -165,6 +165,7 @@ gulp.task('compile-pages', () => {
 	compilePage('./public/pages/gw/logged-in-home.html', `./${dist_folder_name}/pages/gw/`);
 	compilePage('./public/pages/customer_auth/register.html', `./${dist_folder_name}/pages/customer_auth/`);
 	compilePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
+	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
 });
 
 gulp.task('compile-static', () => {

@@ -4,7 +4,6 @@
 </script>
 <script>
 	function loadUsers() {
-		console.log('load users grid',$("#user-grid"));
 		$("#user-grid").kendoGrid({
 			toolbar:    ["excel"],
 			excel:      {
@@ -37,7 +36,7 @@
 						}
 					}
 				},
-				pageSize:  20,
+				pageSize:  20
 //                serverPaging:    true,
 //                serverFiltering: true,
 //                serverSorting:   true
