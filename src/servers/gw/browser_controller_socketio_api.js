@@ -205,6 +205,15 @@ const messageHandlers = {
 			.then(AuthToken.validate)
 			.then(makeLogoutToken)
 			.then(respond);
+	},
+	'beamePing': function(payload, reply) {
+		reply({
+			type:    'beamePong',
+			payload: {
+				id:   payload.id,
+				next: payload.id+1
+			}
+		});
 	}
 };
 

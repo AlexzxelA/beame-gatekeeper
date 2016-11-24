@@ -1,15 +1,20 @@
 Usage:
 
-	beame-insta-ssl create BIG_TOKEN_FROM_EMAIL
-	beame-insta-ssl list
-	beame-insta-ssl server
+	beame-insta-server create BIG_TOKEN_FROM_EMAIL
+	beame-insta-server list
+	beame-insta-server server
 
 
-	beame-insta-ssl create BIG_TOKEN_FROM_EMAIL
+	beame-insta-server create BIG_TOKEN_FROM_EMAIL
 
 		Creates 'SOMETHING.beameio.net' certificate.
 
-	beame-insta-ssl list
+
+	beame-insta-server list
 
 		Lists certificates
 
+	beame-insta-server serve
+	beame-insta-server server
+
+		Start beame-insta-server so it will be available for browsing to
