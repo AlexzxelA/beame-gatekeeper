@@ -190,16 +190,21 @@ if(args._[0] == 'setName'){
 	commandHandled = true;
 }
 
-if(args._[0] == 'getConfigURL' || args._[0] == 'getConfigUrl' || args._[0] == 'config'){
+if(args._[0] == 'config' || args._[0] == 'admin'){
 
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	const proxyInitTtl = bootstrapper.proxyInitiatingTtl;
+
+	const tokenInfoByCommand = {
+		'config': {allowConfigApp: true},
+		'admin': {app_id: 0, isAdmin: true}
+	};
 
 	// TODO: move 600 to config
 	const makeProxyEnablingToken = () => {
 		return utils.createAuthTokenByFqdn(
 			gwServerFqdn,
-			JSON.stringify({allowConfigApp: true}),
+			JSON.stringify(tokenInfoByCommand[args._[0]]),
 			600
 		);
 	};
@@ -208,7 +213,7 @@ if(args._[0] == 'getConfigURL' || args._[0] == 'getConfigUrl' || args._[0] == 'c
 	makeProxyEnablingToken().then(proxyEnablingToken => {
 		const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
 		console.log("--------------------------------------------------");
-		console.log("Please use the URL below to configure beame-insta-server");
+		console.log("Please use the URL below to configure/admininister beame-insta-server");
 		console.log(`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command - ${args._[0]})`);
 		console.log(`Don't forget to run the server with 'beame-insta-server serve' command`);
 		console.log(url);
