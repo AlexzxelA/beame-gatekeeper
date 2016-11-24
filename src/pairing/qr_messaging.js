@@ -65,7 +65,7 @@ class QrMessaging {
 
 
 		socket.on('ack', (data) => {
-			console.log('QR Clearing for', data);
+			logger.debug('QR Clearing for', data);
 			this._pendingCommand[data] = 0;
 		});
 

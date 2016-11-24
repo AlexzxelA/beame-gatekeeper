@@ -14,8 +14,6 @@ const module_name = "Whisperer";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
-const whisperGenerator = new (require('./whisper_generator'))();
-
 /**
  * @typedef {Object} SessionData
  * @property {String} sessionId
@@ -90,7 +88,9 @@ class Whisperer {
 						resolve();
 					});
 
-					socket.on('new_pin', this.generateWAV.bind(this));
+					socket.on('new_pin', (randomNumbers) => {
+						this._socket.emit('pindata', randomNumbers);
+					} );
 
 					socket.on('mobile_matched', this.mobileConnected.bind(this));
 				} catch (e) {
@@ -262,27 +262,6 @@ class Whisperer {
 			}
 		}, 1000)
 
-	}
-
-	generateWAV(pin) {
-		whisperGenerator.getWAV(pin).then(data => {
-			let pcmData       = data.data,
-			    randomNumbers = data.pinCode;
-
-			if (pcmData && randomNumbers) {
-
-				try {
-					logger.debug(`[${this._sessionId}] sending pin ${pin}`);
-					this._socket.emit('pindata', randomNumbers);
-					this._socket.emit('data', pcmData);
-				}
-				catch (e) {
-					logger.error('socket write failed', e);
-				}
-			}
-		}).catch(error => {
-			logger.error(error);
-		});
 	}
 
 	runWhisperer() {

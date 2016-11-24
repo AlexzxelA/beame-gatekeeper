@@ -14,7 +14,7 @@ var WhPIN = null,
 
 var app = angular.module("WhispererWeb", []);
 
-app.controller("MainCtrl", ["$scope", function ($scope) {
+app.controller("MainCtrl", function ($scope) {
 
 	var tryDigest = function (scope) {
 		if (!scope.$phase) {
@@ -309,6 +309,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		$scope.showConn = false;
 		tryDigest($scope);
 		$scope.pinData = data;
+		$scope.$broadcast('newPin',data);
 		//$scope.keepAlive = 5;
 		console.log('PIN:' + data);
 		var pinElement = document.getElementById("pin");
@@ -317,7 +318,8 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		}
 	});
 
-	$scope.socket.on('data', function (data) {
+	//$scope.socket.on('data', function (data) {
+	$scope.gotData = function (data) {
 		if (stopAllRunningSessions) {
 			$scope.socket.emit('close_session');
 			$scope.stopPlaying();
@@ -334,6 +336,10 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 			//if (!$scope.nowPinging)
 			//	$scope.pingSocket();
 		}
+	};
+
+	$scope.$on('newData', function (event, data) {
+		$scope.gotData(data);
 	});
 
 	// Welcome screen actions
@@ -366,7 +372,7 @@ app.controller("MainCtrl", ["$scope", function ($scope) {
 		$scope.turnSoundOn();
 	};
 
-}]);
+});
 
 app.filter('to_trusted', ['$sce', function ($sce) {
 	return function (text) {

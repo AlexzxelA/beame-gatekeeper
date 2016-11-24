@@ -1,5 +1,3 @@
-"use strict";
-
 const BITS_PER_WORD = 21;
 
 const twoPi    = 6.28318530718;
@@ -65,13 +63,7 @@ const bpf = [
 	0.0054710543943477024
 ];
 
-
-const beameSDK    = require('beame-sdk');
-const module_name = "WhisperGenerator";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-
-class WhisperGenerator {
+app.controller("WhisperGenerator", function ($scope) {
 
 	//noinspection JSUnusedGlobalSymbols
 	/**
@@ -79,12 +71,16 @@ class WhisperGenerator {
 	 * @param {Array.<number>} pin
 	 * @returns {Promise}
 	 */
-	getWAV(pin) {
+	$scope.$on('newPin',function (event, pin) {
+		$scope.getWAV(pin);
+	});
+
+	$scope.getWAV =function(pin) {
 
 		return new Promise((resolve, reject) => {
 
 				try {
-					let binaryMsg      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+					var binaryMsg      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 					    msgWithHamming = [],
 					    message        = [],
 					    filteredMessage,i, j,
@@ -101,7 +97,7 @@ class WhisperGenerator {
 					dig[6]             = digIn[4];
 					dig[5]             = digIn[5];
 
-					message.push.apply(message, WhisperGenerator._setBit(SYNC, -M_PI / 2, 1050, 0));
+					message.push.apply(message, $scope._setBit(SYNC, -M_PI / 2, 1050, 0));
 
 					var iWord;
 					var iOdd = 0, iEven = 0, iBit = 0;
@@ -145,7 +141,7 @@ class WhisperGenerator {
 						for (i = 3; i >= 0; i--) {
 							dbgMsg += "<" +
 								dig[i + iWord * 4] + ">";
-							let ibit;
+							var ibit;
 							//noinspection JSUnresolvedFunction
 							//console.log(" dig%d (%d)",i+iWord*4, dig[i+iWord*4]);
 							for (ibit = 3; ibit >= 0;
@@ -172,10 +168,10 @@ class WhisperGenerator {
 							}
 						}
 						for (var iParity = 0; iParity < 5; iParity++) {
-							let bitValidation = 0;
+							var bitValidation = 0;
 							for (i = (Math.pow(2, iParity)) - 1; i < BITS_PER_WORD; i += 2 * Math.pow(2, iParity)) {
 								for (var innerBits = 0; (innerBits < Math.pow(2,iParity)) && ((innerBits + i) < BITS_PER_WORD); innerBits++) {
-									let parNdx = i + innerBits + 1;
+									var parNdx = i + innerBits + 1;
 									//noinspection JSBitwiseOperatorUsage
 									if (!(parNdx - 1) || !(parNdx & (parNdx - 1))) {
 										dbgMsg += ".";
@@ -186,7 +182,7 @@ class WhisperGenerator {
 									}
 								}
 							}
-							let ndx        = Math.pow(2, iParity) - 1;
+							var ndx        = Math.pow(2, iParity) - 1;
 							msgWithHamming[ndx + iWord * BITS_PER_WORD] = bitValidation & 0x1;
 							//set '1' if number of '1's is odd
 						}
@@ -200,16 +196,16 @@ class WhisperGenerator {
 							if (i == -1) {
 								//set bit No 0-19 to insert error, use bits not power of 2
 								if (msgWithHamming[iWord * BITS_PER_WORD + i])
-									message.push.apply(message, WhisperGenerator._setBit(BIT0, -M_PI / 2, BIT_N, 0));
+									message.push.apply(message, $scope._setBit(BIT0, -M_PI / 2, BIT_N, 0));
 								else
-									message.push.apply(message, WhisperGenerator._setBit(BIT1, M_PI / 2, BIT_N, 0));
+									message.push.apply(message, $scope._setBit(BIT1, M_PI / 2, BIT_N, 0));
 
 							}
 							else {
 								if (msgWithHamming[iWord * BITS_PER_WORD + i])
-									message.push.apply(message, WhisperGenerator._setBit(BIT1, M_PI / 2, BIT_N, 0));
+									message.push.apply(message, $scope._setBit(BIT1, M_PI / 2, BIT_N, 0));
 								else
-									message.push.apply(message, WhisperGenerator._setBit(BIT0, -M_PI / 2, BIT_N, 0));
+									message.push.apply(message, $scope._setBit(BIT0, -M_PI / 2, BIT_N, 0));
 							}
 						}
 						//console.log(dbgMsg);
@@ -219,23 +215,23 @@ class WhisperGenerator {
 					message.push.apply(message, message);//2 sec
 					message.push.apply(message, message);//4 sec
 
-					filteredMessage = WhisperGenerator._convolve(message, message.length, bpf, bpf.length);
-					message         = WhisperGenerator._convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
+					filteredMessage = $scope._convolve(message, message.length, bpf, bpf.length);
+					message         = $scope._convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
 
-					let scale = SHRT_MAX / 1.5;
+					var scale = SHRT_MAX / 1.5;
 					for (i = 0; i < filteredMessage.length; i++) {
 						filteredMessage[i] = message[i] * scale;
 					}
-
-					resolve({pinCode: digIn, data: WhisperGenerator._generateWAV(filteredMessage)});
+					$scope.$emit('newData',$scope._generateWAV(filteredMessage));
+					resolve('OK');//{pinCode: digIn, data: $scope._generateWAV(filteredMessage)});
 				} catch (e) {
-					logger.error(e);
+					console.error(e);
 					reject(e);
 				}
 			}
 		);
 
-	}
+	};
 
 	/**
 	 *
@@ -243,8 +239,8 @@ class WhisperGenerator {
 	 * @returns {string}
 	 * @private
 	 */
-	static _generateWAV(dataIn) {
-		let channels      = 1,
+	$scope._generateWAV =function(dataIn) {
+		var channels      = 1,
 		    sampleRate    = 44100,
 		    bitsPerSample = 16,
 		    seconds       = 4,
@@ -255,7 +251,7 @@ class WhisperGenerator {
 		for (var i = 0; i < sampleRate * seconds; i++) {
 			//for (var c = 0; c < channels; c++) {
 			var v = dataIn[i];//volume * Math.sin((2 * Math.PI) * (i / sampleRate) * frequency);
-			data.push(WhisperGenerator._pack("v", v));
+			data.push($scope._pack("v", v));
 			samples++;
 			//}
 		}
@@ -265,32 +261,32 @@ class WhisperGenerator {
 		// Format sub-chunk
 		var chunk1 = [
 			"fmt ", // Sub-chunk identifier
-			WhisperGenerator._pack("V", 16), // Chunk length
-			WhisperGenerator._pack("v", 1), // Audio format (1 is linear quantization)
-			WhisperGenerator._pack("v", channels),
-			WhisperGenerator._pack("V", sampleRate),
-			WhisperGenerator._pack("V", sampleRate * channels * bitsPerSample / 8), // Byte rate
-			WhisperGenerator._pack("v", channels * bitsPerSample / 8),
-			WhisperGenerator._pack("v", bitsPerSample)
+			$scope._pack("V", 16), // Chunk length
+			$scope._pack("v", 1), // Audio format (1 is linear quantization)
+			$scope._pack("v", channels),
+			$scope._pack("V", sampleRate),
+			$scope._pack("V", sampleRate * channels * bitsPerSample / 8), // Byte rate
+			$scope._pack("v", channels * bitsPerSample / 8),
+			$scope._pack("v", bitsPerSample)
 		].join('');
 
 		// Data sub-chunk (contains the sound)
 		var chunk2 = [
 			"data", // Sub-chunk identifier
-			WhisperGenerator._pack("V", samples * channels * bitsPerSample / 8), // Chunk length
+			$scope._pack("V", samples * channels * bitsPerSample / 8), // Chunk length
 			data
 		].join('');
 
 		// Header
 		var header = [
 			"RIFF",
-			WhisperGenerator._pack("V", 4 + (8 + chunk1.length) + (8 + chunk2.length)), // Length
+			$scope._pack("V", 4 + (8 + chunk1.length) + (8 + chunk2.length)), // Length
 			"WAVE"
 		].join('');
 
 		return [header, chunk1, chunk2].join('');
 
-	}
+	};
 
 	/**
 	 *
@@ -298,12 +294,12 @@ class WhisperGenerator {
 	 * @returns {string}
 	 * @private
 	 */
-	static _pack(fmt) {
-		let output = '',
+	$scope._pack = function(fmt) {
+		var output = '',
 		    argi = 1;
 
 		for (var i = 0; i < fmt.length; i++) {
-			let c   = fmt.charAt(i),
+			var c   = fmt.charAt(i),
 			    arg = arguments[argi];
 
 			argi++;
@@ -341,7 +337,7 @@ class WhisperGenerator {
 		}
 
 		return output;
-	}
+	};
 
 	/**
 	 *
@@ -352,7 +348,7 @@ class WhisperGenerator {
 	 * @returns {Array.<number>}
 	 * @private
 	 */
-	static _setBit(freq, phase, samples, padding) {
+	$scope._setBit = function(freq, phase, samples, padding) {
 		var data = [];
 		var i;
 		for (i = 0; i < samples; i++) {
@@ -362,7 +358,7 @@ class WhisperGenerator {
 				data[i] = 0;
 		}
 		return data;
-	}
+	};
 
 	/**
 	 *
@@ -373,8 +369,8 @@ class WhisperGenerator {
 	 * @returns {Array.<number>}
 	 * @private
 	 */
-	static _convolve(x, x_length, h, h_length) {
-		let n,
+	$scope._convolve = function(x, x_length, h, h_length) {
+		var n,
 		    output    = [],
 		    halfFiler = Math.round(h_length / 2 + 0.5),
 		    nVal      = 0;
@@ -392,7 +388,5 @@ class WhisperGenerator {
 			}
 		}
 		return output;
-	}
-}
-
-module.exports = WhisperGenerator;
+	};
+});

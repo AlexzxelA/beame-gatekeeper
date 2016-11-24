@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="WhispererWeb">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -21,8 +21,9 @@
     <!-- endbuild -->
 
 </head>
-<body ng-controller="MainCtrl">
-
+<body ng-app="WhispererWeb">
+<div ng-controller="MainCtrl">
+<div ng-controller="WhisperGenerator">
 
 <!-- IFRAME IS HIDDEN - add 'show' class to iframe to show it -->
 <iframe id="ifrm-content" class="iframe-wide"></iframe>
@@ -114,7 +115,9 @@
 <script src="js/session_controller.js"></script>
 <script src="js/qr.js"></script>
 <script src="js/whisperer.js"></script>
+<script src="js/whisper_generator.js"></script>
 <!-- endbuild -->
-
+</div>
+</div>
 </body>
 </html>
