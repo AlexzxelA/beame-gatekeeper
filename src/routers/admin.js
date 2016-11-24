@@ -31,21 +31,6 @@ class AdminRouter {
 
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
-
-		this._router.get('/templates/dash.tmpl.html', (req, res) => {
-
-			res.sendFile(path.join(base_path, '/templates/dash.tmpl.html'));
-		});
-
-		this._router.get('/templates/users.tmpl.html', (req, res) => {
-
-			res.sendFile(path.join(base_path, '/templates/users.tmpl.html'));
-		});
-
-		this._router.get('/templates/registrations.tmpl.html', (req, res) => {
-
-			res.sendFile(path.join(base_path, '/templates/registrations.tmpl.html'));
-		});
 		//endregion
 
 		//region settings

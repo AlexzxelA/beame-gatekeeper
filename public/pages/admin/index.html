@@ -11,21 +11,21 @@
     <!-- build:css -->
     <link rel="stylesheet" href="css/app.css">
     <!-- endbuild -->
-    <script src="lib/jquery-2.2.4.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.web.min.js"></script>
 
     <script>
 		var ADMIN_TEMPLATES = {
 			Dash: {
-				path:  "templates/dash.tmpl.html",
+				path:  "templates/admin/dash.tmpl.html",
 				event: "dashLoaded"
 			},
 			User: {
-				path:  "templates/users.tmpl.html",
+				path:  "templates/admin/users.tmpl.html",
 				event: "userLoaded"
 			},
             Regs: {
-				path:  "templates/registrations.tmpl.html",
+				path:  "templates/admin/registrations.tmpl.html",
 				event: "regsLoaded"
 			}
 		};
@@ -129,7 +129,7 @@
 
 		function subscribe(event,callback){
 			$(document).bind(event, function(e, path) {
-				console.log(event + ' completed',path);
+				//console.log(event + ' completed',path);
 				callback();
 			});
 		}
@@ -161,7 +161,6 @@
 
 		var router = new kendo.Router({
 			init: function () {
-				console.log("router init");
 				layout.render("#app-wrapper");
 			}
 		});
@@ -177,8 +176,6 @@
 		});
 
 		router.start();
-
-
 	}
 
 	initAdminRouters();
