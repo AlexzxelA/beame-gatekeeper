@@ -11,6 +11,10 @@ const Constants  = require('../../constants');
 const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'admin');
 
+const beameSDK     = require('beame-sdk');
+const module_name  = "BeameAdminServices";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
 
 class AdminRouter {
 	constructor(adminServices) {
@@ -44,6 +48,7 @@ class AdminRouter {
 		});
 		//endregion
 
+		//region settings
 		this._router.get('/settings/get', (req, res) => {
 			this._adminServices.getSettings().then(data => {
 				res.json(data);
@@ -51,6 +56,15 @@ class AdminRouter {
 				res.json({});
 			});
 		});
+
+		this._router.post('/settings/save', (req, res) => {
+			this._adminServices.saveAppConfig(req.body).then(() => {
+				res.json({success:true});
+			}).catch(error => {
+				res.json({success:false,error:BeameLogger.formatError(error)});
+			});
+		});
+		//endregion
 
 		//region grids actions
 		this._router.get('/user/list', (req, res) => {

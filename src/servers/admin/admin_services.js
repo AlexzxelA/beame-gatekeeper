@@ -4,13 +4,11 @@
 
 "use strict";
 const async        = require('async');
-const Constants    = require('../../../constants');
 const beameSDK     = require('beame-sdk');
 const module_name  = "BeameAdminServices";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const CommonUtils  = beameSDK.CommonUtils;
-const store        = new (beameSDK.BeameStore)();
 const Bootstrapper = require('../../bootstrapper');
 const bootstrapper = new Bootstrapper();
 const dataService  = new (require('../../dataServices'))();
@@ -18,6 +16,16 @@ const dataService  = new (require('../../dataServices'))();
 class AdminServices {
 	constructor() {
 
+	}
+
+	saveAppConfig(req){
+		return new Promise((resolve, reject) => {
+				let config = CommonUtils.parse(req.data).AppConfig;
+
+				bootstrapper.setAppConfig = config;
+				bootstrapper.saveAppConfigFile().then(resolve).catch(reject);
+			}
+		);
 	}
 
 	getSettings() {

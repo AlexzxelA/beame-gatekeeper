@@ -15,6 +15,48 @@
     <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.web.min.js"></script>
 
     <script>
+		var ADMIN_TEMPLATES = {
+			Dash: {
+				path:  "templates/dash.tmpl.html",
+				event: "dashLoaded"
+			},
+			User: {
+				path:  "templates/users.tmpl.html",
+				event: "userLoaded"
+			},
+            Regs: {
+				path:  "templates/registrations.tmpl.html",
+				event: "regsLoaded"
+			}
+		};
+
+		//region future use
+		var templateLoader = (function ($, host, event) {
+			//Loads external templates from path and injects in to page DOM
+			return {
+				loadExtTemplate: function (path,event) {
+					var tmplLoader = $.get(path)
+						.success(function (result) {
+							//Add templates to DOM
+							$("body").append(result);
+							//console.log(path + ' loaded')
+						})
+						.error(function (result) {
+							alert("Error Loading Templates -- TODO: Better Error Handling");
+						});
+
+					tmplLoader.complete(function () {
+						$(host).trigger(event, [path]);
+						//console.log(path + ' complete')
+					});
+				}
+			};
+		})(jQuery, document);
+
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Dash.path, ADMIN_TEMPLATES.Dash.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.User.path, ADMIN_TEMPLATES.User.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
+
 
 		$(document).ready(function () {
 			$("#menu").kendoMenu();
@@ -67,143 +109,79 @@
 
     </div>
 </div>
-<script type="text/x-kendo-template" id="home">
 
-    <div style="padding: 10px">
-        <h4>Service: <span data-bind="text: AppConfig.ServiceName"></span></h4>
-
-        <ul id="panelbar" style="width: 600px">
-            <li>
-                Creds
-                <div style="padding: 7px">
-                    <ul class="config-list">
-                        <li>
-                            <label>Zero Level</label>
-                            <span data-bind="text:Creds.ZeroLevel.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Gateway Server</label>
-                            <span data-bind="text:Creds.GatewayServer.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Admin Server</label>
-                            <span data-bind="text:Creds.AdminServer.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Beame Authorization Server</label>
-                            <span data-bind="text:Creds.BeameAuthorizationServer.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Matching Server</label>
-                            <span data-bind="text:Creds.MatchingServer.fqdn"></span>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <li>
-                AppConfig
-
-                <div style="padding: 7px">
-                    <ul class="config-list">
-                        <li>
-                            <label>Service name</label>
-                            <input type="text" class='k-textbox' data-bind="value: AppConfig.ServiceName"
-                                   id="ServiceName"/>
-                        </li>
-
-
-                        <li>
-                            <label>Browser Session Ttl (sec)</label>
-                            <input data-role="numerictextbox" data-bind="value:AppConfig.BrowserSessionTtl"
-                                   id="BrowserSessionTtl" type="text" data-spinners="false" data-format="{0:D}"/>
-                        </li>
-
-                        <li>
-                            <label>Proxy Initiating Ttl (sec)</label>
-                            <input data-role="numerictextbox" data-bind="value:AppConfig.ProxyInitiatingTtl"
-                                   id="ProxyInitiatingTtl" type="text" data-spinners="false" data-format="{0:D}"/>
-                        </li>
-
-                        <li>
-                            <label>Proxy Session Ttl (sec)</label>
-                            <input data-role="numerictextbox" data-bind="value:AppConfig.ProxySessionTtl"
-                                   id="ProxySessionTtl" type="text" data-spinners="false" data-format="{0:D}"/>
-                        </li>
-
-                        <li>
-                            <label>Registration Token Ttl (sec)</label>
-                            <input data-role="numerictextbox" data-bind="value:AppConfig.RegistrationAuthTokenTtl"
-                                   id="RegistrationAuthTokenTtl" type="text" data-spinners="false"
-                                   data-format="{0:D}"/>
-                        </li>
-
-
-                        <li>
-                            <label>Session Record Delete Timeout (millisec)</label>
-                            <input data-role="numerictextbox" data-bind="value:AppConfig.SessionRecordDeleteTimeout"
-                                   id="SessionRecordDeleteTimeout" type="text" data-spinners="false"
-                                   data-format="{0:D}"/>
-                        </li>
-
-                        <li>
-                            <label>Whisperer Send PinInterval (millisec)</label>
-                            <input data-role="numerictextbox" data-bind="value:AppConfig.WhispererSendPinInterval"
-                                   id="WhispererSendPinInterval" type="text" data-spinners="false"
-                                   data-format="{0:D}"/>
-                        </li>
-
-
-                    </ul>
-                </div>
-            </li>
-            <li>
-                Db Config
-                <div style="padding: 7px">
-                    <ul class="config-list">
-                        <li>
-                            <label>Storage</label>
-                            <span data-bind="text: DbConfig.storage"></span>
-                        </li>
-
-
-                        <li>
-                            <label>Username</label>
-                            <span data-bind="text: DbConfig.username"></span>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-
-        </ul>
-
-    </div>
-
-</script>
-
-<script type="text/x-kendo-template" id="regs">
-    <h3>Registrations Report</h3>
-    <div id="reg-grid"></div>
-</script>
-
-<script type="text/x-kendo-template" id="user">
-    <h3>Users Report</h3>
-    <div id="user-grid"></div>
-</script>
 
 <script src="lib/jszip.min.js"></script>
-<script src="js/admin.js"></script>
 
 <script>
 
-	$(document).ready(function () {
-		initAdminRouters();
-		$(document).ready(function () {
+	var settings = null,viewDash,viewUsers,viewRegs,layout;
+
+	function initAdminRouters() {
+		viewDash  = new kendo.View("home",{model:settings});
+		viewUsers = new kendo.View("#user");
+		viewRegs  = new kendo.View("#regs");
+
+		layout = new kendo.Layout("<section id='content'></section>");
+
+		layout.render($("#app-wrapper"));
+
+
+		function subscribe(event,callback){
+			$(document).bind(event, function(e, path) {
+				console.log(event + ' completed',path);
+				callback();
+			});
+		}
+
+		var initDash = function(){
+			layout.showIn("#content", viewDash);
+			loadSettings();
+		};
+
+		var initUsers = function(){
+			layout.showIn("#content", viewUsers);
+			loadUsers();
+		};
+
+		var initRegs = function(){
+			layout.showIn("#content", viewRegs);
+			loadRegs();
+		};
+
+		$("#showDash").on("click", function () {
+			initDash();
 		});
-	});
+		$("#showUsers").on("click", function () {
+			initUsers();
+		});
+		$("#showRegs").on("click", function () {
+			initRegs();
+		});
+
+		var router = new kendo.Router({
+			init: function () {
+				console.log("router init");
+				layout.render("#app-wrapper");
+			}
+		});
+
+		router.route("/", function () {
+			subscribe(ADMIN_TEMPLATES.Dash.event,initDash);
+		});
+		router.route("/users", function () {
+			subscribe(ADMIN_TEMPLATES.User.event,initUsers);
+		});
+		router.route("/regs", function () {
+			subscribe(ADMIN_TEMPLATES.Regs.event,initRegs);
+		});
+
+		router.start();
+
+
+	}
+
+	initAdminRouters();
 
 </script>
 </body>

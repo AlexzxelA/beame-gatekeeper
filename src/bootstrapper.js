@@ -193,7 +193,7 @@ class Bootstrapper {
 
 				creds[credType]["fqdn"] = fqdn;
 
-				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds)).then(() => {
+				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds,true)).then(() => {
 					logger.info(`${fqdn} saved as ${credType}...`);
 					resolve();
 				}).catch(reject);
@@ -255,6 +255,9 @@ class Bootstrapper {
 		return this._config;
 	}
 
+	set setAppConfig(config){
+		this._config = config;
+	}
 	//noinspection JSMethodCanBeStatic
 	get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
@@ -319,7 +322,7 @@ class Bootstrapper {
 
 				this._config = config;
 
-				this._saveAppConfigFile().then(() => {
+				this.saveAppConfigFile().then(() => {
 					logger.debug(`${AppConfigFileName} saved in ${path.dirname(AppConfigJsonPath)}...`);
 					resolve();
 				}).catch(error => {
@@ -358,7 +361,7 @@ class Bootstrapper {
 						return;
 					}
 
-					this._saveAppConfigFile().then(() => {
+					this.saveAppConfigFile().then(() => {
 						logger.debug(`${AppConfigFileName} updated...`);
 						resolve();
 					}).catch(error => {
@@ -374,8 +377,8 @@ class Bootstrapper {
 	}
 
 
-	_saveAppConfigFile() {
-		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, false));
+	saveAppConfigFile() {
+		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, true));
 	}
 
 	setServiceName(name) {
@@ -387,10 +390,12 @@ class Bootstrapper {
 
 				this._config[SettingsProps.ServiceName] = name;
 
-				return this._saveAppConfigFile();
+				return this.saveAppConfigFile();
 			}
 		);
 	}
+
+
 
 	//endregion
 
@@ -417,7 +422,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				let credsConfig = defaults.CredsConfigTemplate;
 
-				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig)).then(() => {
+				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig, true)).then(() => {
 					logger.debug(`${CredsFileName} saved in ${path.dirname(CredsJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -445,7 +450,7 @@ class Bootstrapper {
 
 				servers.Servers.push(fqdn);
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers)).then(() => {
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers,true)).then(() => {
 					logger.info(`${fqdn} added to authorized customer servers...`);
 					resolve();
 				}).catch(reject);
@@ -491,7 +496,7 @@ class Bootstrapper {
 				let credsConfig = defaults.CustomerAuthServersTemplate;
 
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig)).then(() => {
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig,true)).then(() => {
 					logger.debug(`${CustomerAuthServersFileName} saved in ${path.dirname(CustomerAuthServersJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -561,7 +566,7 @@ class Bootstrapper {
 				dbConfig[env]["password"] = CommonUtils.randomPassword(12);
 				dbConfig[env]["storage"]  = path.join(process.env.BEAME_SERVERS_AUTH_DATA_DIR || this._config[SqliteProps.StorageRoot], this._config[SqliteProps.DbName]);
 
-				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig)).then(() => {
+				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig,true)).then(() => {
 					logger.debug(`${SqliteDbConfigFileName} saved in ${path.dirname(SqliteConfigJsonPath)}...`);
 					resolve();
 				}).catch(reject);

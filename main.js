@@ -179,7 +179,7 @@ if(args._[0] == 'setName'){
 	}
 
 	bootstrapper.setServiceName(name).then(() =>{
-		consol.info(`Insta-server service name set to ${name} successfully`);
+		logger.info(`Insta-server service name set to ${name} successfully`);
 		process.exit(0);
 	}).catch(error=>{
 		logger.error(BeameLogger.formatError(error));
