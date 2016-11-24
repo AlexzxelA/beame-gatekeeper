@@ -140,6 +140,12 @@ function handleRequest(req, res) {
 		return;
 	}
 
+	if (authToken.app_id === 0 && authToken.isAdmin) {
+		logger.debug(`Proxying to Admin server`);
+		adminApp(req, res);
+		return;
+	}
+
 	if (authToken.app_id) {
 		logger.debug(`Proxying to app_id ${authToken.app_id}`);
 		apps.appUrlById(authToken.app_id).then(url => {

@@ -65,7 +65,7 @@ const messageHandlers = {
 
 		function createSessionToken(apps) {
 			return new Promise((resolve, reject) => {
-				utils.createAuthTokenByFqdn(gwServerFqdn, 'Does not matter', bootstrapper.browserSessionTtl)
+				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({isAdmin: authenticatedUserInfo.isAdmin}), bootstrapper.browserSessionTtl)
 					.then(token => resolve([apps, token]))
 					.catch(e => reject(e));
 			});
@@ -135,10 +135,13 @@ const messageHandlers = {
 		// type: 'redirect'
 		// payload: {success: true/false, app_id: (same as in request), url: ...}
 
-		function makeProxyEnablingToken() {
+		function makeProxyEnablingToken(session_token) {
+			// console.log('choose incomming session_token', session_token);
+			let st = JSON.parse(JSON.parse(session_token.signedData.data));
+			// console.log('PT 10', st);
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
-				JSON.stringify({app_id: payload.app_id}),
+				JSON.stringify({app_id: payload.app_id, isAdmin: !!st.isAdmin}),
 				bootstrapper.proxySessionTtl
 			);
 		}
