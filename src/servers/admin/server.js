@@ -24,11 +24,12 @@ class BeameAdminServer {
 	 *
 	 * @param {String|undefined|null} [fqdn]
 	 * @param {Router|undefined|null} [app]
+	 * @param {ServiceManager} _serviceManager
 	 */
-	constructor(fqdn, app) {
+	constructor(fqdn, app, _serviceManager) {
 		this._fqdn = fqdn;
 
-		this._adminServices = new BeameAdminServices();
+		this._adminServices = new BeameAdminServices(_serviceManager);
 
 		this._app = app || utils.setExpressApp((new Router(this._adminServices)).router, public_dir);
 

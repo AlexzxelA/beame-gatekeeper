@@ -19,9 +19,9 @@ const BeameStore         = new beameSDK.BeameStore();
 const Constants          = require('../../../constants');
 const unauthenticatedApp = require('./unauthenticatedApp');
 const configApp          = require('./configApp');
-const adminApp           = new (require('../admin/server'))().app;
+var adminApp           = null;
 
-const serviceManager = new (require('./serviceManager'))();
+var serviceManager = null;
 
 const proxy = httpProxy.createProxyServer({
 	xfwd:         true,
@@ -149,6 +149,7 @@ function handleRequest(req, res) {
 	if (authToken.app_id) {
 		logger.debug(`Proxying to app_id ${authToken.app_id}`);
 		serviceManager.appUrlById(authToken.app_id).then(url => {
+			logger.info(`redirecting to ${url}`);
 			proxy.web(req, res, {target: url});
 		}).catch(e => {
 			logger.error(`Error handling authToken.app_id: ${e}`);
@@ -201,7 +202,14 @@ function startTunnel([cert, requestsHandlerPort]) {
 
 class GatewayServer {
 
-	constructor(fqdn, matchingServerFqdn) {
+	/**
+	 *
+	 * @param {String} fqdn
+	 * @param {String} matchingServerFqdn
+	 * @param {ServiceManager} _serviceManager
+	 */
+
+	constructor(fqdn, matchingServerFqdn, _serviceManager) {
 		this._fqdn = fqdn;
 
 		this._matchingServerFqdn = matchingServerFqdn;
@@ -209,6 +217,10 @@ class GatewayServer {
 		this._server                 = null;
 		this._socketServer           = null;
 		this._socketControllerServer = null;
+
+		serviceManager = _serviceManager;
+
+		adminApp = new (require('../admin/server'))(null,null,serviceManager).app;
 	}
 
 	/**

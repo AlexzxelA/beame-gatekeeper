@@ -12,11 +12,14 @@ const CommonUtils    = beameSDK.CommonUtils;
 const Bootstrapper   = require('../../bootstrapper');
 const bootstrapper   = new Bootstrapper();
 const dataService    = new (require('../../dataServices'))();
-const serviceManager = new (require('../gw/serviceManager'))();
 
 class AdminServices {
-	constructor() {
 
+	/**
+	 * @param {ServiceManager} _serviceManager
+	 */
+	constructor(_serviceManager) {
+		this._serviceManager = _serviceManager;
 	}
 
 	//region settings
@@ -118,7 +121,7 @@ class AdminServices {
 	saveService(service) {
 		return new Promise((resolve, reject) => {
 				dataService.saveService(service).then(entity => {
-					serviceManager.evaluateAppList().then(() => {
+					this._serviceManager.evaluateAppList().then(() => {
 						resolve(entity);
 					}).catch(reject)
 				}).catch(reject);
@@ -132,7 +135,7 @@ class AdminServices {
 
 		return new Promise((resolve, reject) => {
 				dataService.updateService(service).then(entity => {
-					serviceManager.evaluateAppList().then(() => {
+					this._serviceManager.evaluateAppList().then(() => {
 						resolve(entity);
 					}).catch(reject)
 				}).catch(reject);
@@ -144,7 +147,7 @@ class AdminServices {
 	//noinspection JSMethodCanBeStatic
 	deleteService(id) {
 		return new Promise((resolve, reject) => {
-				dataService.deleteService(id).then(serviceManager.evaluateAppList).then(resolve).catch(reject);
+				dataService.deleteService(id).then(this._serviceManager.evaluateAppList.bind(this._serviceManager)).then(resolve).catch(reject);
 			}
 		);
 

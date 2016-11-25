@@ -3,7 +3,7 @@
 // TODO: actual list + cached health status in "online" field
 
 const beameSDK           = require('beame-sdk');
-const module_name        = "ServicesManager";
+const module_name        = "ServiceManager";
 const BeameLogger        = beameSDK.Logger;
 const logger             = new BeameLogger(module_name);
 const CommonUtils        = beameSDK.CommonUtils;
@@ -49,7 +49,7 @@ const default_services = {
 };
 
 
-class ServicesManager {
+class ServiceManager {
 
 	constructor() {
 		this._appList = {};
@@ -121,12 +121,16 @@ class ServicesManager {
 	}
 
 	appUrlById(app_id) {
-		let app = this._appList[app_id];
 
-		return app ? Promise.resolve(app.url) : Promise.reject(`Unknown appId ${app_id}`);
+		return new Promise((resolve, reject) => {
+			let app = this._appList[app_id];
+
+				app ? resolve(app.url) : reject(`Unknown appId ${app_id}`);
+			}
+		);
 	}
 
 }
 
-module.exports = ServicesManager;
+module.exports = ServiceManager;
 

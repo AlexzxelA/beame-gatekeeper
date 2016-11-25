@@ -11,7 +11,7 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
 const CommonUtils = beameSDK.CommonUtils;
-
+const serviceManager = new (require('./servers/gw/serviceManager'))();
 
 const Constants = require('../constants');
 
@@ -34,7 +34,7 @@ class ServersManager {
 				callback => {
 
 					logger.debug('SETTINGS', this._settings);
-					const gws = new(require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn,this._settings.MatchingServer.fqdn);
+					const gws = new(require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn,this._settings.MatchingServer.fqdn,serviceManager);
 					gws.start((error, app) => {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
@@ -68,7 +68,7 @@ class ServersManager {
 
 					const AdminServer = require('../src/servers/admin/server');
 
-					let admin_server = new AdminServer(this._settings.AdminServer.fqdn);
+					let admin_server = new AdminServer(this._settings.AdminServer.fqdn, null ,serviceManager);
 
 					admin_server.start((error, app) => {
 						if (!error) {
