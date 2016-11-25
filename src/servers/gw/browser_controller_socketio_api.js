@@ -16,7 +16,7 @@ const AuthToken         = beameSDK.AuthToken;
 const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-const apps              = require('./apps');
+var serviceManager      = null;
 
 var authServices = null;
 
@@ -37,7 +37,7 @@ function assertSignedByGw(session_token) {
 
 // TODO: Session renewal?
 const messageHandlers = {
-	'auth':   function (payload, reply) {
+	'auth':      function (payload, reply) {
 		// TODO: validate token and check it belongs to one of the registered users
 		// TODO: return apps list + session token
 		// --- request ---
@@ -109,7 +109,7 @@ const messageHandlers = {
 
 		AuthToken.validate(payload.token)
 			.then(loginUser)
-			.then(apps.listApplications)
+			.then(serviceManager.listApplications.bind(serviceManager))
 			.then(createSessionToken)
 			.then(loadPage)
 			.then(respond)
@@ -126,7 +126,7 @@ const messageHandlers = {
 			});
 
 	},
-	'choose': function (payload, reply) {
+	'choose':    function (payload, reply) {
 		// Choose application - redirect app switchig URL on GW, auth token in URL
 		// --- request ---
 		// type: choose
@@ -170,7 +170,7 @@ const messageHandlers = {
 			});
 
 	},
-	'logout': function (payload, reply) {
+	'logout':    function (payload, reply) {
 		// Redirect to cookie removing URL on GW
 		// type: logout
 		// payload: {session_token: ...}
@@ -206,12 +206,12 @@ const messageHandlers = {
 			.then(makeLogoutToken)
 			.then(respond);
 	},
-	'beamePing': function(payload, reply) {
+	'beamePing': function (payload, reply) {
 		reply({
 			type:    'beamePong',
 			payload: {
 				id:   payload.id,
-				next: payload.id+1
+				next: payload.id + 1
 			}
 		});
 	}
@@ -228,9 +228,10 @@ function sendError(client, error) {
 
 
 class BrowserControllerSocketioApi {
-	constructor(fqdn) {
-		this._fqdn   = fqdn;
-		authServices = new BeameAuthServices(this._fqdn);
+	constructor(fqdn, _serviceManager) {
+		this._fqdn     = fqdn;
+		serviceManager = _serviceManager;
+		authServices   = new BeameAuthServices(this._fqdn);
 		/** @type {Socket} */
 		this._socket_server = null;
 	}

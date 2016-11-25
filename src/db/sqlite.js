@@ -99,8 +99,8 @@ class SqliteServices {
 							email:          data.email,
 							externalUserId: data.user_id,
 							fqdn:           data.fqdn || null
-						}).then(regs => {
-							resolve(regs.id);
+						}).then(entity => {
+							resolve(entity.dataValues);
 						}).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
@@ -363,10 +363,8 @@ class SqliteServices {
 
 					let model = this._models.users;
 
-					model.create(user).then(() => {
-
-						resolve();
-
+					model.create(user).then(entity => {
+						resolve(entity.dataValues);
 					}).catch(onError.bind(this, reject));
 
 				}).catch(reject);
@@ -455,7 +453,12 @@ class SqliteServices {
 							reject(logger.formatErrorMessage(`User record not found`));
 							return;
 						}
-						record.update({isAdmin: user.isAdmin,isActive:user.isActive}).then(resolve).catch(onError.bind(this, reject));
+						record.update({
+							isAdmin:  user.isAdmin,
+							isActive: user.isActive
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
 
@@ -486,6 +489,125 @@ class SqliteServices {
 						resolve([]);
 					}
 				);
+			}
+		);
+	}
+
+	//endregion
+
+	//region services
+	getServices() {
+		return new Promise((resolve) => {
+				let model = this._models.services;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({order: 'id DESC'}).then(models => {
+						let records = models.map(item => {
+							return item.dataValues
+						});
+						resolve(records);
+					}
+				).catch(
+					error => {
+						logger.error(error);
+						resolve([]);
+					}
+				);
+			}
+		);
+	}
+
+	getActiveServices() {
+		return new Promise((resolve) => {
+				let model = this._models.services;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({where:{isActive:true}}).then(models => {
+						let records = models.map(item => {
+							return item.dataValues
+						});
+						resolve(records);
+					}
+				).catch(
+					error => {
+						logger.error(error);
+						resolve([]);
+					}
+				);
+			}
+		);
+	}
+
+	saveService(service) {
+		return new Promise((resolve, reject) => {
+				var condition = {
+					where: Sequelize.and(
+						{code: service.code},
+						Sequelize.or(
+							{url: service.url}
+						)
+					)
+				};
+				let model     = this._models.services;
+
+				try {
+					//noinspection JSUnresolvedFunction
+					model.findOne(condition).then(record => {
+						if (record) {
+							reject(`Record for code ${service.code} or url ${service.url} already registered`);
+							return;
+						}
+
+						delete service.id;
+
+						model.create(service).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					onError(reject, error)
+				}
+			}
+		);
+	}
+
+	updateService(service) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.services;
+					//noinspection JSUnresolvedFunction
+					model.findById(service.id).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`Service record not found`));
+							return;
+						}
+						record.update({
+							url:      service.url,
+							name:     service.name,
+							isActive: service.isActive
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
+	deleteService(id) {
+		return new Promise((resolve, reject) => {
+				logger.debug(`try delete registration ${id}`);
+				let model = this._models.services;
+				model.destroy({where: {id: id}}).then(resolve).catch(reject);
 			}
 		);
 	}

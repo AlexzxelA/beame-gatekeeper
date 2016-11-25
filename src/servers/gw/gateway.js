@@ -8,20 +8,20 @@ const querystring = require('querystring');
 const url         = require('url');
 const cookie      = require('cookie');
 
-const httpProxy = require('http-proxy');
-const Bootstrapper = require('../../bootstrapper');
-const beameSDK    = require('beame-sdk');
-const module_name = "GatewayServer";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-const ProxyClient = beameSDK.ProxyClient;
-const BeameStore  = new beameSDK.BeameStore();
-const Constants   = require('../../../constants');
-const apps = require('./apps');
-
+const httpProxy          = require('http-proxy');
+const Bootstrapper       = require('../../bootstrapper');
+const beameSDK           = require('beame-sdk');
+const module_name        = "GatewayServer";
+const BeameLogger        = beameSDK.Logger;
+const logger             = new BeameLogger(module_name);
+const ProxyClient        = beameSDK.ProxyClient;
+const BeameStore         = new beameSDK.BeameStore();
+const Constants          = require('../../../constants');
 const unauthenticatedApp = require('./unauthenticatedApp');
 const configApp          = require('./configApp');
 const adminApp           = new (require('../admin/server'))().app;
+
+const serviceManager = new (require('./serviceManager'))();
 
 const proxy = httpProxy.createProxyServer({
 	xfwd:         true,
@@ -53,18 +53,18 @@ proxy.on('error', (err, req, res) => {
 // browsers hitting gateway will automatically be redirected to
 // another site. Rewriting 301 to 302 responses.
 proxy.on('proxyRes', (proxyRes, req, res) => {
-	if(proxyRes.statusCode == 301) {
-		proxyRes.statusCode = 302;
+	if (proxyRes.statusCode == 301) {
+		proxyRes.statusCode    = 302;
 		proxyRes.statusMessage = 'Found';
 	}
 	// TODO: Also change 308 to 307
 	// XXX - can not be like this in production - start
-	if(proxyRes.statusCode == 404) {
+	if (proxyRes.statusCode == 404) {
 		// http://stackoverflow.com/questions/34684139/how-to-add-headers-to-node-http-proxy-response
-		proxyRes.statusCode = 302;
-		proxyRes.statusMessage = 'Found';
+		proxyRes.statusCode                               = 302;
+		proxyRes.statusMessage                            = 'Found';
 		proxyRes.headers['x-beame-debug-redirect-reason'] = 'error 404 from upstream';
-		proxyRes.headers['location'] = Bootstrapper.getLogoutUrl();
+		proxyRes.headers['location']                      = Bootstrapper.getLogoutUrl();
 	}
 	// XXX - can not be like this in production - end
 });
@@ -140,7 +140,7 @@ function handleRequest(req, res) {
 		return;
 	}
 
-	if (authToken.app_id === 1 && authToken.isAdmin) {
+	if (serviceManager.isAdminService(authToken.app_id) && authToken.isAdmin) {
 		logger.debug(`Proxying to Admin server`);
 		adminApp(req, res);
 		return;
@@ -148,7 +148,7 @@ function handleRequest(req, res) {
 
 	if (authToken.app_id) {
 		logger.debug(`Proxying to app_id ${authToken.app_id}`);
-		apps.appUrlById(authToken.app_id).then(url => {
+		serviceManager.appUrlById(authToken.app_id).then(url => {
 			proxy.web(req, res, {target: url});
 		}).catch(e => {
 			logger.error(`Error handling authToken.app_id: ${e}`);
@@ -159,7 +159,7 @@ function handleRequest(req, res) {
 	}
 
 	// Internal proxying to configuration application
-	if(authToken.allowConfigApp) {
+	if (authToken.allowConfigApp) {
 		console.log('Proxying to config app');
 		configApp(req, res);
 		return;
@@ -206,8 +206,8 @@ class GatewayServer {
 
 		this._matchingServerFqdn = matchingServerFqdn;
 
-		this._server = null;
-		this._socketServer = null;
+		this._server                 = null;
+		this._socketServer           = null;
 		this._socketControllerServer = null;
 	}
 
@@ -220,13 +220,13 @@ class GatewayServer {
 		BeameStore.find(this._fqdn, false)
 			.then(this._startRequestsHandler.bind(this))
 			.then(startTunnel)
-			.then(()=>{
+			.then(() => {
 				logger.debug(`Gateway server started at https://${this._fqdn}`);
-				cb && cb(null,this._server);
-			}).catch(error=>{
-				logger.error(error);
-				cb && cb(error,null);
-			});
+				cb && cb(null, this._server);
+			}).catch(error => {
+			logger.error(error);
+			cb && cb(error, null);
+		});
 	}
 
 	stop() {
@@ -256,24 +256,24 @@ class GatewayServer {
 
 			this._startBrowserControllerServer()
 				.then(this._startSocketServer.bind(this))
-				.then(()=>{
-							this._server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
-								const port = this._server.address().port;
-								logger.debug(`beame-insta-server listening port ${port}`);
-								resolve([cert, port]);
-							});
-			}).catch(reject)
+				.then(() => {
+					this._server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
+						const port = this._server.address().port;
+						logger.debug(`beame-insta-server listening port ${port}`);
+						resolve([cert, port]);
+					});
+				}).catch(reject)
 
 		});
 	}
 
-	_startBrowserControllerServer(){
+	_startBrowserControllerServer() {
 		return new Promise((resolve, reject) => {
-			const BrowserControllerSocketioApi = require('./browser_controller_socketio_api');
+				const BrowserControllerSocketioApi = require('./browser_controller_socketio_api');
 
-			let controllerSocketio = new BrowserControllerSocketioApi(this._fqdn);
+				let controllerSocketio = new BrowserControllerSocketioApi(this._fqdn, serviceManager);
 
-				controllerSocketio.start(this._server).then(socketio_server=>{
+				controllerSocketio.start(this._server).then(socketio_server => {
 					this._socketControllerServer = socketio_server;
 					resolve();
 				}).catch(reject);
@@ -295,12 +295,12 @@ class GatewayServer {
 
 				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`};
 
-				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.SESSION, callbacks,options);
+				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.SESSION, callbacks, options);
 
 				beameInstaSocketServer.start().then(socketio_server => {
 					this._socketServer = socketio_server;
 					resolve();
-				}).catch(error=> {
+				}).catch(error => {
 					this.stop();
 					reject(error);
 				});

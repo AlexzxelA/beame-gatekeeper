@@ -72,7 +72,7 @@ class BeameAuthServices {
 	saveRegistration(data, createAuthToken = false) {
 
 		return new Promise((resolve, reject) => {
-				dataService.saveRegistration(data).then(registrationId => {
+				dataService.saveRegistration(data).then(registration => {
 
 					if (createAuthToken) {
 						let dataToSign = {
@@ -83,7 +83,7 @@ class BeameAuthServices {
 						    authToken  = this._signData(dataToSign);
 
 						const updateHash = () => {
-							dataService.updateRegistrationHash(registrationId, authToken).then(() => {
+							dataService.updateRegistrationHash(registration.id, authToken).then(() => {
 								resolve(authToken);
 							});
 						};

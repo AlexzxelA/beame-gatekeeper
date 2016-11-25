@@ -165,6 +165,28 @@ class DataServices {
 
 
 	//endregion
+
+	//region services
+	getServices() {
+		return this._dbService.getServices();
+	}
+
+	getActiveServices(){
+		return this._dbService.getActiveServices();
+	}
+
+	saveService(service) {
+		return this._dbService.saveService(service);
+	}
+
+	updateService(service) {
+		return this._dbService.updateService(service);
+	}
+
+	deleteService(id){
+		return this._dbService.deleteService(id);
+	}
+	//endregion
 }
 
 

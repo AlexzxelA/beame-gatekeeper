@@ -17,17 +17,21 @@
 
     <script>
 		var ADMIN_TEMPLATES = {
-			Dash: {
+			Dash:    {
 				path:  "templates/admin/dash.tmpl.html",
 				event: "dashLoaded"
 			},
-			User: {
+			User:    {
 				path:  "templates/admin/users.tmpl.html",
 				event: "userLoaded"
 			},
-            Regs: {
+			Regs:    {
 				path:  "templates/admin/registrations.tmpl.html",
 				event: "regsLoaded"
+			},
+			Service: {
+				path:  "templates/admin/services.tmpl.html",
+				event: "serviceLoaded"
 			}
 		};
 
@@ -35,12 +39,12 @@
 		var templateLoader = (function ($, host, event) {
 			//Loads external templates from path and injects in to page DOM
 			return {
-				loadExtTemplate: function (path,event) {
+				loadExtTemplate: function (path, event) {
 					var tmplLoader = $.get(path)
 						.success(function (result) {
 							//Add templates to DOM
 							$("body").append(result);
-							//console.log(path + ' loaded')
+							console.log(path + ' loaded')
 						})
 						.error(function (result) {
 							alert("Error Loading Templates -- TODO: Better Error Handling");
@@ -48,7 +52,7 @@
 
 					tmplLoader.complete(function () {
 						$(host).trigger(event, [path]);
-						//console.log(path + ' complete')
+						console.log(path + ' complete')
 					});
 				}
 			};
@@ -57,6 +61,7 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Dash.path, ADMIN_TEMPLATES.Dash.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.User.path, ADMIN_TEMPLATES.User.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 
 
 		$(document).ready(function () {
@@ -103,6 +108,7 @@
                     <li><a id="showDash" href="#">Dashboard</a></li>
                     <li><a id="showUsers" href="#/users">Users</a></li>
                     <li><a id="showRegs" href="#/regs">Registrations</a></li>
+                    <li><a id="showSrv" href="#/srvc">Services</a></li>
                 </ul>
             </nav>
             <div id="app-wrapper"></div>
@@ -116,38 +122,44 @@
 
 <script>
 
-	var settings = null,viewDash,viewUsers,viewRegs,layout;
+	var settings = null, viewDash, viewUsers, viewRegs,viewService ,layout;
 
 	function initAdminRouters() {
-		viewDash  = new kendo.View("home",{model:settings});
+		viewDash  = new kendo.View("#home", {model: settings});
 		viewUsers = new kendo.View("#user");
 		viewRegs  = new kendo.View("#regs");
+		viewService  = new kendo.View("#services");
 
 		layout = new kendo.Layout("<section id='content'></section>");
 
 		layout.render($("#app-wrapper"));
 
 
-		function subscribe(event,callback){
-			$(document).bind(event, function(e, path) {
+		function subscribe(event, callback) {
+			$(document).bind(event, function (e, path) {
 				//console.log(event + ' completed',path);
 				callback();
 			});
 		}
 
-		var initDash = function(){
+		var initDash = function () {
 			layout.showIn("#content", viewDash);
 			loadSettings();
 		};
 
-		var initUsers = function(){
+		var initUsers = function () {
 			layout.showIn("#content", viewUsers);
 			loadUsers();
 		};
 
-		var initRegs = function(){
+		var initRegs = function () {
 			layout.showIn("#content", viewRegs);
 			loadRegs();
+		};
+
+		var initServices = function () {
+			layout.showIn("#content", viewService);
+			loadServices();
 		};
 
 		$("#showDash").on("click", function () {
@@ -159,6 +171,9 @@
 		$("#showRegs").on("click", function () {
 			initRegs();
 		});
+		$("#showSrv").on("click", function () {
+			initServices();
+		});
 
 		var router = new kendo.Router({
 			init: function () {
@@ -167,13 +182,17 @@
 		});
 
 		router.route("/", function () {
-			subscribe(ADMIN_TEMPLATES.Dash.event,initDash);
+			subscribe(ADMIN_TEMPLATES.Dash.event, initDash);
 		});
 		router.route("/users", function () {
-			subscribe(ADMIN_TEMPLATES.User.event,initUsers);
+			subscribe(ADMIN_TEMPLATES.User.event, initUsers);
 		});
 		router.route("/regs", function () {
-			subscribe(ADMIN_TEMPLATES.Regs.event,initRegs);
+			subscribe(ADMIN_TEMPLATES.Regs.event, initRegs);
+		});
+
+		router.route("/srvc", function () {
+			subscribe(ADMIN_TEMPLATES.Service.event, initServices);
 		});
 
 		router.start();
