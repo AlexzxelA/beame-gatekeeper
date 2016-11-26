@@ -21,7 +21,6 @@ $(document).ready(function () {
 	var resetQR = function () {
 		if (!qrContainer)return;
 		if (qrSession) clearInterval(qrSession);
-		socket.emit('close_session');
 		console.log('QR read successfully - set green');
 		qrContainer.empty();
 		qrContainer.removeClass('qr-spinner');
@@ -162,6 +161,7 @@ $(document).ready(function () {
 
 	socket.on('mobileProv1', function (data) {
 		socket.emit('ack', 'mobileProv1');
+		stopAllRunningSessions = true;
 		console.log('QR mobileProv1:', data);
 		if (data.data && QrTMPsocketRelay) {
 			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
@@ -169,6 +169,7 @@ $(document).ready(function () {
 			console.log('QR ******** Sending:: ', msg);
 			QrTMPsocketRelay.emit('data', msg);
 		}
+		socket.emit('close_session');
 	});
 
 	socket.on('mobilePinInvalid', function (data) {
@@ -232,7 +233,6 @@ $(document).ready(function () {
 	socket.on('resetQR', function () {
 		socket.emit('ack', 'resetQR');
 		console.log('QR resetQR');
-		stopAllRunningSessions = true;
 		resetQR();
 	});
 
