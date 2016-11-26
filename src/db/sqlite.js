@@ -42,11 +42,13 @@ class SqliteServices {
 				users:         this._sequelize.models["User"],
 				services:      this._sequelize.models["Service"]
 			};
+
+			logger.info(`Sqlite services started`);
 		});
 
-
-		logger.debug(`Sqlite services started`);
 	}
+
+
 
 	//region registration services
 	getRegistrations() {

@@ -65,7 +65,7 @@ class ServiceManager {
 					let formattedList = {};
 
 					Object.keys(approvedList).forEach(key => {
-						formattedList[approvedList[key].name] = {app_id: parseInt(key),online:approvedList[key].online};
+						formattedList[approvedList[key].name] = {app_id: parseInt(key), online: approvedList[key].online};
 					});
 
 					resolve(formattedList);
@@ -114,6 +114,23 @@ class ServiceManager {
 
 	}
 
+	getAdminAppId() {
+
+		return new Promise((resolve, reject) => {
+				this.evaluateAppList().then(() => {
+				let adminApp =	CommonUtils.filterHash(this._appList, (k, v) => v.code === ADMIN_SERVICE_CODE);
+
+				let keys = Object.keys(adminApp);
+
+				keys.length === 1 ? resolve(adminApp[keys[0]].app_id) : reject(`duplicate app found`);
+
+				}).catch(reject);
+			}
+		);
+
+
+	}
+
 	isAdminService(app_id) {
 		let app = this._appList[app_id];
 
@@ -123,7 +140,7 @@ class ServiceManager {
 	appUrlById(app_id) {
 
 		return new Promise((resolve, reject) => {
-			let app = this._appList[app_id];
+				let app = this._appList[app_id];
 
 				app ? resolve(app.url) : reject(`Unknown appId ${app_id}`);
 			}

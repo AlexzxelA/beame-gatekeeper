@@ -39,8 +39,8 @@ const Constants         = require('./constants');
 const Bootstrapper      = require('./src/bootstrapper');
 const bootstrapper      = new Bootstrapper();
 const credentialManager = new (require('./src/credentialManager'))();
-const AuthToken         = beameSDK.AuthToken;
 const utils             = require('./src/utils');
+const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 
 
 var commandHandled = false;
@@ -132,9 +132,10 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 	};
 
 	bootstrapper.initAll()
+		.then(serviceManager.evaluateAppList.bind(serviceManager))
 		.then(getServersSettings)
 		.then(assertServersSettings)
-		.then(ServersManager.go);
+		.then(ServersManager.go.bind(null,serviceManager));
 
 	commandHandled = true;
 }
@@ -193,32 +194,46 @@ if(args._[0] == 'setName'){
 if(args._[0] == 'config' || args._[0] == 'admin'){
 
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const proxyInitTtl = bootstrapper.proxyInitiatingTtl;
 
-	const tokenInfoByCommand = {
-		'config': {allowConfigApp: true},
-		'admin': {app_id: 0, isAdmin: true}
-	};
 
-	// TODO: move 600 to config
-	const makeProxyEnablingToken = () => {
-		return utils.createAuthTokenByFqdn(
-			gwServerFqdn,
-			JSON.stringify(tokenInfoByCommand[args._[0]]),
-			600
-		);
-	};
+	bootstrapper.initAll().then(()=>{
+		serviceManager.getAdminAppId().then(app_id=>{
 
-	// TODO: move app switching URL to config
-	makeProxyEnablingToken().then(proxyEnablingToken => {
-		const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
-		console.log("--------------------------------------------------");
-		console.log("Please use the URL below to configure/admininister beame-insta-server");
-		console.log(`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command - ${args._[0]})`);
-		console.log(`Don't forget to run the server with 'beame-insta-server serve' command`);
-		console.log(url);
-		console.log("--------------------------------------------------");
+			logger.info(`Admin service found with app_id ${app_id}`);
+
+			const tokenInfoByCommand = {
+				'config': {allowConfigApp: true},
+				'admin': {app_id: app_id, isAdmin: true}
+			};
+
+			// TODO: move 600 to config
+			const makeProxyEnablingToken = () => {
+				return utils.createAuthTokenByFqdn(
+					gwServerFqdn,
+					JSON.stringify(tokenInfoByCommand[args._[0]]),
+					600
+				);
+			};
+
+			// TODO: move app switching URL to config
+			makeProxyEnablingToken().then(proxyEnablingToken => {
+				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+				console.log("--------------------------------------------------");
+				console.log("Please use the URL below to configure/admininister beame-insta-server");
+				console.log(`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command - ${args._[0]})`);
+				console.log(`Don't forget to run the server with 'beame-insta-server serve' command`);
+				console.log(url);
+				console.log("--------------------------------------------------");
+			});
+		}).catch(error =>{
+			console.error(`${BeameLogger.formatError(error)}`);
+			process.exit(1);
+		});
+	}).catch(error =>{
+		console.error(`${BeameLogger.formatError(error)}`);
+		process.exit(1);
 	});
+
 
 	commandHandled = true;
 }
