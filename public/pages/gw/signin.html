@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="WhispererWeb">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -21,9 +21,7 @@
     <!-- endbuild -->
 
 </head>
-<body ng-app="WhispererWeb">
-<div ng-controller="MainCtrl">
-<div ng-controller="WhisperGenerator">
+<body ng-controller="MainCtrl">
 
 <!-- IFRAME IS HIDDEN - add 'show' class to iframe to show it -->
 <iframe id="ifrm-content" class="iframe-wide"></iframe>
@@ -112,12 +110,12 @@
 <!-- Scripts -->
 <!-- build:js -->
 <script src="js/crypto.js"></script>
+<script src="js/notification_manager.js"></script>
 <script src="js/session_controller.js"></script>
 <script src="js/qr.js"></script>
-<script src="js/whisperer.js"></script>
 <script src="js/whisper_generator.js"></script>
+<script src="js/whisperer.js"></script>
 <!-- endbuild -->
-</div>
-</div>
+
 </body>
 </html>

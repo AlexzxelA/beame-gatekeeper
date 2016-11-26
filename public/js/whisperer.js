@@ -246,6 +246,7 @@ app.controller("MainCtrl", function ($scope) {
 
 	$scope.socket.on('mobileProv1', function (data) {
 		if (data.data && WhTMPSocketRelay) {
+			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 			var msg = {'socketId': whTmpSocketId, 'payload': JSON.stringify(data)};
 			console.log('******** Sedning:: ', msg);
 			WhTMPSocketRelay.emit('data', msg);
@@ -309,7 +310,7 @@ app.controller("MainCtrl", function ($scope) {
 		$scope.showConn = false;
 		tryDigest($scope);
 		$scope.pinData = data;
-		$scope.$broadcast('newPin',data);
+		getWAV(data);
 		//$scope.keepAlive = 5;
 		console.log('PIN:' + data);
 		var pinElement = document.getElementById("pin");
@@ -321,9 +322,7 @@ app.controller("MainCtrl", function ($scope) {
 	//$scope.socket.on('data', function (data) {
 	$scope.gotData = function (data) {
 		if (stopAllRunningSessions) {
-			$scope.socket.emit('close_session');
-			$scope.stopPlaying();
-			$scope.showPopup('Audio stopped');
+			closeSession();
 		}
 		else {
 			//$scope.socketAlive = true;
@@ -371,6 +370,15 @@ app.controller("MainCtrl", function ($scope) {
 	$scope.hidePopup = function () {
 		$scope.turnSoundOn();
 	};
+
+	var closeSession = function(){
+		$scope.socket.emit('close_session');
+		$scope.stopPlaying();
+		$scope.showPopup('Audio stopped');
+	};
+
+	window.getNotifManagerInstance().subscribe('STOP_PAIRING', closeSession, null);
+	window.getNotifManagerInstance().subscribe('NEW_DATA', $scope.gotData, null);
 
 });
 

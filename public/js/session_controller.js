@@ -10,30 +10,30 @@ function startGatewaySession(authToken, relaySocket) {
 	// xxx - start
 	var xxx_session_token = null;
 	// xxx - end
-	console.log('startGatewaySession authToken:',authToken);
+	console.log('startGatewaySession authToken:', authToken);
 	restartMobileRelaySocket(relaySocket);
 
 	gw_socket = io.connect('/', {
-		path: '/beame-gw/socket.io',
+		path:                   '/beame-gw/socket.io',
 		'force new connection': true
 	});
 
-	gw_socket.on('error', function(e) {
+	gw_socket.on('error', function (e) {
 		console.error('Error in gw_socket', e);
 	});
 
-	gw_socket.once('connect',function(){
+	gw_socket.once('connect', function () {
 
 		console.info('gw_socket connected');
 
-		gw_socket.emit('data',{
-			type:'auth',
-			payload: {token:authToken}
+		gw_socket.emit('data', {
+			type:    'auth',
+			payload: {token: authToken}
 		})
 
 	});
 
-	gw_socket.on('data', function(data) {
+	gw_socket.on('data', function (data) {
 		data = JSON.parse(data);
 
 		console.log('DATA %j', data);
@@ -42,10 +42,13 @@ function startGatewaySession(authToken, relaySocket) {
 
 		// xxx - start
 		if (type == 'authenticated' && payload.success) {
+
+			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+
 			xxx_session_token = payload.session_token;
 			console.warn('session token', xxx_session_token);
 
-			if(user){
+			if (user) {
 				//$('#conn-to').html('connected to ' + user.fqdn);
 				// $('#user-name').html('Hello, ' + (user.name || user.email || user.user_id));
 				// $('#info-module').show();
@@ -75,10 +78,10 @@ function startGatewaySession(authToken, relaySocket) {
 			delete payload.url;
 		}
 
-		if(relay_socket){
+		if (relay_socket) {
 			var msg = {
 				'socketId': relay_socket.beame_relay_socket_id,
-				'payload': JSON.stringify(data)
+				'payload':  JSON.stringify(data)
 			};
 			console.log('******** Sedning:: ', msg);
 			// QrTMPsocketRelay.emit('data', msg);
@@ -92,9 +95,9 @@ function startGatewaySession(authToken, relaySocket) {
 
 	});
 
-	function restartMobileRelaySocket(mob_relay_socket){
+	function restartMobileRelaySocket(mob_relay_socket) {
 
-		if(!mob_relay_socket) return;
+		if (!mob_relay_socket) return;
 
 		relaySocket = mob_relay_socket;
 
@@ -104,10 +107,10 @@ function startGatewaySession(authToken, relaySocket) {
 			console.log('mobile socket:: disconnected ', relaySocket.id);
 		});
 
-		relaySocket.on('data',function(data){
+		relaySocket.on('data', function (data) {
 
-			processMobileData(WhTMPSocketRelay,gw_socket, data,function (decryptedData){
-				gw_socket.emit('data',decryptedData);
+			processMobileData(WhTMPSocketRelay, gw_socket, data, function (decryptedData) {
+				gw_socket.emit('data', decryptedData);
 				console.log('relaySocket data', decryptedData);
 				// var type = decryptedData.payload.data.type,
 				// 	session_token = decryptedData.payload.data.session_token;
@@ -145,18 +148,18 @@ function startGatewaySession(authToken, relaySocket) {
 
 	function chooseApp(id) {
 		console.log('chooseApp', id, xxx_session_token);
-		gw_socket.emit('data',{
-			type: 'choose',
+		gw_socket.emit('data', {
+			type:    'choose',
 			payload: {
-				id: id,
+				id:            id,
 				session_token: xxx_session_token
 			}
 		});
 	}
 
 	function logout() {
-		gw_socket.emit('data',{
-			type: 'logout',
+		gw_socket.emit('data', {
+			type:    'logout',
 			payload: {
 				session_token: xxx_session_token
 			}
@@ -165,12 +168,12 @@ function startGatewaySession(authToken, relaySocket) {
 
 	// xxx - start
 	window.xxx_choose_app = chooseApp;
-	window.xxx_logout = logout;
+	window.xxx_logout     = logout;
 	// xxx - end
 }
 
-function setIframeHtmlContent(html){
-	var iframe = document.getElementById('ifrm-content'),
+function setIframeHtmlContent(html) {
+	var iframe    = document.getElementById('ifrm-content'),
 	    iframedoc = iframe.contentDocument || iframe.contentWindow.document;
 
 	iframe.style.display = 'block';
@@ -178,12 +181,12 @@ function setIframeHtmlContent(html){
 	iframedoc.body.innerHTML = html;
 }
 
-function setIframeUrl(url){
-	var iframe = document.getElementById('ifrm-content');
+function setIframeUrl(url) {
+	var iframe           = document.getElementById('ifrm-content');
 	iframe.style.display = 'block';
-	iframe.src = url;
+	iframe.src           = url;
 }
 
-function removeLogin(){
+function removeLogin() {
 	$('#login_form').remove();
 }

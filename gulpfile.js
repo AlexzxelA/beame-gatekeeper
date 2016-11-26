@@ -69,9 +69,9 @@ const compilePage = (pagePath, distPath) => {
 const compileJs = (funcArray, dist_name, optimize) => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
-		.pipe(gulpif(optimize, uglify()))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
+	//	.pipe(gulpif(optimize, uglify()))
 		.pipe(gulp.dest(`./${dist_folder_name}/js/`));
 };
 
@@ -144,8 +144,10 @@ gulp.task('compile-js', () => {
 	compileJs(
 		[
 			'./public/js/crypto.js',
+			'./public/js/notification_manager.js',
 			'./public/js/session_controller.js',
 			'./public/js/qr.js',
+			'./public/js/whisper_generator.js',
 			'./public/js/whisperer.js'
 		], 'app.min.js', true);
 

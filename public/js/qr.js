@@ -18,6 +18,25 @@ var serviceName     = null;
 
 $(document).ready(function () {
 
+	var resetQR = function () {
+		if (!qrContainer)return;
+		if (qrSession) clearInterval(qrSession);
+		socket.emit('close_session');
+		console.log('QR read successfully - set green');
+		qrContainer.empty();
+		qrContainer.removeClass('qr-spinner');
+		//noinspection JSUnresolvedFunction
+		qrContainer.kendoQRCode({
+			value:           "{\"message\":\"QR used, reload the page to get new QR\"}",
+			errorCorrection: "L",
+			color:           "#0F9239",
+			background:      "transparent",
+			padding:         0,
+			size:            220
+		});
+	};
+
+	window.getNotifManagerInstance().subscribe('STOP_PAIRING', resetQR, null);
 
 	var UID = generateUID(24) + VirtualPrefix;
 	console.log('UID:', UID);
@@ -145,8 +164,9 @@ $(document).ready(function () {
 		socket.emit('ack', 'mobileProv1');
 		console.log('QR mobileProv1:', data);
 		if (data.data && QrTMPsocketRelay) {
+			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 			var msg = {'socketId': qrTmpSocketID, 'payload': JSON.stringify(data)};
-			console.log('QR ******** Sedning:: ', msg);
+			console.log('QR ******** Sending:: ', msg);
 			QrTMPsocketRelay.emit('data', msg);
 		}
 	});
@@ -208,24 +228,6 @@ $(document).ready(function () {
 		console.log('QR DISCONNECTED');
 		//resetQR();
 	});
-
-	var resetQR = function () {
-		if (!qrContainer)return;
-		if (qrSession) clearInterval(qrSession);
-		socket.emit('close_session');
-		console.log('QR read successfully - set green');
-		qrContainer.empty();
-		qrContainer.removeClass('qr-spinner');
-		//noinspection JSUnresolvedFunction
-		qrContainer.kendoQRCode({
-			value:           "{\"message\":\"QR used, reload the page to get new QR\"}",
-			errorCorrection: "L",
-			color:           "#0F9239",
-			background:      "transparent",
-			padding:         0,
-			size:            220
-		});
-	};
 
 	socket.on('resetQR', function () {
 		socket.emit('ack', 'resetQR');
