@@ -44,6 +44,7 @@ $(document).ready(function () {
 	var socket = io.connect("/qr", socketio_options);
 	console.log('QR window ready');
 	socket.on('connect', function () {
+		setQRStatus('Connected to origin');
 		console.log('QR socket connected, ', qrRelayEndpoint);
 		QrTMPsocketOrigin = socket;//remove towards prod
 		if (!qrRelayEndpoint) {
@@ -64,6 +65,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
+		setQRStatus('Received session data, initializing');
 		setQRStatus('Starting QR session');
 		console.log('Starting QR session with data:', data);
 		if(data){
@@ -82,6 +84,7 @@ $(document).ready(function () {
 
 	socket.on('pinRenew', function (data) {
 		socket.emit('ack', 'pinRenew');
+		setQRStatus('');
 		console.log('pinRenew:', data);
 		if (stopAllRunningSessions) {
 			console.log('QR session stopped from server');
@@ -161,6 +164,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('mobileProv1', function (data) {
+		setQRStatus('Mobile session complete');
 		socket.emit('ack', 'mobileProv1');
 		stopAllRunningSessions = true;
 		console.log('QR mobileProv1:', data);
@@ -174,6 +178,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('mobilePinInvalid', function (data) {
+		setQRStatus('Session ID invalid, please retry');
 		socket.emit('ack', 'mobilePinInvalid');
 		console.log('QR ***mobilePinInvalid***** Sedning:: ', msg);
 		if (data.data && QrTMPsocketRelay) {
@@ -186,6 +191,7 @@ $(document).ready(function () {
 	socket.on('relayEndpoint', function (data) {
 		socket.emit('ack', 'relayEndpoint');
 		console.log('QR relayEndpoint', data);
+		setQRStatus('Got virtual host registration token');
 		generateKeyPairs(function (error, keydata) {
 			if (error) return;//send error to origin/show on browser
 			if (!keyGenerated) {
@@ -249,6 +255,7 @@ $(document).ready(function () {
 function initRelay(socket) {
 
 	QrTMPsocketRelay.on('disconnect', function () {
+		setQRStatus('Virtual host disconnected');
 		console.log('QR relay disconnected, ID = ', QrTMPsocketRelay.id);
 	});
 
@@ -266,7 +273,7 @@ function initRelay(socket) {
 
 	QrTMPsocketRelay.on('hostRegistered', function (data) {
 		console.log('QR hostRegistered, ID = ', QrTMPsocketRelay.id, '.. hostname: ', data.Hostname);
-
+		setQRStatus('Virtual host registration complete');
 		socket.emit('virtSrvConfig', data.Hostname);
 		//noinspection JSUnresolvedFunction,JSUnresolvedVariabl
 	});
