@@ -91,8 +91,10 @@ class WhisperersManager {
 		socket.emit('your_id');
 
 		socket.on('register_mobile_provision', sessionId => {
+			logger.debug(`Mobile register_mobile_provision for ${sessionId}`);
 			let whisperer = this.whisperers[sessionId];
 			if (!whisperer) {
+				logger.debug(`whisperer_error for ${sessionId}!!!`);
 				socket.emit('whisperer_error', `whisperer ${sessionId} not found`);
 				socket.disconnect();
 				return;

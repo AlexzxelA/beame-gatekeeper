@@ -130,13 +130,13 @@ class Whisperer {
 						this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
 					}
 					else {
-						if (retryCount++ > 10) {
+						if (retryCount++ > 30) {
 							clearInterval(sessionRetry);
 							this._socket.emit('mobile_network_error');
 						}
 					}
 
-				}, 100);
+				}, 150);
 				//stop playing pincodes
 
 

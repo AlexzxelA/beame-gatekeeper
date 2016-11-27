@@ -17,7 +17,7 @@ var matchingFqdn    = null;
 var serviceName     = null;
 
 $(document).ready(function () {
-
+	setQRStatus('QR initializing session');
 	var resetQR = function () {
 		if (!qrContainer)return;
 		if (qrSession) clearInterval(qrSession);
@@ -65,8 +65,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
-		setQRStatus('Received session data, initializing');
-		setQRStatus('Starting QR session');
+		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
 		if(data){
 			matchingFqdn = data.matching || matchingFqdn;
