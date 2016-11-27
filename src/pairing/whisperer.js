@@ -61,6 +61,7 @@ class Whisperer {
 		this._socketDisconnectTimeout = socketDisconnectTimeout;
 		this._creds                   = store.getCredential(this._fqdn);
 		this._serviceName             = serviceName;
+		this._qrData                    = null;
 	}
 
 	get sessionId() {
@@ -119,30 +120,8 @@ class Whisperer {
 			});
 
 			this._socket.on('init_mobile_session', qrData => {
-
-				let retryCount   = 0;
-				let sessionRetry = setInterval(() => {
-					if (this._mobileSocket) {
-						this.stop();
-						clearInterval(sessionRetry);
-						let qrDataObj = JSON.parse(qrData);
-						qrDataObj['service'] = this._serviceName;
-						qrDataObj['matching'] = this._matchingServerFqdn;
-						logger.debug('Whisperer sending data to mobile:',JSON.stringify(qrDataObj));
-						this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
-					}
-					else {
-						if (retryCount++ > 30) {
-							logger.debug('Failed to send session data to mobile');
-							clearInterval(sessionRetry);
-							this._socket.emit('mobile_network_error');
-						}
-					}
-
-				}, 200);
-				//stop playing pincodes
-
-
+				this._qrData = qrData;
+				logger.debug('init_mobile_session received:',qrData);
 			});
 
 			this._socket.on('virtSrvConfig', (data) => {
@@ -224,6 +203,7 @@ class Whisperer {
 			});
 
 			this._socket.on('close_session', () => {
+				logger.debug('close_session received');
 				this.stop();
 				this._socket.disconnect();
 				setTimeout(() => {
@@ -264,7 +244,6 @@ class Whisperer {
 				this.matchingServerSocketClient = null;
 			}
 		}, 1000)
-
 	}
 
 	runWhisperer() {
@@ -285,6 +264,7 @@ class Whisperer {
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);
 
 		this.matchingServerSocketClient.emit('create_session', data);
+		this._socket.emit('init_mobile_session', {pin: this._sessionId});
 
 	}
 
@@ -307,8 +287,30 @@ class Whisperer {
 	}
 
 	mobileConnected(message) {
-		logger.debug(`User identified!! Audio stopped, ${message}`);
-		this._socket.emit('init_mobile_session', {pin: this._sessionId});
+		logger.debug(`User identified!! Audio stopped, ${this._qrData}`);
+		this._socket.emit('connect_ok','qrData ok:'+(this._qrData != null));
+		let retryCount   = 0;
+
+		let sessionRetry = setInterval(() => {
+			if (this._mobileSocket && this._qrData) {
+				this.stop();
+				clearInterval(sessionRetry);
+				let qrDataObj = JSON.parse(this._qrData);
+				qrDataObj['service'] = this._serviceName;
+				qrDataObj['matching'] = this._matchingServerFqdn;
+				logger.debug('Whisperer sending data to mobile:',JSON.stringify(qrDataObj));
+				this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
+			}
+			else {
+				if (retryCount++ > 30) {
+					logger.debug('Failed to send session data to mobile');
+					clearInterval(sessionRetry);
+					this._socket.emit('mobile_network_error');
+				}
+			}
+
+		}, 500);
+		//stop playing pincodes
 	}
 }
 

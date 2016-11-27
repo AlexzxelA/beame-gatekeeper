@@ -161,15 +161,15 @@ app.controller("MainCtrl", function ($scope) {
 
 
 	$scope.socket.on('connect_ok', function (data) {
-		console.log('DATA >>>>>>> ' + JSON.stringify(data));//XXX
+		console.log('Terminating audio with: ' + JSON.stringify(data));//XXX
 		$scope.stopPlaying();
 		$scope.showPopup('Code matched');
 	});
 
 	$scope.socket.on('init_mobile_session', function (data) {
 		console.log('init_mobile_session %j', data);
-		$scope.stopPlaying();
-		$scope.showPopup('Code matched');
+		//$scope.stopPlaying();
+		//$scope.showPopup('Code matched');
 
 		WhPIN = data.pin;
 		WhUID = generateUID(24) + VirtualPrefix;
@@ -256,6 +256,7 @@ app.controller("MainCtrl", function ($scope) {
 	$scope.socket.on('relayEndpoint', function (data) {
 		console.log('relayEndpoint', data);
 		try {
+			if(WhTMPSocketRelay)WhTMPSocketRelay.disconnect();
 			var parsedData  = JSON.parse(data);
 			WhRelayEndpoint = parsedData['data'];
 			var lclTarget   = "https://" + WhRelayEndpoint + "/control";
