@@ -3,15 +3,15 @@
  */
 
 "use strict";
-const async          = require('async');
-const beameSDK       = require('beame-sdk');
-const module_name    = "BeameAdminServices";
-const BeameLogger    = beameSDK.Logger;
-const logger         = new BeameLogger(module_name);
-const CommonUtils    = beameSDK.CommonUtils;
-const Bootstrapper   = require('../../bootstrapper');
-const bootstrapper   = new Bootstrapper();
-const dataService    = new (require('../../dataServices'))();
+const async        = require('async');
+const beameSDK     = require('beame-sdk');
+const module_name  = "BeameAdminServices";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const CommonUtils  = beameSDK.CommonUtils;
+const Bootstrapper = require('../../bootstrapper');
+const bootstrapper = new Bootstrapper();
+var dataService    = null;
 
 class AdminServices {
 
@@ -20,6 +20,7 @@ class AdminServices {
 	 */
 	constructor(_serviceManager) {
 		this._serviceManager = _serviceManager;
+		dataService          = require('../../dataServices').getInstance();
 	}
 
 	//region settings

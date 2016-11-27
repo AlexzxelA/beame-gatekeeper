@@ -35,7 +35,7 @@ const provisionApi     = new (beameSDK.ProvApi)();
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = new Bootstrapper();
-const dataService      = new (require('./dataServices'))({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
+var dataService        = null;
 
 
 class BeameAuthServices {
@@ -55,6 +55,8 @@ class BeameAuthServices {
 			logger.fatal(`Server credential not found`);
 		}
 
+		dataService = require('./dataServices').getInstance();
+
 		let subscribe = subscribeForChildCerts || true;
 
 		if (subscribe) {
@@ -64,6 +66,7 @@ class BeameAuthServices {
 
 
 	//region Entity registration
+	//noinspection JSUnusedGlobalSymbols
 	/**
 	 * @param {RegistrationData} data
 	 * @param {boolean} createAuthToken
@@ -394,7 +397,7 @@ class BeameAuthServices {
 
 	//region user
 	static IsAdminCreated() {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 				dataService.searchUsers({"isAdmin": true}).then(admins => {
 					resolve(admins.length > 0);
 				}).catch(error => {

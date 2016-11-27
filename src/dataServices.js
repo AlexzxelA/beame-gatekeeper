@@ -17,6 +17,8 @@ const bootstrapper = new Bootstrapper();
 const Constants    = require('../constants');
 const DbProviders  = Constants.DbProviders;
 
+var dataServicesInstance = null;
+
 class DataServices {
 
 	/**
@@ -48,6 +50,10 @@ class DataServices {
 				return;
 		}
 
+	}
+
+	start() {
+		return this._dbService.start();
 	}
 
 	//region registration services
@@ -171,7 +177,7 @@ class DataServices {
 		return this._dbService.getServices();
 	}
 
-	getActiveServices(){
+	getActiveServices() {
 		return this._dbService.getActiveServices();
 	}
 
@@ -183,10 +189,24 @@ class DataServices {
 		return this._dbService.updateService(service);
 	}
 
-	deleteService(id){
+	deleteService(id) {
 		return this._dbService.deleteService(id);
 	}
+
 	//endregion
+
+	/**
+	 *
+	 * @param {DataServicesSettings|null|undefined} [options]
+	 * @returns {DataServices}
+	 */
+	static getInstance(options){
+		if(!dataServicesInstance){
+			dataServicesInstance = new DataServices(options);
+		}
+
+		return dataServicesInstance;
+	}
 }
 
 

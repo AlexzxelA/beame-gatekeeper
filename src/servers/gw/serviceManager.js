@@ -7,7 +7,6 @@ const module_name        = "ServiceManager";
 const BeameLogger        = beameSDK.Logger;
 const logger             = new BeameLogger(module_name);
 const CommonUtils        = beameSDK.CommonUtils;
-const dataService        = new (require('../../dataServices'))();
 const ADMIN_SERVICE_CODE = 'ADMIN';
 
 const default_services = {
@@ -85,7 +84,10 @@ class ServiceManager {
 	evaluateAppList() {
 
 		return new Promise((resolve, reject) => {
-				dataService.getServices().then(apps => {
+
+			const dataService  = require('../../dataServices').getInstance();
+
+			dataService.getServices().then(apps => {
 
 					if (apps.length) {
 						for (let app of apps) {
@@ -117,18 +119,13 @@ class ServiceManager {
 	getAdminAppId() {
 
 		return new Promise((resolve, reject) => {
-				this.evaluateAppList().then(() => {
-				let adminApp =	CommonUtils.filterHash(this._appList, (k, v) => v.code === ADMIN_SERVICE_CODE);
+				let adminApp = CommonUtils.filterHash(this._appList, (k, v) => v.code === ADMIN_SERVICE_CODE);
 
 				let keys = Object.keys(adminApp);
 
 				keys.length === 1 ? resolve(adminApp[keys[0]].app_id) : reject(`duplicate app found`);
-
-				}).catch(reject);
 			}
 		);
-
-
 	}
 
 	isAdminService(app_id) {

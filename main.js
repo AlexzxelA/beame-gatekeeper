@@ -5,9 +5,9 @@
 
 // Ensure correct NodeJS version - start
 const process = require('process');
-const semver = require('semver');
-const pjson = require('./package.json');
-if(!semver.satisfies(process.versions.node, pjson.engines.node)) {
+const semver  = require('semver');
+const pjson   = require('./package.json');
+if (!semver.satisfies(process.versions.node, pjson.engines.node)) {
 	console.error(`Beame-insta-server requires NodeJS version ${pjson.engines.node}. Running with version ${process.versions.node}. Exiting.`);
 	process.exit(2);
 }
@@ -40,8 +40,11 @@ const Bootstrapper      = require('./src/bootstrapper');
 const bootstrapper      = new Bootstrapper();
 const credentialManager = new (require('./src/credentialManager'))();
 const utils             = require('./src/utils');
-const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 
+/** @type {DataServices} */
+const dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
+
+const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 
 var commandHandled = false;
 
@@ -72,21 +75,21 @@ if (args._[0] == 'create') {
 		process.exit(1);
 	}
 
-	bootstrapper.initAll().then(() => {
+	bootstrapper.initAll()
+		.then(() => {
 
-		credentialManager.createInitialCredentials(token).then(metadata=> {
-			console.log('');
-			console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
-			console.log('');
-			console.log(getHelpMessage('certificate-created.txt'));
-			console.log(`https://${metadata.fqdn}`);
-			process.exit(0);
-		}).catch(e => {
-			logger.error(e);
-			process.exit(1);
+			credentialManager.createInitialCredentials(token).then(metadata => {
+				console.log('');
+				console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
+				console.log('');
+				console.log(getHelpMessage('certificate-created.txt'));
+				console.log(`https://${metadata.fqdn}`);
+				process.exit(0);
+			}).catch(e => {
+				logger.error(e);
+				process.exit(1);
+			});
 		});
-	});
-
 
 
 	commandHandled = true;
@@ -119,11 +122,11 @@ if (args._[0] == 'list') {
 if (args._[0] == 'server' || args._[0] == 'serve') {
 
 	const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
-	const ServersManager = require('./src/serversManager');
+	const ServersManager     = require('./src/serversManager');
 
 	const assertServersSettings = (settings) => {
-		return new Promise((resolve, reject) => {
-			if(!settings) {
+		return new Promise((resolve) => {
+			if (!settings) {
 				console.log(getHelpMessage('no-certificates.txt'));
 				process.exit(1);
 			}
@@ -132,26 +135,27 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 	};
 
 	bootstrapper.initAll()
+		.then(dataService.start.bind(dataService))
 		.then(serviceManager.evaluateAppList.bind(serviceManager))
 		.then(getServersSettings)
 		.then(assertServersSettings)
-		.then(ServersManager.go.bind(null,serviceManager));
+		.then(ServersManager.go.bind(null, serviceManager));
 
 	commandHandled = true;
 }
 
-if(args._[0] == 'setAuthServer'){
+if (args._[0] == 'setAuthServer') {
 
 	let fqdn = args['fqdn'];
 
-	if(!fqdn){
+	if (!fqdn) {
 		logger.error(`fqdn required`);
 		process.exit(1)
 	}
 
-	bootstrapper.registerCustomerAuthServer(fqdn).then(() =>{
+	bootstrapper.registerCustomerAuthServer(fqdn).then(() => {
 		process.exit(0);
-	}).catch(error=>{
+	}).catch(error => {
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});
@@ -160,29 +164,29 @@ if(args._[0] == 'setAuthServer'){
 	commandHandled = true;
 }
 
-if(args._[0] == 'initConfig'){
-	bootstrapper.initAll().then(() =>{
+if (args._[0] == 'initConfig') {
+	bootstrapper.initAll().then(() => {
 		process.exit(0);
-	}).catch(error=>{
+	}).catch(error => {
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});
 	commandHandled = true;
 }
 
-if(args._[0] == 'setName'){
+if (args._[0] == 'setName') {
 
 	let name = args['name'];
 
-	if(!name){
+	if (!name) {
 		logger.error(`name required`);
 		process.exit(1)
 	}
 
-	bootstrapper.setServiceName(name).then(() =>{
+	bootstrapper.setServiceName(name).then(() => {
 		logger.info(`Insta-server service name set to ${name} successfully`);
 		process.exit(0);
-	}).catch(error=>{
+	}).catch(error => {
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});
@@ -191,19 +195,19 @@ if(args._[0] == 'setName'){
 	commandHandled = true;
 }
 
-if(args._[0] == 'config' || args._[0] == 'admin'){
+if (args._[0] == 'config' || args._[0] == 'admin') {
 
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
 
-	bootstrapper.initAll().then(()=>{
-		serviceManager.getAdminAppId().then(app_id=>{
+	const createToken = () => {
+		serviceManager.getAdminAppId().then(app_id => {
 
 			logger.info(`Admin service found with app_id ${app_id}`);
 
 			const tokenInfoByCommand = {
 				'config': {allowConfigApp: true},
-				'admin': {app_id: app_id, isAdmin: true}
+				'admin':  {app_id: app_id, isAdmin: true}
 			};
 
 			// TODO: move 600 to config
@@ -225,24 +229,30 @@ if(args._[0] == 'config' || args._[0] == 'admin'){
 				console.log(url);
 				console.log("--------------------------------------------------");
 			});
-		}).catch(error =>{
+		}).catch(error => {
 			console.error(`${BeameLogger.formatError(error)}`);
 			process.exit(1);
 		});
-	}).catch(error =>{
-		console.error(`${BeameLogger.formatError(error)}`);
-		process.exit(1);
-	});
+	};
+
+	bootstrapper.initAll()
+		.then(dataService.start.bind(dataService))
+		.then(serviceManager.evaluateAppList.bind(serviceManager))
+		.then(createToken)
+		.catch(error => {
+			console.error(`${BeameLogger.formatError(error)}`);
+			process.exit(1);
+		});
 
 
 	commandHandled = true;
 }
 
-if(args._[0] == 'createServersCreds'){
+if (args._[0] == 'createServersCreds') {
 
-	credentialManager.createServersCredentials().then(() =>{
+	credentialManager.createServersCredentials().then(() => {
 		process.exit(0);
-	}).catch(error=>{
+	}).catch(error => {
 		logger.error(BeameLogger.formatError(error));
 		process.exit(1);
 	});

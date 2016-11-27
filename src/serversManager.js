@@ -24,8 +24,8 @@ class ServersManager {
 		}
 
 		this._serviceManager = _serviceManager;
-		this._settings = serversSettings;
-		this._servers  = {};
+		this._settings       = serversSettings;
+		this._servers        = {};
 	}
 
 	start() {
@@ -35,7 +35,7 @@ class ServersManager {
 				callback => {
 
 					logger.debug('SETTINGS', this._settings);
-					const gws = new(require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn,this._settings.MatchingServer.fqdn,this._serviceManager);
+					const gws = new (require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn, this._settings.MatchingServer.fqdn, this._serviceManager);
 					gws.start((error, app) => {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
@@ -89,7 +89,7 @@ class ServersManager {
 
 					let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
 
-					matching_server.start((error, app)=> {
+					matching_server.start((error, app) => {
 						if (!error) {
 							logger.info(`Matching server started on https://${this._settings.MatchingServer.fqdn}`);
 							this._servers[Constants.CredentialType.MatchingServer] = app;
@@ -125,7 +125,7 @@ class ServersManager {
 						}
 					}
 				}
-				else{
+				else {
 					logger.info(`Servers started successfully`);
 				}
 			});
@@ -133,7 +133,7 @@ class ServersManager {
 	}
 
 	static go(serviceManager, serversSettings) {
-		return (new ServersManager(serversSettings,serviceManager)).start();
+		return (new ServersManager(serversSettings, serviceManager)).start();
 	}
 }
 

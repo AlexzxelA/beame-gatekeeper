@@ -186,7 +186,7 @@ function handleRequest(req, res) {
  */
 function startTunnel([cert, requestsHandlerPort]) {
 	logger.debug('startTunnel');
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 
 		var serverCerts = cert.getHttpsServerOptions();
 		new ProxyClient("HTTPS", cert.fqdn,

@@ -34,21 +34,26 @@ class SqliteServices {
 
 		this._sequelize = models.sequelize;
 
-		this._sequelize.sync().then(() => {
-
-			this._models = {
-				sessions:      this._sequelize.models["Session"],
-				registrations: this._sequelize.models["Registration"],
-				users:         this._sequelize.models["User"],
-				services:      this._sequelize.models["Service"]
-			};
-
-			logger.info(`Sqlite services started`);
-		});
-
 	}
 
+	start() {
+		return new Promise((resolve, reject) => {
+				this._sequelize.sync().then(() => {
 
+					this._models = {
+						sessions:      this._sequelize.models["Session"],
+						registrations: this._sequelize.models["Registration"],
+						users:         this._sequelize.models["User"],
+						services:      this._sequelize.models["Service"]
+					};
+
+					logger.info(`Sqlite services started`);
+
+					resolve()
+				}).catch(reject);
+			}
+		);
+	}
 
 	//region registration services
 	getRegistrations() {
