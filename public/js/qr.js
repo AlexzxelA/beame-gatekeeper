@@ -64,6 +64,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
+		setQRStatus('Starting QR session');
 		console.log('Starting QR session with data:', data);
 		if(data){
 			matchingFqdn = data.matching || matchingFqdn;
@@ -236,7 +237,6 @@ $(document).ready(function () {
 		resetQR();
 	});
 
-
 //window.location.host window.location.href
 	$(window).on('resize', function () {
 		if (qrContainer) {
@@ -278,4 +278,9 @@ function initRelay(socket) {
 	QrTMPsocketRelay.on('_end', function () {
 		console.log('QR end, ID = ', QrTMPsocketRelay.id);
 	});
+}
+
+function setQRStatus(status){
+	$('.qr-status').html(status);
+
 }

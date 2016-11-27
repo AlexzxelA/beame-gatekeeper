@@ -462,20 +462,34 @@ p + p {
     padding: 30px 20px 15px;
     box-shadow: 0 0 20px #e9dbf4;
     text-align: center;
-    width: 70%; }
+    width: 70%;
+}
+
 .box-signin .signin-qr {
     width: 70%;
     height: 70%;
     min-width: 200px;
-    min-height: 200px;
+    min-height: 220px;
     display: inline-block;
-    font-size: 0; }
+    font-size: 0;
+
+    & .qr-status{
+        display: inline-flex;
+        font-size: 13px;
+        margin: 5px auto 0;
+    }
+}
+
 .box-signin .signin-qr svg {
-    max-width: 100%; }
+    max-width: 100%;
+}
+
 .box-signin .signin-divider {
     margin: 25px auto 15px;
     color: #777;
-    font-size: 15px; }
+    font-size: 15px;
+}
+
 .box-signin .signin-speaker {
     display: inline-block;
     width: 80px;
@@ -487,13 +501,19 @@ p + p {
     transform: scale(1);
     transition: transform 0.1s;
     background: url("/img/speaker-purple-off.svg") no-repeat center;
-    background-size: 105%; }
+    background-size: 105%;
+}
+
 .box-signin .signin-speaker.button-on {
     background: url("/img/speaker-purple-on.svg") no-repeat center;
-    background-size: 105%; }
+    background-size: 105%;
+}
+
 .box-signin .signin-speaker:hover {
     transform: scale(1.03);
-    transition: transform 0.1s; }
+    transition: transform 0.1s;
+}
+
 // iframe
 .iframe-wide {
     display: none;
@@ -514,7 +534,6 @@ p + p {
 
 }
 
-
 .qr-spinner {
     border: 8px solid #7030a0;
     border-radius: 50%;
@@ -526,13 +545,21 @@ p + p {
 }
 
 @-webkit-keyframes spin {
-    0% { -webkit-transform: rotate(0deg); }
-    100% { -webkit-transform: rotate(360deg); }
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 // error message for sign in
