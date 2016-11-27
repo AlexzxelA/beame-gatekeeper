@@ -119,10 +119,11 @@ class Whisperer {
 			});
 
 			this._socket.on('init_mobile_session', qrData => {
-				this.stop();
+
 				let retryCount   = 0;
 				let sessionRetry = setInterval(() => {
 					if (this._mobileSocket) {
+						this.stop();
 						clearInterval(sessionRetry);
 						let qrDataObj = JSON.parse(qrData);
 						qrDataObj['service'] = this._serviceName;
