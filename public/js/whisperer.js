@@ -97,7 +97,7 @@ app.controller("MainCtrl", function ($scope) {
 				$scope.audio.loop = true;
 				$scope.audio.play();
 				$scope.audio.playing = true;
-
+				$scope.showMsg = false;
 				tryDigest($scope);
 
 			} catch (e) {

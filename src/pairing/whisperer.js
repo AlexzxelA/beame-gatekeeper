@@ -128,16 +128,18 @@ class Whisperer {
 						let qrDataObj = JSON.parse(qrData);
 						qrDataObj['service'] = this._serviceName;
 						qrDataObj['matching'] = this._matchingServerFqdn;
+						logger.debug('Whisperer sending data to mobile:',JSON.stringify(qrDataObj));
 						this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
 					}
 					else {
 						if (retryCount++ > 30) {
+							logger.debug('Failed to send session data to mobile');
 							clearInterval(sessionRetry);
 							this._socket.emit('mobile_network_error');
 						}
 					}
 
-				}, 150);
+				}, 200);
 				//stop playing pincodes
 
 
