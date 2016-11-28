@@ -22,11 +22,18 @@ BEAME_INSTA_SERVER_BIN = HOME / 'beame-insta-server/main.js'
 BEAME_SDK_BIN = HOME / 'beame-sdk/src/cli/beame.js'
 BEAME_DEV_AUTH_FQDN = 'n6ge8i9q4b4b5vb6.h40d7vrwir2oxlnn.v1.d.beameio.net'
 
-each(DIRS, F(dir) {
-	if Path(dir) {
-		throw Error("Directory ($BEAME_DIR) exists. Will not run tests.")
-	}
-})
+CONFIG_DIR = "${HOME}/.beame_server/config"
+APP_CONFIG_FILE = CONFIG_DIR / 'app_config.json'
+
+TEST_EXISTING_DIR = ENV.get('TEST_EXISTING_DIR', false)
+
+if not(TEST_EXISTING_DIR) {
+	each(DIRS, F(dir) {
+		if Path(dir) {
+			throw Error("Directory ($BEAME_DIR) exists. Will not run tests.")
+		}
+	})
+}
 
 # ---------- Environment setup ----------
 
@@ -131,11 +138,44 @@ F should_fail_with_text(cmd:Command, text:Str) {
 
 # ---------- Tests ----------
 
-do_test("Run without certificates", {
-	should_fail_with_text(%($BEAME_INSTA_SERVER_BIN list), 'you have no certificates')
+
+if not(TEST_EXISTING_DIR) {
+        do_test("Run without certificates", {
+            should_fail_with_text(%($BEAME_INSTA_SERVER_BIN list), 'you have no certificates')
+        })
+	do_test("Copy $BEAME_DEV_AUTH_FQDN into store", copy_to_store)
+	do_test("Create token for test L0 entity", create_token)
+	do_test("Initialize insta server", create);
+	do_test("Remove $BEAME_DEV_AUTH_FQDN from store", remove_from_store)
+}
+
+db_file = null
+do_test("Validate app config file at $APP_CONFIG_FILE", {
+	data = read(APP_CONFIG_FILE)
+	# 'sqlite_db_name=beame_server.db, sqlite_db_storage_root=/home/ilya/.beame_data,
+	must_have = {
+		'ServiceName': 'ServiceName'
+		'db_provider': 'sqlite'
+		'sqlite_db_admin_username': 'admin'
+		'sqlite_env_name': 'production'
+	}
+
+	ks = must_have.keys() + %[sqlite_db_name sqlite_db_storage_root]
+	ks.each(F(k) k not in data throws TestFail("Key $k was not found in $APP_CONFIG_FILE"))
+	global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
+	"All checked keys values were OK: ${ks.join(',')}"
 })
 
-do_test("Copy $BEAME_DEV_AUTH_FQDN into store", copy_to_store)
-do_test("Create token for test L0 entity", create_token)
-do_test("Initialize insta server", create);
-do_test("Remove $BEAME_DEV_AUTH_FQDN from store", remove_from_store)
+do_test("Presence of sqlite database at $db_file", {
+    not(Path(db_file)) throws TestFail("File $db_file does not exist")
+    "$db_file exists"
+})
+
+do_test("Tables presence in sqlite DB at $db_file", {
+    existing = (`sqlite3 $db_file .tables` - Sfx('\n')).split(/ +/).without('')
+    expected = %[Registrations SequelizeMeta Services Sessions Users]
+    d = cmp(expected, existing)
+    d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
+    d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
+    "All expected tables exist: ${expected.join(',')}"
+})
