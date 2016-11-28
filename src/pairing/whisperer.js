@@ -262,9 +262,8 @@ class Whisperer {
 		};
 
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);
-
-		this.matchingServerSocketClient.emit('create_session', data);
 		this._socket.emit('init_mobile_session', {pin: this._sessionId});
+		this.matchingServerSocketClient.emit('create_session', data);
 
 	}
 

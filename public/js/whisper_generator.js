@@ -203,7 +203,7 @@ var getWAV = function (pin) {
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
 
-		var scale = SHRT_MAX / 1.5;
+		var scale = SHRT_MAX / 4;
 		for (i = 0; i < filteredMessage.length; i++) {
 			filteredMessage[i] = message[i] * scale;
 		}

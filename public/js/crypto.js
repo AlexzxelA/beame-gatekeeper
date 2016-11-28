@@ -237,39 +237,42 @@ function processMobileData(TMPsocketRelay, TMPsocketOrigin, data, cb) {
 				initCryptoSession(TMPsocketRelay, TMPsocketOrigin, data, decryptedData);
 			};
 
-		function onError() {
+			function onError() {
 			console.log('Import *Encrypt Key* failed');
-		}
+			}
 
-		function onMessageDecrypted(err, decryptedDataB64) {
-			if (!err) {
-				decryptedData = JSON.parse(atob(decryptedDataB64));
+			function onMessageDecrypted(err, decryptedDataB64) {
+				if (!err) {
+					decryptedData = JSON.parse(atob(decryptedDataB64));
 
-				if (cb) {
-					cb(decryptedData);
-					return;
+					if (cb) {
+						cb(decryptedData);
+						return;
+					}
+
+					var key2import = decryptedData.pk;
+
+					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError());
+					importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+						console.log("Successfully imported RSAPKCS PK from external source");
+						sessionRSAPKverify = keydata;
+					}).catch(function (err) {
+						console.error('Import *Verify Key* Failed', err);
+					});
 				}
-
-				var key2import = decryptedData.pk;
-
-				importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError());
-				importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-					console.log("Successfully imported RSAPKCS PK from external source");
-					sessionRSAPKverify = keydata;
-				}).catch(function (err) {
-					console.error('Import *Verify Key* Failed', err);
-				});
+				else {
+					console.log('failed to decrypt mobile PK');
+					TMPsocketRelay.emit('data', {
+						'socketId': tmpSocketID,
+						'payload':  'failed to decrypt mobile PK'
+					});
+				}
 			}
-			else {
-				console.log('failed to decrypt mobile PK');
-				TMPsocketRelay.emit('data', {
-					'socketId': tmpSocketID,
-					'payload':  'failed to decrypt mobile PK'
-				});
-			}
-		}
 
 			decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, onMessageDecrypted);
+			return;
+		case 'session_data':
+
 			return;
 		case 'registration_complete':
 			logout();

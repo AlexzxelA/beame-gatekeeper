@@ -271,6 +271,7 @@ class BrowserControllerSocketioApi {
 		client.on('data', data => {
 			try {
 				data = JSON.parse(data);
+				logger.debug('Got data:',data);
 			} catch (e) {
 				// nothing
 			}

@@ -167,7 +167,7 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 	$scope.socket.on('init_mobile_session', function (data) {
-		console.log('init_mobile_session %j', data);
+		console.log('Recieved init_mobile_session:',Date.now());
 		//$scope.stopPlaying();
 		//$scope.showPopup('Code matched');
 
@@ -182,6 +182,7 @@ app.controller("MainCtrl", function ($scope) {
 				keyGenerated = true;
 			}
 			$scope.socket.emit('virtSrvConfig', {'UID': WhUID});
+			console.log('Sent virtSrvConfig at:',Date.now());
 		});
 
 	});
@@ -290,7 +291,7 @@ app.controller("MainCtrl", function ($scope) {
 
 	$scope.socket.on('mobile_network_error', function () {
 		console.log('Mobile connection failed');
-		alert('Mobile connection failed');
+		//alert('Mobile connection failed');
 	});
 
 	$scope.socket.on('match_not_found', function () {
@@ -300,7 +301,7 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 	$scope.socket.on('disconnect', function () {
-		console.log('DISCONNECTED');
+		console.log('WHISPERER DISCONNECTED');
 		//$scope.socketAlive = false;
 		//$scope.stopPlaying();
 		//    document.getElementById("player").innerHTML = "-- Server disconnected --";
@@ -373,6 +374,7 @@ app.controller("MainCtrl", function ($scope) {
 	};
 
 	var closeSession = function(){
+		console.log('Aufio: close_session received');
 		$scope.socket.emit('close_session');
 		$scope.stopPlaying();
 		$scope.showPopup('Audio stopped');
