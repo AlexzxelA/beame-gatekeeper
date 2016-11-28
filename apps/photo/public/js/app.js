@@ -21,6 +21,9 @@ function loadImage(url) {
 }
 
 function onDocLoaded() {
+
+	window.parent.document.title = 'Mobile Photos';
+
 	window.parent.getNotifManagerInstance().subscribe('MOBILE_PHOTO_URL', function (event, args) {
 		if (!args || !args.url) {
 			return;

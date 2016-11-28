@@ -1,12 +1,12 @@
 'use strict';
-const ServiceCodes = require('../constants').ServiceCodes;
+const Services = require('../constants').SetupServices;
 
 module.exports = {
 	up: function (queryInterface) {
 		return queryInterface.bulkInsert('Services', [
 			{
 				name:      'Insta server admin app',
-				code:      ServiceCodes.Admin,
+				code:      Services.Admin.code,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),
@@ -14,8 +14,8 @@ module.exports = {
 			},
 			{
 				name:      'Files sharing app',
-				code:      ServiceCodes.SampleFileShare,
-				url:       'http://127.0.0.1:65511',
+				code:      Services.SampleFileShare.code,
+				url:       `http://127.0.0.1:${Services.SampleFileShare.port}`,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),
@@ -23,8 +23,8 @@ module.exports = {
 			},
 			{
 				name:      'Simple chat',
-				code:      ServiceCodes.SampleChat,
-				url:       'http://127.0.0.1:65510',
+				code:      Services.SampleChat.code,
+				url:       `http://127.0.0.1:${Services.SampleChat.port}`,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),
@@ -32,8 +32,8 @@ module.exports = {
 			},
 			{
 				name:      'Mobile Photos',
-				code:      ServiceCodes.MobilePhoto,
-				url:       'http://127.0.0.1:65512',
+				code:      Services.MobilePhoto.code,
+				url:       `http://127.0.0.1:${Services.MobilePhoto.port}`,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),
@@ -41,8 +41,8 @@ module.exports = {
 			},
 			{
 				name:      'Mobile Stream',
-				code:      ServiceCodes.MobileStream,
-				url:       'http://127.0.0.1:65513',
+				code:      Services.MobileStream.code,
+				url:       `http://127.0.0.1:${Services.MobileStream.port}`,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),

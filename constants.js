@@ -63,18 +63,20 @@ const DbProviders = {
 };
 
 
-const ServiceCodes = {
-	"Admin" : "ADMIN",
-	"MobilePhoto" : "MOBILE_PHOTO",
-	"MobileStream" : "MOBILE_STREAM",
-	"SampleChat" : "SAMPLE_CHAT",
-	"SampleFileShare" : "SAMPLE_FILE_SHARE"
+const SetupServices = {
+	"Admin":           {code: "ADMIN"},
+	"MobilePhoto":     {code: "MOBILE_PHOTO", port: 65510},
+	"MobileStream":    {code: "MOBILE_STREAM", port: 65511},
+	"SampleChat":      {code: "SAMPLE_CHAT", port: 65512},
+	"SampleFileShare": {code: "SAMPLE_FILE_SHARE", port: 65513}
 };
-module.exports     = {
+
+
+module.exports = {
 	RegistrationSource,
 	LoadBalancerURL,
 	CredentialType,
-	ServiceCodes,
+	SetupServices,
 	DbProviders,
 	AuthMode: {
 		"SESSION":   "Session",

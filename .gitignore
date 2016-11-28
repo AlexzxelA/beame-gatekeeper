@@ -48,4 +48,5 @@ dist
 local_config/
 tools
 npm-shrinkwrap.json
-
+apps/photo/public/css
+apps/stream/public/css

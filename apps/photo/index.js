@@ -4,8 +4,8 @@ const beameSDK    = require('beame-sdk');
 const module_name = "MobilePhotos";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
-
-const port = 65512;
+const Service     = require('../../constants').SetupServices.MobilePhoto;
+const port = Service.port;
 const host = 'localhost';
 
 // Hack attack!
