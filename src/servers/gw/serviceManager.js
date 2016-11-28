@@ -2,50 +2,50 @@
 
 // TODO: actual list + cached health status in "online" field
 
-const beameSDK           = require('beame-sdk');
-const module_name        = "ServiceManager";
-const BeameLogger        = beameSDK.Logger;
-const logger             = new BeameLogger(module_name);
-const CommonUtils        = beameSDK.CommonUtils;
-const ADMIN_SERVICE_CODE = 'ADMIN';
+const beameSDK     = require('beame-sdk');
+const module_name  = "ServiceManager";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const CommonUtils  = beameSDK.CommonUtils;
+const ServiceCodes = require('../../../constants').ServiceCodes;
 
-const default_services = {
-	1:  {
-		app_id: 1,
-		name:   'Insta server admin app',
-		code:   ADMIN_SERVICE_CODE,
-		url:    null,
-		online: true
-	},
-	11: {
-		name:   'Files sharing app',
-		app_id: 11,
-		code:   'SHARE',
-		url:    'http://127.0.0.1:65511',
-		online: true
-	},
-	12: {
-		name:   'Funny pictures album app',
-		app_id: 12,
-		code:   'ALBUM',
-		url:    'https://yahoo.com',
-		online: false
-	},
-	13: {
-		name:   'Company calendar app',
-		app_id: 13,
-		code:   'CALENDAR',
-		url:    'https://www.timeanddate.com',
-		online: true
-	},
-	14: {
-		name:   'Simple chat',
-		app_id: 14,
-		code:   'CHAT',
-		url:    'http://127.0.0.1:65510',
-		online: true
-	}
-};
+// const default_services = {
+// 	1:  {
+// 		app_id: 1,
+// 		name:   'Insta server admin app',
+// 		code:   ADMIN_SERVICE_CODE,
+// 		url:    null,
+// 		online: true
+// 	},
+// 	11: {
+// 		name:   'Files sharing app',
+// 		app_id: 11,
+// 		code:   'SHARE',
+// 		url:    'http://127.0.0.1:65511',
+// 		online: true
+// 	},
+// 	12: {
+// 		name:   'Funny pictures album app',
+// 		app_id: 12,
+// 		code:   'ALBUM',
+// 		url:    'https://yahoo.com',
+// 		online: false
+// 	},
+// 	13: {
+// 		name:   'Company calendar app',
+// 		app_id: 13,
+// 		code:   'CALENDAR',
+// 		url:    'https://www.timeanddate.com',
+// 		online: true
+// 	},
+// 	14: {
+// 		name:   'Simple chat',
+// 		app_id: 14,
+// 		code:   'CHAT',
+// 		url:    'http://127.0.0.1:65510',
+// 		online: true
+// 	}
+// };
 
 
 class ServiceManager {
@@ -59,12 +59,17 @@ class ServiceManager {
 		return new Promise((resolve, reject) => {
 				const returnList = () => {
 
-					let approvedList = user.isAdmin ? this._appList : CommonUtils.filterHash(this._appList, (k, v) => v.code !== ADMIN_SERVICE_CODE);
+					let approvedList = user.isAdmin ? this._appList : CommonUtils.filterHash(this._appList, (k, v) => v.code !== ServiceCodes.Admin);
 
 					let formattedList = {};
 
 					Object.keys(approvedList).forEach(key => {
-						formattedList[approvedList[key].name] = {app_id: parseInt(key), online: approvedList[key].online};
+						formattedList[approvedList[key].name] = {
+							app_id: parseInt(key),
+							online: approvedList[key].online,
+							code:   approvedList[key].code,
+							name:   approvedList[key].name
+						};
 					});
 
 					resolve(formattedList);
@@ -85,9 +90,9 @@ class ServiceManager {
 
 		return new Promise((resolve, reject) => {
 
-			const dataService  = require('../../dataServices').getInstance();
+				const dataService = require('../../dataServices').getInstance();
 
-			dataService.getServices().then(apps => {
+				dataService.getActiveServices().then(apps => {
 
 					if (apps.length) {
 						for (let app of apps) {
@@ -96,15 +101,15 @@ class ServiceManager {
 								app_id: app.id,
 								code:   app.code,
 								url:    app.url,
-								online: app.isActive
+								online: app.isOnline
 							};
 						}
+
+						resolve();
 					}
 					else {
-						this._appList = default_services;
+						reject(`no services found`);
 					}
-
-					resolve();
 
 				}).catch(error => {
 					logger.error(`Get active services error ${BeameLogger.formatError(error)}`);
@@ -112,14 +117,12 @@ class ServiceManager {
 				})
 			}
 		);
-
-
 	}
 
 	getAdminAppId() {
 
 		return new Promise((resolve, reject) => {
-				let adminApp = CommonUtils.filterHash(this._appList, (k, v) => v.code === ADMIN_SERVICE_CODE);
+				let adminApp = CommonUtils.filterHash(this._appList, (k, v) => v.code === ServiceCodes.Admin);
 
 				let keys = Object.keys(adminApp);
 
@@ -128,10 +131,16 @@ class ServiceManager {
 		);
 	}
 
+	getAppCodeById(app_id) {
+		let app = this._appList[app_id];
+
+		return app ? app.code : null;
+	}
+
 	isAdminService(app_id) {
 		let app = this._appList[app_id];
 
-		return app && app.code === ADMIN_SERVICE_CODE;
+		return app && app.code === ServiceCodes.Admin;
 	}
 
 	appUrlById(app_id) {

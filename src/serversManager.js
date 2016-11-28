@@ -109,6 +109,11 @@ class ServersManager {
 					let chatApp = new (require('../apps/files'))();
 					chatApp.start();
 					callback();
+				},
+				callback => {
+					let mobilePhotoApp = new (require('../apps/photo'))();
+					mobilePhotoApp.start();
+					callback();
 				}
 			],
 			error => {

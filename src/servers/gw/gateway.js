@@ -140,6 +140,13 @@ function handleRequest(req, res) {
 		return;
 	}
 
+	let appCode = serviceManager.getAppCodeById(authToken.app_id);
+
+	if(!appCode){
+		sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
+		return;
+	}
+
 	if (serviceManager.isAdminService(authToken.app_id) && authToken.isAdmin) {
 		logger.debug(`Proxying to Admin server`);
 		adminApp(req, res);

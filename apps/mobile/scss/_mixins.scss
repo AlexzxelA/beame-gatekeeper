@@ -1,0 +1,13 @@
+/* MIXINS
+============================================================== */
+
+//calculating a responsive font size in vw from pixels (an initial width is 1440 px)
+//setting the responsive font-size in vw (with fallback in px)
+@function calculateVw($px-size) {
+  $vwSize: $px-size * 100 / 1440px;
+  @return $vwSize * 1vw;
+}
+@mixin resp-font-size($px-size) {
+  font-size: $px-size;
+  font-size: calculateVw($px-size);
+}

@@ -37,7 +37,8 @@ const SqliteConfigTemplate = {
 		"database":             "beame_server",
 		"host":                 "127.0.0.1",
 		"dialect":              "sqlite",
-		"autoMigrateOldSchema": true
+		"autoMigrateOldSchema": true,
+		"seederStorage":        "sequelize"
 	}
 };
 
