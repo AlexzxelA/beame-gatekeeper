@@ -150,6 +150,21 @@ F wait_resolvable(h:Str) {
 	})
 }
 
+app_tokens = {}
+
+F get_app_proxying_token(kind:Str) {
+    do_test("Get $kind app token", {
+        t = `$BEAME_INSTA_SERVER_BIN $kind`
+        links = t.lines().filter(/^https/)
+        links.len() != 1 throws TestFail("Link not found or more than one link found").set('out', t)
+        link = links[0]
+        link.len() < 100 throws TestFail("Link is too short").set('link', link)
+        app_tokens[kind] = link
+        "Got $kind token: ${app_tokens[kind]}"
+    })
+
+}
+
 # ---------- Tests ----------
 
 
@@ -227,6 +242,9 @@ do_test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
     data.Servers.len() < 1 throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is empty")
     "OK"
 })
+
+get_app_proxying_token('config')
+get_app_proxying_token('admin')
 
 wait_resolvable(gw_fqdn)
 
