@@ -25,6 +25,10 @@ BEAME_DEV_AUTH_FQDN = 'n6ge8i9q4b4b5vb6.h40d7vrwir2oxlnn.v1.d.beameio.net'
 CONFIG_DIR = "${HOME}/.beame_server/config"
 APP_CONFIG_FILE = CONFIG_DIR / 'app_config.json'
 
+CREDS_DIR = "${HOME}/.beame_server/creds"
+CREDS_FILE = CREDS_DIR / 'creds.json'
+AUTH_SERVERS_FILE = CREDS_DIR / 'auth_servers.json'
+
 TEST_EXISTING_DIR = ENV.get('TEST_EXISTING_DIR', false)
 
 if not(TEST_EXISTING_DIR) {
@@ -43,8 +47,6 @@ if not(TEST_EXISTING_DIR) {
 }
 
 # ---------- Tests "framework" ----------
-
-CREDS_FILE = "/tmp/beame-cli-test-creds-${time()}"
 
 exit_code = 0
 
@@ -136,6 +138,18 @@ F should_fail_with_text(cmd:Command, text:Str) {
 	}
 }
 
+doc Waits till hostname becomes resolvable (has DNS record)
+F wait_resolvable(h:Str) {
+	do_test("Waiting for hostname $h to be resolvable", {
+		for(i;45) {
+			resolve = `dig "+short" $h`
+			resolve returns "Resolves to ${resolve.lines()[-1]}"
+			$(sleep 2)
+		}
+		throw TestFail("No resolve for $h")
+	})
+}
+
 # ---------- Tests ----------
 
 
@@ -147,35 +161,88 @@ if not(TEST_EXISTING_DIR) {
 	do_test("Create token for test L0 entity", create_token)
 	do_test("Initialize insta server", create);
 	do_test("Remove $BEAME_DEV_AUTH_FQDN from store", remove_from_store)
+
+        db_file = null
+        do_test("Validate app config file at $APP_CONFIG_FILE", {
+                data = read(APP_CONFIG_FILE)
+                # 'sqlite_db_name=beame_server.db, sqlite_db_storage_root=/home/ilya/.beame_data,
+                must_have = {
+                        'ServiceName': 'ServiceName'
+                        'db_provider': 'sqlite'
+                        'sqlite_db_admin_username': 'admin'
+                        'sqlite_env_name': 'production'
+                }
+
+                ks = must_have.keys() + %[sqlite_db_name sqlite_db_storage_root]
+                ks.each(F(k) k not in data throws TestFail("Key $k was not found in $APP_CONFIG_FILE"))
+                global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
+                "All checked keys values were OK: ${ks.join(',')}"
+        })
+
+        do_test("Presence of sqlite database at $db_file", {
+            not(Path(db_file)) throws TestFail("File $db_file does not exist")
+            "$db_file exists"
+        })
+
+        do_test("Tables presence in sqlite DB at $db_file", {
+            existing = `sqlite3 $db_file .tables`.lines().join(' ').split(/ +/).without('')
+            expected = %[Registrations SequelizeMeta Services Sessions Users]
+            d = cmp(expected, existing)
+            d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
+            d.add .= without('SequelizeData')  # May or may not be present
+        echo("ADD ${d.add}")
+            d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
+            "All expected tables exist: ${expected.join(',')}"
+        })
+
+        do_test("SequelizeMeta table in $db_file is populated", {
+            expected = 9
+            n = `sqlite3 $db_file "select * from SequelizeMeta"`.lines().len()
+            n < expected throws TestFail("SequelizeMeta is not populated")
+            "SequelizeMeta table has $n rows"
+        })
+
 }
 
-db_file = null
-do_test("Validate app config file at $APP_CONFIG_FILE", {
-	data = read(APP_CONFIG_FILE)
-	# 'sqlite_db_name=beame_server.db, sqlite_db_storage_root=/home/ilya/.beame_data,
-	must_have = {
-		'ServiceName': 'ServiceName'
-		'db_provider': 'sqlite'
-		'sqlite_db_admin_username': 'admin'
-		'sqlite_env_name': 'production'
-	}
-
-	ks = must_have.keys() + %[sqlite_db_name sqlite_db_storage_root]
-	ks.each(F(k) k not in data throws TestFail("Key $k was not found in $APP_CONFIG_FILE"))
-	global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
-	"All checked keys values were OK: ${ks.join(',')}"
+gw_fqdn = null
+do_test("Validating creds file $CREDS_FILE", {
+    data = read(CREDS_FILE)
+    expected_fqdn_roles = %[ZeroLevel GatewayServer BeameAuthorizationServer MatchingServer AdminServer]
+    ks = expected_fqdn_roles
+    ks.each(F(k) k not in data throws TestFail("Key $k was not found in $CREDS_FILE"))
+    expected_fqdn_roles.each(F(role) {
+        t = data[role]
+        'fqdn' not in t throws TestFail("'fqdn' not found in section $role in file $CREDS_FILE")
+        'server' not in t throws TestFail("'server' not found in section $role in file $CREDS_FILE")
+        len(t.fqdn) < 10 throws TestFail("'fqdn' too short in section $role in file $CREDS_FILE")
+    })
+    global gw_fqdn = data.GatewayServer.fqdn
+    "OK"
 })
 
-do_test("Presence of sqlite database at $db_file", {
-    not(Path(db_file)) throws TestFail("File $db_file does not exist")
-    "$db_file exists"
+do_test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
+    data = read(AUTH_SERVERS_FILE)
+    'Servers' not in data throws TestFail("Authorization servers file $AUTH_SERVERS_FILE does not have 'Servers' section")
+    data.Servers is not Arr throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is not an array")
+    data.Servers.len() < 1 throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is empty")
+    "OK"
 })
 
-do_test("Tables presence in sqlite DB at $db_file", {
-    existing = (`sqlite3 $db_file .tables` - Sfx('\n')).split(/ +/).without('')
-    expected = %[Registrations SequelizeMeta Services Sessions Users]
-    d = cmp(expected, existing)
-    d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
-    d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
-    "All expected tables exist: ${expected.join(',')}"
+wait_resolvable(gw_fqdn)
+
+echo("*** Starting insta server ***")
+p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN serve &)
+
+echo("*** Waiting for insta server to be up ***")
+sleep 20
+
+do_test("Front page at https://$gw_fqdn", {
+    page = `curl -s "https://$gw_fqdn"`
+    'main-wrapper' not in page throws TestFail("Expected text 'main-wrapper' not found on page at https://$gw_fqdn")
+    "OK"
 })
+
+@exit_hook {
+    echo("Killing insta server")
+    p.kill()
+}
