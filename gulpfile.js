@@ -10,6 +10,7 @@ const concat        = require('gulp-concat');
 const uglify        = require('gulp-uglify');
 const htmlreplace   = require('gulp-html-replace');
 const cleanCSS      = require('gulp-clean-css');
+const minifyCss   = require('gulp-minify-css');
 const s3            = require('gulp-s3');
 const gzip          = require('gulp-gzip');
 const stripDebug    = require('gulp-strip-debug');
@@ -21,12 +22,15 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir = 'insta-server';
+const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
 
 const tools_folder_name = 'tools';
 const tools_bucket_dir = 'insta-server-meta';
+
+const web_dist_root_path    = 'Web/';
+const web_src_root_path     = './apps/mobile/';
 
 const getVersion = () => {
 	const pad2 = (n) => {
@@ -207,7 +211,6 @@ gulp.task('upload-to-S3', callback => {
 
 });
 
-
 gulp.task('upload-tools-to-S3',['sass-tools'], callback => {
 	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
 	    config                       = require('./local_config/aws_config.json'),
@@ -238,5 +241,13 @@ gulp.task('upload-tools-to-S3',['sass-tools'], callback => {
 		.pipe(s3(aws, options));
 
 	callback();
+
+});
+
+
+gulp.task('web_sass', function () {
+	gulp.src(web_src_root_path + 'scss/*.scss')
+		.pipe(sass())
+		.pipe(gulp.dest('./apps/photo/public/css/'));
 
 });

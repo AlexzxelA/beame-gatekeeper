@@ -508,18 +508,23 @@ class SqliteServices {
 				let model = this._models.services;
 
 				//noinspection JSUnresolvedFunction
-				model.findAll({order: 'id DESC'}).then(models => {
-						let records = models.map(item => {
-							return item.dataValues
-						});
-						resolve(records);
-					}
-				).catch(
-					error => {
-						logger.error(error);
-						resolve([]);
-					}
-				);
+				try {
+					model.findAll({order: 'id DESC'}).then(models => {
+							let records = models.map(item => {
+								return item.dataValues
+							});
+							resolve(records);
+						}
+					).catch(
+						error => {
+							logger.error(error);
+							resolve([]);
+						}
+					);
+				} catch (e) {
+					logger.error(e);
+					resolve([]);
+				}
 			}
 		);
 	}
@@ -529,7 +534,7 @@ class SqliteServices {
 				let model = this._models.services;
 
 				//noinspection JSUnresolvedFunction
-				model.findAll({where:{isActive:true}}).then(models => {
+				model.findAll({where: {isActive: true}}).then(models => {
 						let records = models.map(item => {
 							return item.dataValues
 						});

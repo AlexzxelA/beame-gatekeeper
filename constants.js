@@ -62,10 +62,19 @@ const DbProviders = {
 	"Couchbase": "couchbase"
 };
 
-module.exports = {
+
+const ServiceCodes = {
+	"Admin" : "ADMIN",
+	"MobilePhoto" : "MOBILE_PHOTO",
+	"MobileStream" : "MOBILE_STREAM",
+	"SampleChat" : "SAMPLE_CHAT",
+	"SampleFileShare" : "SAMPLE_FILE_SHARE"
+};
+module.exports     = {
 	RegistrationSource,
 	LoadBalancerURL,
 	CredentialType,
+	ServiceCodes,
 	DbProviders,
 	AuthMode: {
 		"SESSION":   "Session",

@@ -1,0 +1,107 @@
+/* GENERAL STYLES
+============================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  position: fixed;
+  width: 100%;
+  /*@include resp-font-size(20px);*/
+  font-family: $family-global;
+  line-height: $l-height;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  height: 80px;
+  line-height: 80px;
+  text-align: center;
+}
+
+.container {
+  height: calc(100% - 230px);
+}
+
+.footer {
+  height: 150px;
+  line-height: 130px;
+  border-top: $line-grey-light;
+  text-align: center;
+  h2 {
+    display: inline;
+  }
+}
+
+h1, h2 {
+  font-weight: 300;
+}
+
+h3, h4 {
+  font-weight: 400;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border: 0;
+}
+
+a {
+  text-decoration: none;
+  color: $blue;
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.white-txt {
+  color: $white;
+}
+
+.grey-txt {
+  color: $grey-light;
+}
+
+.yellow-txt {
+  color: $yellow;
+}
+
+// Mobile - for any case (refactor it later!)
+@media only screen and (max-width: 800px) {
+  .hideonmob {
+    display: none;
+  }
+
+  body {
+    font-size: 14px !important;
+  }
+
+  .logo {
+    width: 30%;
+  }
+
+}
+
+.rel {
+  position: relative
+}
+
+.ifrm-loc {
+  position: absolute;
+  border: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

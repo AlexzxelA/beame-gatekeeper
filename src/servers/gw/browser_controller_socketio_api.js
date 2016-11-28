@@ -147,7 +147,7 @@ const messageHandlers = {
 		}
 
 		function respond(token) {
-			return new Promise((resolve, reject) => {
+			return new Promise(() => {
 				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
 				logger.debug('respond() URL', url);
 				reply({
@@ -187,7 +187,7 @@ const messageHandlers = {
 		}
 
 		function respond(token) {
-			return new Promise((resolve, reject) => {
+			return new Promise(() => {
 				const url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
 				logger.debug('respond() URL', url);
 				reply({

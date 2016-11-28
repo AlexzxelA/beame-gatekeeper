@@ -41,7 +41,7 @@ const ConfigFolderPath     = Constants.ConfigFolderPath;
 const AppConfigJsonPath    = Constants.AppConfigJsonPath;
 const SqliteConfigJsonPath = Constants.SqliteConfigJsonPath;
 
-const __onConfigError = error => {
+const _onConfigError = error => {
 	logger.error(error);
 	process.exit(1);
 };
@@ -58,10 +58,13 @@ class Bootstrapper {
 	 */
 	initAll() {
 		return new Promise((resolve) => {
-			this.initConfig(false).then(this.initDb.bind(this, false)).then(() => {
-				logger.info(`beame-insta-server bootstrapped successfully`);
-				resolve();
-			}).catch(__onConfigError);
+			this.initConfig(false)
+				.then(this.initDb.bind(this, false))
+				.then(() => {
+								logger.info(`beame-insta-server bootstrapped successfully`);
+								resolve();
+							})
+				.catch(_onConfigError);
 		});
 	}
 
@@ -73,13 +76,19 @@ class Bootstrapper {
 	initConfig(exit) {
 
 		return new Promise((resolve) => {
-				Bootstrapper._ensureBeameServerDir().then(this._ensureAppConfigJson.bind(this)).then(this._ensureCredsConfigJson.bind(this)).then(this._ensureCustomerAuthServersJson.bind(this)).then(this._ensureDbConfig.bind(this)).then(() => {
-					logger.info(`Beame-insta-server config files ensured`);
-					resolve();
-					if (exit) {
-						process.exit(0);
-					}
-				}).catch(__onConfigError)
+				Bootstrapper._ensureBeameServerDir()
+					.then(this._ensureAppConfigJson.bind(this))
+					.then(this._ensureCredsConfigJson.bind(this))
+					.then(this._ensureCustomerAuthServersJson.bind(this))
+					.then(this._ensureDbConfig.bind(this))
+					.then(() => {
+									logger.info(`Beame-insta-server config files ensured`);
+									resolve();
+									if (exit) {
+										process.exit(0);
+									}
+								})
+					.catch(_onConfigError)
 			}
 		);
 	}
@@ -102,13 +111,16 @@ class Bootstrapper {
 
 				switch (provider) {
 					case DbProviders.Sqlite:
-						this._ensureSqliteDir().then(this._migrateSqliteSchema.bind(this)).then(() => {
-							logger.info(`Beame-insta-server ${provider} DB updated successfully`);
-							resolve();
-							if (exit) {
-								process.exit(0);
-							}
-						}).catch(__onConfigError);
+						this._ensureSqliteDir()
+							.then(this._migrateSqliteSchema.bind(this))
+							.then(this._runSqliteSeeders.bind(this))
+							.then(() => {
+								logger.info(`Beame-insta-server ${provider} DB updated successfully`);
+								resolve();
+								if (exit) {
+									process.exit(0);
+								}
+							}).catch(_onConfigError);
 						return;
 					//TODO implement Couchbase connector
 					// case DbProviders.Couchbase:
@@ -193,7 +205,7 @@ class Bootstrapper {
 
 				creds[credType]["fqdn"] = fqdn;
 
-				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds,true)).then(() => {
+				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds, true)).then(() => {
 					logger.info(`${fqdn} saved as ${credType}...`);
 					resolve();
 				}).catch(reject);
@@ -255,9 +267,10 @@ class Bootstrapper {
 		return this._config;
 	}
 
-	set setAppConfig(config){
+	set setAppConfig(config) {
 		this._config = config;
 	}
+
 	//noinspection JSMethodCanBeStatic
 	get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
@@ -293,10 +306,10 @@ class Bootstrapper {
 
 				if (isExists) {
 					logger.debug(`${AppConfigFileName} found...`);
-					this._updateAppConfigJson().then(resolve).catch(__onConfigError);
+					this._updateAppConfigJson().then(resolve).catch(_onConfigError);
 				}
 				else {
-					this._createAppConfigJson().then(resolve).catch(__onConfigError);
+					this._createAppConfigJson().then(resolve).catch(_onConfigError);
 				}
 
 			}
@@ -346,7 +359,7 @@ class Bootstrapper {
 
 					for (let prop in defaults) {
 						//noinspection JSUnfilteredForInLoop
-						if ((typeof defaults[prop] === "string" || typeof defaults[prop] === "number") && !config.hasOwnProperty(prop)) {
+						if ((typeof defaults[prop] !== "object") && !config.hasOwnProperty(prop)) {
 							updateFile   = true;
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = defaults[prop];
@@ -376,7 +389,6 @@ class Bootstrapper {
 		);
 	}
 
-
 	saveAppConfigFile() {
 		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, true));
 	}
@@ -395,8 +407,6 @@ class Bootstrapper {
 		);
 	}
 
-
-
 	//endregion
 
 	//region Creds config
@@ -411,7 +421,7 @@ class Bootstrapper {
 					resolve();
 				}
 				else {
-					this._createCredsConfigJson().then(resolve).catch(__onConfigError);
+					this._createCredsConfigJson().then(resolve).catch(_onConfigError);
 				}
 			}
 		);
@@ -450,7 +460,7 @@ class Bootstrapper {
 
 				servers.Servers.push(fqdn);
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers,true)).then(() => {
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers, true)).then(() => {
 					logger.info(`${fqdn} added to authorized customer servers...`);
 					resolve();
 				}).catch(reject);
@@ -480,7 +490,7 @@ class Bootstrapper {
 					resolve();
 				}
 				else {
-					this._createCustomerAuthServersJson().then(resolve).catch(__onConfigError);
+					this._createCustomerAuthServersJson().then(resolve).catch(_onConfigError);
 				}
 			}
 		);
@@ -496,7 +506,7 @@ class Bootstrapper {
 				let credsConfig = defaults.CustomerAuthServersTemplate;
 
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig,true)).then(() => {
+				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig, true)).then(() => {
 					logger.debug(`${CustomerAuthServersFileName} saved in ${path.dirname(CustomerAuthServersJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -523,7 +533,7 @@ class Bootstrapper {
 
 				switch (provider) {
 					case DbProviders.Sqlite:
-						this._ensureSqliteConfigJson().then(resolve).catch(__onConfigError);
+						this._ensureSqliteConfigJson().then(resolve).catch(_onConfigError);
 						return;
 					//TODO implement Couchbase connector
 					// case DbProviders.Couchbase:
@@ -537,18 +547,40 @@ class Bootstrapper {
 
 	_ensureSqliteConfigJson() {
 
-		return new Promise((resolve) => {
+		return new Promise((resolve,reject) => {
 
 				logger.debug(`validating sqlite ${SqliteDbConfigFileName}...`);
 
-				let isExists = DirectoryServices.doesPathExists(SqliteConfigJsonPath);
+				let dbConfig = DirectoryServices.readJSON(SqliteConfigJsonPath);
 
-				if (isExists) {
-					logger.debug(`sqlite ${SqliteDbConfigFileName} found...`);
-					resolve();
+				if (CommonUtils.isObjectEmpty(dbConfig)) {
+					return this._createSqliteConfigJson();
 				}
-				else {
-					this._createSqliteConfigJson().then(resolve).catch(__onConfigError);
+
+				logger.debug(`sqlite ${SqliteDbConfigFileName} found...`);
+
+				let dbConfigTemplate = defaults.SqliteConfigTemplate,
+						env      = this._config[SqliteProps.EnvName],
+				    dbConfigKeys     = Object.keys(dbConfigTemplate[env]),
+				    updateFile = false;
+
+				dbConfigKeys.forEach(key=>{
+					if(!dbConfig[env].hasOwnProperty(key)){
+						updateFile = true;
+						dbConfig[env][key] = dbConfigTemplate[env][key];
+					}
+				});
+
+
+
+				if(updateFile){
+					dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig, true)).then(() => {
+						logger.debug(`${SqliteDbConfigFileName} updated successfully...`);
+						resolve();
+					}).catch(reject);
+				}
+				else{
+					resolve();
 				}
 
 			}
@@ -566,7 +598,7 @@ class Bootstrapper {
 				dbConfig[env]["password"] = CommonUtils.randomPassword(12);
 				dbConfig[env]["storage"]  = path.join(process.env.BEAME_SERVERS_AUTH_DATA_DIR || this._config[SqliteProps.StorageRoot], this._config[SqliteProps.DbName]);
 
-				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig,true)).then(() => {
+				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig, true)).then(() => {
 					logger.debug(`${SqliteDbConfigFileName} saved in ${path.dirname(SqliteConfigJsonPath)}...`);
 					resolve();
 				}).catch(reject);
@@ -603,7 +635,32 @@ class Bootstrapper {
 				}
 			}
 		);
-	};
+	}
+
+	_runSqliteSeeders() {
+
+		logger.debug(`running sqlite seeders...`);
+
+		return new Promise((resolve, reject) => {
+				let action = path.join(__dirname, "..", "node_modules", ".bin", "sequelize"),
+				    args   = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
+
+				try {
+					execFile(action, args, (error) => {
+						if (error) {
+							reject(error);
+							return;
+						}
+						logger.debug(`sqlite seeders applied successfully...`);
+						resolve();
+					});
+				}
+				catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
 
 	_ensureSqliteDir() {
 
@@ -611,7 +668,6 @@ class Bootstrapper {
 	}
 
 	//endregion
-
 
 	//endregion
 
