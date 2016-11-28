@@ -42,11 +42,16 @@ const credentialManager = new (require('./src/credentialManager'))();
 const utils             = require('./src/utils');
 
 /** @type {DataServices} */
-const dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
+var dataService = null;
 
 const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 
 var commandHandled = false;
+
+function startDataService() {
+	dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
+	return dataService.start.bind(dataService);
+}
 
 function getHelpMessage(fileName) {
 	return fs.readFileSync(path.join(__dirname, 'help-messages', fileName), {'encoding': 'utf-8'});
@@ -135,7 +140,7 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 	};
 
 	bootstrapper.initAll()
-		.then(dataService.start.bind(dataService))
+		.then(startDataService)
 		.then(serviceManager.evaluateAppList.bind(serviceManager))
 		.then(getServersSettings)
 		.then(assertServersSettings)
@@ -236,7 +241,7 @@ if (args._[0] == 'config' || args._[0] == 'admin') {
 	};
 
 	bootstrapper.initAll()
-		.then(dataService.start.bind(dataService))
+		.then(startDataService)
 		.then(serviceManager.evaluateAppList.bind(serviceManager))
 		.then(createToken)
 		.catch(error => {
