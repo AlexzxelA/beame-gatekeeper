@@ -1,0 +1,181 @@
+#!/usr/bin/env ngs
+
+# NGS language - https://github.com/ilyash/ngs/
+
+# ---------- Environment sanity checks ----------
+
+assert('BEAME_INTERNAL_AUTH_SERVER_FQDN' in ENV, 'Environment variable BEAME_INTERNAL_AUTH_SERVER_FQDN must be set')
+
+if 'BEAME_DIR' in ENV {
+	throw Error("BEAME_DIR environment variable must be unset for tests")
+}
+
+HOME = ENV.HOME
+
+DIRS = [
+	HOME / '.beame'
+	HOME / '.beame_server'
+	HOME / '.beame_data'
+]
+
+BEAME_INSTA_SERVER_BIN = HOME / 'beame-insta-server/main.js'
+BEAME_SDK_BIN = HOME / 'beame-sdk/src/cli/beame.js'
+BEAME_DEV_AUTH_FQDN = 'n6ge8i9q4b4b5vb6.h40d7vrwir2oxlnn.v1.d.beameio.net'
+
+CONFIG_DIR = "${HOME}/.beame_server/config"
+APP_CONFIG_FILE = CONFIG_DIR / 'app_config.json'
+
+TEST_EXISTING_DIR = ENV.get('TEST_EXISTING_DIR', false)
+
+if not(TEST_EXISTING_DIR) {
+	each(DIRS, F(dir) {
+		if Path(dir) {
+			throw Error("Directory ($BEAME_DIR) exists. Will not run tests.")
+		}
+	})
+}
+
+# ---------- Environment setup ----------
+
+{
+  ENV.SNI_SERVER_PORT = '0'
+  ENV.BEAME_LOG_LEVEL = 'DEBUG'
+}
+
+# ---------- Tests "framework" ----------
+
+CREDS_FILE = "/tmp/beame-cli-test-creds-${time()}"
+
+exit_code = 0
+
+{ type TestFail(Error) }
+
+F do_test(name:Str, f:Fun) {
+        echo("")
+        echo("=== TEST: $name ===")
+        msg = f()
+        echo("  OK: $msg")
+}
+
+# ---------- Utilities ----------
+
+F base64encode(s:Str) {
+	fname = "/tmp/base64.${c_getpid()}"
+	$(echo $s >$fname)
+	ret = `base64 -w0 <$fname`
+	$(rm $fname)
+	log("base64 done")
+	ret
+}
+
+F base64decode(s:Str) {
+	fname = "/tmp/base64decode.${c_getpid()}"
+	$(echo $s >$fname)
+	ret = `base64 -d <$fname`
+	$(rm $fname)
+	log("base64 decode done")
+	ret
+}
+
+F fqdn_dir(fqdn) "$HOME/.beame/v2/$fqdn"
+
+# ---------- Tests library ----------
+F should_fail_with_text(cmd:Command, text:Str) {
+	try {
+		$($cmd)
+		throw TestFail('Exited with code 0')
+	} catch(e:ProcessFail) {
+		text not in e.process.stdout throws TestFail("No expected text in output")
+		return 'Expected text found'
+	}
+}
+doc Copies Beame test requests signing credential into store for L0 entity creation
+F copy_to_store() {
+	$(cp -a "$HOME/$BEAME_DEV_AUTH_FQDN" ${fqdn_dir(BEAME_DEV_AUTH_FQDN)})
+	'Copied'
+}
+
+doc Creates token needed for signing request for level 0 entity
+F create_token() {
+	global token = ``$BEAME_SDK_BIN token create --fqdn $BEAME_DEV_AUTH_FQDN --data NONE``
+	assert(token is Str, "Token expected to be a string")
+	token
+}
+
+doc Initializes beame-insta-server
+F create() {
+	t = time()
+    # src 3 - RegistrationSource.InstaServerSDK
+	beame_insta_server_token = {
+	  'authToken': token.base64decode().parse()
+	  'authSrvFqdn': ENV.BEAME_INTERNAL_AUTH_SERVER_FQDN
+	  'name': "insta-server-test-L0-$t"
+	  'email': "insta-server-L0-${t}@example.com"
+      'src': 3
+	}
+	txt = `$BEAME_INSTA_SERVER_BIN create ${beame_insta_server_token.encode_json().base64encode()}`
+	cert_created_line = txt.lines().filter(X ~ Pfx('Certificate created'))[0]
+	global fqdn = cert_created_line.split(' ')[-1]
+	"Entity $fqdn created"
+}
+
+doc Removes Beame test requests signing credential from store
+F remove_from_store() {
+	$(rm -r ${fqdn_dir(BEAME_DEV_AUTH_FQDN)})
+	'Removed'
+}
+
+doc Checks that process outputs specific text and exists with non-zero code
+F should_fail_with_text(cmd:Command, text:Str) {
+	try {
+		$($cmd)
+		throw TestFail('Exited with code 0')
+	} catch(e:ProcessFail) {
+		text not in e.process.stdout throws TestFail("No expected text in output")
+		return 'Expected text found'
+	}
+}
+
+# ---------- Tests ----------
+
+
+if not(TEST_EXISTING_DIR) {
+        do_test("Run without certificates", {
+            should_fail_with_text(%($BEAME_INSTA_SERVER_BIN list), 'you have no certificates')
+        })
+	do_test("Copy $BEAME_DEV_AUTH_FQDN into store", copy_to_store)
+	do_test("Create token for test L0 entity", create_token)
+	do_test("Initialize insta server", create);
+	do_test("Remove $BEAME_DEV_AUTH_FQDN from store", remove_from_store)
+}
+
+db_file = null
+do_test("Validate app config file at $APP_CONFIG_FILE", {
+	data = read(APP_CONFIG_FILE)
+	# 'sqlite_db_name=beame_server.db, sqlite_db_storage_root=/home/ilya/.beame_data,
+	must_have = {
+		'ServiceName': 'ServiceName'
+		'db_provider': 'sqlite'
+		'sqlite_db_admin_username': 'admin'
+		'sqlite_env_name': 'production'
+	}
+
+	ks = must_have.keys() + %[sqlite_db_name sqlite_db_storage_root]
+	ks.each(F(k) k not in data throws TestFail("Key $k was not found in $APP_CONFIG_FILE"))
+	global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
+	"All checked keys values were OK: ${ks.join(',')}"
+})
+
+do_test("Presence of sqlite database at $db_file", {
+    not(Path(db_file)) throws TestFail("File $db_file does not exist")
+    "$db_file exists"
+})
+
+do_test("Tables presence in sqlite DB at $db_file", {
+    existing = (`sqlite3 $db_file .tables` - Sfx('\n')).split(/ +/).without('')
+    expected = %[Registrations SequelizeMeta Services Sessions Users]
+    d = cmp(expected, existing)
+    d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
+    d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
+    "All expected tables exist: ${expected.join(',')}"
+})
