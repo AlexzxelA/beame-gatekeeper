@@ -49,8 +49,12 @@ const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 var commandHandled = false;
 
 function startDataService() {
-	dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
-	return dataService.start.bind(dataService);
+	return new Promise((resolve, reject) => {
+			dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
+			dataService.start().then(resolve).catch(reject);
+		}
+	);
+
 }
 
 function getHelpMessage(fileName) {
