@@ -2,6 +2,10 @@
 const bootstrapper = new (require('../src/bootstrapper'))();
 let config = bootstrapper.sqliteConfig;
 
+const beameSDK     = require('beame-sdk');
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger('Sequelize');
+
 var fs        = require('fs');
 var path      = require('path');
 var Sequelize = require('sequelize');
@@ -15,6 +19,7 @@ var sequelize = new Sequelize(config["database"], config["username"], config["pa
 		min:  0,
 		idle: 10000
 	},
+	logging: logger.debug.bind(logger),
 	// SQLite only
 	storage: config["storage"]
 });
