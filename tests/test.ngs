@@ -46,19 +46,6 @@ if not(TEST_EXISTING_DIR) {
   ENV.BEAME_LOG_LEVEL = 'DEBUG'
 }
 
-# ---------- Tests "framework" ----------
-
-exit_code = 0
-
-{ type TestFail(Error) }
-
-F do_test(name:Str, f:Fun) {
-        echo("")
-        echo("=== TEST: $name ===")
-        msg = f()
-        echo("  OK: $msg")
-}
-
 # ---------- Utilities ----------
 
 F base64encode(s:Str) {
@@ -66,7 +53,7 @@ F base64encode(s:Str) {
 	$(echo $s >$fname)
 	ret = `base64 -w0 <$fname`
 	$(rm $fname)
-	log("base64 done")
+	log("base64 encode done")
 	ret
 }
 
@@ -82,15 +69,6 @@ F base64decode(s:Str) {
 F fqdn_dir(fqdn) "$HOME/.beame/v2/$fqdn"
 
 # ---------- Tests library ----------
-F should_fail_with_text(cmd:Command, text:Str) {
-	try {
-		$($cmd)
-		throw TestFail('Exited with code 0')
-	} catch(e:ProcessFail) {
-		text not in e.process.stdout throws TestFail("No expected text in output")
-		return 'Expected text found'
-	}
-}
 doc Copies Beame test requests signing credential into store for L0 entity creation
 F copy_to_store() {
 	$(cp -a "$HOME/$BEAME_DEV_AUTH_FQDN" ${fqdn_dir(BEAME_DEV_AUTH_FQDN)})
@@ -127,33 +105,10 @@ F remove_from_store() {
 	'Removed'
 }
 
-doc Checks that process outputs specific text and exists with non-zero code
-F should_fail_with_text(cmd:Command, text:Str) {
-	try {
-		$($cmd)
-		throw TestFail('Exited with code 0')
-	} catch(e:ProcessFail) {
-		text not in e.process.stdout throws TestFail("No expected text in output")
-		return 'Expected text found'
-	}
-}
-
-doc Waits till hostname becomes resolvable (has DNS record)
-F wait_resolvable(h:Str) {
-	do_test("Waiting for hostname $h to be resolvable", {
-		for(i;45) {
-			resolve = `dig "+short" $h`
-			resolve returns "Resolves to ${resolve.lines()[-1]}"
-			$(sleep 2)
-		}
-		throw TestFail("No resolve for $h")
-	})
-}
-
 app_tokens = {}
 
 F get_app_proxying_token(kind:Str) {
-    do_test("Get $kind app token", {
+    test("Get $kind app token") with {
         t = `$BEAME_INSTA_SERVER_BIN $kind`
         links = t.lines().filter(/^https/)
         links.len() != 1 throws TestFail("Link not found or more than one link found").set('out', t)
@@ -161,24 +116,21 @@ F get_app_proxying_token(kind:Str) {
         link.len() < 100 throws TestFail("Link is too short").set('link', link)
         app_tokens[kind] = link
         "Got $kind token: ${app_tokens[kind]}"
-    })
-
+    }
 }
 
 # ---------- Tests ----------
-
-
 if not(TEST_EXISTING_DIR) {
-        do_test("Run without certificates", {
-            should_fail_with_text(%($BEAME_INSTA_SERVER_BIN list), 'you have no certificates')
-        })
-	do_test("Copy $BEAME_DEV_AUTH_FQDN into store", copy_to_store)
-	do_test("Create token for test L0 entity", create_token)
-	do_test("Initialize insta server", create);
-	do_test("Remove $BEAME_DEV_AUTH_FQDN from store", remove_from_store)
+        test("Run without certificates") with {
+            $(nofail $BEAME_INSTA_SERVER_BIN list).assert_exit_code(1).assert_output_has('you have no certificates')
+        }
+	test("Copy $BEAME_DEV_AUTH_FQDN into store") with copy_to_store
+	test("Create token for test L0 entity") with create_token
+	test("Initialize insta server") with create;
+	test("Remove $BEAME_DEV_AUTH_FQDN from store") with remove_from_store
 
         db_file = null
-        do_test("Validate app config file at $APP_CONFIG_FILE", {
+        test("Validate app config file at $APP_CONFIG_FILE") with {
                 data = read(APP_CONFIG_FILE)
                 # 'sqlite_db_name=beame_server.db, sqlite_db_storage_root=/home/ilya/.beame_data,
                 must_have = {
@@ -192,14 +144,14 @@ if not(TEST_EXISTING_DIR) {
                 ks.each(F(k) k not in data throws TestFail("Key $k was not found in $APP_CONFIG_FILE"))
                 global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
                 "All checked keys values were OK: ${ks.join(',')}"
-        })
+        }
 
-        do_test("Presence of sqlite database at $db_file", {
+        test("Presence of sqlite database at $db_file", {
             not(Path(db_file)) throws TestFail("File $db_file does not exist")
             "$db_file exists"
         })
 
-        do_test("Tables presence in sqlite DB at $db_file", {
+        test("Tables presence in sqlite DB at $db_file", {
             existing = `sqlite3 $db_file .tables`.lines().join(' ').split(/ +/).without('')
             expected = %[Registrations SequelizeMeta Services Sessions Users]
             d = cmp(expected, existing)
@@ -210,7 +162,7 @@ if not(TEST_EXISTING_DIR) {
             "All expected tables exist: ${expected.join(',')}"
         })
 
-        do_test("SequelizeMeta table in $db_file is populated", {
+        test("SequelizeMeta table in $db_file is populated", {
             expected = 9
             n = `sqlite3 $db_file "select * from SequelizeMeta"`.lines().len()
             n < expected throws TestFail("SequelizeMeta is not populated")
@@ -220,25 +172,23 @@ if not(TEST_EXISTING_DIR) {
 }
 
 gw_fqdn = null
-do_test("Validating creds file $CREDS_FILE", {
+test("Validating creds file $CREDS_FILE", {
     data = read(CREDS_FILE)
     expected_fqdn_roles = %[ZeroLevel GatewayServer BeameAuthorizationServer MatchingServer AdminServer]
     ks = expected_fqdn_roles
-    ks.each(F(k) k not in data throws TestFail("Key $k was not found in $CREDS_FILE"))
+    data.assert_hash_keys(ks + ['Users'], "Top level of $CREDS_FILE")
     expected_fqdn_roles.each(F(role) {
-        t = data[role]
-        'fqdn' not in t throws TestFail("'fqdn' not found in section $role in file $CREDS_FILE")
-        'server' not in t throws TestFail("'server' not found in section $role in file $CREDS_FILE")
-        len(t.fqdn) < 10 throws TestFail("'fqdn' too short in section $role in file $CREDS_FILE")
+        data[role].assert_hash_keys(%[fqdn server], "Section $role in $CREDS_FILE")
+        len(data[role].fqdn) < 10 throws TestFail("'fqdn' too short in section $role in file $CREDS_FILE")
     })
     global gw_fqdn = data.GatewayServer.fqdn
     "OK"
 })
 
-do_test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
+test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
     data = read(AUTH_SERVERS_FILE)
-    'Servers' not in data throws TestFail("Authorization servers file $AUTH_SERVERS_FILE does not have 'Servers' section")
-    data.Servers is not Arr throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is not an array")
+    data.assert_hash_keys(['Servers'], "Section 'Servers' in $AUTH_SERVERS_FILE")
+    data.Servers.assert_array("'Servers' section in $AUTH_SERVERS_FILE")
     data.Servers.len() < 1 throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is empty")
     "OK"
 })
@@ -246,15 +196,17 @@ do_test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
 get_app_proxying_token('config')
 get_app_proxying_token('admin')
 
-wait_resolvable(gw_fqdn)
+test("Resolving gateway FQDN $gw_fqdn") with {
+    assert_resolvable(gw_fqdn, "Resolve gateway FQDN")
+}
 
 echo("*** Starting insta server ***")
-p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN serve &)
+p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN server &)
 
 echo("*** Waiting for insta server to be up ***")
 sleep 20
 
-do_test("Front page at https://$gw_fqdn", {
+test("Front page at https://$gw_fqdn", {
     page = `curl -s "https://$gw_fqdn"`
     'main-wrapper' not in page throws TestFail("Expected text 'main-wrapper' not found on page at https://$gw_fqdn")
     "OK"
