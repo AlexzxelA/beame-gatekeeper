@@ -83,7 +83,6 @@ if (args._[0] == 'create') {
 
 	bootstrapper.initAll()
 		.then(() => {
-
 			credentialManager.createInitialCredentials(token).then(metadata => {
 				console.log('');
 				console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
@@ -92,9 +91,12 @@ if (args._[0] == 'create') {
 				console.log(`https://${metadata.fqdn}`);
 				process.exit(0);
 			}).catch(e => {
-				logger.error(e);
+				logger.error(BeameLogger.formatError(e));
 				process.exit(1);
 			});
+		}).catch(error => {
+			logger.error(BeameLogger.formatError(error));
+			process.exit(1);
 		});
 
 
