@@ -202,7 +202,7 @@ test("Resolving gateway FQDN $gw_fqdn") with {
 echo("*** Starting insta server ***")
 p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN server &)
 
-retry(times=18, sleep=5, logger=echo)
+retry(times=18, sleep=5)
     with code={ $(fuser 65510/tcp) }
     with progress_cb={ echo("Waiting for insta server to be up - port 65510: $A/$B") }
 
