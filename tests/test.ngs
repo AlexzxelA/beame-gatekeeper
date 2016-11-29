@@ -31,6 +31,8 @@ AUTH_SERVERS_FILE = CREDS_DIR / 'auth_servers.json'
 
 TEST_EXISTING_DIR = ENV.get('TEST_EXISTING_DIR', false)
 
+TOKEN_TYPES=%[admin config]
+
 if not(TEST_EXISTING_DIR) {
 	each(DIRS, F(dir) {
 		if Path(dir) {
@@ -97,13 +99,13 @@ F create() {
     txt = `$BEAME_INSTA_SERVER_BIN create ${beame_insta_server_token.encode_json().base64encode()}`
     cert_created_line = txt.lines().filter(X ~ Pfx('Certificate created'))[0]
     global fqdn = cert_created_line.split(' ')[-1]
-    "Entity $fqdn created"
+    TestMessage("Entity $fqdn created")
 }
 
 doc Removes Beame test requests signing credential from store
 F remove_from_store() {
 	$(rm -r ${fqdn_dir(BEAME_DEV_AUTH_FQDN)})
-	'Removed'
+	TestMessage('Removed')
 }
 
 app_tokens = {}
@@ -116,7 +118,7 @@ F get_app_proxying_token(kind:Str) {
         link = links[0]
         link.len() < 100 throws TestFail("Link is too short").set('link', link)
         app_tokens[kind] = link
-        "Got $kind token: ${app_tokens[kind]}"
+        TestMessage("Got $kind token: ${app_tokens[kind]}")
     }
 }
 
@@ -146,12 +148,10 @@ if not(TEST_EXISTING_DIR) {
             data.assert_hash_keys(%[sqlite_db_name sqlite_db_storage_root], "App config file $APP_CONFIG_FILE")
 
             global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
-            "OK"
         }
 
         test("Presence of sqlite database at $db_file") with {
             db_file.assert_path_exists("DB file")
-            "OK"
         }
 
         test("Tables presence in sqlite DB at $db_file", {
@@ -160,16 +160,13 @@ if not(TEST_EXISTING_DIR) {
             d = cmp(expected, existing)
             d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
             d.add .= without('SequelizeData')  # May or may not be present
-            echo("ADD ${d.add}")
             d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
-            "All expected tables exist: ${expected.join(',')}"
         })
 
         test("SequelizeMeta table in $db_file is populated", {
             expected = 9
             n = `sqlite3 $db_file "select * from SequelizeMeta"`.lines().len()
             n < expected throws TestFail("SequelizeMeta is not populated")
-            "SequelizeMeta table has $n rows"
         })
 
 }
@@ -185,7 +182,6 @@ test("Validating creds file $CREDS_FILE", {
         len(data[role].fqdn) < 10 throws TestFail("'fqdn' too short in section $role in file $CREDS_FILE")
     })
     global gw_fqdn = data.GatewayServer.fqdn
-    "OK"
 })
 
 test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
@@ -193,28 +189,45 @@ test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
     data.assert_hash_keys(['Servers'], "Section 'Servers' in $AUTH_SERVERS_FILE")
     data.Servers.assert_array("'Servers' section in $AUTH_SERVERS_FILE")
     data.Servers.len() < 1 throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is empty")
-    "OK"
 })
 
-get_app_proxying_token('config')
-get_app_proxying_token('admin')
+# get_app_proxying_token('config')
+each(TOKEN_TYPES, get_app_proxying_token)
+
 
 test("Resolving gateway FQDN $gw_fqdn") with {
     assert_resolvable(gw_fqdn, "Resolve gateway FQDN")
-    "OK"
 }
 
 echo("*** Starting insta server ***")
 p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN server &)
 
-echo("*** Waiting for insta server to be up ***")
-sleep 20
+retry(times=18, sleep=5, logger=echo) with code={
+    $(fuser 65510/tcp)
+} with progress_cb={
+    echo("Waiting for insta server to be up - port 65510: $A/$B")
+}
 
-test("Front page at https://$gw_fqdn", {
+echo("*** Waiting for insta server to be up - another 5 seconds ***")
+sleep 5
+
+test("Front page at https://$gw_fqdn") with {
     page = `curl -s "https://$gw_fqdn"`
     'main-wrapper' not in page throws TestFail("Expected text 'main-wrapper' not found on page at https://$gw_fqdn")
-    "OK"
-})
+}
+
+COOKE_FILE='/dev/shm/test_cookies'
+
+test("Admin token") with {
+    admin_page = `curl -s -b $COOKE_FILE -c $COOKE_FILE -L ${app_tokens.admin}`
+    admin_page.assert_has('function initAdminRouters', 'Admin page content')
+}
+
+# app is not ready
+test("Config token") with {
+    admin_page = `curl -s -b $COOKE_FILE -c $COOKE_FILE -L ${app_tokens.admin}`
+    admin_page.assert_has('Probably invalid app_id', 'Config page content')
+}
 
 @exit_hook {
     echo("Killing insta server")
