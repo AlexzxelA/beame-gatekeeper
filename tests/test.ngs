@@ -223,7 +223,7 @@ test("Admin token") with {
 
 # app is not ready
 test("Config token") with {
-    admin_page = `curl -s -b $COOKE_FILE -c $COOKE_FILE -L ${app_tokens.admin}`
+    admin_page = `curl -s -b $COOKE_FILE -c $COOKE_FILE -L ${app_tokens.config}`
     admin_page.assert_has('Probably invalid app_id', 'Config page content')
 }
 
