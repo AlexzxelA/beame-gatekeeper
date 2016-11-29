@@ -172,24 +172,24 @@ if not(TEST_EXISTING_DIR) {
 }
 
 gw_fqdn = null
-test("Validating creds file $CREDS_FILE", {
+test("Validating creds file $CREDS_FILE") with {
     data = read(CREDS_FILE)
     expected_fqdn_roles = %[ZeroLevel GatewayServer BeameAuthorizationServer MatchingServer AdminServer]
     ks = expected_fqdn_roles
     data.assert_hash_keys(ks + ['Users'], "Top level of $CREDS_FILE")
     expected_fqdn_roles.each(F(role) {
         data[role].assert_hash_keys(%[fqdn server], "Section $role in $CREDS_FILE")
-        len(data[role].fqdn) < 10 throws TestFail("'fqdn' too short in section $role in file $CREDS_FILE")
+        data[role].fqdn.assert_min_len(10, "Minimal FQDN length of role $role in $CREDS_FILE")
     })
     global gw_fqdn = data.GatewayServer.fqdn
-})
+}
 
-test("Validating authorization servers list file $AUTH_SERVERS_FILE", {
+test("Validating authorization servers list file $AUTH_SERVERS_FILE") with {
     data = read(AUTH_SERVERS_FILE)
     data.assert_hash_keys(['Servers'], "Section 'Servers' in $AUTH_SERVERS_FILE")
     data.Servers.assert_array("'Servers' section in $AUTH_SERVERS_FILE")
-    data.Servers.len() < 1 throws TestFail("'Servers' section in $AUTH_SERVERS_FILE is empty")
-})
+    data.Servers.assert_min_len(1, "Trusted auth servers")
+}
 
 # get_app_proxying_token('config')
 each(TOKEN_TYPES, get_app_proxying_token)
@@ -213,7 +213,7 @@ sleep 5
 
 test("Front page at https://$gw_fqdn") with {
     page = `curl -s "https://$gw_fqdn"`
-    'main-wrapper' not in page throws TestFail("Expected text 'main-wrapper' not found on page at https://$gw_fqdn")
+    page.assert_has('main-wrapper', 'Front page content')
 }
 
 COOKE_FILE='/dev/shm/test_cookies'
