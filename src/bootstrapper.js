@@ -554,7 +554,8 @@ class Bootstrapper {
 				let dbConfig = DirectoryServices.readJSON(SqliteConfigJsonPath);
 
 				if (CommonUtils.isObjectEmpty(dbConfig)) {
-					return this._createSqliteConfigJson();
+					this._createSqliteConfigJson().then(resolve).catch(_onConfigError);
+					return;
 				}
 
 				logger.debug(`sqlite ${SqliteDbConfigFileName} found...`);
