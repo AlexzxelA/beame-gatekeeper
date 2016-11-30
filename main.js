@@ -49,11 +49,8 @@ const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 var commandHandled = false;
 
 function startDataService() {
-	return new Promise((resolve, reject) => {
-			dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
-			dataService.start().then(resolve).catch(reject);
-		}
-	);
+	dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
+	return dataService.start();
 
 }
 
@@ -86,7 +83,6 @@ if (args._[0] == 'create') {
 
 	bootstrapper.initAll()
 		.then(() => {
-
 			credentialManager.createInitialCredentials(token).then(metadata => {
 				console.log('');
 				console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
@@ -95,9 +91,12 @@ if (args._[0] == 'create') {
 				console.log(`https://${metadata.fqdn}`);
 				process.exit(0);
 			}).catch(e => {
-				logger.error(e);
+				logger.error(BeameLogger.formatError(e));
 				process.exit(1);
 			});
+		}).catch(error => {
+			logger.error(BeameLogger.formatError(error));
+			process.exit(1);
 		});
 
 

@@ -4,8 +4,9 @@ const beameSDK    = require('beame-sdk');
 const module_name = "ChatApp";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
+const Service = require('../../constants').SetupServices.SampleChat;
 
-const port = 65510;
+const port = Service.port;
 const host = 'localhost';
 
 // Hack attack!

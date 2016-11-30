@@ -36,7 +36,7 @@ function startGatewaySession(authToken, relaySocket) {
 	gw_socket.on('data', function (data) {
 		data = JSON.parse(data);
 
-		console.log('DATA %j', data);
+	//	console.log('DATA %j', data);
 
 		var session_token, apps, type = data.type, payload = data.payload, user = payload.user;
 
@@ -83,7 +83,7 @@ function startGatewaySession(authToken, relaySocket) {
 				'socketId': relay_socket.beame_relay_socket_id,
 				'payload':  JSON.stringify(data)
 			};
-			console.log('******** Sedning:: ', msg);
+			//console.log('******** Sedning:: ', msg);
 			// QrTMPsocketRelay.emit('data', msg);
 			relay_socket.emit('data', msg);
 		}
@@ -111,27 +111,21 @@ function startGatewaySession(authToken, relaySocket) {
 
 			processMobileData(WhTMPSocketRelay, gw_socket, data, function (decryptedData) {
 				gw_socket.emit('data', decryptedData);
-				console.log('relaySocket data', decryptedData);
-				// var type = decryptedData.payload.data.type,
-				// 	session_token = decryptedData.payload.data.session_token;
-				//
-				// var payload = {session_token: session_token};
-				//
-				// switch (type) {
-				// 	case 'choose':
-				// 		payload.app_id = decryptedData.payload.data.app_id;
-				// 		break;
-				// 	case 'logout':
-				// 		break;
-				// 	default:
-				// 		console.error('mobile socket:: unknown payload type ' + type);
-				// 		return;
-				// }
+				//console.log('relaySocket data', decryptedData);
+				//TODO temp hack for testing, to be removed
+				 var type = decryptedData.type;
 
-				// gw_socket.emit('data',{
-				// 	type: type,
-				// 	payload: payload
-				// });
+				switch (type) {
+					case 'choose':
+						if(decryptedData.payload.app_id && decryptedData.payload.app_id == 35){
+							setTimeout(function(){
+								window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL', {url:'https://icdn.lenta.ru/images/2016/11/25/18/20161125181338843/feature_7c5897c5faf0f203833988a9753a711e.jpg'});
+							},3000);
+						}
+						break;
+					default:
+						return;
+				}
 
 			});
 		});

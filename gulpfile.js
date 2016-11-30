@@ -30,7 +30,7 @@ const tools_folder_name = 'tools';
 const tools_bucket_dir = 'insta-server-meta';
 
 const web_dist_root_path    = 'Web/';
-const web_src_root_path     = './apps/mobile/';
+const web_src_root_path     = './apps/';
 
 const getVersion = () => {
 	const pad2 = (n) => {
@@ -249,5 +249,9 @@ gulp.task('web_sass', function () {
 	gulp.src(web_src_root_path + 'scss/*.scss')
 		.pipe(sass())
 		.pipe(gulp.dest('./apps/photo/public/css/'));
+
+	gulp.src(web_src_root_path + 'scss/*.scss')
+		.pipe(sass())
+		.pipe(gulp.dest('./apps/stream/public/css/'));
 
 });

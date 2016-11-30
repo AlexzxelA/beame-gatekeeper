@@ -114,6 +114,11 @@ class ServersManager {
 					let mobilePhotoApp = new (require('../apps/photo'))();
 					mobilePhotoApp.start();
 					callback();
+				},
+				callback => {
+					let mobileStreamApp = new (require('../apps/stream'))();
+					mobileStreamApp.start();
+					callback();
 				}
 			],
 			error => {

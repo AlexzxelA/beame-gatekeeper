@@ -25,7 +25,13 @@ BEAME_DEV_AUTH_FQDN = 'n6ge8i9q4b4b5vb6.h40d7vrwir2oxlnn.v1.d.beameio.net'
 CONFIG_DIR = "${HOME}/.beame_server/config"
 APP_CONFIG_FILE = CONFIG_DIR / 'app_config.json'
 
+CREDS_DIR = "${HOME}/.beame_server/creds"
+CREDS_FILE = CREDS_DIR / 'creds.json'
+AUTH_SERVERS_FILE = CREDS_DIR / 'auth_servers.json'
+
 TEST_EXISTING_DIR = ENV.get('TEST_EXISTING_DIR', false)
+
+TOKEN_TYPES=%[admin config]
 
 if not(TEST_EXISTING_DIR) {
 	each(DIRS, F(dir) {
@@ -42,21 +48,6 @@ if not(TEST_EXISTING_DIR) {
   ENV.BEAME_LOG_LEVEL = 'DEBUG'
 }
 
-# ---------- Tests "framework" ----------
-
-CREDS_FILE = "/tmp/beame-cli-test-creds-${time()}"
-
-exit_code = 0
-
-{ type TestFail(Error) }
-
-F do_test(name:Str, f:Fun) {
-        echo("")
-        echo("=== TEST: $name ===")
-        msg = f()
-        echo("  OK: $msg")
-}
-
 # ---------- Utilities ----------
 
 F base64encode(s:Str) {
@@ -64,7 +55,7 @@ F base64encode(s:Str) {
 	$(echo $s >$fname)
 	ret = `base64 -w0 <$fname`
 	$(rm $fname)
-	log("base64 done")
+	log("base64 encode done")
 	ret
 }
 
@@ -80,15 +71,6 @@ F base64decode(s:Str) {
 F fqdn_dir(fqdn) "$HOME/.beame/v2/$fqdn"
 
 # ---------- Tests library ----------
-F should_fail_with_text(cmd:Command, text:Str) {
-	try {
-		$($cmd)
-		throw TestFail('Exited with code 0')
-	} catch(e:ProcessFail) {
-		text not in e.process.stdout throws TestFail("No expected text in output")
-		return 'Expected text found'
-	}
-}
 doc Copies Beame test requests signing credential into store for L0 entity creation
 F copy_to_store() {
 	$(cp -a "$HOME/$BEAME_DEV_AUTH_FQDN" ${fqdn_dir(BEAME_DEV_AUTH_FQDN)})
@@ -104,78 +86,148 @@ F create_token() {
 
 doc Initializes beame-insta-server
 F create() {
-	t = time()
+    t = time()
     # src 3 - RegistrationSource.InstaServerSDK
-	beame_insta_server_token = {
-	  'authToken': token.base64decode().parse()
-	  'authSrvFqdn': ENV.BEAME_INTERNAL_AUTH_SERVER_FQDN
-	  'name': "insta-server-test-L0-$t"
-	  'email': "insta-server-L0-${t}@example.com"
-      'src': 3
-	}
-	txt = `$BEAME_INSTA_SERVER_BIN create ${beame_insta_server_token.encode_json().base64encode()}`
-	cert_created_line = txt.lines().filter(X ~ Pfx('Certificate created'))[0]
-	global fqdn = cert_created_line.split(' ')[-1]
-	"Entity $fqdn created"
+    beame_insta_server_token = {
+        'authToken': token.base64decode().parse()
+        'authSrvFqdn': ENV.BEAME_INTERNAL_AUTH_SERVER_FQDN
+        'name': "insta-server-test-L0-$t"
+        'email': "insta-server-L0-${t}@example.com"
+        'src': 3
+    }
+
+    txt = `$BEAME_INSTA_SERVER_BIN create ${beame_insta_server_token.encode_json().base64encode()}`
+    cert_created_line = txt.lines().filter(X ~ Pfx('Certificate created'))[0]
+    global fqdn = cert_created_line.split(' ')[-1]
+    TestMessage("Entity $fqdn created")
 }
 
 doc Removes Beame test requests signing credential from store
 F remove_from_store() {
 	$(rm -r ${fqdn_dir(BEAME_DEV_AUTH_FQDN)})
-	'Removed'
+	TestMessage('Removed')
 }
 
-doc Checks that process outputs specific text and exists with non-zero code
-F should_fail_with_text(cmd:Command, text:Str) {
-	try {
-		$($cmd)
-		throw TestFail('Exited with code 0')
-	} catch(e:ProcessFail) {
-		text not in e.process.stdout throws TestFail("No expected text in output")
-		return 'Expected text found'
-	}
+app_tokens = {}
+
+F get_app_proxying_token(kind:Str) {
+    test("Get $kind app token") with {
+        t = `$BEAME_INSTA_SERVER_BIN $kind`
+        links = t.lines().filter(/^https/)
+        links.len() != 1 throws TestFail("Link not found or more than one link found").set('out', t)
+        link = links[0]
+        link.len() < 100 throws TestFail("Link is too short").set('link', link)
+        app_tokens[kind] = link
+        TestMessage("Got $kind token: ${app_tokens[kind]}")
+    }
 }
 
 # ---------- Tests ----------
-
-
 if not(TEST_EXISTING_DIR) {
-        do_test("Run without certificates", {
-            should_fail_with_text(%($BEAME_INSTA_SERVER_BIN list), 'you have no certificates')
+        test("Run without certificates") with {
+            $(nofail $BEAME_INSTA_SERVER_BIN list).assert_exit_code(1).assert_output_has('you have no certificates')
+            "OK"
+        }
+	test("Copy $BEAME_DEV_AUTH_FQDN into store") with copy_to_store
+	test("Create token for test L0 entity") with create_token
+	test("Initialize insta server") with create;
+	test("Remove $BEAME_DEV_AUTH_FQDN from store") with remove_from_store
+
+        db_file = null
+        test("Validate app config file at $APP_CONFIG_FILE") with {
+            data = read(APP_CONFIG_FILE)
+
+            must_have = {
+                'ServiceName': 'ServiceName'
+                'db_provider': 'sqlite'
+                'sqlite_db_admin_username': 'admin'
+                'sqlite_env_name': 'production'
+            }
+
+            data.assert_hash_keys_values(must_have, "App config file $APP_CONFIG_FILE")
+            data.assert_hash_keys(%[sqlite_db_name sqlite_db_storage_root], "App config file $APP_CONFIG_FILE")
+
+            global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
+        }
+
+        test("Presence of sqlite database at $db_file") with {
+            db_file.assert_path_exists("DB file")
+        }
+
+        test("Tables presence in sqlite DB at $db_file", {
+            existing = `sqlite3 $db_file .tables`.lines().join(' ').split(/ +/).without('')
+            expected = %[Registrations SequelizeMeta Services Sessions Users]
+            d = cmp(expected, existing)
+            d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
+            d.add .= without('SequelizeData')  # May or may not be present
+            d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
         })
-	do_test("Copy $BEAME_DEV_AUTH_FQDN into store", copy_to_store)
-	do_test("Create token for test L0 entity", create_token)
-	do_test("Initialize insta server", create);
-	do_test("Remove $BEAME_DEV_AUTH_FQDN from store", remove_from_store)
+
+        test("SequelizeMeta table in $db_file is populated", {
+            expected = 9
+            n = `sqlite3 $db_file "select * from SequelizeMeta"`.lines().len()
+            n < expected throws TestFail("SequelizeMeta is not populated")
+        })
+
 }
 
-db_file = null
-do_test("Validate app config file at $APP_CONFIG_FILE", {
-	data = read(APP_CONFIG_FILE)
-	# 'sqlite_db_name=beame_server.db, sqlite_db_storage_root=/home/ilya/.beame_data,
-	must_have = {
-		'ServiceName': 'ServiceName'
-		'db_provider': 'sqlite'
-		'sqlite_db_admin_username': 'admin'
-		'sqlite_env_name': 'production'
-	}
+gw_fqdn = null
+test("Validating creds file $CREDS_FILE") with {
+    data = read(CREDS_FILE)
+    expected_fqdn_roles = %[ZeroLevel GatewayServer BeameAuthorizationServer MatchingServer AdminServer]
+    ks = expected_fqdn_roles
+    data.assert_hash_keys(ks + ['Users'], "Top level of $CREDS_FILE")
+    expected_fqdn_roles.each(F(role) {
+        data[role].assert_hash_keys(%[fqdn server], "Section $role in $CREDS_FILE")
+        data[role].fqdn.assert_min_len(10, "Minimal FQDN length of role $role in $CREDS_FILE")
+    })
+    global gw_fqdn = data.GatewayServer.fqdn
+}
 
-	ks = must_have.keys() + %[sqlite_db_name sqlite_db_storage_root]
-	ks.each(F(k) k not in data throws TestFail("Key $k was not found in $APP_CONFIG_FILE"))
-	global db_file = (data.sqlite_db_storage_root) / (data.sqlite_db_name)
-	"All checked keys values were OK: ${ks.join(',')}"
-})
+test("Validating authorization servers list file $AUTH_SERVERS_FILE") with {
+    data = read(AUTH_SERVERS_FILE)
+    data.assert_hash_keys(['Servers'], "Section 'Servers' in $AUTH_SERVERS_FILE")
+    data.Servers.assert_array("'Servers' section in $AUTH_SERVERS_FILE")
+    data.Servers.assert_min_len(1, "Trusted auth servers")
+}
 
-do_test("Presence of sqlite database at $db_file", {
-    not(Path(db_file)) throws TestFail("File $db_file does not exist")
-    "$db_file exists"
-})
+# get_app_proxying_token('config')
+each(TOKEN_TYPES, get_app_proxying_token)
 
-do_test("Tables presence in sqlite DB at $db_file", {
-    existing = (`sqlite3 $db_file .tables` - Sfx('\n')).split(/ +/).without('')
-    expected = %[Registrations SequelizeMeta Services Sessions Users]
-    d = cmp(expected, existing)
-    d.remove throws TestFail("Missing tables: ${d.remove.join(',')}")
-    d.add throws TestFail("Found unexpected tables: ${d.add.join(',')}")
-    "All expected tables exist: ${expected.join(',')}"
-})
+
+test("Resolving gateway FQDN $gw_fqdn") with {
+    assert_resolvable(gw_fqdn, "Resolve gateway FQDN")
+}
+
+echo("*** Starting insta server ***")
+p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN server &)
+
+retry(times=18, sleep=5)
+    with code={ $(fuser 65510/tcp) }
+    with progress_cb={ echo("Waiting for insta server to be up - port 65510: $A/$B") }
+
+echo("*** Waiting for insta server to be up - another 5 seconds ***")
+sleep 5
+
+test("Front page at https://$gw_fqdn") with {
+    page = `curl -s "https://$gw_fqdn"`
+    page.assert_has('main-wrapper', 'Front page content')
+}
+
+COOKE_FILE='/dev/shm/test_cookies'
+
+test("Admin token") with {
+    admin_page = `curl -s -b $COOKE_FILE -c $COOKE_FILE -L ${app_tokens.admin}`
+    admin_page.assert_has('function initAdminRouters', 'Admin page content')
+}
+
+# app is not ready
+test("Config token") with {
+    admin_page = `curl -s -b $COOKE_FILE -c $COOKE_FILE -L ${app_tokens.config}`
+    admin_page.assert_has('Probably invalid app_id', 'Config page content')
+}
+
+@exit_hook {
+    echo("Killing insta server")
+    p.kill()
+}
