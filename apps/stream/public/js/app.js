@@ -15,6 +15,20 @@ function onDocLoaded() {
 			return;
 		}
 
+		var STREAM_SOCKET_URL = args.url;
+
+
+		var canvas = utils.getElement('canvas');
+		if (!canvas || canvas.length == 0) return;
+
+		document.getElementsByTagName('canvas')[0].style.display = 'block';
+
+		//clear canvas
+		var gl = canvas[0].getContext('webgl');
+		if (gl == null) return;
+		//gl.clearColor(1,1,1,1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+
 
 		function resetCanvas() {
 			console.log('on streamer controller enter');

@@ -129,10 +129,13 @@ function startGatewaySession(authToken, relaySocket) {
 							case ActionTypes.Photo:
 								window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL', {url:decryptedData.payload.url});
 								return;
+							case ActionTypes.Video:
+								window.getNotifManagerInstance().notify('MOBILE_STREAM', {url:decryptedData.payload.url});
+								return;
 						}
 						break;
 					default:
-						return;
+						break;
 				}
 
 				gw_socket.emit('data', decryptedData);
