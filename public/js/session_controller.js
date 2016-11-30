@@ -119,7 +119,7 @@ function startGatewaySession(authToken, relaySocket) {
 
 			processMobileData(WhTMPSocketRelay, gw_socket, data, function (decryptedData) {
 
-				//console.log('relaySocket data', decryptedData);
+				console.log('relaySocket data', decryptedData);
 				//TODO temp hack for testing, to be removed
 				 var type = decryptedData.type;
 
@@ -135,10 +135,11 @@ function startGatewaySession(authToken, relaySocket) {
 						}
 						break;
 					default:
+						gw_socket.emit('data', decryptedData);
 						break;
 				}
 
-				gw_socket.emit('data', decryptedData);
+
 
 			});
 		});
