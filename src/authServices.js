@@ -270,6 +270,7 @@ class BeameAuthServices {
 
 		return {
 			name:        data.name,
+			edge_fqdn:   data.edge_fqdn,
 			email:       data.email,
 			userAgent:   userAgent,
 			parent_fqdn: parent_fqdn,
