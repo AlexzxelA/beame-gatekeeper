@@ -10,7 +10,7 @@ function onDocLoaded() {
 
 	window.parent.document.title = 'Mobile Stream';
 
-	window.parent.getNotifManagerInstance().subscribe('MOBILE_STREAM', function (event, args) {
+	window.parent.getNotifManagerInstance().subscribe('MOBILE_STREAM', function (args) {
 		if (!args || !args.url) {
 			return;
 		}

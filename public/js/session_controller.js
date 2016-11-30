@@ -3,6 +3,14 @@
  */
 "use strict";
 
+var ActionTypes = {
+	"Photo":       "photo",
+	"Video":       "video",
+	"ChangeState": "state",
+	"Location":    "location",
+	"Stream":      "stream"
+};
+
 function startGatewaySession(authToken, relaySocket) {
 
 	var gw_socket = null, relay_socket = relaySocket;
@@ -110,22 +118,24 @@ function startGatewaySession(authToken, relaySocket) {
 		relaySocket.on('data', function (data) {
 
 			processMobileData(WhTMPSocketRelay, gw_socket, data, function (decryptedData) {
-				gw_socket.emit('data', decryptedData);
+
 				//console.log('relaySocket data', decryptedData);
 				//TODO temp hack for testing, to be removed
 				 var type = decryptedData.type;
 
 				switch (type) {
-					case 'choose':
-						if(decryptedData.payload.app_id && decryptedData.payload.app_id == 35){
-							setTimeout(function(){
-								window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL', {url:'https://icdn.lenta.ru/images/2016/11/25/18/20161125181338843/feature_7c5897c5faf0f203833988a9753a711e.jpg'});
-							},3000);
+					case 'mediaRequest':
+						switch (decryptedData.payload.action){
+							case ActionTypes.Photo:
+								window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL', {url:decryptedData.payload.url});
+								return;
 						}
 						break;
 					default:
 						return;
 				}
+
+				gw_socket.emit('data', decryptedData);
 
 			});
 		});
