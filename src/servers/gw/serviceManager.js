@@ -33,7 +33,7 @@ class ServiceManager {
 							name:   approvedList[key].name
 						};
 					});
-
+					logger.debug('app list:',formattedList);
 					resolve(formattedList);
 				};
 
@@ -106,7 +106,7 @@ class ServiceManager {
 	}
 
 	appUrlById(app_id) {
-
+		logger.debug('got app request:',app_id);
 		return new Promise((resolve, reject) => {
 				let app = this._appList[app_id];
 

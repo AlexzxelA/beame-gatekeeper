@@ -65,14 +65,17 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
+		socket.emit('ack', 'startQrSession');
 		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
 		if(data){
 			matchingFqdn = data.matching || matchingFqdn;
 			serviceName  = data.service || serviceName;
 		}
-		socket.emit('ack', 'startQrSession');
-		socket.emit('pinRequest');
+		setTimeout(function () {
+			socket.emit('pinRequest');
+		},100);
+
 		if (!qrSession) {
 			qrSession = setInterval(function () {
 				console.log('QR requesting data');
