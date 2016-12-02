@@ -172,9 +172,7 @@ $(document).ready(function () {
 		console.log('QR mobileProv1:', data);
 		if (data.data && QrTMPsocketRelay) {
 			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-			var msg = {'socketId': qrTmpSocketID, 'payload': JSON.stringify(data)};
-			console.log('QR ******** Sending:: ', msg);
-			QrTMPsocketRelay.emit('data', msg);
+			sendEncryptedData(QrTMPsocketRelay, qrTmpSocketID, str2ab(JSON.stringify(data)));
 		}
 		socket.emit('close_session');
 	});

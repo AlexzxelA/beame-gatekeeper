@@ -283,6 +283,24 @@ function processMobileData(TMPsocketRelay, TMPsocketOrigin, data, cb) {
 	}
 }
 
+function sendEncryptedData(target, socketId, data) {
+	encryptWithPK(data, function (error, cipheredData) {
+		if (!error) {
+			target.emit('data', {
+				'socketId': socketId,
+				'payload':  cipheredData
+			});
+		}
+		else {
+			console.error('Data encryption failed: ', error);
+			target.emit('data', {
+				'socketId': socketId,
+				'payload':  'Data encryption failed'
+			});
+		}
+	});
+}
+
 function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
@@ -320,21 +338,8 @@ function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
 	window.crypto.subtle.exportKey('spki', keyPairSign.publicKey)
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
-			encryptWithPK(keydata1, function (error, cipheredData) {
-				if (!error) {
-					console.log('Sending SignKey: ', JSON.stringify({
-						'type':    'signkey',
-						'payload': {'data': (cipheredData)}
-					}));
-					relaySocket.emit('data', {
-						'socketId': data.socketId,
-						'payload':  JSON.stringify({'type': 'signkey', 'data': (cipheredData)})
-					});
-				}
-				else {
-					console.error('Data encryption failed: ', error);
-				}
-			});
+			sendEncryptedData(relaySocket, data.socketId,
+				str2ab(JSON.stringify({'type': 'signkey', 'data': arrayBufferToBase64String(keydata1)})));
 		})
 		.catch(function (err) {
 			console.error('Export Public Sign Key Failed', err);
