@@ -120,14 +120,25 @@ function startGatewaySession(authToken, relaySocket) {
 
 				switch (type) {
 					case 'mediaRequest':
-						switch (decryptedData.payload.action){
-							case ActionTypes.Photo:
-								window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL', {url:decryptedData.payload.url});
-								return;
-							case ActionTypes.Video:
-								window.getNotifManagerInstance().notify('MOBILE_STREAM', {url:decryptedData.payload.url});
-								return;
-						}
+						var segment = '/'+(decryptedData.payload.url).split('/').pop();
+						console.log('Media request, signing:',segment);
+						signArbitraryData(segment, function (error, signature) {
+							if(!error){
+								//window.crypto.subtle.digest("SHA-256", signature).then(function (signHash) {
+									switch (decryptedData.payload.action){
+										case ActionTypes.Photo:
+											window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL',
+												{url:decryptedData.payload.url, sign:arrayBufferToBase64String(signature)});
+											return;
+										case ActionTypes.Video:
+											window.getNotifManagerInstance().notify('MOBILE_STREAM',
+												{url:decryptedData.payload.url, sign:arrayBufferToBase64String(signature)});
+											return;
+									}
+								//});
+							}
+						});
+
 						break;
 					default:
 						gw_socket.emit('data', decryptedData);

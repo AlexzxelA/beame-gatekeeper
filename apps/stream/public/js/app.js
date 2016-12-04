@@ -11,11 +11,11 @@ function onDocLoaded() {
 	window.parent.document.title = 'Mobile Stream';
 
 	window.parent.getNotifManagerInstance().subscribe('MOBILE_STREAM', function (args) {
-		if (!args || !args.url) {
+		if (!args || !args.url || !args.sign) {
 			return;
 		}
 
-		var STREAM_SOCKET_URL = args.url;
+		var STREAM_SOCKET_URL = args.url + '?sign=@'+ encodeURIComponent(args.sign);
 
 		//
 		// var canvas = document.getElementsByTagName('canvas');

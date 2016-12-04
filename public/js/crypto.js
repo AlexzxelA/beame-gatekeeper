@@ -71,6 +71,22 @@ function generateKeyPairs(cb) {
 		});
 }
 
+function signArbitraryData(data, cb) {
+	window.crypto.subtle.sign(
+		{name: "RSASSA-PKCS1-v1_5"},
+		keyPairSign.privateKey,
+		str2ab(data)
+	)
+		.then(function(signature){
+			//console.log('signData:',data,'..sign:',arrayBufferToBase64String(signature));
+			cb(null, signature);
+		})
+		.catch(function(err){
+			console.error(err);
+			cb(err,null);
+		});
+}
+
 function encryptWithPK(data, cb) {
 
 	var dataSize          = data.byteLength;

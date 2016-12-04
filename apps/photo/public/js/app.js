@@ -27,7 +27,7 @@ function onUrlReceived(args){
 		return;
 	}
 
-	var url = args.url + '?w=600&h=600';
+	var url = args.url + '?sign=@'+ encodeURIComponent(args.sign)+'&w=600&h=600';
 
 	img    = document.getElementById('img-photo');
 	loader = document.getElementById('img-loader');
