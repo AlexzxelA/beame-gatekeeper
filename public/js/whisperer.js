@@ -247,10 +247,9 @@ app.controller("MainCtrl", function ($scope) {
 
 	$scope.socket.on('mobileProv1', function (data) {
 		if (data.data && WhTMPSocketRelay) {
+			console.log('Whisperer mobileProv1:', data);
 			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-			var msg = {'socketId': whTmpSocketId, 'payload': JSON.stringify(data)};
-			console.log('******** Sedning:: ', msg);
-			WhTMPSocketRelay.emit('data', msg);
+			sendEncryptedData(WhTMPSocketRelay, whTmpSocketId, str2ab(JSON.stringify(data)));
 		}
 	});
 
