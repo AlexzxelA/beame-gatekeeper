@@ -445,6 +445,66 @@ class SqliteServices {
 		);
 	}
 
+	/**
+	 * @param {String} fqdn
+	 * @param {Boolean} isActive
+	 */
+	updateUserActiveStatus(fqdn,isActive) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.users;
+					//noinspection JSUnresolvedFunction
+					model.findOne({
+						where: {
+							fqdn: fqdn
+						}
+					}).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`User record not found`));
+							return;
+						}
+						record.update({isActive: isActive}).then(resolve).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
+	/**
+	 * @param {String} fqdn
+	 */
+	markUserAsDeleted(fqdn) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.users;
+					//noinspection JSUnresolvedFunction
+					model.findOne({
+						where: {
+							fqdn: fqdn
+						}
+					}).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`User record not found`));
+							return;
+						}
+						record.update({isDeleted: true}).then(resolve).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
 
 	/**
 	 *

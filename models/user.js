@@ -34,6 +34,11 @@ module.exports = function (sequelize, DataTypes) {
 				allowNull:    false,
 				defaultValue: true
 			},
+			isDeleted:         {
+				type:         DataTypes.BOOLEAN,
+				allowNull:    false,
+				defaultValue: false
+			},
 			lastActiveDate: {
 				type:      DataTypes.DATE,
 				allowNull: true

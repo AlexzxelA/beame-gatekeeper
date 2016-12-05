@@ -83,6 +83,21 @@ class DataServices {
 	}
 
 	/**
+	 * @param {String} fqdn
+	 * @param {Boolean} isActive
+	 */
+	updateUserActiveStatus(fqdn,isActive) {
+		return this._dbService.updateUserActiveStatus(fqdn,isActive);
+	}
+
+	/**
+	 * @param {String} fqdn
+	 */
+	markUserAsDeleted(fqdn) {
+		return this._dbService.markUserAsDeleted(fqdn);
+	}
+
+	/**
 	 * @param id
 	 * @param {SignatureToken|String} sign
 	 */

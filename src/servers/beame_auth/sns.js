@@ -4,19 +4,21 @@
 "use strict";
 
 /**
- * @typedef {Object} CertNotificationToken
+ * @typedef {Object} SnsNotificationToken
+ * @property {SnsMessageType} type
  * @property {String} fqdn
  * @property {String} x509
  * @property {Object} metadata
  */
 
-const beameSDK     = require('beame-sdk');
-const module_name  = "SNS";
-const BeameLogger  = beameSDK.Logger;
-const logger       = new BeameLogger(module_name);
-const AuthServices = require('../../authServices');
-const https        = require('https'),
-      validator    = new (require('sns-validator'))();
+const beameSDK       = require('beame-sdk');
+const module_name    = "SNS";
+const BeameLogger    = beameSDK.Logger;
+const logger         = new BeameLogger(module_name);
+const AuthServices   = require('../../authServices');
+const SnsMessageType = require('../../../constants').SnsMessageType;
+const https          = require('https'),
+      validator      = new (require('sns-validator'))();
 
 
 class SnsServices {
@@ -33,11 +35,11 @@ class SnsServices {
 						return;
 					}
 
-					let msgType = message['Type'];
+					let snsType = message['Type'];
 
-					switch (msgType) {
+					switch (snsType) {
 						case 'SubscriptionConfirmation':
-							https.get(message['SubscribeURL'], (res) => {
+							https.get(message['SubscribeURL'], () => {
 								//noinspection JSUnresolvedVariable
 								logger.info(`Subscribed to ${message.TopicArn}`);
 								resolve();
@@ -46,10 +48,30 @@ class SnsServices {
 
 						case 'Notification':
 							//noinspection JSUnresolvedVariable
-							/** @type {CertNotificationToken} */
+							/** @type {SnsNotificationToken} */
 							var token = beameSDK.CommonUtils.parse(message.Message);
 							if (token) {
-								AuthServices.markRegistrationAsCompleted(token).then(resolve).catch(resolve);
+
+								try {
+									let msgType = token.type;
+
+									switch (msgType) {
+										case SnsMessageType.Cert:
+											AuthServices.markRegistrationAsCompleted(token).then(resolve).catch(resolve);
+											return;
+										case SnsMessageType.Revoke:
+											AuthServices.onUserCertRevoked(token).then(resolve).catch(resolve);
+											return;
+										case SnsMessageType.Delete:
+											AuthServices.onUserDeleted(token).then(resolve).catch(resolve);
+											return;
+									}
+								}
+								catch (e) {
+									reject(`Sns notification error  ${BeameLogger.formatError(e)}`);
+								}
+
+
 							}
 							else {
 								resolve();
