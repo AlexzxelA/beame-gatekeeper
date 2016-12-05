@@ -32,10 +32,13 @@ const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
 const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
 const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
 
-const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
+const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
+
+const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
 /**
  * Registration sources
+ * DON'T TOUCH, should by synchronized with backend services
  * @readonly
  * @enum {Number}
  */
@@ -45,6 +48,18 @@ const RegistrationSource = {
 	"InstaSSL":       2,
 	"InstaServerSDK": 3,
 	"IOSSDK":         4
+};
+
+/**
+ * Sns Message Types
+ * DON'T TOUCH, should by synchronized with backend services
+ * @readonly
+ * @enum {Number}
+ */
+const SnsMessageType = {
+	Cert:   1,
+	Revoke: 2,
+	Delete: 3
 };
 
 const CredentialType = {
@@ -76,6 +91,7 @@ module.exports = {
 	RegistrationSource,
 	LoadBalancerURL,
 	CredentialType,
+	SnsMessageType,
 	SetupServices,
 	DbProviders,
 	AuthMode: {

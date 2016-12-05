@@ -192,7 +192,7 @@ class Whisperer {
 				}).catch(e => {
 					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
 					this._socket.emit("mobileProv1", {
-						'data': 'User data validation failed',
+						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
 						'type': 'mobileSessionFail'
 					});
 				});

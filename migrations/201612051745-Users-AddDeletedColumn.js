@@ -1,27 +1,26 @@
 /**
- * Created by zenit1 on 05/12/2016.
+ * Created by zenit1 on 17/11/2016.
  */
 
 'use strict';
-
 module.exports = {
 	up: function (queryInterface, Sequelize) {
 		return [
 			queryInterface.addColumn(
 				'Users',
-				'isActive',
+				'isDeleted',
 				{
 					type: Sequelize.BOOLEAN,
 					allowNull: false,
-					defaultValue:true
+					defaultValue:false
 				}
 			)
 		];
 	},
 
-	down: function (queryInterface, Sequelize) {
+	down: function (queryInterface) {
 		return [
-			queryInterface.removeColumn('Users', 'isActive')
+			queryInterface.removeColumn('Users', 'isDeleted')
 		];
 	}
 };

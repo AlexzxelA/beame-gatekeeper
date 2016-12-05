@@ -218,7 +218,7 @@ class BeameAuthServices {
 
 	/**
 	 *
-	 * @param {CertNotificationToken} token
+	 * @param {SnsNotificationToken} token
 	 */
 	static markRegistrationAsCompleted(token) {
 		return new Promise((resolve, reject) => {
@@ -256,6 +256,20 @@ class BeameAuthServices {
 			}
 		);
 
+	}
+
+	/**
+	 * @param {SnsNotificationToken} token
+	 */
+	static onUserCertRevoked(token) {
+		return dataService.updateUserActiveStatus(token.fqdn, false);
+	}
+
+	/**
+	 * @param {SnsNotificationToken} token
+	 */
+	static onUserDeleted(token) {
+		return	dataService.markUserAsDeleted(token.fqdn);
 	}
 
 	/**
@@ -430,6 +444,11 @@ class BeameAuthServices {
 				dataService.findUser(fqdn).then(user => {
 					if (user == null) {
 						reject(`user ${fqdn} not found`);
+					}
+
+					if (user.isDeleted) {
+						reject(`user ${fqdn} deleted`);
+						return;
 					}
 
 					if (!user.isActive) {

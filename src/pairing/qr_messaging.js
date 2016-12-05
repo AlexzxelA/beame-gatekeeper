@@ -132,7 +132,7 @@ class QrMessaging {
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					this._sendWithAck(socket, "mobileProv1", {
-						'data': 'User data validation failed',
+						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
 						'type': 'mobileSessionFail'
 					});
 					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
