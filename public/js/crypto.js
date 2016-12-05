@@ -49,26 +49,35 @@ function generateUID(length) {
 }
 
 function generateKeyPairs(cb) {
-	window.crypto.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"])
-		.then(function (key) {
-			console.log('RSA KeyPair', key);
-			window.crypto.subtle.generateKey(RSAPKCS, true, ["sign"])
-				.then(function (key1) {
-					console.log('RSA Signing KeyPair', key1);
-					cb(null, {
-						keyPair:     key,
-						keyPairSign: key1
-					});
-				})
-				.catch(function (error) {
-					console.error('Generate Signing Key Failed', error);
-					cb(error, null);
-				});
-		})
-		.catch(function (error) {
-			console.error('Generate Key Failed', error);
-			cb(error, null);
+	if(keyPair && keyPairSign && keyGenerated){
+		cb(null, {
+			keyPair:     keyPair,
+			keyPairSign: keyPairSign
 		});
+	}
+	else{
+		window.crypto.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"])
+			.then(function (key) {
+				console.log('RSA KeyPair', key);
+				window.crypto.subtle.generateKey(RSAPKCS, true, ["sign"])
+					.then(function (key1) {
+						console.log('RSA Signing KeyPair', key1);
+						cb(null, {
+							keyPair:     key,
+							keyPairSign: key1
+						});
+					})
+					.catch(function (error) {
+						console.error('Generate Signing Key Failed', error);
+						cb(error, null);
+					});
+			})
+			.catch(function (error) {
+				console.error('Generate Key Failed', error);
+				cb(error, null);
+			});
+	}
+
 }
 
 function signArbitraryData(data, cb) {
@@ -336,7 +345,7 @@ function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
 						});
 					break;
 				case 'Session':
-					startGatewaySession(decryptedData.payload.token, relaySocket);
+					startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
 					return;
 				default:
 					alert('Unknown Auth mode');

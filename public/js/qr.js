@@ -251,10 +251,11 @@ $(document).ready(function () {
 
 
 function initRelay(socket) {
-
+	var UID = 'UID';
 	QrTMPsocketRelay.on('disconnect', function () {
 		setQRStatus('Virtual host disconnected');
 		console.log('QR relay disconnected, ID = ', QrTMPsocketRelay.id);
+		socket.emit('virtSrvConfig', UID);
 	});
 
 	QrTMPsocketRelay.on('data', function (data) {
@@ -270,9 +271,10 @@ function initRelay(socket) {
 	});
 
 	QrTMPsocketRelay.on('hostRegistered', function (data) {
+		UID = data.Hostname;
 		console.log('QR hostRegistered, ID = ', QrTMPsocketRelay.id, '.. hostname: ', data.Hostname);
 		setQRStatus('Virtual host registration complete');
-		socket.emit('virtSrvConfig', data.Hostname);
+		socket.emit('virtSrvConfig', UID);
 		//noinspection JSUnresolvedFunction,JSUnresolvedVariabl
 	});
 

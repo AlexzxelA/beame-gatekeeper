@@ -11,15 +11,15 @@ var ActionTypes = {
 	"Stream":      "stream"
 };
 
-function startGatewaySession(authToken, relaySocket) {
+function startGatewaySession(authToken, relaySocket, uid, relay) {
 
-	var gw_socket = null, relay_socket = relaySocket;
+	var gw_socket = null, relay_socket = relaySocket, UID = uid;
 
 	// xxx - start
 	var xxx_session_token = null;
 	// xxx - end
 	console.log('startGatewaySession authToken:', authToken);
-	restartMobileRelaySocket(relaySocket);
+	restartMobileRelaySocket(relaySocket, uid);
 
 	gw_socket = io.connect('/', {
 		path:                   '/beame-gw/socket.io',
@@ -28,6 +28,28 @@ function startGatewaySession(authToken, relaySocket) {
 
 	gw_socket.on('error', function (e) {
 		console.error('Error in gw_socket', e);
+	});
+
+	gw_socket.on('virtHostRecovery', function (data) {
+		console.log('recovering virtual host:', UID);
+		var parsedData  = JSON.parse(data);
+		relay_socket = io.connect(relay + "/control");
+		relay_socket.on('connect',function () {
+			relay_socket.emit('register_server',
+				{
+					'payload': {
+						'socketId':      null,
+						'hostname':      parsedData.data,
+						'signature':     parsedData.signature,
+						'type':          'HTTPS',
+						'isVirtualHost': true
+					}
+				});
+		});
+		relay_socket.on('hostRegistered',function (data) {
+			console.log('Virtual host recovered');
+			restartMobileRelaySocket(relay_socket, data.Hostname);
+		});
 	});
 
 	gw_socket.once('connect', function () {
@@ -98,7 +120,7 @@ function startGatewaySession(authToken, relaySocket) {
 
 	});
 
-	function restartMobileRelaySocket(mob_relay_socket) {
+	function restartMobileRelaySocket(mob_relay_socket, uid) {
 
 		if (!mob_relay_socket) return;
 
@@ -108,6 +130,7 @@ function startGatewaySession(authToken, relaySocket) {
 
 		relaySocket.on('disconnect', function () {
 			console.log('mobile socket:: disconnected ', relaySocket.id);
+			gw_socket.emit('virtHostRecovery',uid);
 		});
 
 		relaySocket.on('data', function (data) {
@@ -144,9 +167,6 @@ function startGatewaySession(authToken, relaySocket) {
 						gw_socket.emit('data', decryptedData);
 						break;
 				}
-
-
-
 			});
 		});
 

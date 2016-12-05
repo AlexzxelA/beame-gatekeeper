@@ -9,6 +9,7 @@ const bootstrapper      = new Bootstrapper();
 const Constants         = require('../../../constants');
 const beameSDK          = require('beame-sdk');
 const CommonUtils       = beameSDK.CommonUtils;
+const store             = new beameSDK.BeameStore();
 const module_name       = "BrowserControllerSocketAPI";
 const BeameLogger       = beameSDK.Logger;
 const logger            = new BeameLogger(module_name);
@@ -267,6 +268,16 @@ class BrowserControllerSocketioApi {
 		function reply(data) {
 			client.emit('data', JSON.stringify(data));
 		}
+
+		client.on('virtHostRecovery',function (data) {
+			var cred     = store.getCredential(gwServerFqdn),
+			token = AuthToken.create(data, gwServerFqdn, cred, 10 ),
+				tokenStr = CommonUtils.stringify({
+					"data":      data,
+					'signature': token
+				});
+			client.emit('virtHostRecovery', tokenStr);
+		});
 
 		client.on('data', data => {
 			try {

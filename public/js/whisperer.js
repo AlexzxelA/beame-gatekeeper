@@ -192,6 +192,7 @@ app.controller("MainCtrl", function ($scope) {
 
 		WhTMPSocketRelay.on('disconnect', function () {
 			console.log('disconnected, ID = ', WhTMPSocketRelay.id);
+			$scope.socket.emit('virtSrvConfig', {'UID': WhUID});
 		});
 
 		WhTMPSocketRelay.on('data', function (data) {
