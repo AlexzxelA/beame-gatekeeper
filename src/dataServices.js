@@ -180,6 +180,10 @@ class DataServices {
 		return this._dbService.updateUser(user);
 	}
 
+	updateUserProfile(user) {
+		return this._dbService.updateUserProfile(user);
+	}
+
 	getUsers() {
 		return this._dbService.getUsers();
 	}

@@ -38,7 +38,7 @@ function assertSignedByGw(session_token) {
 
 // TODO: Session renewal?
 const messageHandlers = {
-	'auth':      function (payload, reply) {
+	'auth':          function (payload, reply) {
 		// TODO: validate token and check it belongs to one of the registered users
 		// TODO: return apps list + session token
 		// --- request ---
@@ -127,7 +127,7 @@ const messageHandlers = {
 			});
 
 	},
-	'choose':    function (payload, reply) {
+	'choose':        function (payload, reply) {
 		// Choose application - redirect app switchig URL on GW, auth token in URL
 		// --- request ---
 		// type: choose
@@ -171,7 +171,7 @@ const messageHandlers = {
 			});
 
 	},
-	'logout':    function (payload, reply) {
+	'logout':        function (payload, reply) {
 		// Redirect to cookie removing URL on GW
 		// type: logout
 		// payload: {session_token: ...}
@@ -207,7 +207,30 @@ const messageHandlers = {
 			.then(makeLogoutToken)
 			.then(respond);
 	},
-	'beamePing': function (payload, reply) {
+	'updateProfile': function (payload) {
+
+		function updateUserProfile(session_token) {
+			return new Promise((resolve, reject) => {
+					/** @type {User}*/
+					let user = {
+						fqdn:     session_token.signedBy,
+						name:     payload.name,
+						nickname: payload.nickname
+					};
+
+					BeameAuthServices.updateUserProfile(user).then(resolve).catch(reject);
+				}
+			);
+		}
+
+		assertSignedByGw(payload.session_token)
+			.then(AuthToken.validate)
+			.then(updateUserProfile)
+			.catch(e => {
+				logger.error(`choose error: ${e}`);
+			});
+	},
+	'beamePing':     function (payload, reply) {
 		reply({
 			type:    'beamePong',
 			payload: {
@@ -269,20 +292,20 @@ class BrowserControllerSocketioApi {
 			client.emit('data', JSON.stringify(data));
 		}
 
-		client.on('virtHostRecovery',function (data) {
+		client.on('virtHostRecovery', function (data) {
 			var cred     = store.getCredential(gwServerFqdn),
-			token = AuthToken.create(data, cred, 10 ),
-				tokenStr = CommonUtils.stringify({
-					"data":      data,
-					'signature': token
-				});
+			    token    = AuthToken.create(data, cred, 10),
+			    tokenStr = CommonUtils.stringify({
+				    "data":      data,
+				    'signature': token
+			    });
 			client.emit('virtHostRecovery', tokenStr);
 		});
 
 		client.on('data', data => {
 			try {
 				data = JSON.parse(data);
-				logger.debug('Got data:',data);
+				logger.debug('Got data:', data);
 			} catch (e) {
 				// nothing
 			}

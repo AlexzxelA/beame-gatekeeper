@@ -269,7 +269,7 @@ class BeameAuthServices {
 	 * @param {SnsNotificationToken} token
 	 */
 	static onUserDeleted(token) {
-		return	dataService.markUserAsDeleted(token.fqdn);
+		return dataService.markUserAsDeleted(token.fqdn);
 	}
 
 	/**
@@ -434,6 +434,24 @@ class BeameAuthServices {
 					});
 
 				}).catch(reject);
+			}
+		);
+	}
+
+	/**
+	 * Using for handling mobile event, fields in use fqdn+name+nickname
+	 * @param {User} user
+	 */
+	static updateUserProfile(user) {
+		return new Promise((resolve, reject) => {
+
+				dataService.updateUserProfile(user).then(() => {
+					resolve(user);
+				}).catch(error => {
+					logger.error(`update profile for user ${user.fqdn} failed with ${BeameLogger.formatError(error)}`);
+					reject(error);
+				});
+
 			}
 		);
 	}
