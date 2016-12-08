@@ -35,13 +35,15 @@ $(document).ready(function () {
 
 	window.getNotifManagerInstance().subscribe('STOP_PAIRING', resetQR, null);
 
-	var UID = generateUID(24) + VirtualPrefix;
+
+	var UID = getVUID();//generateUID(24) + VirtualPrefix;
 	console.log('UID:', UID);
 
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
 	var socket = io.connect("/qr", socketio_options);
 	console.log('QR window ready');
 	socket.on('connect', function () {
+		setOriginSocket('QR', socket);
 		setQRStatus('Connected to origin');
 		console.log('QR socket connected, ', qrRelayEndpoint);
 		QrTMPsocketOrigin = socket;//remove towards prod
@@ -49,14 +51,13 @@ $(document).ready(function () {
 			socket.emit('browser_connected', UID);
 		}
 	});
-	socket.on('connect_failed', function () {
-		socket.emit('ack', 'connect_failed');
-		console.log('QR socket connect_failed,', qrRelayEndpoint);
-		QrTMPsocketOrigin = socket;//remove towards prod
-		if (!qrRelayEndpoint) {
-			socket.emit('browser_connected', UID);
-		}
-	});
+	// socket.on('connect_failed', function () {
+	// 	socket.emit('ack', 'connect_failed');
+	// 	console.log('QR socket connect_failed,', qrRelayEndpoint);
+	// 	if (!qrRelayEndpoint) {
+	// 		socket.emit('browser_connected', UID);
+	// 	}
+	// });
 	socket.on('edgeError', function (data) {
 		socket.emit('ack', 'edgeError');
 		console.log('Session failed from server. Network issue.');
@@ -100,9 +101,9 @@ $(document).ready(function () {
 						.then(function (keydata) {
 							var PK = arrayBufferToBase64String(keydata);
 							//console.log('Public Key Is Ready:', PK, '==>', PK);
-							if (qrRelayEndpoint.indexOf(QrTMPsocketRelay.io.engine.hostname) < 0) {
+							if (qrRelayEndpoint.indexOf(getRelaySocket().io.engine.hostname) < 0) {
 								console.log('Crap(q)::',
-									qrRelayEndpoint, '..', QrTMPsocketRelay.io.engine.hostname);
+									qrRelayEndpoint, '..', getRelaySocket().io.engine.hostname);
 								window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
 							}
 							else {
@@ -168,9 +169,9 @@ $(document).ready(function () {
 		socket.emit('ack', 'mobileProv1');
 		stopAllRunningSessions = true;
 		console.log('QR mobileProv1:', data);
-		if (data.data && QrTMPsocketRelay) {
+		if (data.data && getRelaySocket()) {
 			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-			sendEncryptedData(QrTMPsocketRelay, qrTmpSocketID, str2ab(JSON.stringify(data)));
+			sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 		}
 		socket.emit('close_session');
 	});
@@ -179,10 +180,10 @@ $(document).ready(function () {
 		setQRStatus('Session ID invalid, please retry');
 		socket.emit('ack', 'mobilePinInvalid');
 		console.log('QR ***mobilePinInvalid***** Sedning:: ', msg);
-		if (data.data && QrTMPsocketRelay) {
-			var msg = {'socketId': qrTmpSocketID, 'payload': JSON.stringify(data)};
+		if (data.data && getRelaySocket()) {
+			var msg = {'socketId': getRelaySocketID(), 'payload': JSON.stringify(data)};
 			console.log('******** Sedning:: ', msg);
-			QrTMPsocketRelay.emit('data', msg);
+			getRelaySocket().emit('data', msg);
 		}
 	});
 
@@ -200,34 +201,34 @@ $(document).ready(function () {
 			try {
 				var parsedData  = JSON.parse(data);
 				qrRelayEndpoint = parsedData['data'];
-				var lclTarget   = "https://" + qrRelayEndpoint + "/control";
-				if (qrRelayEndpoint) {
-					//noinspection ES6ModulesDependencies,NodeModulesDependencies
-					QrTMPsocketRelay = io.connect(lclTarget);
-					QrTMPsocketRelay.on('connect', function () {
-						console.log('Connected, ID = ', QrTMPsocketRelay.id);
-						QrTMPsocketRelay.emit('register_server',
-							{
-								'payload': {
-									'socketId':      null,
-									'hostname':      UID,
-									//'signedData':UID,
-									'signature':     parsedData['signature'],
-									//'signedBy':window.location.hostname,
-									'type':          'HTTPS',
-									'isVirtualHost': true
-								}
-							});
-						initRelay(socket);
-					});
-				}
+				connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
+				// var lclTarget   = "https://" + qrRelayEndpoint + "/control";
+				// if (qrRelayEndpoint) {
+				// 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
+				// 	QrTMPsocketRelay = io.connect(lclTarget);
+				// 	QrTMPsocketRelay.on('connect', function () {
+				// 		console.log('Connected, ID = ', QrTMPsocketRelay.id);
+				// 		QrTMPsocketRelay.emit('register_server',
+				// 			{
+				// 				'payload': {
+				// 					'socketId':      null,
+				// 					'hostname':      UID,
+				// 					//'signedData':UID,
+				// 					'signature':     parsedData['signature'],
+				// 					//'signedBy':window.location.hostname,
+				// 					'type':          'HTTPS',
+				// 					'isVirtualHost': true
+				// 				}
+				// 			});
+				// 		initRelay(socket);
+				// 	});
+				// }
 			}
 			catch (e) {
 				socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
 				console.error('failed to parse data:', e);
 			}
 		});
-
 	});
 
 	socket.on('disconnect', function () {

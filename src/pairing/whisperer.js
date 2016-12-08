@@ -62,6 +62,8 @@ class Whisperer {
 		this._creds                   = store.getCredential(this._fqdn);
 		this._serviceName             = serviceName;
 		this._qrData                    = null;
+		this._jsonQrData                = null;
+		this._currentPin                = "none";
 	}
 
 	get sessionId() {
@@ -90,7 +92,13 @@ class Whisperer {
 					});
 
 					socket.on('new_pin', (randomNumbers) => {
+						this._currentPin = randomNumbers;
 						this._socket.emit('pindata', randomNumbers);
+						if(this._jsonQrData){
+							console.log('whisperer: sedning qrData to matching:', this._jsonQrData);
+							this._jsonQrData['currentPin'] = this._currentPin;
+							socket.emit('qrData', JSON.stringify(this._jsonQrData));
+						}
 					} );
 
 					socket.on('mobile_matched', this.mobileConnected.bind(this));
@@ -103,6 +111,14 @@ class Whisperer {
 	}
 
 	start() {
+		this._socket.on('init_mobile_session', qrData => {
+			this._qrData = qrData;
+			logger.info('init_mobile_session received:',qrData);
+			this._jsonQrData = JSON.parse(qrData);
+			this._jsonQrData['sessionId'] = this._sessionId;
+			this._jsonQrData['service'] = this._serviceName;
+			this._jsonQrData['matching'] = this._matchingServerFqdn;
+		});
 		this.initMatchingServerSocketClient().then(() => {
 
 			this.runWhisperer();
@@ -117,11 +133,6 @@ class Whisperer {
 					this.disconnectFromMatchingServer();
 
 				}, this._socketDisconnectTimeout);
-			});
-
-			this._socket.on('init_mobile_session', qrData => {
-				this._qrData = qrData;
-				logger.debug('init_mobile_session received:',qrData);
 			});
 
 			this._socket.on('virtSrvConfig', (data) => {
@@ -243,7 +254,7 @@ class Whisperer {
 				this.matchingServerSocketClient.disconnect();
 				this.matchingServerSocketClient = null;
 			}
-		}, 1000)
+		}, 100)
 	}
 
 	runWhisperer() {

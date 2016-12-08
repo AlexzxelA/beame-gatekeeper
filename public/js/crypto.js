@@ -245,7 +245,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 }
 
 
-function processMobileData(TMPsocketRelay, TMPsocketOrigin, data, cb) {
+function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 
 	var type = data.payload.data.type;
 
@@ -259,7 +259,7 @@ function processMobileData(TMPsocketRelay, TMPsocketOrigin, data, cb) {
 			var onPublicKeyImported = function (keydata) {
 				console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
 				sessionRSAPK = keydata;
-				initCryptoSession(TMPsocketRelay, TMPsocketOrigin, data, decryptedData);
+				initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
 			};
 
 			function onError() {
@@ -326,14 +326,16 @@ function sendEncryptedData(target, socketId, data) {
 	});
 }
 
-function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
+function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) {
+	var originTmpSock = originSocketArray.GW;
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
 
 			switch (auth_mode) {
 				case 'Provision':
 					console.log('InfoPacketResponse to ');
-					originSocket.emit('InfoPacketResponse',
+					originTmpSock = (decryptedData.source && decryptedData.source == 'qr')?originSocketArray.QR:originSocketArray.WH;
+					originTmpSock.emit('InfoPacketResponse',
 						{
 							'pin':       decryptedData.reg_data.pin,
 							'otp':       decryptedData.otp,
@@ -355,7 +357,7 @@ function initCryptoSession(relaySocket, originSocket, data, decryptedData) {
 
 		})
 		.catch(function (error) {
-			originSocket.emit('InfoPacketResponseError',
+			originTmpSock.emit('InfoPacketResponseError',
 				{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
 			console.log('<*********< error >*********>:', error);
 		});

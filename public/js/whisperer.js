@@ -78,12 +78,8 @@ app.controller("MainCtrl", function ($scope) {
 	}
 
 	$scope.nowPinging = false;
-	/*function changeCode() {
-	 if($scope.socketAlive){
-	 console.log("Force change code");
-	 socket.emit("changeCode");
-	 }
-	 }*/
+
+
 	$scope.startPlaying = function () {
 		if ($scope.audio) {//} && $scope.socketAlive) {
 			console.log('playing: ' + $scope.pinData);
@@ -118,36 +114,16 @@ app.controller("MainCtrl", function ($scope) {
 			console.error('stop playing', e);
 		}
 
-		// if ($scope.showWelcome)
-		// 	document.getElementById("pin").innerHTML = "audio from server stopped";
 	};
-	/*$scope.pingSocket   = function () {
-	 if (!$scope.socketAlive) {
-	 $scope.nowPinging = false;
-	 return;
-	 }
-	 $scope.nowPinging = true;
 
 
-	 setTimeout(function () {
-	 if (--$scope.keepAlive > 0) {
-	 $scope.pingSocket();
-	 }
-	 else {
-	 $scope.socketAlive = false;
-	 $scope.stopPlaying();
-	 console.log('Socket disconnected. Audio stopped');
-	 }
-	 }, whispererTimeout);
-	 };*/
-
-	//pingSocket();
-	//$scope.keepAlive = 5;
-
-	//$scope.socketAlive = false;
 	$scope.playPIN = false;
 
 	$scope.socket = io.connect("/whisperer", socketio_options);
+
+	$scope.socket.on('connect',function () {
+		setOriginSocket('WH',$scope.socket);
+	});
 
 	$scope.socket.on('wh_timeout', function (timeout) {
 		console.log('on whisperer timeout', timeout);
@@ -167,23 +143,24 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 	$scope.socket.on('init_mobile_session', function (data) {
-		console.log('Recieved init_mobile_session:',Date.now());
-		//$scope.stopPlaying();
-		//$scope.showPopup('Code matched');
-
 		WhPIN = data.pin;
-		WhUID = generateUID(24) + VirtualPrefix;
+		if(isAudioSession()){
+			console.log('Received init_mobile_session:',Date.now());
 
-		generateKeyPairs(function (error, data) {
-			if (error) return;
-			if (!keyGenerated) {
-				keyPair      = data.keyPair;
-				keyPairSign  = data.keyPairSign;
-				keyGenerated = true;
-			}
-			$scope.socket.emit('virtSrvConfig', {'UID': WhUID});
-			console.log('Sent virtSrvConfig at:',Date.now());
-		});
+
+			WhUID = getVUID();
+
+			generateKeyPairs(function (error, data) {
+				if (error) return;
+				if (!keyGenerated) {
+					keyPair      = data.keyPair;
+					keyPairSign  = data.keyPairSign;
+					keyGenerated = true;
+				}
+				$scope.socket.emit('virtSrvConfig', {'UID': vUID});
+				console.log('Sent virtSrvConfig at:',Date.now());
+			});
+		}
 
 	});
 
@@ -210,30 +187,31 @@ app.controller("MainCtrl", function ($scope) {
 			if (keyGenerated) {
 				var WhUID = data.Hostname;
 				//noinspection JSUnresolvedFunction,JSUnresolvedVariable
-				window.crypto.subtle.exportKey('spki', keyPair.publicKey)
-					.then(function (keydata) {
-						var PK = arrayBufferToBase64String(keydata);
-						console.log('Public Key Is Ready:', PK, '==>', PK);
-						if (WhRelayEndpoint.indexOf(WhTMPSocketRelay.io.engine.hostname) < 0) {
-							console.log('Crap(w)::', WhRelayEndpoint, '..', WhTMPSocketRelay.io.engine.hostname);
-							window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
-						}
-						else {
-							var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-							var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
-
-							var qrData       = JSON.stringify({
-								'relay': 'https://' + WhRelayEndpoint, 'PK': PK, 'UID': WhUID,
-								'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-							});
-							console.log('sending qr data to whisperer %j', qrData);//XXX
-							$scope.socket.emit('init_mobile_session', qrData);
-						}
-
-					})
-					.catch(function (err) {
-						console.error('Export Public Key Failed', err);
-					});
+				sendQrDataToWhisperer('https://' + WhRelayEndpoint, WhUID, $scope.socket);
+				// window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+				// 	.then(function (keydata) {
+				// 		var PK = arrayBufferToBase64String(keydata);
+				// 		console.log('Public Key Is Ready:', PK, '==>', PK);
+				// 		if (WhRelayEndpoint.indexOf(WhTMPSocketRelay.io.engine.hostname) < 0) {
+				// 			console.log('Crap(w)::', WhRelayEndpoint, '..', WhTMPSocketRelay.io.engine.hostname);
+				// 			window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
+				// 		}
+				// 		else {
+				// 			var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+				// 			var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+				//
+				// 			var qrData       = JSON.stringify({
+				// 				'relay': 'https://' + WhRelayEndpoint, 'PK': PK, 'UID': WhUID,
+				// 				'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+				// 			});
+				// 			console.log('sending qr data to whisperer %j', qrData);//XXX
+				// 			$scope.socket.emit('init_mobile_session', qrData);
+				// 		}
+				//
+				// 	})
+				// 	.catch(function (err) {
+				// 		console.error('Export Public Key Failed', err);
+				// 	});
 			}
 		});
 
@@ -247,45 +225,47 @@ app.controller("MainCtrl", function ($scope) {
 	}
 
 	$scope.socket.on('mobileProv1', function (data) {
-		if (data.data && WhTMPSocketRelay) {
+		if (data.data && getRelaySocket() && getRelaySocketID()) {
 			console.log('Whisperer mobileProv1:', data);
 			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-			sendEncryptedData(WhTMPSocketRelay, whTmpSocketId, str2ab(JSON.stringify(data)));
+			sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 		}
 	});
 
 	$scope.socket.on('relayEndpoint', function (data) {
-		console.log('relayEndpoint', data);
-		try {
-			if(WhTMPSocketRelay)WhTMPSocketRelay.disconnect();
-			var parsedData  = JSON.parse(data);
-			WhRelayEndpoint = parsedData['data'];
-			var lclTarget   = "https://" + WhRelayEndpoint + "/control";
+		if(isAudioSession()) {
+			console.log('relayEndpoint', data);
+			try {
+				if (WhTMPSocketRelay)WhTMPSocketRelay.disconnect();
+				var parsedData = JSON.parse(data);
+				WhRelayEndpoint = parsedData['data'];
+				var lclTarget = "https://" + WhRelayEndpoint + "/control";
 
-			if (WhRelayEndpoint) {
-				//noinspection ES6ModulesDependencies,NodeModulesDependencies
-				WhTMPSocketRelay = io.connect(lclTarget);
-				WhTMPSocketRelay.on('connect', function () {
-					console.log('Connected, ID = ', WhTMPSocketRelay.id);
-					WhTMPSocketRelay.emit('register_server',
-						{
-							'payload': {
-								'socketId':      null,
-								'hostname':      WhUID,
-								//'signedData':WhUID,
-								'signature':     parsedData['signature'],
-								//'signedBy':window.location.hostname,
-								'type':          'HTTPS',
-								'isVirtualHost': true
-							}
-						});
-					initRelay();
-				});
+				if (WhRelayEndpoint) {
+					//noinspection ES6ModulesDependencies,NodeModulesDependencies
+					WhTMPSocketRelay = io.connect(lclTarget);
+					WhTMPSocketRelay.on('connect', function () {
+						console.log('Connected, ID = ', WhTMPSocketRelay.id);
+						WhTMPSocketRelay.emit('register_server',
+							{
+								'payload': {
+									'socketId': null,
+									'hostname': WhUID,
+									//'signedData':WhUID,
+									'signature': parsedData['signature'],
+									//'signedBy':window.location.hostname,
+									'type': 'HTTPS',
+									'isVirtualHost': true
+								}
+							});
+						initRelay();
+					});
+				}
 			}
-		}
-		catch (e) {
-			$scope.socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
-			console.error('failed to parse data:', e);
+			catch (e) {
+				$scope.socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
+				console.error('failed to parse data:', e);
+			}
 		}
 	});
 
@@ -374,7 +354,7 @@ app.controller("MainCtrl", function ($scope) {
 	};
 
 	var closeSession = function(){
-		console.log('Aufio: close_session received');
+		console.log('Audio: close_session received');
 		$scope.socket.emit('close_session');
 		$scope.stopPlaying();
 		$scope.showPopup('Audio stopped');
@@ -384,6 +364,26 @@ app.controller("MainCtrl", function ($scope) {
 	window.getNotifManagerInstance().subscribe('NEW_DATA', $scope.gotData, null);
 
 });
+
+function sendQrDataToWhisperer(relay, uid, socket) {
+	console.log('sendQrDataToWhisperer - entering');
+	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+		.then(function (keydata) {
+			var PK = arrayBufferToBase64String(keydata);
+			var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+			var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+
+			var qrData       = JSON.stringify({
+				'relay': relay, 'PK': PK, 'UID': uid,
+				'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+			});
+			socket.emit('init_mobile_session', qrData);
+			console.log('sending qr data to whisperer:', qrData);//XXX
+		}).catch(function (err) {
+		console.error('Export Public Key Failed', err);
+	});
+
+}
 
 app.filter('to_trusted', ['$sce', function ($sce) {
 	return function (text) {

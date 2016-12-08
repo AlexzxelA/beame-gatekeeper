@@ -135,7 +135,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 		relaySocket.on('data', function (data) {
 
-			processMobileData(WhTMPSocketRelay, gw_socket, data, function (decryptedData) {
+			processMobileData(WhTMPSocketRelay, {'QR':null, 'WH':null, 'GW':gw_socket}, data, function (decryptedData) {
 
 				console.log('relaySocket data', decryptedData);
 				//TODO temp hack for testing, to be removed
