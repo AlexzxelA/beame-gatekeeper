@@ -538,6 +538,42 @@ class SqliteServices {
 		);
 	}
 
+	/**
+	 *
+	 * @param {User} user
+	 */
+	updateUserProfile(user) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.users;
+					//noinspection JSUnresolvedFunction
+					model.findOne({
+						where: {
+							fqdn: user.fqdn
+						}
+					}).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`User record not found`));
+							return;
+						}
+						record.update({
+							name:  user.name,
+							nickname: user.nickname
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
 	getUsers() {
 		return new Promise((resolve) => {
 				logger.debug(`try fetch users`);

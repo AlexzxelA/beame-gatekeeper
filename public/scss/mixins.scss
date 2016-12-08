@@ -1,0 +1,58 @@
+@mixin calc($property, $expression,$important:null) {
+  #{$property}: -webkit-calc(#{$expression}) $important;
+  #{$property}: calc(#{$expression}) $important;
+}
+
+@mixin app-vertical-align {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+@mixin at2x($path, $ext: "jpg", $w: auto, $h: auto) {
+  $at1x_path: "#{$path}.#{$ext}";
+  $at2x_path: "#{$path}@2x.#{$ext}";
+  $at3x_path: "#{$path}@3x.#{$ext}";
+
+  background-image: url("#{$at1x_path}");
+
+  @media all and (-webkit-min-device-pixel-ratio : 1.5),
+  all and (-o-min-device-pixel-ratio: 3/2),
+  all and (min--moz-device-pixel-ratio: 1.5),
+  all and (min-device-pixel-ratio: 1.5) {
+    background-size: $w $h;
+    background: url("#{$at2x_path}") no-repeat;
+  }
+
+  @media all and (-webkit-min-device-pixel-ratio : 2.5),
+  all and (-o-min-device-pixel-ratio: 5/2),
+  all and (min--moz-device-pixel-ratio: 2.5),
+  all and (min-device-pixel-ratio: 2.5) {
+    background-size: $w $h;
+    background: url("#{$at3x_path}") no-repeat;
+  }
+}
+
+@mixin content_at2x($path, $ext: "jpg") {
+  $at1x_path: "#{$path}.#{$ext}";
+  $at2x_path: "#{$path}@2x.#{$ext}";
+  $at3x_path: "#{$path}@3x.#{$ext}";
+
+  background-image: url("#{$at1x_path}");
+
+  @media all and (-webkit-min-device-pixel-ratio : 1.5),
+  all and (-o-min-device-pixel-ratio: 3/2),
+  all and (min--moz-device-pixel-ratio: 1.5),
+  all and (min-device-pixel-ratio: 1.5) {
+    content: url("#{$at2x_path}");
+  }
+
+  @media all and (-webkit-min-device-pixel-ratio : 2.5),
+  all and (-o-min-device-pixel-ratio: 5/2),
+  all and (min--moz-device-pixel-ratio: 2.5),
+  all and (min-device-pixel-ratio: 2.5) {
+    content: url("#{$at3x_path}");
+  }
+}

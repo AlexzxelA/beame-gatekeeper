@@ -23,11 +23,18 @@ const cust_auth_app = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
 
-unauthenticatedApp.use(express.static(base_path, {index: 'welcome.html'}));
+unauthenticatedApp.use(express.static(base_path));
 
 unauthenticatedApp.get('/signin', (req, res) => {
 	res.cookie('beame_logout_url',Bootstrapper.getLogoutUrl());
+	res.cookie('beame_service',bootstrapper.serviceName);
 	res.sendFile(path.join(base_path, 'signin.html'));
+});
+
+unauthenticatedApp.get('/', (req, res) => {
+	res.cookie('beame_service',bootstrapper.serviceName);
+	res.sendFile(path.join(base_path, 'welcome.html'));
+
 });
 
 utils.setExpressAppCommonRoutes(unauthenticatedApp);
@@ -178,7 +185,7 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	res.clearCookie('proxy_enabling_token');
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
-	res.redirect(`https://${gwServerFqdn}`);
+	res.redirect(`https://${gwServerFqdn}/signin`);
 
 });
 

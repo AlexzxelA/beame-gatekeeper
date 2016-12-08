@@ -6,6 +6,21 @@ function deleteCookie( name ) {
 	document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
+function onStaticPageLoaded() {
+	deleteCookie('userinfo');
+
+	var serviceName = getCookie('beame_service');
+	if(!serviceName) return;
+
+	var label = document.createElement("span");
+	label.innerHTML = ('Current service: ' + decodeURIComponent(serviceName));
+	label.className = "srvc";
+	document.body.appendChild(label);
+}
+
+
+
+
 function getCookie(cname) {
 	var name = cname + "=";
 	var ca = document.cookie.split(';');
