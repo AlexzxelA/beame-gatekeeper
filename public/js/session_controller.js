@@ -79,6 +79,15 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 			console.warn('session token', xxx_session_token);
 
 			if (user) {
+
+				var name = user.nick || user.name,
+					info = {
+						name:name,
+						fqdn:user.fqdn
+					};
+
+
+				document.cookie = "userinfo=" +  JSON.stringify(info);
 				//$('#conn-to').html('connected to ' + user.fqdn);
 				// $('#user-name').html('Hello, ' + (user.name || user.email || user.user_id));
 				// $('#info-module').show();
@@ -192,6 +201,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 	}
 
 	function logout() {
+		onStaticPageLoaded();
 		gw_socket.emit('data', {
 			type:    'logout',
 			payload: {
@@ -200,10 +210,6 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 		});
 	}
 
-	// xxx - start
-	window.xxx_choose_app = chooseApp;
-	window.xxx_logout     = logout;
-	// xxx - end
 }
 
 function setIframeHtmlContent(html) {

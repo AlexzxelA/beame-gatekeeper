@@ -7,15 +7,16 @@ const path    = require('path');
 const express = require('express');
 
 
-const beameSDK    = require('beame-sdk');
-const module_name = "BeameAuthRouter";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-const CommonUtils = beameSDK.CommonUtils;
-const Bootstrapper      = require('../bootstrapper');
-const Constants = require('../../constants');
-const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
-const base_path  = path.join(public_dir, 'pages', 'beame_auth');
+const beameSDK     = require('beame-sdk');
+const module_name  = "BeameAuthRouter";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const CommonUtils  = beameSDK.CommonUtils;
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = new Bootstrapper();
+const Constants    = require('../../constants');
+const public_dir   = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const base_path    = path.join(public_dir, 'pages', 'beame_auth');
 
 const sns = new (require("../servers/beame_auth/sns"))();
 
@@ -37,20 +38,20 @@ class BeameAuthRouter {
 	}
 
 
-	_initRoutes(){
+	_initRoutes() {
 		this._router.get('/', (req, res) => {
 
 			this._isRequestValid(req).then(data => {
 				this._adminServices.saveSession(data);
 
-				res.cookie('beame_reg_data',CommonUtils.stringify(data));
-
 				let url = Bootstrapper.getLogoutUrl();
 
-				res.cookie('beame_logout_url',url);
+				res.cookie('beame_logout_url', url);
+				res.cookie('beame_service', bootstrapper.serviceName);
+				res.cookie('beame_reg_data', CommonUtils.stringify(data));
 
 				res.sendFile(path.join(base_path, 'signup.html'));
-			}).catch(error=> {
+			}).catch(error => {
 				logger.error(BeameLogger.formatError(error));
 				//TODO redirect to GW home
 				res.redirect(Bootstrapper.getLogoutUrl())
@@ -65,7 +66,7 @@ class BeameAuthRouter {
 			req.on('end', () => {
 				let msg = body_array.join('');
 				logger.debug('sns message received', msg);
-				sns.parseSnsMessage(CommonUtils.parse(msg)).then(()=> {
+				sns.parseSnsMessage(CommonUtils.parse(msg)).then(() => {
 					res.sendStatus(200);
 				});
 			});

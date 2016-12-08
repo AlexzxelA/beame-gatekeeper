@@ -23,7 +23,39 @@ $(function() {
   var lastTypingTime;
   var $currentInput = $usernameInput.focus();
 
+  var userObj = getCookie('userinfo');
+  if(userObj){
+	  try {
+		  var user = JSON.parse(userObj);
+		  if(user.name){
+			  $currentInput.val(user.name);
+			  setTimeout(setUsername,50);
+			  var msg = {
+                username : user.name,
+                  message:'huy'
+              };
+			  setTimeout(addChatMessage.bind(null,msg),500);
+          }
+	  } catch (e) {
+	  }
+  }
+
   var socket = io();
+
+	function getCookie(cname) {
+		var name = cname + "=";
+		var ca = document.cookie.split(';');
+		for(var i = 0; i <ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0)==' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length,c.length);
+			}
+		}
+		return "";
+	}
 
   function addParticipantsMessage (data) {
     var message = '';

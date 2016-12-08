@@ -3,22 +3,23 @@
  */
 "use strict";
 
-const path    = require('path');
-const request = require('request');
-const express = require('express');
-const crypto  = require('crypto');
-const Constants = require('../../constants');
+const path         = require('path');
+const request      = require('request');
+const express      = require('express');
+const crypto       = require('crypto');
+const Constants    = require('../../constants');
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = new Bootstrapper();
+const app          = express();
 
-const app     = express();
-
-const public_dir =  path.join(__dirname, '..', '..',  Constants.WebRootFolder);
+const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 
 const base_path = path.join(public_dir, 'pages', 'customer_auth');
 
 function authenticate(data) {
 	//ADD CUSTOM LOGIC
 	return new Promise((resolve, reject) => {
-		console.log('data authenticated %j',data);
+		console.log('data authenticated %j', data);
 
 		if (!data.email && !data.user_id) {
 			reject('You must enter either email or user_id');
@@ -30,7 +31,8 @@ function authenticate(data) {
 	});
 }
 
-app.get('/register',  (req, res) => {
+app.get('/register', (req, res) => {
+	res.cookie('beame_service', bootstrapper.serviceName);
 	res.sendFile(path.join(base_path, 'register.html'));
 });
 
@@ -82,7 +84,7 @@ app.post('/register/save', (req, res) => {
 		// TODO: move 600 to config
 		return new Promise((resolve, reject) => {
 			const tokenWithUserData = AuthToken.create(JSON.stringify(data), signingCred, 600);
-			const encryptedData = encryptToCred.encrypt(encryptTo, JSON.stringify(tokenWithUserData), signingFqdn);
+			const encryptedData     = encryptToCred.encrypt(encryptTo, JSON.stringify(tokenWithUserData), signingFqdn);
 			console.log('encryptedData', encryptedData);
 			// TODO: unhardcode URL and timeout below
 			const url = `https://${encryptTo}/customer-auth-done`;
@@ -90,7 +92,7 @@ app.post('/register/save', (req, res) => {
 			request.post(
 				url,
 				{
-					json: {encryptedUserData: encryptedData},
+					json:    {encryptedUserData: encryptedData},
 					timeout: 10000
 				},
 				function (error, response, body) {
@@ -115,7 +117,7 @@ app.post('/register/save', (req, res) => {
 		return new Promise((resolve, reject) => {
 			return res.json({
 				// "url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
-				"url": url,
+				"url":          url,
 				"responseCode": 0,
 				"responseDesc": "Please check your email and continue the registration process"
 			});

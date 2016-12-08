@@ -93,7 +93,7 @@ const messageHandlers = {
 		}
 
 		function respond([apps, token, page]) {
-			return new Promise((resolve, reject) => {
+			return new Promise(() => {
 				logger.debug('messageHandlers/auth/respond token', token);
 				reply({
 					type:    'authenticated',
@@ -271,7 +271,7 @@ class BrowserControllerSocketioApi {
 
 		client.on('virtHostRecovery',function (data) {
 			var cred     = store.getCredential(gwServerFqdn),
-			token = AuthToken.create(data, gwServerFqdn, cred, 10 ),
+			token = AuthToken.create(data, cred, 10 ),
 				tokenStr = CommonUtils.stringify({
 					"data":      data,
 					'signature': token
