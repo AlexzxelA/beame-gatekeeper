@@ -50,6 +50,9 @@ $(document).ready(function () {
 		if (!qrRelayEndpoint) {
 			socket.emit('browser_connected', UID);
 		}
+		// setTimeout(function () {
+		// 	socket.emit('beamePing');
+		// },1000);
 	});
 	// socket.on('connect_failed', function () {
 	// 	socket.emit('ack', 'connect_failed');

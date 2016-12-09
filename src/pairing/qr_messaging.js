@@ -142,6 +142,13 @@ class QrMessaging {
 				this._sendWithAck(socket, "mobilePinInvalid", {'data': `PIN:${data.otp}>${this._otp},${this._otp_prev}`});
 			}
 		});
+
+		socket.on('beamePing',function () {
+			setTimeout(function () {
+				socket.emit('beamePong');
+			},1000);
+		});
+
 		socket.on('pinRequest', () => {
 			console.log('QR pinRequest');
 			this._setNewOTP(socket);

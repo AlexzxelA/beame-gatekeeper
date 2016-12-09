@@ -371,22 +371,23 @@ app.controller("MainCtrl", function ($scope) {
 
 function sendQrDataToWhisperer(relay, uid, socket) {
 	console.log('sendQrDataToWhisperer - entering');
-	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
-		.then(function (keydata) {
-			var PK = arrayBufferToBase64String(keydata);
-			var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-			var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+	if(keyPair){
+		window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+			.then(function (keydata) {
+				var PK = arrayBufferToBase64String(keydata);
+				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 
-			var qrData       = JSON.stringify({
-				'relay': relay, 'PK': PK, 'UID': uid,
-				'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-			});
-			socket.emit('init_mobile_session', qrData);
-			console.log('sending qr data to whisperer:', qrData);//XXX
-		}).catch(function (err) {
-		console.error('Export Public Key Failed', err);
-	});
-
+				var qrData       = JSON.stringify({
+					'relay': relay, 'PK': PK, 'UID': uid,
+					'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+				});
+				socket.emit('init_mobile_session', qrData);
+				console.log('sending qr data to whisperer:', qrData);//XXX
+			}).catch(function (err) {
+			console.error('Export Public Key Failed', err);
+		});
+	}
 }
 
 app.filter('to_trusted', ['$sce', function ($sce) {

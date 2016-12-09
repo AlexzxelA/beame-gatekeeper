@@ -328,12 +328,12 @@ function sendEncryptedData(target, socketId, data) {
 
 function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) {
 	var originTmpSock = originSocketArray.GW;
+	console.log('...Got message from mobile:',decryptedData);
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
 
 			switch (auth_mode) {
 				case 'Provision':
-					console.log('InfoPacketResponse to ');
 					originTmpSock = (decryptedData.source && decryptedData.source == 'qr')?originSocketArray.QR:originSocketArray.WH;
 					originTmpSock.emit('InfoPacketResponse',
 						{
