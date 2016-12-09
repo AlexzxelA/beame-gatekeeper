@@ -99,6 +99,9 @@ class Whisperer {
 							this._jsonQrData['currentPin'] = this._currentPin;
 							socket.emit('qrData', JSON.stringify(this._jsonQrData));
 						}
+						else {
+							this._socket.emit('requestQrData');
+						}
 					} );
 
 					socket.on('mobile_matched', this.mobileConnected.bind(this));

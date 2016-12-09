@@ -287,6 +287,10 @@ app.controller("MainCtrl", function ($scope) {
 		//    document.getElementById("player").innerHTML = "-- Server disconnected --";
 	});
 
+	$scope.socket.on('requestQrData',function () {
+		sendQrDataToWhisperer(getRelayFqdn(), getVUID(),$scope.socket);
+	});
+
 	$scope.socket.on('pindata', function (data) {
 		if (!$scope.soundOn) return;
 		$scope.showConn = false;

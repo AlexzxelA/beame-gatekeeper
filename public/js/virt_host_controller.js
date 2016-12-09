@@ -61,6 +61,10 @@ function connectRelaySocket(relay, sign) {
 	return 0;
 }
 
+function getRelayFqdn() {
+	return RelayFqdn;
+}
+
 function getRelaySocket() {
 	return virtRelaySocket;
 }
