@@ -73,7 +73,7 @@ $(document).ready(function () {
 		}
 		setTimeout(function () {
 			socket.emit('pinRequest');
-		},100);
+		},200);
 
 		if (!qrSession) {
 			qrSession = setInterval(function () {
