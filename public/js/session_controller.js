@@ -80,12 +80,11 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 			if (user) {
 
-				var name = user.nick || user.name,
+				var name = user.nickname || user.name,
 					info = {
 						name:name,
 						fqdn:user.fqdn
 					};
-
 
 				document.cookie = "userinfo=" +  JSON.stringify(info);
 				//$('#conn-to').html('connected to ' + user.fqdn);

@@ -15,6 +15,7 @@
 /**
  * @typedef {Object} RegistrationData
  * @property {String} name
+ * @property {String} nickname
  * @property {String} email
  * @property {String} user_id
  * @property {String} pin
@@ -477,6 +478,7 @@ class BeameAuthServices {
 					resolve({
 						fqdn:    fqdn,
 						name:    user.name,
+						nickname:user.nickname,
 						email:   user.email,
 						isAdmin: user.isAdmin,
 						user_id: user.externalUserId

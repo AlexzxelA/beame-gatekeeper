@@ -343,6 +343,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 							'edge_fqdn': decryptedData.edge_fqdn,
 							'email':     decryptedData.reg_data.email,
 							'name':      decryptedData.reg_data.name,
+							'nickname':  null,
 							'user_id':   decryptedData.reg_data.user_id
 						});
 					break;
