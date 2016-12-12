@@ -111,7 +111,6 @@ function encryptWithPK(data, cb) {
 		var finalLength = 0;
 
 		for (j = 0; j < values.length; j++) {
-			console.log('Value>>>>>>>> ', ab2str(values[j]));
 			finalLength += values[j].byteLength;
 		}
 		var joinedData = new Uint8Array(finalLength);
