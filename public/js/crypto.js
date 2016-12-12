@@ -111,7 +111,6 @@ function encryptWithPK(data, cb) {
 		var finalLength = 0;
 
 		for (j = 0; j < values.length; j++) {
-			console.log('Value>>>>>>>> ', ab2str(values[j]));
 			finalLength += values[j].byteLength;
 		}
 		var joinedData = new Uint8Array(finalLength);
@@ -326,6 +325,7 @@ function sendEncryptedData(target, socketId, data) {
 	});
 }
 
+
 function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) {
 	var originTmpSock = originSocketArray.GW;
 	console.log('...Got message from mobile:',decryptedData);
@@ -334,7 +334,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 
 			switch (auth_mode) {
 				case 'Provision':
-					originTmpSock = (decryptedData.source && decryptedData.source == 'qr')?originSocketArray.QR:originSocketArray.WH;
+					originTmpSock = (decryptedData.source && decryptedData.source == 'qr') ? originSocketArray.QR : originSocketArray.WH;
 					originTmpSock.emit('InfoPacketResponse',
 						{
 							'pin':       decryptedData.reg_data.pin,
@@ -348,6 +348,9 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 						});
 					break;
 				case 'Session':
+					TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
+					TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
+
 					startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
 					return;
 				default:

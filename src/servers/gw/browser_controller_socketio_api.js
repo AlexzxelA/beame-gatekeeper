@@ -213,7 +213,7 @@ const messageHandlers = {
 			return new Promise((resolve, reject) => {
 					/** @type {User}*/
 					let user = {
-						fqdn:     session_token.signedBy,
+						fqdn:     payload.fqdn,
 						name:     payload.name,
 						nickname: payload.nickname
 					};

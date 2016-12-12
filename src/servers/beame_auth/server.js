@@ -8,7 +8,7 @@ const path = require('path');
 const utils = require('../../utils');
 
 
-const Router     = require('../../routers/beame_auth');
+const Router    = require('../../routers/beame_auth');
 const Constants = require('../../../constants');
 
 const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
@@ -38,6 +38,7 @@ class BeameAuthServer {
 		/** @type {MessagingCallbacks} */
 		this._callbacks = {
 			RegisterFqdn:  this._adminServices.getRegisterFqdn.bind(this._adminServices),
+			RegRecovery:   this._adminServices.recoveryRegistration.bind(this._adminServices),
 			DeleteSession: BeameAuthServices.deleteSession
 		};
 
@@ -54,7 +55,7 @@ class BeameAuthServer {
 	 */
 	start(cb) {
 
-		beameSDK.BeameServer(this._fqdn,  this._app, (data, app) => {
+		beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
 				logger.info(`Beame authorization server started on ${this._fqdn} `);
 
 				this._server = app;
@@ -62,21 +63,22 @@ class BeameAuthServer {
 				/** @type {MessagingCallbacks} */
 				let callbacks = {
 					RegisterFqdn:  this._adminServices.getRegisterFqdn.bind(this._adminServices),
+					RegRecovery:   this._adminServices.recoveryRegistration.bind(this._adminServices),
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 
 				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
 
-				beameInstaServer.start().then(socketio_server=> {
+				beameInstaServer.start().then(socketio_server => {
 					this._socketServer = socketio_server;
 					cb && cb(null, this._server);
-				}).catch(error=> {
+				}).catch(error => {
 					this.stop();
 					cb && cb(error, null);
 				})
 
 
-			}, error=> {
+			}, error => {
 				cb && cb(error, null);
 			}
 		);

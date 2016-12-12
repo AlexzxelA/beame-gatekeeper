@@ -106,10 +106,39 @@ class SqliteServices {
 							email:          data.email,
 							externalUserId: data.user_id,
 							fqdn:           data.fqdn || null
-						}).then(entity => {
-							resolve(entity.dataValues);
+						}).then(record => {
+							resolve(record.dataValues);
 						}).catch(onError.bind(this, reject));
 
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					onError(reject, error)
+				}
+			}
+		);
+	}
+
+	/**
+	 * @param {RegistrationData} data
+	 * @returns {Promise.<Registration|null>}
+	 */
+	isRegistrationExists(data) {
+		return new Promise((resolve, reject) => {
+
+				let model = this._models.registrations;
+
+				try {
+					//noinspection JSUnresolvedFunction
+					model.findOne({
+						where: {
+							email:          data.email,
+							name:           data.name,
+							externalUserId: data.user_id
+						}
+					}).then(record => {
+						resolve(record ? record.dataValues : null);
 					}).catch(onError.bind(this, reject));
 
 				}
@@ -148,8 +177,8 @@ class SqliteServices {
 							return;
 						}
 
-						record.update({completed: true}).then(regs => {
-							resolve(regs.dataValues);
+						record.update({completed: true}).then(record => {
+							resolve(record.dataValues);
 						}).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
