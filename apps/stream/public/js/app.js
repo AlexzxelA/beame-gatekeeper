@@ -2,11 +2,14 @@
  * Created by zenit1 on 28/11/2016.
  */
 
+"use strict";
 
-var videoEl, canvas, wsavc;
+var videoEl, canvas, wsavc,loader;
 
 
 function onDocLoaded() {
+
+	loader = document.getElementById('img-loader');
 
 	window.parent.document.title = 'Mobile Stream';
 
@@ -14,6 +17,8 @@ function onDocLoaded() {
 		if (!args || !args.url || !args.sign) {
 			return;
 		}
+
+		loader.style.visibility='visible';
 
 		var STREAM_SOCKET_URL = args.url + '?sign=@'+ encodeURIComponent(args.sign);
 
@@ -45,9 +50,16 @@ function onDocLoaded() {
 		wsavc = new window.WSAvcPlayer(canvas, "webgl", 1, 35);
 		wsavc.connect(STREAM_SOCKET_URL, function () {
 			console.log('play stream');
+
 			wsavc.playStream();
 		});
 
+	});
+
+
+	window.parent.getNotifManagerInstance().subscribe('MOBILE_STREAM_HIDE_LOADER',function(){
+
+		loader.style.visibility='hidden';
 	});
 }
 

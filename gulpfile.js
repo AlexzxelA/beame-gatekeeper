@@ -22,7 +22,7 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir = 'insta-server';
+const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
 
@@ -148,6 +148,7 @@ gulp.task('compile-js', () => {
 	compileJs(
 		[
 			'./public/js/crypto.js',
+			'./public/js/virt_host_controller.js',
 			'./public/js/notification_manager.js',
 			'./public/js/session_controller.js',
 			'./public/js/qr.js',
