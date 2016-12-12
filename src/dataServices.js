@@ -98,6 +98,14 @@ class DataServices {
 	}
 
 	/**
+	 * @param {RegistrationData} data
+	 * @returns {Promise.<Registration|null>}
+	 */
+	isRegistrationExists(data){
+		return this._dbService.isRegistrationExists(data);
+	}
+
+	/**
 	 * @param id
 	 * @param {SignatureToken|String} sign
 	 */

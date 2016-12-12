@@ -95,7 +95,7 @@ class Whisperer {
 						this._currentPin = randomNumbers;
 						this._socket.emit('pindata', randomNumbers);
 						if(this._jsonQrData){
-							console.log('whisperer: sedning qrData to matching:', this._jsonQrData);
+							console.log('whisperer: sending qrData to matching:', this._jsonQrData);
 							this._jsonQrData['currentPin'] = this._currentPin;
 							socket.emit('qrData', JSON.stringify(this._jsonQrData));
 						}
@@ -136,6 +136,13 @@ class Whisperer {
 					this.disconnectFromMatchingServer();
 
 				}, this._socketDisconnectTimeout);
+			});
+
+			this._socket.on('_disconnect', () => {
+				//force disconnect event
+				this.disconnectFromMatchingServer();
+				this._socket.disconnect();
+				this._socket = null;
 			});
 
 			this._socket.on('virtSrvConfig', (data) => {
@@ -186,8 +193,7 @@ class Whisperer {
 					email:     data.email,
 					edge_fqdn: data.edge_fqdn,
 					pin:       data.pin,
-					user_id:   data.user_id,
-					rand:      CommonUtils.randomBytes()
+					user_id:   data.user_id
 				};
 
 				let registerFqdnFunc = this._callbacks["RegisterFqdn"];
@@ -204,7 +210,51 @@ class Whisperer {
 					payload.service  = this._serviceName;
 					this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
-					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
+					logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
+					this._socket.emit("mobileProv1", {
+						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
+						'type': 'mobileSessionFail'
+					});
+				});
+			});
+
+			this._socket.on('regRecovery', (data) => {
+				logger.debug('regRecovery:', data);
+				//createEntityWithAuthServer
+
+				let metadata = {
+					name:      data.name,
+					email:     data.email,
+					edge_fqdn: data.edge_fqdn,
+					pin:       data.pin,
+					user_id:   data.user_id
+				};
+
+				let recoveryRegisterFunc = this._callbacks["RegRecovery"];
+
+				if (!recoveryRegisterFunc) {
+					logger.error(`recovery registration callback not defined`);
+					return;
+				}
+
+				recoveryRegisterFunc(metadata).then(payload => {
+					this._deleteSession(data.pin);
+
+
+					switch(payload.type){
+						case 'token':
+							//add service name and matching fqdn for use on mobile
+							payload.matching = this._matchingServerFqdn;
+							payload.service  = this._serviceName;
+							this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
+							break;
+						case 'cert':
+							//TODO add logic
+							break;
+					}
+
+				}).catch(e => {
+					logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
 					this._socket.emit("mobileProv1", {
 						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
 						'type': 'mobileSessionFail'

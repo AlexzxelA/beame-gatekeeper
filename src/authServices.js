@@ -67,7 +67,6 @@ class BeameAuthServices {
 
 
 	//region Entity registration
-	//noinspection JSUnusedGlobalSymbols
 	/**
 	 * @param {RegistrationData} data
 	 * @param {boolean} createAuthToken
@@ -110,9 +109,10 @@ class BeameAuthServices {
 
 	/**
 	 * @param {RegistrationData} data
+	 * @param {Boolean} saveRegistration => false in recovery flow
 	 * @returns {Promise}
 	 */
-	getRegisterFqdn(data) {
+	getRegisterFqdn(data, saveRegistration = true) {
 		return new Promise((resolve, reject) => {
 
 				if (!data.email && !data.user_id) {
@@ -120,22 +120,35 @@ class BeameAuthServices {
 					return;
 				}
 
-				let metadata = BeameAuthServices._registrationDataToProvisionToken(data, this._fqdn);
+				dataService.isRegistrationExists(data).then(registration => {
+					if (registration) {
+						reject(`Record for email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
+						return;
+					}
 
-				this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
-					payload.parent_fqdn = this._fqdn;
+					let metadata = BeameAuthServices._registrationDataToProvisionToken(data, this._fqdn);
 
-					logger.info(`Registration Fqdn received ${payload.fqdn}`);
-					logger.debug(`Entity registration completed `, payload);
+					this._registerFqdn(apiEntityActions.Register.endpoint, metadata).then(payload => {
+						payload.parent_fqdn = this._fqdn;
 
-					data.fqdn = payload.fqdn;
+						if (saveRegistration) {
+							logger.info(`Registration Fqdn received ${payload.fqdn}`);
+							logger.debug(`Entity registration completed `, payload);
 
-					dataService.saveRegistration(data).then(() => {
-						resolve(payload);
+							data.fqdn = payload.fqdn;
+
+							dataService.saveRegistration(data).then(() => {
+								resolve(payload);
+							}).catch(reject);
+						}
+						else {
+							resolve(payload);
+						}
+
+
 					}).catch(reject);
+				});
 
-
-				}).catch(reject);
 			}
 		);
 	}
@@ -181,20 +194,70 @@ class BeameAuthServices {
 		);
 	}
 
+	//noinspection JSMethodCanBeStatic
 	/**
-	 * @param {SignatureToken} authToken
+	 * @param {RegistrationData} data
 	 * @returns {Promise}
 	 */
-	_validateAuthToken(authToken) {
+	saveSession(data) {
+		return dataService.saveSession(data);
+	}
+
+	/**
+	 * Get registration data(fqdn, x509) in case of incomplete registration on mobile side
+	 * @param {RegistrationData} data
+	 */
+	recoveryRegistration(data) {
+
+		var self = this;
+
 		return new Promise((resolve, reject) => {
 
-				if (!BeameAuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
-					reject('Unauthorized signature');
-					return;
-				}
+				const findCert = (fqdn) => {
+					store.find(fqdn, true).then(cred => {
+						if (!cred) {
+							reject(`Credential not found`);
+							return;
+						}
 
-				AuthToken.validate(authToken).then(resolve).catch(reject);
+						resolve({
+							result:  'cred',
+							data: cred.getKey("X509")
+						});
+					}).catch(e => {
+						reject(`Credential not found with error ${BeameLogger.formatError(e)}`);
+					});
+				};
 
+				const registerFqdn = () => {
+					self.getRegisterFqdn(data).then(payload => {
+							resolve({
+								result:  'token',
+								data: payload
+							})
+						}
+					).catch(reject);
+				};
+
+				// fqdn received , try find credentials
+				dataService.isRegistrationExists(data).then(registration => {
+					if (registration) {
+						if (registration.completed) {
+
+							if (data.fqdn && data.fqdn != registration.fqdn) {
+								reject(`Fqdn ${data.fqdn} doesn't matched registration record`);
+								return;
+							}
+							findCert(registration.fqdn);
+						}
+						else {
+							registerFqdn();
+						}
+					}
+					else {
+						registerFqdn();
+					}
+				}).catch(reject);
 			}
 		);
 	}
@@ -206,15 +269,6 @@ class BeameAuthServices {
 	 */
 	static deleteSession(pin) {
 		return dataService.deleteSession(pin);
-	}
-
-	//noinspection JSMethodCanBeStatic
-	/**
-	 * @param {RegistrationData} data
-	 * @returns {Promise}
-	 */
-	saveSession(data) {
-		return dataService.saveSession(data);
 	}
 
 	/**
@@ -293,9 +347,24 @@ class BeameAuthServices {
 		};
 	}
 
-	//endregion
+	/**
+	 * @param {SignatureToken} authToken
+	 * @returns {Promise}
+	 */
+	_validateAuthToken(authToken) {
+		return new Promise((resolve, reject) => {
 
-	//region Registering FQDN vs Provision
+				if (!BeameAuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
+					reject('Unauthorized signature');
+					return;
+				}
+
+				AuthToken.validate(authToken).then(resolve).catch(reject);
+
+			}
+		);
+	}
+
 	/**
 	 *
 	 * @param {String} endpoint
@@ -476,12 +545,12 @@ class BeameAuthServices {
 					}
 
 					resolve({
-						fqdn:    fqdn,
-						name:    user.name,
-						nickname:user.nickname,
-						email:   user.email,
-						isAdmin: user.isAdmin,
-						user_id: user.externalUserId
+						fqdn:     fqdn,
+						name:     user.name,
+						nickname: user.nickname,
+						email:    user.email,
+						isAdmin:  user.isAdmin,
+						user_id:  user.externalUserId
 					});
 				}).catch(reject);
 			}

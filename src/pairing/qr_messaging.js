@@ -81,6 +81,13 @@ class QrMessaging {
 
 		});
 
+		socket.on('_disconnect', () => {
+			//force disconnect event
+			clearInterval(this._renewOTP);
+			socket.disconnect();
+			socket = null;
+		});
+
 		socket.on('reconnect', () => {
 			logger.debug('QR socket reconnected');
 			if (this._lastCommand && this._pendingCommand[this._lastCommand]) {
@@ -112,8 +119,7 @@ class QrMessaging {
 					email:     data.email,
 					edge_fqdn: data.edge_fqdn,
 					pin:       data.pin,
-					user_id:   data.user_id,
-					rand:      CommonUtils.randomBytes()
+					user_id:   data.user_id
 				};
 
 				let registerFqdnFunc = this._callbacks["RegisterFqdn"];
@@ -143,6 +149,58 @@ class QrMessaging {
 			}
 		});
 
+		socket.on('regRecovery', (data) => {
+			logger.debug('QR regRecovery:', data);
+			//createEntityWithAuthServer
+			if (this._verifyOTP(data.otp)) {
+				console.log('QR Cleared QR interval!', socket.id);
+				clearInterval(this._renewOTP);
+				this._sendWithAck(socket, 'resetQR');
+
+				let metadata = {
+					name:      data.name,
+					email:     data.email,
+					edge_fqdn: data.edge_fqdn,
+					pin:       data.pin,
+					user_id:   data.user_id
+				};
+
+				let recoveryRegisterFunc = this._callbacks["RegRecovery"];
+
+				if (!recoveryRegisterFunc) {
+					logger.error(`registration callback not defined`);
+					return;
+				}
+
+				recoveryRegisterFunc(metadata).then(payload => {
+					this._deleteSession(data.pin);
+
+					switch(payload.type){
+						case 'token':
+							logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
+							//add service name and matching fqdn for use on mobile
+							payload.matching = this._matchingServerFqdn;
+							payload.service  = this._serviceName;
+							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
+							break;
+						case 'cert':
+							//TODO add logic
+							break;
+					}
+
+				}).catch(e => {
+					this._sendWithAck(socket, "mobileProv1", {
+						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
+						'type': 'mobileSessionFail'
+					});
+					logger.error(`authorizing mobile error  ${BeameLogger.formatError(e)}`);
+				});
+			}
+			else {
+				this._sendWithAck(socket, "mobilePinInvalid", {'data': `PIN:${data.otp}>${this._otp},${this._otp_prev}`});
+			}
+		});
+
 		socket.on('beamePing',function () {
 			setTimeout(function () {
 				socket.emit('beamePong');
@@ -153,6 +211,7 @@ class QrMessaging {
 			console.log('QR pinRequest');
 			this._setNewOTP(socket);
 		});
+
 		socket.on('virtSrvConfig', (data) => {
 			logger.debug(`<< virtSrvConfig: ${this._browserHost}`, data);
 			console.log('QR socket ID:', socket.id);
@@ -188,7 +247,6 @@ class QrMessaging {
 	_verifyOTP(OTP) {
 		return (this._otp == OTP || this._otp_prev == OTP);
 	}
-
 
 	_generateOTP(size) {
 		this._otp_prev = this._otp;
