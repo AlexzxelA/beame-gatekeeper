@@ -546,11 +546,11 @@ class BeameAuthServices {
 
 					resolve({
 						fqdn:     fqdn,
-						name:     user.name,
-						nickname: user.nickname,
-						email:    user.email,
+						name:     user.name || '',
+						nickname: user.nickname || '',
+						email:    user.email || '',
 						isAdmin:  user.isAdmin,
-						user_id:  user.externalUserId
+						user_id:  user.externalUserId || ''
 					});
 				}).catch(reject);
 			}
