@@ -10,7 +10,7 @@ const concat        = require('gulp-concat');
 const uglify        = require('gulp-uglify');
 const htmlreplace   = require('gulp-html-replace');
 const cleanCSS      = require('gulp-clean-css');
-const minifyCss   = require('gulp-minify-css');
+const minifyCss     = require('gulp-minify-css');
 const s3            = require('gulp-s3');
 const gzip          = require('gulp-gzip');
 const stripDebug    = require('gulp-strip-debug');
@@ -22,15 +22,15 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir = 'insta-server-dev';
+const bucket_dir    = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
 
 const tools_folder_name = 'tools';
-const tools_bucket_dir = 'insta-server-meta';
+const tools_bucket_dir  = 'insta-server-meta';
 
-const web_dist_root_path    = 'Web/';
-const web_src_root_path     = './apps/';
+const web_dist_root_path = 'Web/';
+const web_src_root_path  = './apps/';
 
 const getVersion = () => {
 	const pad2 = (n) => {
@@ -62,8 +62,8 @@ const compilePage = (pagePath, distPath) => {
 			'lib':            `${cdn_folder_path}js/lib.min.js`,
 			'signin-js-head': `${cdn_folder_path}js/signin.min.js`,
 			'signup-js-head': `${cdn_folder_path}js/signup.min.js`,
-			'utils-head': `${cdn_folder_path}js/utils.min.js`,
-			'logo':`<img src="${cdn_folder_path}img/logo.svg" />`
+			'utils-head':     `${cdn_folder_path}js/utils.min.js`,
+			'logo':           `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
@@ -76,7 +76,7 @@ const compileJs = (funcArray, dist_name, optimize) => {
 		.pipe(concat(dist_name))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
-	//	.pipe(gulpif(optimize, uglify()))
+		//	.pipe(gulpif(optimize, uglify()))
 		.pipe(gulp.dest(`./${dist_folder_name}/js/`));
 };
 
@@ -101,7 +101,7 @@ const uploadFile = (name, aws, options) => {
 		.pipe(s3(aws, options));
 };
 
-const uploadStaticFile = (src,dist,renameFunc,invalidationPath) => {
+const uploadStaticFile = (src, dist, renameFunc, invalidationPath) => {
 	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
 	    config                       = require('./local_config/aws_config.json'),
 	    key = config.aws_key, secret = config.aws_secret,
@@ -118,7 +118,7 @@ const uploadStaticFile = (src,dist,renameFunc,invalidationPath) => {
 		.pipe(s3(aws, options));
 
 
-	if(invalidationPath && invalidationPath.length){
+	if (invalidationPath && invalidationPath.length) {
 		setTimeout(function () {
 			var cf_settings = {
 				distribution:    config.beame_cdn_distribution, // Cloudfront distribution ID
@@ -265,33 +265,33 @@ gulp.task('upload-to-S3', callback => {
 
 });
 
-gulp.task('upload-tools-to-S3',['sass-tools'], callback => {
+gulp.task('upload-tools-to-S3', ['sass-tools'], callback => {
 
-	uploadStaticFile(`./${tools_folder_name}/insta-servers.html`,`${tools_bucket_dir}/insta-servers.html`);
+	uploadStaticFile(`./${tools_folder_name}/insta-servers.html`, `${tools_bucket_dir}/insta-servers.html`);
 
 
-	uploadStaticFile(`./${tools_folder_name}/css/app.css`,`${tools_bucket_dir}/css/app.css`);
+	uploadStaticFile(`./${tools_folder_name}/css/app.css`, `${tools_bucket_dir}/css/app.css`);
 
 	const renameImages = (path) => {
 		path.dirname += `/${tools_bucket_dir}/img`;
 	};
 
-	uploadStaticFile(`./${tools_folder_name}/img/***`,null,renameImages);
+	uploadStaticFile(`./${tools_folder_name}/img/***`, null, renameImages);
 
 	callback();
 
 });
 
-gulp.task('upload-matching',callback=>{
+gulp.task('upload-matching', callback => {
 
-	uploadStaticFile(`./stuff/matching_servers.json`,`${tools_bucket_dir}/matching_servers.json`,null,[`/${tools_bucket_dir}/matching_servers.json`]);
+	uploadStaticFile(`./stuff/matching_servers.json`, `${tools_bucket_dir}/matching_servers.json`, null, [`/${tools_bucket_dir}/matching_servers.json`]);
 
 	callback();
 });
 
-gulp.task('upload-gw-json',callback=>{
+gulp.task('upload-gw-json', callback => {
 
-	uploadStaticFile(`./stuff/gw_servers.json`,`${tools_bucket_dir}/gw_servers.json`,null,[`/${tools_bucket_dir}/gw_servers.json`]);
+	uploadStaticFile(`./stuff/gw_servers.json`, `${tools_bucket_dir}/gw_servers.json`, null, [`/${tools_bucket_dir}/gw_servers.json`]);
 
 	callback();
 });

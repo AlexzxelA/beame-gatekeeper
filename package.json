@@ -1,6 +1,6 @@
 {
   "name": "beame-insta-server",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Gateway TLS (SSL) server for authenticated access to your services",
   "main": "index.js",
   "engines": {

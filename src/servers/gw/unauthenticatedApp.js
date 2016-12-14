@@ -8,7 +8,9 @@ const bodyParser = require('body-parser');
 const Bootstrapper = require('../../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 const Constants    = require('../../../constants');
+const cookieNames = Constants.CookieNames;
 const beameSDK     = require('beame-sdk');
+const CommonUtils  = beameSDK.CommonUtils;
 const module_name = "GwUnauthenticatedApp";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
@@ -26,13 +28,13 @@ const unauthenticatedApp = express();
 unauthenticatedApp.use(express.static(base_path));
 
 unauthenticatedApp.get('/signin', (req, res) => {
-	res.cookie('beame_logout_url',Bootstrapper.getLogoutUrl());
-	res.cookie('beame_service',bootstrapper.serviceName);
+	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
 unauthenticatedApp.get('/', (req, res) => {
-	res.cookie('beame_service',bootstrapper.serviceName);
+	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'welcome.html'));
 
 });

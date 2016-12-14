@@ -6,6 +6,7 @@
 const uuid = require('node-uuid');
 const path = require('path');
 
+const packageJson   = require('../package.json');
 const defaults      = require('../defaults');
 const SqliteProps   = defaults.ConfigProps.Sqlite;
 const SettingsProps = defaults.ConfigProps.Settings;
@@ -269,8 +270,16 @@ class Bootstrapper {
 		return this._config;
 	}
 
-	get appId(){
+	get appId() {
 		return this._config && this._config[SettingsProps.AppId] ? this._config[SettingsProps.AppId] : null;
+	}
+
+	get appData() {
+		return {
+			name:    this.serviceName,
+			version: this.version,
+			appId:   this.appId
+		}
 	}
 
 	//noinspection JSMethodCanBeStatic
@@ -282,6 +291,10 @@ class Bootstrapper {
 		}
 
 		return creds;
+	}
+
+	get version() {
+		return packageJson.version;
 	}
 
 	set setAppConfig(config) {
@@ -727,8 +740,8 @@ class Bootstrapper {
 	 *
 	 * @returns {Bootstrapper}
 	 */
-	static getInstance(){
-		if(!bootstrapperInstance){
+	static getInstance() {
+		if (!bootstrapperInstance) {
 			bootstrapperInstance = new Bootstrapper();
 		}
 

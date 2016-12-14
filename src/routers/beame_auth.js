@@ -8,13 +8,14 @@ const express = require('express');
 
 
 const beameSDK     = require('beame-sdk');
+const CommonUtils  = beameSDK.CommonUtils;
 const module_name  = "BeameAuthRouter";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
-const CommonUtils  = beameSDK.CommonUtils;
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 const Constants    = require('../../constants');
+const cookieNames = Constants.CookieNames;
 const public_dir   = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 const base_path    = path.join(public_dir, 'pages', 'beame_auth');
 
@@ -46,9 +47,9 @@ class BeameAuthRouter {
 
 				let url = Bootstrapper.getLogoutUrl();
 
-				res.cookie('beame_logout_url', url);
-				res.cookie('beame_service', bootstrapper.serviceName);
-				res.cookie('beame_reg_data', CommonUtils.stringify(data));
+				res.cookie(cookieNames.Logout, url);
+				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
 
 				res.sendFile(path.join(base_path, 'signup.html'));
 			}).catch(error => {

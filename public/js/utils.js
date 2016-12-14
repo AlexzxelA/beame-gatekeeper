@@ -9,13 +9,16 @@ function deleteCookie( name ) {
 function onStaticPageLoaded() {
 	deleteCookie('userinfo');
 
-	var serviceName = getCookie('beame_service');
-	if(!serviceName) return;
+	var appData = getCookie('beame_service');
+	if(!appData) return;
+
+	var service = JSON.parse(decodeURIComponent(appData));
 
 	var label = document.createElement("span");
-	label.innerHTML = ('Current service: ' + decodeURIComponent(serviceName));
+	label.innerHTML = ('Current service: ' +  service.name + ', v. '+  service.version);
 	label.className = "srvc";
 	document.body.appendChild(label);
+
 }
 
 

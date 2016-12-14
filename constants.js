@@ -86,6 +86,11 @@ const SetupServices = {
 	"SampleFileShare": {code: "SAMPLE_FILE_SHARE", port: 65513}
 };
 
+const CookieNames = {
+	"Logout":  "beame_logout_url",
+	"Service": "beame_service",
+	"RegData": "beame_reg_data"
+};
 
 module.exports = {
 	RegistrationSource,
@@ -94,6 +99,7 @@ module.exports = {
 	SnsMessageType,
 	SetupServices,
 	DbProviders,
+	CookieNames,
 	AuthMode: {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"

@@ -7,7 +7,10 @@ const path         = require('path');
 const request      = require('request');
 const express      = require('express');
 const crypto       = require('crypto');
+const beameSDK     = require('beame-sdk');
+const CommonUtils  = beameSDK.CommonUtils;
 const Constants    = require('../../constants');
+const cookieNames = Constants.CookieNames;
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 const app          = express();
@@ -32,7 +35,7 @@ function authenticate(data) {
 }
 
 app.get('/register', (req, res) => {
-	res.cookie('beame_service', bootstrapper.serviceName);
+	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'register.html'));
 });
 
@@ -114,7 +117,7 @@ app.post('/register/save', (req, res) => {
 	}
 
 	function redirect(url) {
-		return new Promise((resolve, reject) => {
+		return new Promise(() => {
 			return res.json({
 				// "url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
 				"url":          url,
