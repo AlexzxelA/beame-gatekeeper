@@ -3,7 +3,7 @@
  */
 "use strict";
 
-
+const uuid = require('node-uuid');
 const path = require('path');
 
 const defaults      = require('../defaults');
@@ -46,6 +46,8 @@ const _onConfigError = error => {
 	process.exit(1);
 };
 
+var bootstrapperInstance;
+
 class Bootstrapper {
 
 	constructor() {
@@ -61,9 +63,9 @@ class Bootstrapper {
 			this.initConfig(false)
 				.then(this.initDb.bind(this, false))
 				.then(() => {
-								logger.info(`beame-insta-server bootstrapped successfully`);
-								resolve();
-							})
+					logger.info(`beame-insta-server bootstrapped successfully`);
+					resolve();
+				})
 				.catch(_onConfigError);
 		});
 	}
@@ -82,12 +84,12 @@ class Bootstrapper {
 					.then(this._ensureCustomerAuthServersJson.bind(this))
 					.then(this._ensureDbConfig.bind(this))
 					.then(() => {
-									logger.info(`Beame-insta-server config files ensured`);
-									resolve();
-									if (exit) {
-										process.exit(0);
-									}
-								})
+						logger.info(`Beame-insta-server config files ensured`);
+						resolve();
+						if (exit) {
+							process.exit(0);
+						}
+					})
 					.catch(_onConfigError)
 			}
 		);
@@ -267,8 +269,8 @@ class Bootstrapper {
 		return this._config;
 	}
 
-	set setAppConfig(config) {
-		this._config = config;
+	get appId(){
+		return this._config && this._config[SettingsProps.AppId] ? this._config[SettingsProps.AppId] : null;
 	}
 
 	//noinspection JSMethodCanBeStatic
@@ -280,6 +282,10 @@ class Bootstrapper {
 		}
 
 		return creds;
+	}
+
+	set setAppConfig(config) {
+		this._config = config;
 	}
 
 	//endregion
@@ -327,9 +333,16 @@ class Bootstrapper {
 
 				for (let prop in defaults) {
 					//noinspection JSUnfilteredForInLoop
-					if (typeof defaults[prop] === "string") {
-						//noinspection JSUnfilteredForInLoop
-						config[prop] = defaults[prop];
+					if (typeof defaults[prop] !== "object") {
+						if (prop == SettingsProps.AppId) {
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = uuid.v4();
+						}
+						else {
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = defaults[prop];
+						}
+
 					}
 				}
 
@@ -363,6 +376,13 @@ class Bootstrapper {
 							updateFile   = true;
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = defaults[prop];
+						}
+
+						//noinspection JSUnfilteredForInLoop
+						if (prop == SettingsProps.AppId && !config[prop]) {
+							updateFile   = true;
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = uuid.v4();
 						}
 					}
 
@@ -547,7 +567,7 @@ class Bootstrapper {
 
 	_ensureSqliteConfigJson() {
 
-		return new Promise((resolve,reject) => {
+		return new Promise((resolve, reject) => {
 
 				logger.debug(`validating sqlite ${SqliteDbConfigFileName}...`);
 
@@ -561,26 +581,25 @@ class Bootstrapper {
 				logger.debug(`sqlite ${SqliteDbConfigFileName} found...`);
 
 				let dbConfigTemplate = defaults.SqliteConfigTemplate,
-						env      = this._config[SqliteProps.EnvName],
+				    env              = this._config[SqliteProps.EnvName],
 				    dbConfigKeys     = Object.keys(dbConfigTemplate[env]),
-				    updateFile = false;
+				    updateFile       = false;
 
-				dbConfigKeys.forEach(key=>{
-					if(!dbConfig[env].hasOwnProperty(key)){
-						updateFile = true;
+				dbConfigKeys.forEach(key => {
+					if (!dbConfig[env].hasOwnProperty(key)) {
+						updateFile         = true;
 						dbConfig[env][key] = dbConfigTemplate[env][key];
 					}
 				});
 
 
-
-				if(updateFile){
+				if (updateFile) {
 					dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig, true)).then(() => {
 						logger.debug(`${SqliteDbConfigFileName} updated successfully...`);
 						resolve();
 					}).catch(reject);
 				}
-				else{
+				else {
 					resolve();
 				}
 
@@ -704,6 +723,17 @@ class Bootstrapper {
 
 	//endregion
 
+	/**
+	 *
+	 * @returns {Bootstrapper}
+	 */
+	static getInstance(){
+		if(!bootstrapperInstance){
+			bootstrapperInstance = new Bootstrapper();
+		}
+
+		return bootstrapperInstance;
+	}
 }
 
 module.exports = Bootstrapper;

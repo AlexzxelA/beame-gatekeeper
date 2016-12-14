@@ -62,6 +62,7 @@ const compilePage = (pagePath, distPath) => {
 			'lib':            `${cdn_folder_path}js/lib.min.js`,
 			'signin-js-head': `${cdn_folder_path}js/signin.min.js`,
 			'signup-js-head': `${cdn_folder_path}js/signup.min.js`,
+			'utils-head': `${cdn_folder_path}js/utils.min.js`,
 			'logo':`<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
@@ -100,6 +101,41 @@ const uploadFile = (name, aws, options) => {
 		.pipe(s3(aws, options));
 };
 
+const uploadStaticFile = (src,dist,renameFunc,invalidationPath) => {
+	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
+	    config                       = require('./local_config/aws_config.json'),
+	    key = config.aws_key, secret = config.aws_secret,
+	    aws                          = {
+		    "key":    key,
+		    "secret": secret,
+		    "bucket": config.bucket,
+		    "region": "us-east-1"
+	    };
+
+	gulp.src([src])
+		.pipe(rename(dist || renameFunc))
+		.pipe(gzip())
+		.pipe(s3(aws, options));
+
+
+	if(invalidationPath && invalidationPath.length){
+		setTimeout(function () {
+			var cf_settings = {
+				distribution:    config.beame_cdn_distribution, // Cloudfront distribution ID
+				paths:           invalidationPath,                 // Paths to invalidate
+				accessKeyId:     key,               // AWS Access Key ID
+				secretAccessKey: secret,        // AWS Secret Access Key
+				wait:            false                     // Whether to wait until invalidation is completed (default: false)
+			};
+
+			gulp.src('*')
+				.pipe(cloudfront(cf_settings));
+
+		}, 1000 * 3);
+	}
+
+};
+
 gulp.task('sass', function () {
 	gulp.src('./public/scss/app.scss')
 		.pipe(sass().on('error', (err) => {
@@ -107,6 +143,17 @@ gulp.task('sass', function () {
 			process.exit(1);
 		}))
 		.pipe(gulp.dest('./public/css/'));
+});
+
+gulp.task('web_sass', function () {
+	gulp.src(web_src_root_path + 'scss/*.scss')
+		.pipe(sass())
+		.pipe(gulp.dest('./apps/photo/public/css/'));
+
+	gulp.src(web_src_root_path + 'scss/*.scss')
+		.pipe(sass())
+		.pipe(gulp.dest('./apps/stream/public/css/'));
+
 });
 
 gulp.task('sass-tools', function () {
@@ -144,6 +191,11 @@ gulp.task('compile-js', () => {
 			'./public/js/utils.js',
 			'./public/js/signup.js'
 		], 'signup.min.js', true);
+
+	compileJs(
+		[
+			'./public/js/utils.js'
+		], 'utils.min.js', true);
 
 	compileJs(
 		[
@@ -196,6 +248,7 @@ gulp.task('upload-to-S3', callback => {
 	console.log(`upload starting ${getVersion()}`);
 
 	uploadFile('js/app.min.js', aws, options);
+	uploadFile('js/utils.min.js', aws, options);
 	uploadFile('js/lib.min.js', aws, options);
 	uploadFile('js/signin.min.js', aws, options);
 	uploadFile('js/signup.min.js', aws, options);
@@ -213,46 +266,32 @@ gulp.task('upload-to-S3', callback => {
 });
 
 gulp.task('upload-tools-to-S3',['sass-tools'], callback => {
-	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
-	    config                       = require('./local_config/aws_config.json'),
-	    key = config.aws_key, secret = config.aws_secret,
-	    aws                          = {
-		    "key":    key,
-		    "secret": secret,
-		    "bucket": config.bucket,
-		    "region": "us-east-1"
-	    };
 
-	gulp.src([`./${tools_folder_name}/insta-servers.html`])
-		.pipe(rename(`${tools_bucket_dir}/insta-servers.html`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
+	uploadStaticFile(`./${tools_folder_name}/insta-servers.html`,`${tools_bucket_dir}/insta-servers.html`);
 
 
-	gulp.src([`./${tools_folder_name}/css/app.css`])
-		.pipe(rename(`${tools_bucket_dir}/css/app.css`))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
+	uploadStaticFile(`./${tools_folder_name}/css/app.css`,`${tools_bucket_dir}/css/app.css`);
 
-	gulp.src([`./${tools_folder_name}/img/***`])
-		.pipe(rename(function (path) {
-			path.dirname += `/${tools_bucket_dir}/img`;
-		}))
-		.pipe(gzip())
-		.pipe(s3(aws, options));
+	const renameImages = (path) => {
+		path.dirname += `/${tools_bucket_dir}/img`;
+	};
+
+	uploadStaticFile(`./${tools_folder_name}/img/***`,null,renameImages);
 
 	callback();
 
 });
 
+gulp.task('upload-matching',callback=>{
 
-gulp.task('web_sass', function () {
-	gulp.src(web_src_root_path + 'scss/*.scss')
-		.pipe(sass())
-		.pipe(gulp.dest('./apps/photo/public/css/'));
+	uploadStaticFile(`./stuff/matching_servers.json`,`${tools_bucket_dir}/matching_servers.json`,null,[`/${tools_bucket_dir}/matching_servers.json`]);
 
-	gulp.src(web_src_root_path + 'scss/*.scss')
-		.pipe(sass())
-		.pipe(gulp.dest('./apps/stream/public/css/'));
+	callback();
+});
 
+gulp.task('upload-gw-json',callback=>{
+
+	uploadStaticFile(`./stuff/gw_servers.json`,`${tools_bucket_dir}/gw_servers.json`,null,[`/${tools_bucket_dir}/gw_servers.json`]);
+
+	callback();
 });

@@ -78,25 +78,13 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 			xxx_session_token = payload.session_token;
 			console.warn('session token', xxx_session_token);
 
-			if (user) {
-
-				var name = user.nickname || user.name,
-					info = {
-						name:name,
-						fqdn:user.fqdn
-					};
-
-				document.cookie = "userinfo=" +  JSON.stringify(info);
-				//$('#conn-to').html('connected to ' + user.fqdn);
-				// $('#user-name').html('Hello, ' + (user.name || user.email || user.user_id));
-				// $('#info-module').show();
-			}
-
+			saveUserInfoCookie(user);
 		}
-		// else if(type == 'redirect'  && payload.logout){
-		// 	$('#info-module').hide();
-		// }
-		// xxx - end
+
+		if(type == 'updateProfile'){
+			saveUserInfoCookie(user);
+			return;
+		}
 
 		if (payload.html) {
 
@@ -120,11 +108,6 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 			sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
 				str2ab(JSON.stringify(data)));
 		}
-
-
-		// For all types of packets
-		// Send payload to mobile device using mob_relay_socket
-
 
 	});
 
@@ -207,6 +190,19 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 				session_token: xxx_session_token
 			}
 		});
+	}
+
+	function saveUserInfoCookie(user){
+		if (user) {
+
+			var name = user.nickname || user.name,
+			    info = {
+				    name:name,
+				    fqdn:user.fqdn
+			    };
+
+			document.cookie = "userinfo=" +  JSON.stringify(info);
+		}
 	}
 
 }

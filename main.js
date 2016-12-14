@@ -37,7 +37,7 @@ const BeameStore = new beameSDK.BeameStore();
 
 const Constants         = require('./constants');
 const Bootstrapper      = require('./src/bootstrapper');
-const bootstrapper      = new Bootstrapper();
+const bootstrapper      = Bootstrapper.getInstance();
 const credentialManager = new (require('./src/credentialManager'))();
 const utils             = require('./src/utils');
 

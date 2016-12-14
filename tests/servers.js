@@ -5,7 +5,7 @@
 const async = require('async');
 
 const Bootstrapper = require('../src/bootstrapper');
-const bootstrapper = new Bootstrapper();
+const bootstrapper = Bootstrapper.getInstance();
 
 const Constants = require('../constants');
 

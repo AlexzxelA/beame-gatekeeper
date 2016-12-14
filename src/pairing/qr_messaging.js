@@ -14,7 +14,7 @@ const store            = new beameSDK.BeameStore();
 const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
 const Bootstrapper     = require('../bootstrapper');
-const bootstrapper     = new Bootstrapper();
+const bootstrapper     = Bootstrapper.getInstance();
 
 class QrMessaging {
 

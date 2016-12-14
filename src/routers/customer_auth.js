@@ -9,7 +9,7 @@ const express      = require('express');
 const crypto       = require('crypto');
 const Constants    = require('../../constants');
 const Bootstrapper = require('../bootstrapper');
-const bootstrapper = new Bootstrapper();
+const bootstrapper = Bootstrapper.getInstance();
 const app          = express();
 
 const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);

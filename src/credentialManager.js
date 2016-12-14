@@ -18,7 +18,7 @@ const CommonUtils  = beameSDK.CommonUtils;
 class CredentialManager {
 
 	constructor() {
-		this._bootstrapper = new Bootstrapper();
+		this._bootstrapper = Bootstrapper.getInstance();
 	}
 
 	/**

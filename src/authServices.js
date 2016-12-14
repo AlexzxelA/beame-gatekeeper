@@ -35,7 +35,7 @@ const store            = new (beameSDK.BeameStore)();
 const provisionApi     = new (beameSDK.ProvApi)();
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
-const bootstrapper     = new Bootstrapper();
+const bootstrapper     = Bootstrapper.getInstance();
 var dataService        = null;
 
 

@@ -18,7 +18,7 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
 const Bootstrapper = require('./bootstrapper');
-const bootstrapper = new Bootstrapper();
+const bootstrapper = Bootstrapper.getInstance();
 
 class BeameInstaSocketServer {
 

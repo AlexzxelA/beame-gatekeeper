@@ -6,7 +6,7 @@ const express    = require('express');
 const bodyParser = require('body-parser');
 
 const Bootstrapper = require('../../bootstrapper');
-const bootstrapper = new Bootstrapper();
+const bootstrapper = Bootstrapper.getInstance();
 const Constants    = require('../../../constants');
 const beameSDK     = require('beame-sdk');
 const module_name = "GwUnauthenticatedApp";

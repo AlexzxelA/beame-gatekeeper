@@ -109,7 +109,6 @@ function sendError(req, res, code, err, extra_headers = {}) {
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
 }
 
-
 function proxyRequestToAuthServer(req, res) {
 	addBeameHeaders(req);
 	proxy.web(req, res, {target: `http://127.0.0.1:${process.env.BEAME_INSTA_SERVER_AUTH_PORT || 65001}`});

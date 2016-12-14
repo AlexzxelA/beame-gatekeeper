@@ -11,8 +11,8 @@ const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
 const db_provider = Constants.DbProviders.Sqlite;
 
-const ServiceName = "ServiceName";
-
+const ServiceName              = "ServiceName";
+const AppId                    = "";
 const sqlite_db_name           = "beame_server.db";
 const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
@@ -46,6 +46,7 @@ const SqliteConfigTemplate = {
 const ConfigProps = {
 	Settings: {
 		ServiceName:                   "ServiceName",
+		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
@@ -98,7 +99,7 @@ const CustomerAuthServersTemplate = {
 
 module.exports = {
 	ConfigProps,
-
+	AppId,
 	ServiceName,
 
 	SessionRecordDeleteTimeout,

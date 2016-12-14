@@ -5,7 +5,7 @@ const path = require('path');
 
 const socket_io         = require('socket.io');
 const Bootstrapper      = require('../../bootstrapper');
-const bootstrapper      = new Bootstrapper();
+const bootstrapper      = Bootstrapper.getInstance();
 const Constants         = require('../../../constants');
 const beameSDK          = require('beame-sdk');
 const CommonUtils       = beameSDK.CommonUtils;
@@ -207,15 +207,15 @@ const messageHandlers = {
 			.then(makeLogoutToken)
 			.then(respond);
 	},
-	'updateProfile': function (payload) {
+	'updateProfile': function (payload, reply) {
 
-		function updateUserProfile(session_token) {
+		function updateUserProfile() {
 			return new Promise((resolve, reject) => {
 					/** @type {User}*/
 					let user = {
-						fqdn:     payload.fqdn,
-						name:     payload.name,
-						nickname: payload.nickname
+						fqdn:     payload.payload.fqdn,
+						name:     payload.payload.name,
+						nickname: payload.payload.nickname
 					};
 
 					BeameAuthServices.updateUserProfile(user).then(resolve).catch(reject);
@@ -223,9 +223,22 @@ const messageHandlers = {
 			);
 		}
 
+		function respond(user) {
+			return new Promise(() => {
+				reply({
+					type:    'updateProfile',
+					payload: {
+						success: true,
+						user
+					}
+				});
+			});
+		}
+
 		assertSignedByGw(payload.session_token)
 			.then(AuthToken.validate)
 			.then(updateUserProfile)
+			.then(respond)
 			.catch(e => {
 				logger.error(`choose error: ${e}`);
 			});
