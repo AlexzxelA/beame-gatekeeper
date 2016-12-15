@@ -10,7 +10,6 @@ const beameUtils       = beameSDK.BeameUtils;
 const authToken        = beameSDK.AuthToken;
 const BeameLogger      = beameSDK.Logger;
 const store            = new beameSDK.BeameStore();
-//const Credential   = new beameSDK.Credential(store);
 const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
 const Bootstrapper     = require('../bootstrapper');
@@ -175,7 +174,7 @@ class QrMessaging {
 				recoveryRegisterFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
 
-					switch(payload.type){
+					switch (payload.type) {
 						case 'token':
 							logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 							//add service name and matching fqdn for use on mobile
@@ -201,10 +200,10 @@ class QrMessaging {
 			}
 		});
 
-		socket.on('beamePing',function () {
+		socket.on('beamePing', function () {
 			setTimeout(function () {
 				socket.emit('beamePong');
-			},1000);
+			}, 1000);
 		});
 
 		socket.on('pinRequest', () => {
@@ -219,7 +218,8 @@ class QrMessaging {
 			this._sendWithAck(socket, 'startQrSession', {
 				refresh_rate: OTP_refresh_rate,
 				matching:     this._matchingServerFqdn,
-				service:      this._serviceName
+				service:      this._serviceName,
+				appId:        bootstrapper.appId
 			});
 		});
 

@@ -3,16 +3,18 @@
  */
 "use strict";
 
-const uuid        = require('uuid');
-const Constants   = require('../../constants');
-const beameSDK    = require('beame-sdk');
-const beameUtils  = beameSDK.BeameUtils;
-const CommonUtils = beameSDK.CommonUtils;
-const authToken   = beameSDK.AuthToken;
-const store       = new (beameSDK.BeameStore)();
-const module_name = "Whisperer";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
+const uuid         = require('uuid');
+const Constants    = require('../../constants');
+const beameSDK     = require('beame-sdk');
+const beameUtils   = beameSDK.BeameUtils;
+const CommonUtils  = beameSDK.CommonUtils;
+const authToken    = beameSDK.AuthToken;
+const store        = new (beameSDK.BeameStore)();
+const module_name  = "Whisperer";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = Bootstrapper.getInstance();
 
 /**
  * @typedef {Object} SessionData
@@ -61,9 +63,9 @@ class Whisperer {
 		this._socketDisconnectTimeout = socketDisconnectTimeout;
 		this._creds                   = store.getCredential(this._fqdn);
 		this._serviceName             = serviceName;
-		this._qrData                    = null;
-		this._jsonQrData                = null;
-		this._currentPin                = "none";
+		this._qrData                  = null;
+		this._jsonQrData              = null;
+		this._currentPin              = "none";
 	}
 
 	get sessionId() {
@@ -94,7 +96,7 @@ class Whisperer {
 					socket.on('new_pin', (randomNumbers) => {
 						this._currentPin = randomNumbers;
 						this._socket.emit('pindata', randomNumbers);
-						if(this._jsonQrData){
+						if (this._jsonQrData) {
 							console.log('whisperer: sending qrData to matching:', this._jsonQrData);
 							this._jsonQrData['currentPin'] = this._currentPin;
 							socket.emit('qrData', JSON.stringify(this._jsonQrData));
@@ -102,7 +104,7 @@ class Whisperer {
 						else {
 							this._socket.emit('requestQrData');
 						}
-					} );
+					});
 
 					socket.on('mobile_matched', this.mobileConnected.bind(this));
 				} catch (e) {
@@ -116,11 +118,12 @@ class Whisperer {
 	start() {
 		this._socket.on('init_mobile_session', qrData => {
 			this._qrData = qrData;
-			logger.info('init_mobile_session received:',qrData);
-			this._jsonQrData = JSON.parse(qrData);
+			logger.info('init_mobile_session received:', qrData);
+			this._jsonQrData              = JSON.parse(qrData);
 			this._jsonQrData['sessionId'] = this._sessionId;
-			this._jsonQrData['service'] = this._serviceName;
-			this._jsonQrData['matching'] = this._matchingServerFqdn;
+			this._jsonQrData['service']   = this._serviceName;
+			this._jsonQrData['matching']  = this._matchingServerFqdn;
+
 		});
 		this.initMatchingServerSocketClient().then(() => {
 
@@ -241,7 +244,7 @@ class Whisperer {
 					this._deleteSession(data.pin);
 
 
-					switch(payload.type){
+					switch (payload.type) {
 						case 'token':
 							//add service name and matching fqdn for use on mobile
 							payload.matching = this._matchingServerFqdn;
@@ -351,17 +354,18 @@ class Whisperer {
 
 	mobileConnected(message) {
 		logger.debug(`User identified!! Audio stopped, ${this._qrData}`);
-		this._socket.emit('connect_ok','qrData ok:'+(this._qrData != null));
-		let retryCount   = 0;
+		this._socket.emit('connect_ok', 'qrData ok:' + (this._qrData != null));
+		let retryCount = 0;
 
 		let sessionRetry = setInterval(() => {
 			if (this._mobileSocket && this._qrData) {
 				this.stop();
 				clearInterval(sessionRetry);
-				let qrDataObj = JSON.parse(this._qrData);
-				qrDataObj['service'] = this._serviceName;
+				let qrDataObj         = JSON.parse(this._qrData);
+				qrDataObj['service']  = this._serviceName;
 				qrDataObj['matching'] = this._matchingServerFqdn;
-				logger.debug('Whisperer sending data to mobile:',JSON.stringify(qrDataObj));
+				qrDataObj['appId']    = bootstrapper.appId;
+				logger.debug('Whisperer sending data to mobile:', JSON.stringify(qrDataObj));
 				this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
 			}
 			else {
