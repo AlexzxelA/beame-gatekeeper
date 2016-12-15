@@ -22,7 +22,7 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir    = 'insta-server-dev';
+const bucket_dir    = 'insta-server';
 
 const dist_folder_name = 'dist';
 
