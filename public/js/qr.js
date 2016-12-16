@@ -11,10 +11,9 @@ var qrTmpSocketID;
 var qrRelayEndpoint = "";
 var qrContainer     = null;
 var qrSession       = null;
-var matchingFqdn    = null;
-var serviceName     = null;
 
 $(document).ready(function () {
+	generateKeys();
 	setQRStatus('QR initializing session');
 	var resetQR = function () {
 		if (!qrContainer)return;
@@ -70,9 +69,16 @@ $(document).ready(function () {
 		socket.emit('ack', 'startQrSession');
 		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
-		if(data){
-			matchingFqdn = data.matching || matchingFqdn;
-			serviceName  = data.service || serviceName;
+		if(data && !sessionServiceData){/*do not factor out: AZ*/
+			sessionServiceData = JSON.stringify({'matching':data.matching || matchingFqdn, 'service':data.service || serviceName, 'appId': data.appId});
+			signArbitraryData(sessionServiceData, function (err, sign) {
+				if(!err){
+					sessionServiceDataSign = arrayBufferToBase64String(sign);
+				}
+				else{
+					sessionServiceDataSign = err;
+				}
+			});
 		}
 		setTimeout(function () {
 			socket.emit('pinRequest');
@@ -119,8 +125,7 @@ $(document).ready(function () {
 									'TYPE': qrType,
 									'TIME': Date.now(),
 									'REG': reg_data || 'login',
-									'matching': matchingFqdn,
-									'service' : serviceName
+									'appId': JSON.parse(sessionServiceData).appId
 								};
 								console.log('QR DATA:', QRdata);
 								socket.emit('QRdata', QRdata);
@@ -194,38 +199,15 @@ $(document).ready(function () {
 		socket.emit('ack', 'relayEndpoint');
 		console.log('QR relayEndpoint', data);
 		setQRStatus('Got virtual host registration token');
-		generateKeyPairs(function (error, keydata) {
-			if (error) return;//send error to origin/show on browser
-			if (!keyGenerated) {
-				keyPair      = keydata.keyPair;
-				keyPairSign  = keydata.keyPairSign;
-				keyGenerated = true;
+		getKeyPairs(function (error, keydata) {
+			if (error) {
+				console.log(error);
+				return;
 			}
 			try {
 				var parsedData  = JSON.parse(data);
 				qrRelayEndpoint = parsedData['data'];
 				connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
-				// var lclTarget   = "https://" + qrRelayEndpoint + "/control";
-				// if (qrRelayEndpoint) {
-				// 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-				// 	QrTMPsocketRelay = io.connect(lclTarget);
-				// 	QrTMPsocketRelay.on('connect', function () {
-				// 		console.log('Connected, ID = ', QrTMPsocketRelay.id);
-				// 		QrTMPsocketRelay.emit('register_server',
-				// 			{
-				// 				'payload': {
-				// 					'socketId':      null,
-				// 					'hostname':      UID,
-				// 					//'signedData':UID,
-				// 					'signature':     parsedData['signature'],
-				// 					//'signedBy':window.location.hostname,
-				// 					'type':          'HTTPS',
-				// 					'isVirtualHost': true
-				// 				}
-				// 			});
-				// 		initRelay(socket);
-				// 	});
-				// }
 			}
 			catch (e) {
 				socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});

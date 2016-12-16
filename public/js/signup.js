@@ -5,7 +5,7 @@
 
 var auth_mode              = 'Provision',
     stopAllRunningSessions = false,
-    socketio_options       = {'force new connection': true, transports: ['polling']},
+    socketio_options       = {'force new connection': true},//, transports: ['polling']},
     reg_data;
 
 function _logout() {

@@ -39,6 +39,10 @@ var padOffset       = 42;
 var sessionRSAPK;
 var sessionRSAPKverify;
 
+var sessionServiceData     = null;
+var sessionServiceDataSign = null;
+
+
 function generateUID(length) {
 	var text     = "";
 	var possible = "_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef.ghijklmnopqrstuvwxyz0123456789.";
@@ -48,36 +52,49 @@ function generateUID(length) {
 	return text;
 }
 
-function generateKeyPairs(cb) {
-	if(keyPair && keyPairSign && keyGenerated){
+function generateKeys() {
+	window.crypto.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"])
+		.then(function (key) {
+			console.log('RSA KeyPair', key);
+			window.crypto.subtle.generateKey(RSAPKCS, true, ["sign"])
+				.then(function (key1) {
+					console.log('RSA Signing KeyPair', key1);
+					keyPair = key;
+					keyPairSign = key1;
+					keyGenerated = true;
+				})
+				.catch(function (error) {
+					console.error('Generate Signing Key Failed', error);
+				});
+		})
+		.catch(function (error) {
+			console.error('Generate Key Failed', error);
+		});
+}
+
+function getKeyPairs(cb) {
+	if(!keyGenerated){
+		var keyTimeout = 20;
+		var wait4key = setInterval(function () {
+			if(keyPair && keyPairSign && keyGenerated){
+				clearInterval(keyTimeout);
+				cb(null, {
+					keyPair:     keyPair,
+					keyPairSign: keyPairSign
+				});
+			}
+			else if(--keyTimeout < 1){
+				clearInterval(keyTimeout);
+				cb('Key generation failed', null);
+			}
+		},100);
+	}
+	else{
 		cb(null, {
 			keyPair:     keyPair,
 			keyPairSign: keyPairSign
 		});
 	}
-	else{
-		window.crypto.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"])
-			.then(function (key) {
-				console.log('RSA KeyPair', key);
-				window.crypto.subtle.generateKey(RSAPKCS, true, ["sign"])
-					.then(function (key1) {
-						console.log('RSA Signing KeyPair', key1);
-						cb(null, {
-							keyPair:     key,
-							keyPairSign: key1
-						});
-					})
-					.catch(function (error) {
-						console.error('Generate Signing Key Failed', error);
-						cb(error, null);
-					});
-			})
-			.catch(function (error) {
-				console.error('Generate Key Failed', error);
-				cb(error, null);
-			});
-	}
-
 }
 
 function signArbitraryData(data, cb) {
@@ -370,12 +387,16 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
 			sendEncryptedData(relaySocket, data.socketId,
-				str2ab(JSON.stringify({'type': 'signkey', 'data': arrayBufferToBase64String(keydata1)})));
+				str2ab(JSON.stringify({'type': 'sessionSecData',
+					'data': {
+						'pk':arrayBufferToBase64String(keydata1),
+						'sign':sessionServiceDataSign,
+						'sessionData':sessionServiceData
+			}})));
 		})
 		.catch(function (err) {
 			console.error('Export Public Sign Key Failed', err);
 		});
-
 
 }
 

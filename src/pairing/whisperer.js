@@ -123,7 +123,7 @@ class Whisperer {
 			this._jsonQrData['sessionId'] = this._sessionId;
 			this._jsonQrData['service']   = this._serviceName;
 			this._jsonQrData['matching']  = this._matchingServerFqdn;
-
+			this._jsonQrData['appId']     = bootstrapper.appId;
 		});
 		this.initMatchingServerSocketClient().then(() => {
 
@@ -325,11 +325,12 @@ class Whisperer {
 			mode:           this._mode,
 			socket_options: this._options,
 			matching:       this._matchingServerFqdn,
-			service:        this._serviceName
+			service:        this._serviceName,
+			appId:          bootstrapper.appId
 		};
 
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);
-		this._socket.emit('init_mobile_session', {pin: this._sessionId});
+		this._socket.emit('init_mobile_session', {pin: this._sessionId, 'matching':this._matchingServerFqdn, 'service':this._serviceName, 'appId':bootstrapper.appId});
 		this.matchingServerSocketClient.emit('create_session', data);
 
 	}
@@ -359,8 +360,8 @@ class Whisperer {
 
 		let sessionRetry = setInterval(() => {
 			if (this._mobileSocket && this._qrData) {
-				this.stop();
 				clearInterval(sessionRetry);
+				this.stop();
 				let qrDataObj         = JSON.parse(this._qrData);
 				qrDataObj['service']  = this._serviceName;
 				qrDataObj['matching'] = this._matchingServerFqdn;
@@ -376,7 +377,7 @@ class Whisperer {
 				}
 			}
 
-		}, 500);
+		}, 100);
 		//stop playing pincodes
 	}
 }

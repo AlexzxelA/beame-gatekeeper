@@ -144,23 +144,28 @@ app.controller("MainCtrl", function ($scope) {
 
 	$scope.socket.on('init_mobile_session', function (data) {
 		WhPIN = data.pin;
-		if(isAudioSession()){
-			console.log('Received init_mobile_session:',Date.now());
-
-
-			WhUID = getVUID();
-
-			generateKeyPairs(function (error, data) {
-				if (error) return;
-				if (!keyGenerated) {
-					keyPair      = data.keyPair;
-					keyPairSign  = data.keyPairSign;
-					keyGenerated = true;
-				}
+		getKeyPairs(function (error, keydata) {
+			if (error) {
+				console.log(error);
+				return;
+			}
+			if(data && !sessionServiceData){/*do not factor out: AZ*/
+				sessionServiceData = JSON.stringify({'matching':data.matching || matchingFqdn, 'service':data.service || serviceName, 'appId': data.appId});
+				signArbitraryData(sessionServiceData, function (err, sign) {
+					if(!err){
+						sessionServiceDataSign = arrayBufferToBase64String(sign);
+					}
+					else{
+						sessionServiceDataSign = err;
+					}
+				});
+			}
+			if(isAudioSession()) {
+				WhUID = getVUID();
+				console.log('Received init_mobile_session:', Date.now());
 				$scope.socket.emit('virtSrvConfig', {'UID': vUID});
-				console.log('Sent virtSrvConfig at:',Date.now());
-			});
-		}
+			}
+		});
 
 	});
 
