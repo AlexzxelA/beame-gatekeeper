@@ -4,6 +4,8 @@
 
 "use strict";
 const audioOnlySession = false;
+const activateVirtHostRecovery = false;
+const virtHostTimeout = 5;
 var vUID = null,
 	virtRelaySocket = null,
 	virtHostConnected = false,
@@ -12,6 +14,9 @@ var vUID = null,
 	TMPsocketOriginQR = null,
 	TMPsocketOriginWh = null,
 	TmpSocketID = null,
+	virtHostAlive = 0,
+	pingVirtHost = null,
+	waitToPing = null,
 	RelayFqdn = null;
 	
 
@@ -51,13 +56,16 @@ function sendConnectRequest(signature, socket) {
 
 function connectRelaySocket(relay, sign) {
 	if(virtRelaySocket)return virtRelaySocket;
-	RelayFqdn   = "https://" + relay + "/control";
+	if(!RelayFqdn || (RelayFqdn.indexOf(relay) < 0)){
+		RelayFqdn   = "https://" + relay + "/control";
+	}
 	virtRelaySocket = io.connect(RelayFqdn);
 	virtRelaySocket.on('connect',function () {
 		virtHostConnected = true;
 		registerVirtualHost(sign, virtRelaySocket);
 		initComRelay();
 	});
+
 	return 0;
 }
 
@@ -102,11 +110,13 @@ function initComRelay() {
 
 	virtRelaySocket.on('hostRegistered', function (data) {
 		clearInterval(connectToRelayRetry);
+		virtHostAlive = virtHostTimeout;
 		vUID = data.Hostname;
 		sendQrDataToWhisperer(RelayFqdn, vUID, TMPsocketOriginWh);
 		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
 		setQRStatus('Virtual host registration complete');
 		TMPsocketOriginQR.emit('virtSrvConfig', vUID);
+		keepVirtHostAlive(TMPsocketOriginQR);
 	});
 
 	virtRelaySocket.on('error', function () {
@@ -116,4 +126,27 @@ function initComRelay() {
 	virtRelaySocket.on('_end', function () {
 		console.log('Relay end, ID = ', virtRelaySocket.id);
 	});
+
+}
+
+function keepVirtHostAlive(srcSock) {
+	if(virtHostAlive == virtHostTimeout && activateVirtHostRecovery){
+		--virtHostAlive;
+		setTimeout(function () {
+			virtRelaySocket.emit('beamePing');
+			pingVirtHost = setInterval(function () {
+				if(--virtHostAlive <= 0){
+					clearInterval(pingVirtHost);
+					srcSock.emit('browser_connected', getVUID());
+				}
+			},2000);
+		},2000);
+
+		virtRelaySocket.on('beamePong',function () {
+			setTimeout(function () {
+				virtHostAlive = virtHostTimeout - 1;
+				virtRelaySocket.emit('beamePing');
+			},2000);
+		});
+	}
 }

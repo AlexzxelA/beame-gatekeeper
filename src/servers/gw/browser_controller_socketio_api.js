@@ -305,15 +305,16 @@ class BrowserControllerSocketioApi {
 			client.emit('data', JSON.stringify(data));
 		}
 
-		client.on('virtHostRecovery', function (data) {
+		client.on('browser_connected', function (data) {
 			var cred     = store.getCredential(gwServerFqdn),
-			    token    = AuthToken.create(data, cred, 10),
-			    tokenStr = CommonUtils.stringify({
-				    "data":      data,
-				    'signature': token
-			    });
+				token    = AuthToken.create(data, cred, 10),
+				tokenStr = CommonUtils.stringify({
+					"data":      data,
+					'signature': token
+				});
 			client.emit('virtHostRecovery', tokenStr);
 		});
+
 
 		client.on('data', data => {
 			try {

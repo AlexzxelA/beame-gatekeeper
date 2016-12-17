@@ -19,21 +19,22 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 	var xxx_session_token = null;
 	// xxx - end
 	console.log('startGatewaySession authToken:', authToken);
-	restartMobileRelaySocket(relaySocket, uid);
 
 	gw_socket = io.connect('/', {
 		path:                   '/beame-gw/socket.io',
 		'force new connection': true
 	});
 
+	restartMobileRelaySocket(relaySocket, gw_socket, uid);
+
 	gw_socket.on('error', function (e) {
 		console.error('Error in gw_socket', e);
 	});
 
 	gw_socket.on('virtHostRecovery', function (data) {
-		console.log('recovering virtual host:', UID);
+		console.log('recovering virtual host:', getVUID());
 		var parsedData  = JSON.parse(data);
-		relay_socket = io.connect(relay + "/control");
+		relay_socket = io.connect(RelayFqdn);
 		relay_socket.on('connect',function () {
 			relay_socket.emit('register_server',
 				{
@@ -48,7 +49,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 		});
 		relay_socket.on('hostRegistered',function (data) {
 			console.log('Virtual host recovered');
-			restartMobileRelaySocket(relay_socket, data.Hostname);
+			restartMobileRelaySocket(relay_socket, gw_socket, data.Hostname);
 		});
 	});
 
@@ -111,18 +112,13 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 	});
 
-	function restartMobileRelaySocket(mob_relay_socket, uid) {
+	function restartMobileRelaySocket(mob_relay_socket, gw_sock, uid) {
 
 		if (!mob_relay_socket) return;
 
 		relaySocket = mob_relay_socket;
 
 		relaySocket.removeAllListeners();
-
-		relaySocket.on('disconnect', function () {
-			console.log('mobile socket:: disconnected ', relaySocket.id);
-			gw_socket.emit('virtHostRecovery',uid);
-		});
 
 		relaySocket.on('data', function (data) {
 
@@ -168,6 +164,9 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 		relaySocket.on('_end', function () {
 			console.log('mobile socket:: end', relaySocket.id);
 		});
+
+		virtHostAlive = virtHostTimeout;
+		keepVirtHostAlive(gw_sock);
 
 	}
 
