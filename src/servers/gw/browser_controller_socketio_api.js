@@ -72,27 +72,7 @@ const messageHandlers = {
 			});
 		}
 
-		// TODO: move it from public/pages/gw/ somewhere else
-		//       the page should not be publically accessible
-		//       it's just for logged in users
-		function loadPage([apps, token]) {
-			return new Promise((resolve, reject) => {
-				const f = path.join(
-					__dirname,
-					'..', '..', '..',
-					Constants.WebRootFolder, 'pages', 'gw', 'logged-in-home.html'
-				);
-				fs.readFile(f, 'utf8', (err, page) => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					resolve([apps, token, page]);
-				});
-			});
-		}
-
-		function respond([apps, token, page]) {
+		function respond([apps, token]) {
 			return new Promise(() => {
 				logger.debug('messageHandlers/auth/respond token', token);
 				reply({
@@ -101,7 +81,8 @@ const messageHandlers = {
 						success:       true,
 						session_token: token,
 						apps:          apps,
-						html:          page,
+						//html:          page,
+						url:           `https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`,
 						user:          authenticatedUserInfo
 					}
 				});
@@ -112,7 +93,6 @@ const messageHandlers = {
 			.then(loginUser)
 			.then(serviceManager.listApplications.bind(serviceManager))
 			.then(createSessionToken)
-			.then(loadPage)
 			.then(respond)
 			.catch(e => {
 				logger.error(`auth error ${e.message}`);

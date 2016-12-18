@@ -9,10 +9,10 @@ const home = os.homedir();
 
 const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
-const GatewayControllerPath = '/beame-gw';
-const LogoutPath            = `${GatewayControllerPath}/logout`;
-const AppSwitchPath         = `${GatewayControllerPath}/choose-app`;
-
+const GatewayControllerPath    = '/beame-gw';
+const LogoutPath               = `${GatewayControllerPath}/logout`;
+const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
+const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
@@ -89,7 +89,8 @@ const SetupServices = {
 const CookieNames = {
 	"Logout":  "beame_logout_url",
 	"Service": "beame_service",
-	"RegData": "beame_reg_data"
+	"RegData": "beame_reg_data",
+	"Proxy":   "proxy_enabling_token"
 };
 
 module.exports = {
@@ -106,6 +107,7 @@ module.exports = {
 	},
 	WebRootFolder,
 	GatewayControllerPath,
+	GwAuthenticatedPath,
 	LogoutPath,
 	AppSwitchPath,
 

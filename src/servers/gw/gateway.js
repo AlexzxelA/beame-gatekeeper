@@ -17,9 +17,11 @@ const logger             = new BeameLogger(module_name);
 const ProxyClient        = beameSDK.ProxyClient;
 const BeameStore         = new beameSDK.BeameStore();
 const Constants          = require('../../../constants');
+const cookieNames        = Constants.CookieNames;
 const unauthenticatedApp = require('./unauthenticatedApp');
+const authenticatedApp   = require('./authenticatedApp');
 const configApp          = require('./configApp');
-var adminApp           = null;
+var adminApp             = null;
 
 var serviceManager = null;
 
@@ -79,27 +81,18 @@ function extractAuthToken(req) {
 	if (!req.headers.cookie) {
 		return null;
 	}
-	const cookies = cookie.parse(req.headers.cookie);
-	if (!cookies.proxy_enabling_token) {
+	const cookies   = cookie.parse(req.headers.cookie);
+	let proxyCookie = cookies[cookieNames.Proxy];
+	if (!proxyCookie) {
 		return null;
 	}
 	// XXX: Validate proxy_enabling_token
 	try {
-		const ret = JSON.parse(JSON.parse(cookies.proxy_enabling_token).signedData.data);
+		const ret = JSON.parse(JSON.parse(proxyCookie).signedData.data);
 		return JSON.parse(ret);
 	} catch (e) {
-		logger.error(`Fail to parse proxy_enabling_token ${cookies.proxy_enabling_token}`);
+		logger.error(`Fail to parse proxy_enabling_token ${proxyCookie}`);
 		return 'INVALID';
-	}
-}
-
-function addBeameHeaders(req) {
-	const via = `${req.httpVersion} ${req.headers.host} (beame-insta-server-gateway)`;
-
-	if (req.headers.via) {
-		req.headers.via = `${req.headers.via} ${via}`;
-	} else {
-		req.headers.via = via;
 	}
 }
 
@@ -107,11 +100,6 @@ function sendError(req, res, code, err, extra_headers = {}) {
 	logger.error(`Sending error: ${err}`);
 	res.writeHead(code, Object.assign({}, {'Content-Type': 'text/plain'}, extra_headers));
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
-}
-
-function proxyRequestToAuthServer(req, res) {
-	addBeameHeaders(req);
-	proxy.web(req, res, {target: `http://127.0.0.1:${process.env.BEAME_INSTA_SERVER_AUTH_PORT || 65001}`});
 }
 
 function handleRequest(req, res) {
@@ -132,6 +120,12 @@ function handleRequest(req, res) {
 		return;
 	}
 
+	if (req.url.startsWith(`${Constants.GwAuthenticatedPath}`)) {
+		logger.debug(`handle authenticated GW request with ${req.url}`);
+		authenticatedApp(req, res);
+		return;
+	}
+
 	if (authToken.url) {
 		logger.debug(`Proxying to authToken.url ${authToken.url}`);
 		proxy.web(req, res, {target: authToken.url});
@@ -141,7 +135,7 @@ function handleRequest(req, res) {
 
 	let appCode = serviceManager.getAppCodeById(authToken.app_id);
 
-	if(!appCode){
+	if (!appCode) {
 		sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		return;
 	}
@@ -182,7 +176,6 @@ function handleRequest(req, res) {
  * @returns {Promise}
  */
 
-
 // Starts Beame tunnel that points to our HTTPS server
 /**
  *
@@ -205,7 +198,6 @@ function startTunnel([cert, requestsHandlerPort]) {
 	});
 }
 
-
 class GatewayServer {
 
 	/**
@@ -226,7 +218,7 @@ class GatewayServer {
 
 		serviceManager = _serviceManager;
 
-		adminApp = new (require('../admin/server'))(null,null,serviceManager).app;
+		adminApp = new (require('../admin/server'))(null, null, serviceManager).app;
 	}
 
 	/**

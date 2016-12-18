@@ -277,8 +277,8 @@ class Bootstrapper {
 	get appData() {
 		return {
 			name:    this.serviceName,
-			version: this.version,
-			appId:   this.appId
+			version: this.version
+			//appId:   this.appId
 		}
 	}
 

@@ -18,14 +18,12 @@ const BeameStore   = new beameSDK.BeameStore();
 const AuthToken    = beameSDK.AuthToken;
 
 const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
-const base_path  = path.join(public_dir, 'pages', 'gw');
+const base_path  = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
 
 const utils         = require('../../utils');
 const cust_auth_app = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
-
-unauthenticatedApp.use(express.static(base_path));
 
 unauthenticatedApp.get('/signin', (req, res) => {
 	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
@@ -36,12 +34,12 @@ unauthenticatedApp.get('/signin', (req, res) => {
 unauthenticatedApp.get('/', (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'welcome.html'));
-
 });
 
 utils.setExpressAppCommonRoutes(unauthenticatedApp);
 
 unauthenticatedApp.use(bodyParser.json());
+
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
@@ -142,12 +140,11 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	const proxyingDestination = `https://${beameAuthServerFqdn}`;
 	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
 		console.log('token', token);
-		res.cookie('proxy_enabling_token', token);
+		res.cookie(cookieNames.Proxy, token);
 		res.append('X-Beame-Debug', 'Redirecting to GW for proxing to BeameAuthorizationServer');
 		res.redirect(`https://${gwServerFqdn}/?data=${encodeURIComponent(qs.data)}`);
 	});
 });
-
 
 unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
@@ -164,10 +161,38 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 		return new Promise(() => {
 			utils.createAuthTokenByFqdn(gwServerFqdn, switchAppInfoJSON, bootstrapper.proxySessionTtl).then(token => {
 				// console.log('/beame-gw/choose-app (AppSwitchPath) token', token);
-				res.cookie('proxy_enabling_token', token);
+				res.cookie(cookieNames.Proxy, token);
 				res.append('X-Beame-Debug', 'Redirecting to GW for proxing after choosing an application on mobile');
 				res.append('X-Beame-Debug-App-Info', switchAppInfoJSON);
 				res.redirect(`https://${gwServerFqdn}`);
+			});
+		});
+	}
+
+	AuthToken.validate(qs.proxy_enable)
+		.then(respond)
+		.catch(e => {
+			console.log('switch app error', e);
+		});
+});
+
+unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
+	// XXX: validate proxy_enable (make sure it's allowed to sign)
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	const qs = querystring.parse(url.parse(req.url).query);
+	console.log('QS', qs);
+
+
+	function respond(token) {
+		// XXX: why twice?
+		const switchAppInfo = JSON.parse(JSON.parse(token.signedData.data));
+		console.log('switch app - info', switchAppInfo);
+		const switchAppInfoJSON = JSON.stringify(switchAppInfo);
+		return new Promise(() => {
+			utils.createAuthTokenByFqdn(gwServerFqdn, switchAppInfoJSON, bootstrapper.proxySessionTtl).then(token => {
+				res.cookie(cookieNames.Proxy, token);
+				res.append('X-Beame-Debug', 'Redirecting to GW logged-in page after login');
+				res.redirect(`https://${gwServerFqdn}${Constants.GwAuthenticatedPath}`);
 			});
 		});
 	}
@@ -185,7 +210,7 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	console.log('unauthenticatedApp/get/logout: Logging out');
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	res.clearCookie('proxy_enabling_token');
+	res.clearCookie(cookieNames.Proxy);
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
 	res.redirect(`https://${gwServerFqdn}/signin`);
 
