@@ -95,13 +95,13 @@ const messageHandlers = {
 			.then(createSessionToken)
 			.then(respond)
 			.catch(e => {
-				logger.error(`auth error ${e}`);
-				console.log(e);
+				logger.error(`auth error ${e.message}`);
+				console.log(e.message);
 				reply({
 					type:    'authenticated',
 					payload: {
 						success: false,
-						error:   e.toString()
+						error:   e.message
 					}
 				});
 			});
