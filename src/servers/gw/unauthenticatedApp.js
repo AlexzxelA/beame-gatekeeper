@@ -31,6 +31,11 @@ unauthenticatedApp.get('/signin', (req, res) => {
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
+unauthenticatedApp.get('/app-pairing', (req, res) => {
+	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	res.sendFile(path.join(base_path, 'app_pairing.html'));
+});
+
 unauthenticatedApp.get('/', (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'welcome.html'));
