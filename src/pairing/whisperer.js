@@ -271,7 +271,7 @@ class Whisperer {
 
 			this._socket.on('close_session', () => {
 				logger.debug('close_session received');
-				this.stop();
+
 				this._socket.disconnect();
 				setTimeout(() => {
 					this.disconnectFromMatchingServer();
@@ -361,7 +361,7 @@ class Whisperer {
 		let sessionRetry = setInterval(() => {
 			if (this._mobileSocket && this._qrData) {
 				clearInterval(sessionRetry);
-				this.stop();
+				//this.stop();
 				let qrDataObj         = JSON.parse(this._qrData);
 				qrDataObj['service']  = this._serviceName;
 				qrDataObj['matching'] = this._matchingServerFqdn;

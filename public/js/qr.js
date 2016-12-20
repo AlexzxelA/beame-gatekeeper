@@ -70,7 +70,7 @@ $(document).ready(function () {
 		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
 		if(data && !sessionServiceData){/*do not factor out: AZ*/
-			sessionServiceData = JSON.stringify({'matching':data.matching || matchingFqdn, 'service':data.service || serviceName, 'appId': data.appId});
+			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
 			signArbitraryData(sessionServiceData, function (err, sign) {
 				if(!err){
 					sessionServiceDataSign = arrayBufferToBase64String(sign);
@@ -85,10 +85,11 @@ $(document).ready(function () {
 		},200);
 
 		if (!qrSession) {
+			qrRefreshRate = data.refresh_rate;
 			qrSession = setInterval(function () {
 				console.log('QR requesting data');
 				socket.emit('pinRequest');
-			}, data.refresh_rate);
+			}, qrRefreshRate);
 		}
 	});
 

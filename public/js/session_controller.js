@@ -72,18 +72,22 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 		console.log('GW data type', type);
 
-		if (type == 'authenticated' && payload.success) {
+		if (type == 'authenticated') {
+			if(payload.success){
+				window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 
-			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+				session_token = payload.session_token;
+				console.log('session token', session_token);
 
-			session_token = payload.session_token;
-			console.log('session token', session_token);
+				saveUserInfoCookie(user);
 
-			saveUserInfoCookie(user);
+				stopAllRunningSessions = true;
 
-			stopAllRunningSessions = true;
-
-			removeLogin();
+				removeLogin();
+			}
+			else{
+				forceReloadWindowOnSessionFailure = true;
+			}
 
 		}
 
@@ -178,9 +182,9 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 						break;
 					case 'logout':
 
-						setTimeout(function(){
-							logoutUrl ?	window.location.href = logoutUrl  : logout();
-						},1000*5);
+						// setTimeout(function(){
+						// 	logoutUrl ?	window.location.href = logoutUrl  : logout();
+						// },1000*5);
 						gw_socket.emit('data', decryptedData);
 
 						break;
@@ -197,6 +201,10 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 		relaySocket.on('_end', function () {
 			console.log('mobile socket:: end', relaySocket.id);
+		});
+
+		relaySocket.on('disconnect', function () {
+			console.log('mobile socket:: disconnect', relaySocket.id);
 		});
 
 		virtHostAlive = virtHostTimeout;

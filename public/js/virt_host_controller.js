@@ -11,12 +11,14 @@ var vUID = null,
 	virtHostConnected = false,
 	connectToRelayTimeout = 10,
 	connectToRelayRetry = null,
+	qrRefreshRate = 1000,
+	allSessionsActive = true,
 	TMPsocketOriginQR = null,
 	TMPsocketOriginWh = null,
 	TmpSocketID = null,
 	virtHostAlive = 0,
 	pingVirtHost = null,
-	waitToPing = null,
+	controlWindowTimer = null,
 	RelayFqdn = null;
 	
 
@@ -117,6 +119,7 @@ function initComRelay() {
 		setQRStatus('Virtual host registration complete');
 		TMPsocketOriginQR.emit('virtSrvConfig', vUID);
 		keepVirtHostAlive(TMPsocketOriginQR);
+		controlWindowStatus();
 	});
 
 	virtRelaySocket.on('error', function () {
@@ -127,6 +130,26 @@ function initComRelay() {
 		console.log('Relay end, ID = ', virtRelaySocket.id);
 	});
 
+}
+
+function controlWindowStatus() {
+	if(!controlWindowTimer){
+		controlWindowTimer = setInterval(function () {
+			if(forceReloadWindowOnSessionFailure){
+				console.log('<<<<<<<<<<<<<<<<<<<< Reloading due to external trigger >>>>>>>>>>>>>>>>>>>>>>');
+				setTimeout(function () {
+					window.location.reload();
+				},1000);
+			}
+			if(stopAllRunningSessions && allSessionsActive){
+				allSessionsActive = false;
+				if(TMPsocketOriginWh){
+					TMPsocketOriginWh.emit('close_session');
+				}
+				if (qrSession) clearInterval(qrSession);
+			}
+		}, 1000);
+	}
 }
 
 function keepVirtHostAlive(srcSock) {
