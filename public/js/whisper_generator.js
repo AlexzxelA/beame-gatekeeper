@@ -208,7 +208,7 @@ var getWAV = function (pin) {
 			filteredMessage[i] = message[i] * scale;
 		}
 		//$emit('newData',_generateWAV(filteredMessage));
-		window.getNotifManagerInstance().notify('NEW_DATA', _generateWAV(filteredMessage));
+		if(window.getNotifManagerInstance) window.getNotifManagerInstance().notify('NEW_DATA', _generateWAV(filteredMessage));
 
 	} catch (e) {
 		console.error(e);

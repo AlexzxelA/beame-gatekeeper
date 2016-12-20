@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"  ng-app="WhispererWeb">
+<head>
+    <meta charset="UTF-8">
+    <title>Beame Pairing</title>
+
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800" rel="stylesheet" type="text/css"/>
+
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+
+    <!-- Scripts -->
+    <!-- build:signin-js-head -->
+    <script src="js/signin.js"></script>
+    <!-- endbuild -->
+
+</head>
+<body ng-controller="MainCtrl">
+    <div class="welcome-block">
+
+        <div ng-show="showWelcome">
+            <span class="signin-speaker" ng-class="audio.playing === true ? 'button-on' : 'button-off'"></span>
+            <div ng-show="audio.playing" id="pin" style="margin-top: 20px"> </div>
+            <p ng-show="showConn">Connecting....</p>
+        </div>
+        <p ng-show="showMsg" ng-bind-html="w_msg | to_trusted"></p>
+    </div>
+    <!-- Scripts -->
+    <!-- build:lib -->
+    <script src="lib/socket.io-1.4.5.min.js"></script>
+    <script src="lib/angular-1.5.7.min.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Scripts -->
+    <!-- build:js -->
+    <script src="js/crypto.js"></script>
+    <script src="js/virt_host_controller.js"></script>
+    <script src="js/session_controller.js"></script>
+    <script src="js/whisper_generator.js"></script>
+    <script src="js/win-whisperer.js"></script>
+    <!-- endbuild -->
+</body>
+</html>
