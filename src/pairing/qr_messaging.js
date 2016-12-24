@@ -14,6 +14,7 @@ const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
 const Bootstrapper     = require('../bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
+const Constants    = require('../../constants');
 
 class QrMessaging {
 
@@ -132,6 +133,7 @@ class QrMessaging {
 					this._deleteSession(data.pin);
 					logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 					//add service name and matching fqdn for use on mobile
+					payload.imageRequired = Constants.registrationImageRequired;
 					payload.matching = this._matchingServerFqdn;
 					payload.service  = this._serviceName;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
@@ -178,6 +180,7 @@ class QrMessaging {
 						case 'token':
 							logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 							//add service name and matching fqdn for use on mobile
+							payload.imageRequired = Constants.registrationImageRequired;
 							payload.matching = this._matchingServerFqdn;
 							payload.service  = this._serviceName;
 							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});

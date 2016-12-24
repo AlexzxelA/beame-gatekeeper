@@ -8,6 +8,8 @@ const express = require('express');
 
 
 const beameSDK     = require('beame-sdk');
+const store        = new (beameSDK.BeameStore)();
+const crypto       = require('crypto');
 const CommonUtils  = beameSDK.CommonUtils;
 const module_name  = "BeameAuthRouter";
 const BeameLogger  = beameSDK.Logger;
@@ -55,6 +57,70 @@ class BeameAuthRouter {
 			}).catch(error => {
 				logger.error(BeameLogger.formatError(error));
 				res.redirect(Bootstrapper.getLogoutUrl())
+			});
+		});
+
+		this._router.post('/client/dataout', function (req, res) {
+			let body_array = [];
+			req.on('data', (chunk) => {
+				body_array.push(chunk);
+			});
+			req.on('end', () => {
+				let rawData = body_array.join('');
+				logger.debug('sns message received bytes: ', rawData.byteLength);
+				let parsedData = CommonUtils.parse(rawData);
+				if(parsedData.signedData && parsedData.signature && parsedData.signedBy){
+					store.find(parsedData.signedBy, true).then(cred => {
+						if (!cred) {
+							onRequestError(res, 'Invalid credential', 401);
+						}
+						else{
+							let decrypted = (cred.decrypt(parsedData));
+							if(decrypted)
+							{
+								res.json(decrypted);
+							}
+							else {
+								onRequestError(res, 'Pic decrypt failed', 401);
+							}
+						}
+
+					}).catch(e => {
+						onRequestError(res,`Credential not found`, 401);
+					});
+				}
+			});
+		});
+
+		this._router.post('/client/datain', function (req, res) {
+			let body_array = [];
+			req.on('data', (chunk) => {
+				body_array.push(chunk);
+			});
+			req.on('end', () => {
+				let rawData = body_array.join('');
+				logger.debug('sns message received bytes: ', rawData.byteLength);
+				let parsedData = CommonUtils.parse(rawData);
+				if(parsedData.signedData && parsedData.signature && parsedData.signedBy){
+					store.find(parsedData.signedBy, true).then(cred => {
+						if (!cred) {
+							onRequestError(res, 'Invalid credential', 401);
+						}
+						else{
+							if(cred.checkSignature(parsedData)){
+								let selfCred = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+								let dataPack = selfCred.encrypt(selfCred, parsedData.signedData, selfCred);
+								res.json(dataPack);
+							}
+							else {
+								onRequestError(res, 'Signature verification failed', 401);
+							}
+						}
+
+					}).catch(e => {
+						onRequestError(res,`Credential not found`, 401);
+					});
+				}
 			});
 		});
 

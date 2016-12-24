@@ -209,6 +209,7 @@ class Whisperer {
 				registerFqdnFunc(metadata).then(payload => {
 					this._deleteSession(data.pin);
 					//add service name and matching fqdn for use on mobile
+					payload.imageRequired = Constants.registrationImageRequired;
 					payload.matching = this._matchingServerFqdn;
 					payload.service  = this._serviceName;
 					this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
@@ -247,6 +248,7 @@ class Whisperer {
 					switch (payload.type) {
 						case 'token':
 							//add service name and matching fqdn for use on mobile
+							payload.imageRequired = Constants.registrationImageRequired;
 							payload.matching = this._matchingServerFqdn;
 							payload.service  = this._serviceName;
 							this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});

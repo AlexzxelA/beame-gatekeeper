@@ -35,7 +35,7 @@ const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, Sqlit
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
 const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
-
+const registrationImageRequired = true;
 /**
  * Registration sources
  * DON'T TOUCH, should by synchronized with backend services
@@ -123,5 +123,6 @@ module.exports = {
 	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
 	AppConfigJsonPath,
-	SqliteConfigJsonPath
+	SqliteConfigJsonPath,
+	registrationImageRequired
 };
