@@ -141,8 +141,8 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 				'QR': null,
 				'WH': null,
 				'GW': gw_socket
-			}, data, function (decryptedData) {
-
+			}, data, function (rawData) {
+				var decryptedData = JSON.parse(rawData);
 				console.log('relaySocket data', decryptedData);
 				//TODO temp hack for testing, to be removed
 				var type = decryptedData.type;

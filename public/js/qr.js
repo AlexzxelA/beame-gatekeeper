@@ -3,8 +3,6 @@
  */
 
 
-var sessionAESkey;
-var sessionIV;
 var QrTMPsocketRelay;
 var QrTMPsocketOrigin;
 var qrTmpSocketID;

@@ -142,44 +142,85 @@ function encryptWithPK(data, cb) {
 	});
 }
 
-function decryptDataWithRSAkey(msgParsed, encryption, SK, cb) {
+function decryptMobileData(msgParsed, encryption, SK, cb) {
+	try {
+		if(msgParsed['data'] && msgParsed['metadata']){
+			var msgBA    = str2ab(window.atob(msgParsed['metadata']));
+			var dataSize = msgBA.byteLength;
+			var j;
+			var offs     = dataSize % PKBlockSize;
+			console.log("Encrypted DataPK::", msgParsed, " , offs:", offs, " msgBA.length:", msgBA.byteLength);
 
-	var keyBA    = str2ab(window.atob(msgParsed));
-	var dataSize = keyBA.byteLength;
-	var j;
-	var offs     = dataSize % PKBlockSize;
-	console.log("Encrypted DataPK::", msgParsed, " , offs:", offs, " keyBA.length:", keyBA.byteLength);
+			var inputArray = [];
 
-	var inputArray = [];
+			for (var i = 0; i * PKBlockSize < dataSize; i++) {
+				var chunkSize = (dataSize - i * PKBlockSize > PKBlockSize) ? PKBlockSize : dataSize - i * PKBlockSize;
+				if (chunkSize >= PKBlockSize) {
+					var dataToEncrypt = msgBA.slice(i * PKBlockSize, i * PKBlockSize + chunkSize);
+					inputArray.push(dataToEncrypt);
+				}
+				else {
+					console.log('found padding <', chunkSize, '>');
+				}
+			}
 
-	for (var i = 0; i * PKBlockSize < dataSize; i++) {
-		var chunkSize = (dataSize - i * PKBlockSize > PKBlockSize) ? PKBlockSize : dataSize - i * PKBlockSize;
-		if (chunkSize >= PKBlockSize) {
-			var dataToEncrypt = keyBA.slice(i * PKBlockSize, i * PKBlockSize + chunkSize);
-			inputArray.push(dataToEncrypt);
-		}
-		else {
-			console.log('found padding <', chunkSize, '>');
+			Promise.all(inputArray.map(function(inData) {
+				return window.crypto.subtle.decrypt(encryption, SK, inData)})).then(function(values) {
+				var finalLength = 0;
+
+				for (j = 0; j < values.length; j++) {
+					finalLength += values[j].byteLength;
+				}
+				var joinedData = new Uint8Array(finalLength);
+				var offset     = 0;
+				for (j = 0; j < values.length; j++) {
+					joinedData.set(new Uint8Array(values[j]), offset);
+					offset += values[j].byteLength;
+				}
+				var outData = ab2str(joinedData);
+				var parsed = JSON.parse(atob(outData));
+
+				if(parsed['key'] && parsed['iv']){
+					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
+					window.crypto.subtle.importKey(
+						"raw", //can be "jwk" or "raw"
+						rawAESkey.slice(0,AESkeySize),//remove b64 padding
+						{name: "AES-CBC"},
+						false, //extractable (i.e. can be used in exportKey)
+						["encrypt", "decrypt"] //can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+					).then(function(key){
+						console.log('imported aes key <ok>');
+						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0,AESkeySize);
+						window.crypto.subtle.decrypt(
+							{ name: 'AES-CBC',
+								iv: rawIV },
+							key,
+							msgParsed['data']
+						).then(function (decrypted) {
+							var outData = (ab2str(decrypted));
+							console.log('decrypted data: ',outData);
+							cb(null, outData);
+						}).catch(function(err){
+							console.error(err);
+						});
+
+					}).catch(function(err){
+						console.error(err);
+					});
+				}
+				else{
+					cb(null, outData);
+				}
+
+			}).catch(function (error) {
+				console.log('Failed to decrypt: ', error);
+				cb(error, null);
+			});
 		}
 	}
-	Promise.all(inputArray.map(function(inData) {return window.crypto.subtle.decrypt(encryption, SK, inData)})).then(function(values) {
-		var finalLength = 0;
-
-		for (j = 0; j < values.length; j++) {
-			finalLength += values[j].byteLength;
-		}
-		var joinedData = new Uint8Array(finalLength);
-		var offset     = 0;
-		for (j = 0; j < values.length; j++) {
-			joinedData.set(new Uint8Array(values[j]), offset);
-			offset += values[j].byteLength;
-		}
-
-		cb(null, ab2str(joinedData));
-	}).catch(function (error) {
-		console.log('Failed to decrypt: ', error);
-		cb(error, null);
-	});
+	catch(e){
+		cb(e, null);
+	}
 }
 
 function encryptWithSymK(data, plainData, cb) {
@@ -264,13 +305,13 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 
 	var type = data.payload.data.type;
+	var tmpSocketID   = data.socketId;
+	var encryptedData = data.payload.data;
+	var decryptedData;
 
 	switch (type) {
 		case 'info_packet_response':
 			console.log('info_packet_response data = ', data.payload.data);
-			var tmpSocketID   = data.socketId;
-			var encryptedData = data.payload.data.data;
-			var decryptedData;
 
 			var onPublicKeyImported = function (keydata) {
 				console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
@@ -279,10 +320,10 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			};
 
 			function onError() {
-			console.log('Import *Encrypt Key* failed');
+				console.log('Import *Encrypt Key* failed');
 			}
 
-			function onMessageDecrypted(err, decryptedDataB64) {
+			function onMessageDecryptedKey(err, decryptedDataB64) {
 				if (!err) {
 					decryptedData = JSON.parse(atob(decryptedDataB64));
 
@@ -310,10 +351,27 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 				}
 			}
 
-			decryptDataWithRSAkey(encryptedData, RSAOAEP, keyPair.privateKey, onMessageDecrypted);
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
 		case 'session_data':
+			console.log('session_data');
+		function onMessageDecrypted(err, decryptedDataB64) {
+			if (!err) {
+				decryptedData = atob(decryptedDataB64);
 
+				if (cb) {
+					cb(decryptedData);
+				}
+			}
+			else {
+				console.log('failed to decrypt session data');
+				TMPsocketRelay.emit('data', {
+					'socketId': tmpSocketID,
+					'payload':  'failed to decrypt data'
+				});
+			}
+		}
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecrypted);
 			return;
 		case 'registration_complete':
 			logout();
