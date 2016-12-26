@@ -467,8 +467,15 @@ function str2ab(str) {
 	return buf;
 }
 
-function ab2str(buf) {
-	return window.btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+function ab2str(buffer) {
+	//return window.btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+	var binary = '';
+	var bytes = new Uint8Array( buffer );
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+		binary += String.fromCharCode( bytes[ i ] );
+	}
+	return window.btoa( binary );
 }
 
 function arrayBufferToBase64String(arrayBuffer) {

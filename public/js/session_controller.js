@@ -177,6 +177,11 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 						});
 
 						break;
+					case 'userImage':
+						console.log('userImage size(b64): ',decryptedData.payload.image.length);
+						var src = 'data:image/png;base64,' + decryptedData.payload.image;
+						//set user image to login page
+						break;
 					case 'loggedOut':
 					    logoutUrl ?	window.location.href = logoutUrl  : logout();
 						break;
