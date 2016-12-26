@@ -43,6 +43,7 @@ data/beame_server.db
 /config/config.json
 public/css
 build
+certs
 bower_components
 dist
 local_config/

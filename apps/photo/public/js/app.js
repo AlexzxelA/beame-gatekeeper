@@ -7,6 +7,8 @@ var img, loader;
 
 function loadImage(url) {
 
+	//url = url.replace('https://','');
+
 	loader.style.visibility='visible';
 
 	var tempImage = new Image();
@@ -37,7 +39,17 @@ function onUrlReceived(args){
 
 function onDocLoaded() {
 
-	window.parent.document.title = 'Mobile Photos';
+	if(!window.parent) return;
+
+	try {
+		if(window.parent.document){
+			window.parent.document.title = 'Mobile Photos';
+		}
+	} catch (e) {
+		console.error(e);
+	}
+
+	console.log(window.parent);
 
 	window.parent.getNotifManagerInstance().subscribe('MOBILE_PHOTO_URL', onUrlReceived);
 }

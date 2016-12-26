@@ -72,9 +72,9 @@ class CredentialManager {
 
 				async.each(Object.keys(servers), (serverType, callback) => {
 
-					let t = CommonUtils.randomTimeout(20);
+					//let t = CommonUtils.randomTimeout(20);
 
-					logger.debug(`${serverType} timeout = ${t}`);
+					//logger.debug(`${serverType} timeout = ${t}`);
 
 					setTimeout(()=> {
 						logger.info(`Creating credentials for ${serverType}`);
@@ -94,7 +94,7 @@ class CredentialManager {
 							logger.error(BeameLogger.formatError(error));
 							callback(error);
 						});
-					}, t);
+					}, 0);
 
 
 				}, (err) => {

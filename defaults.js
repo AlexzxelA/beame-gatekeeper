@@ -85,12 +85,7 @@ const CredsConfigTemplate = {
 	[Servers.MatchingServer]:           {
 		fqdn:   "",
 		server: true
-	},
-	[Servers.AdminServer]:              {
-		fqdn:   "",
-		server: true
-	},
-	Users:                              {}
+	}
 };
 
 const CustomerAuthServersTemplate = {

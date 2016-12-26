@@ -158,11 +158,17 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 								//window.crypto.subtle.digest("SHA-256", signature).then(function (signHash) {
 								switch (decryptedData.payload.action) {
 									case ActionTypes.Photo:
-										window.getNotifManagerInstance().notify('MOBILE_PHOTO_URL',
-											{
-												url:  decryptedData.payload.url,
-												sign: arrayBufferToBase64String(signature)
-											});
+										cefManager.changeState(1);
+
+										setTimeout(function() {
+												window.getNotifManagerInstance()
+													.notify('MOBILE_PHOTO_URL',
+														{
+															url: decryptedData.payload.url,
+															sign: arrayBufferToBase64String(signature)
+														});
+											},
+											300);
 										return;
 									case ActionTypes.Video:
 										window.getNotifManagerInstance().notify('MOBILE_STREAM',
