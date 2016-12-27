@@ -5,6 +5,7 @@
 
 var auth_mode              = 'Provision',
     stopAllRunningSessions = false,
+    forceReloadWindowOnSessionFailure = false,
     socketio_options       = {'force new connection': true},//, transports: ['polling']},
     reg_data;
 
@@ -26,4 +27,14 @@ try {
 } catch (e) {
 	console.error(e);
 	_logout();
+}
+
+function onUserAction(accepted){
+	if(accepted){
+		window.sessionValidationComplete = true;
+	}
+	else{
+		alert('User rejected');
+
+	}
 }

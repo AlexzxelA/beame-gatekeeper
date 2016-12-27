@@ -8,3 +8,14 @@ var auth_mode = 'Session',
 	forceReloadWindowOnSessionFailure = false,
     reg_data = null,
     socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true}; //, transports: ['polling']};
+
+function onUserAction(accepted){
+	if(accepted){
+		window.sessionValidationComplete = true;
+	}
+	else{
+		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));
+		alert('User rejected');
+		window.location.reload();
+	}
+}
