@@ -41,7 +41,8 @@ var sessionRSAPKverify;
 
 var sessionServiceData     = null;
 var sessionServiceDataSign = null;
-var userImageRequired = false;
+var userImageRequired = false,
+	userImageRequested = false;
 
 
 function generateUID(length) {
@@ -363,6 +364,23 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 				if (cb) {
 					cb(decryptedData);
 				}
+				else{
+					try{
+						var parsedData = JSON.parse(decryptedData);
+						if(parsedData.type && parsedData.type == 'userImage'){
+							sessionValidationComplete = true;
+							var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
+
+							window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+								{
+									src: src
+								});
+						}
+					}
+					catch (e){
+						console.error(e);
+					}
+				}
 			}
 			else {
 				console.log('failed to decrypt session data');
@@ -405,12 +423,15 @@ function sendEncryptedData(target, socketId, data) {
 function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) {
 	var originTmpSock = originSocketArray.GW;
 	console.log('...Got message from mobile:',decryptedData);
+	if(decryptedData.source){
+		originTmpSock = (decryptedData.source == 'qr') ? originSocketArray.QR : originSocketArray.WH;
+	}
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
 
 			switch (auth_mode) {
 				case 'Provision':
-					originTmpSock = (decryptedData.source && decryptedData.source == 'qr') ? originSocketArray.QR : originSocketArray.WH;
+
 					originTmpSock.emit('InfoPacketResponse',
 						{
 							'pin':       decryptedData.reg_data.pin,
@@ -424,15 +445,18 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 						});
 					break;
 				case 'Session':
-
-					validateSession(userImageRequired).then(function () {
-						TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
-						TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
-						startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
-					}).catch(function(){
-
-						window.alert('Session failure : image validation');
-					});
+					if(!userImageRequested) {
+						userImageRequested = true;
+						validateSession(userImageRequired).then(function () {
+							userImageRequested = false;
+							TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
+							TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
+							startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
+						}).catch(function () {
+							userImageRequested = false;
+							window.alert('Session failure : image validation');
+						});
+					}
 
 					return;
 				default:

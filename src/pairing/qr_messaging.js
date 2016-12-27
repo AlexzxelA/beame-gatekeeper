@@ -103,7 +103,7 @@ class QrMessaging {
 		});
 
 		socket.on('InfoPacketResponseError', (data) => {
-			logger.error(`Qr Messaging InfoPacketResponseError ${BeameLogger.formatError(error)}`, data);
+			logger.error(`Qr Messaging InfoPacketResponseError:`, data);
 		});
 
 		socket.on('InfoPacketResponse', (data) => {

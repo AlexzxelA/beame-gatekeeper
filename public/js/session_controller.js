@@ -18,30 +18,29 @@ var sessionValidationActive   = null,
 function validateSession(imageRequired) {
 
 
-	return new Promise((resolve, reject) => {
-			if (imageRequired) {
-				var safetyTimer           = 300;
-				sessionValidationComplete = false;
-				sessionValidationActive   = setInterval(function () {
-					if (--safetyTimer > 0) {
-						if (sessionValidationComplete) {
-							clearInterval(sessionValidationActive);
-							resolve();
+		return new Promise((resolve, reject) => {
+				if (imageRequired) {
+					sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageRequest'})));
+					var safetyTimer = 300;
+					sessionValidationComplete = false;
+					sessionValidationActive = setInterval(function () {
+						if (--safetyTimer > 0) {
+							if (sessionValidationComplete) {
+								clearInterval(sessionValidationActive);
+								resolve();
+							}
 						}
-					}
-					else {
-						clearInterval(sessionValidationActive);
-						reject();
-					}
-				}, 1000);
+						else {
+							clearInterval(sessionValidationActive);
+							reject();
+						}
+					}, 1000);
+				}
+				else {
+					resolve();
+				}
 			}
-			else {
-				resolve();
-			}
-		}
-	);
-
-
+		);
 }
 
 function startGatewaySession(authToken, relaySocket, uid, relay) {
