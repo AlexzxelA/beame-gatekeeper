@@ -202,6 +202,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 					case 'userImage':
 						console.log('userImage size(b64): ',decryptedData.payload.image.length);
 						var src = 'data:image/jpeg;base64,' + decryptedData.payload.image;
+						sessionValidationComplete = true;
 						//set user image to login page
 						break;
 					case 'loggedOut':
