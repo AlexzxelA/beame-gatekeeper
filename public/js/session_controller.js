@@ -12,6 +12,28 @@ var ActionTypes = {
 };
 
 var logoutUrl = null;
+var sessionValidationActive = null,
+	sessionValidationComplete = false;
+
+function validateSession(imageRequired) {
+	if(imageRequired){
+		var safetyTimer = 300;
+		sessionValidationComplete = false;
+		sessionValidationActive = setInterval(function () {
+			if(--safetyTimer > 0){
+				if(sessionValidationComplete){
+					clearTimer(sessionValidationActive);
+					return true;
+				}
+			}
+			else{
+				clearTimer(sessionValidationActive);
+				return false;
+			}
+		},1000);
+	}
+	else return true;
+}
 
 function startGatewaySession(authToken, relaySocket, uid, relay) {
 
@@ -185,7 +207,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 						break;
 					case 'userImage':
 						console.log('userImage size(b64): ',decryptedData.payload.image.length);
-						var src = 'data:image/png;base64,' + decryptedData.payload.image;
+						var src = 'data:image/jpeg;base64,' + decryptedData.payload.image;
 						//set user image to login page
 						break;
 					case 'loggedOut':
