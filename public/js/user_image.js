@@ -2,20 +2,34 @@
  * Created by zenit1 on 27/12/2016.
  */
 "use strict";
-
+var img ,
+    signBox,
+    imgBox;
 function onUserImageReceived(args){
 	if (!args || !args.src) {
 		return;
 	}
 
-	var img    = document.getElementById('img-user-pict'),
-		signBox =document.getElementById('pairing-box'),
+	img    = document.getElementById('img-user-pict');
+		signBox =document.getElementById('pairing-box');
 		imgBox =document.getElementById('user-img-box');
 
 	img.src = args.src;
-
+	img.style.visibility='visible';
 	signBox.style.display ='none';
 	imgBox.style.display ='block';
+}
+
+function onUserAction(accepted){
+	if(accepted){
+		window.sessionValidationComplete = true;
+	}
+	else{
+		alert('User rejected');
+		signBox.style.display ='block';
+		imgBox.style.display ='none';
+		img.style.visibility='hidden';
+	}
 }
 
 function userImageHandler() {

@@ -46,15 +46,22 @@
                 <h1 class="text-center">Sign in</h1>
                 <p class="text-center nomar">Choose your pairing method please</p>
 
+                <div class="box-signin form-main" id="user-img-box" style="display: none">
+                    <div>
+                        <img src="#" id="img-user-pict" style="width :100%;height:220px;visibility: hidden" />
+                    </div>
+                    <div class="button-group expanded">
+                        <button class="button button-inline" onclick="onUserAction(0)">Reject</button>
+                        <button class="button button-inline" onclick="onUserAction(1)">Accept</button>
+                    </div>
+                </div>
+
                 <form id="" action="" method="">
 
                     <div id="error-message" class="error-message-signin">Oops. Something went wrong. Try again
                         please
                     </div>
 
-                    <div class="box-signin" id="user-img-box" style="display: none">
-                        <img src="#" id="img-user-pict" style="width :100%;height:220px;" />
-                    </div>
 
                     <div class="box-signin" id="pairing-box">
                         <div class="signin-qr">

@@ -368,7 +368,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 					try{
 						var parsedData = JSON.parse(decryptedData);
 						if(parsedData.type && parsedData.type == 'userImage'){
-							sessionValidationComplete = true;
+
 							var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
 
 							window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
