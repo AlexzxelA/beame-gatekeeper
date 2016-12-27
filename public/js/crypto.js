@@ -424,14 +424,16 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 						});
 					break;
 				case 'Session':
-					if(validateSession(userImageRequired)){
+
+					validateSession(userImageRequired).then(function () {
 						TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
 						TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
 						startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
-					}
-					else{
+					}).catch(function(){
+
 						window.alert('Session failure : image validation');
-					}
+					});
+
 					return;
 				default:
 					alert('Unknown Auth mode');

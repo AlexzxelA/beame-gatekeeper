@@ -11,28 +11,37 @@ var ActionTypes = {
 	"Stream":      "stream"
 };
 
-var logoutUrl = null;
-var sessionValidationActive = null,
-	sessionValidationComplete = false;
+var logoutUrl                 = null;
+var sessionValidationActive   = null,
+    sessionValidationComplete = false;
 
 function validateSession(imageRequired) {
-	if(imageRequired){
-		var safetyTimer = 300;
-		sessionValidationComplete = false;
-		sessionValidationActive = setInterval(function () {
-			if(--safetyTimer > 0){
-				if(sessionValidationComplete){
-					clearTimer(sessionValidationActive);
-					return true;
-				}
+
+
+	return new Promise((resolve, reject) => {
+			if (imageRequired) {
+				var safetyTimer           = 300;
+				sessionValidationComplete = false;
+				sessionValidationActive   = setInterval(function () {
+					if (--safetyTimer > 0) {
+						if (sessionValidationComplete) {
+							clearInterval(sessionValidationActive);
+							resolve();
+						}
+					}
+					else {
+						clearInterval(sessionValidationActive);
+						reject();
+					}
+				}, 1000);
 			}
-			else{
-				clearTimer(sessionValidationActive);
-				return false;
+			else {
+				resolve();
 			}
-		},1000);
-	}
-	else return true;
+		}
+	);
+
+
 }
 
 function startGatewaySession(authToken, relaySocket, uid, relay) {
@@ -95,7 +104,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 		console.log('GW data type', type);
 
 		if (type == 'authenticated') {
-			if(payload.success){
+			if (payload.success) {
 				window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 
 				session_token = payload.session_token;
@@ -107,7 +116,7 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 				removeLogin();
 			}
-			else{
+			else {
 				forceReloadWindowOnSessionFailure = true;
 			}
 
@@ -182,11 +191,11 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 									case ActionTypes.Photo:
 										cefManager.changeState(1);
 
-										setTimeout(function() {
+										setTimeout(function () {
 												window.getNotifManagerInstance()
 													.notify('MOBILE_PHOTO_URL',
 														{
-															url: decryptedData.payload.url,
+															url:  decryptedData.payload.url,
 															sign: arrayBufferToBase64String(signature)
 														});
 											},
@@ -206,13 +215,19 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 						break;
 					case 'userImage':
-						console.log('userImage size(b64): ',decryptedData.payload.image.length);
+						console.log('userImage size(b64): ', decryptedData.payload.image.length);
 						var src = 'data:image/jpeg;base64,' + decryptedData.payload.image;
-						sessionValidationComplete = true;
+
+						window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+							{
+								src: src
+							});
+
+						//sessionValidationComplete = true;
 						//set user image to login page
 						break;
 					case 'loggedOut':
-					    logoutUrl ?	window.location.href = logoutUrl  : logout();
+						logoutUrl ? window.location.href = logoutUrl : logout();
 						break;
 					case 'logout':
 
@@ -285,14 +300,14 @@ function setIframeHtmlContent(html) {
 function setIframeUrl(url) {
 
 	console.log('*********************************SET IFRAME URL', url);
-	var iframe           = document.getElementById('ifrm-content');
+	var iframe = document.getElementById('ifrm-content');
 
 
-	if(url.indexOf('beame-gw/logout') > 0){
+	if (url.indexOf('beame-gw/logout') > 0) {
 		return;
 	}
 
-	iframe.src           = "about:blank";
+	iframe.src = "about:blank";
 
 	iframe.style.display = 'block';
 
