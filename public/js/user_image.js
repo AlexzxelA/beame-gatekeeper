@@ -25,10 +25,12 @@ function onUserAction(accepted){
 		window.sessionValidationComplete = true;
 	}
 	else{
+		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));
 		alert('User rejected');
-		signBox.style.display ='block';
-		imgBox.style.display ='none';
-		img.style.visibility='hidden';
+		// signBox.style.display ='block';
+		// imgBox.style.display ='none';
+		// img.style.visibility='hidden';
+		window.location.reload();
 	}
 }
 

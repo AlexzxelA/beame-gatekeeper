@@ -17,7 +17,6 @@ var sessionValidationActive   = null,
 
 function validateSession(imageRequired) {
 
-
 		return new Promise((resolve, reject) => {
 				if (imageRequired) {
 					sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageRequest'})));
