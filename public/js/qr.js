@@ -205,6 +205,7 @@ $(document).ready(function () {
 			}
 			try {
 				var parsedData  = JSON.parse(data);
+				userImageRequired = parsedData['imageRequired'];
 				qrRelayEndpoint = parsedData['data'];
 				connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
 			}

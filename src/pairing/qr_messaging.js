@@ -280,6 +280,7 @@ class QrMessaging {
 			    cred     = store.getCredential(fqdn),
 			    token    = authToken.create(this._browserHost, cred, 10),
 			    tokenStr = CommonUtils.stringify({
+				    'imageRequired': Constants.registrationImageRequired,
 				    "data":      this._edge.endpoint,
 				    'signature': token
 			    });

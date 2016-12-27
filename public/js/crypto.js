@@ -41,6 +41,7 @@ var sessionRSAPKverify;
 
 var sessionServiceData     = null;
 var sessionServiceDataSign = null;
+var userImageRequired = false;
 
 
 function generateUID(length) {
@@ -423,10 +424,14 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 						});
 					break;
 				case 'Session':
-					TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
-					TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
-
-					startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
+					if(validateSession(userImageRequired)){
+						TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
+						TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
+						startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
+					}
+					else{
+						window.alert('Session failure : image validation');
+					}
 					return;
 				default:
 					alert('Unknown Auth mode');
