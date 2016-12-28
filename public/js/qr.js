@@ -177,10 +177,11 @@ $(document).ready(function () {
 		stopAllRunningSessions = true;
 		console.log('QR mobileProv1:', data);
 		if (data.data && getRelaySocket()) {
-			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+			if(!userImageRequired)
+				window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 			sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 		}
-		socket.emit('close_session');
+		if(!userImageRequired)socket.emit('close_session');
 	});
 
 	socket.on('mobilePinInvalid', function (data) {
@@ -192,6 +193,11 @@ $(document).ready(function () {
 			console.log('******** Sedning:: ', msg);
 			getRelaySocket().emit('data', msg);
 		}
+	});
+
+	socket.on('userImageSign',function (data) {
+		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
+		window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 	});
 
 	socket.on('relayEndpoint', function (data) {

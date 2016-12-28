@@ -66,6 +66,7 @@ class Whisperer {
 		this._qrData                  = null;
 		this._jsonQrData              = null;
 		this._currentPin              = "none";
+		this._userImage               = null;
 	}
 
 	get sessionId() {
@@ -175,6 +176,19 @@ class Whisperer {
 					}
 				});
 
+			});
+
+			this._socket.on('userImage', (data) => {
+				store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
+					this._userImage = selfCred.sign(data);
+				}).catch(function (e) {
+					this._userImage = 'none';
+				});
+			});
+
+			this._socket.on('userImageOK',()=>{
+				logger.info('user image verified');
+				this._socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature}, 'type': 'userImageSign'});
 			});
 
 			this._socket.on('play_please', () => {

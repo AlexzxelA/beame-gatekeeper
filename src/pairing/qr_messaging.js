@@ -10,6 +10,7 @@ const beameUtils       = beameSDK.BeameUtils;
 const authToken        = beameSDK.AuthToken;
 const BeameLogger      = beameSDK.Logger;
 const store            = new beameSDK.BeameStore();
+const crypto           = require('crypto');
 const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
 const Bootstrapper     = require('../bootstrapper');
@@ -46,6 +47,7 @@ class QrMessaging {
 		this._lastCommand        = null;
 		this._serviceName        = serviceName;
 		this._matchingServerFqdn = matchingServerFqdn;
+		this._userImage          = null;
 	}
 
 	_sendWithAck(sock, type, msg) {
@@ -100,6 +102,19 @@ class QrMessaging {
 			logger.debug(`browser socket connected with:${data}`);
 			this._browserHost = data;
 			this._signBrowserHostname(socket);
+		});
+
+		socket.on('userImage', (data) => {
+			store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
+				this._userImage = selfCred.sign(data);
+			}).catch(function (e) {
+				this._userImage = 'none';
+			});
+		});
+
+		socket.on('userImageOK',()=>{
+			logger.info('user image verified');
+			socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature}, 'type': 'userImageSign'});
 		});
 
 		socket.on('InfoPacketResponseError', (data) => {
