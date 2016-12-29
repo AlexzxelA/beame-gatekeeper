@@ -12,36 +12,7 @@ var ActionTypes = {
 };
 
 var logoutUrl                 = null;
-var sessionValidationActive   = null,
-    sessionValidationComplete = false;
 
-function validateSession(imageRequired) {
-
-		return new Promise((resolve, reject) => {
-				if (imageRequired) {
-					sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageRequest'})));
-					window.getNotifManagerInstance().notify('SHOW_USER_IMAGE_LOAD_MSG');
-					var safetyTimer = 300;
-					sessionValidationComplete = false;
-					sessionValidationActive = setInterval(function () {
-						if (--safetyTimer > 0) {
-							if (sessionValidationComplete) {
-								clearInterval(sessionValidationActive);
-								resolve();
-							}
-						}
-						else {
-							clearInterval(sessionValidationActive);
-							reject();
-						}
-					}, 1000);
-				}
-				else {
-					resolve();
-				}
-			}
-		);
-}
 
 function startGatewaySession(authToken, relaySocket, uid, relay) {
 

@@ -41,6 +41,7 @@ var sessionRSAPKverify;
 
 var sessionServiceData     = null;
 var sessionServiceDataSign = null;
+var originTmpSocket = null;
 var userImageRequired = false,
 	userImageRequested = false;
 
@@ -368,7 +369,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 					try{
 						var parsedData = JSON.parse(decryptedData);
 						if(parsedData.type && parsedData.type == 'userImage'){
-
+							originTmpSocket.emit('userImage',parsedData.payload.image);
 							var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
 
 							window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
@@ -421,32 +422,39 @@ function sendEncryptedData(target, socketId, data) {
 
 
 function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) {
-	var originTmpSock = originSocketArray.GW;
+	originTmpSocket = originSocketArray.GW;
 	console.log('...Got message from mobile:',decryptedData);
 	if(decryptedData.source){
-		originTmpSock = (decryptedData.source == 'qr') ? originSocketArray.QR : originSocketArray.WH;
+		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : originSocketArray.WH;
 	}
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
+			if(!userImageRequested) {
+				userImageRequested = true;
+				switch (auth_mode) {
+					case 'Provision':
+						originTmpSocket.emit('InfoPacketResponse',
+							{
+								'pin':       decryptedData.reg_data.pin,
+								'otp':       decryptedData.otp,
+								'pk':        arrayBufferToBase64String(mobPK),
+								'edge_fqdn': decryptedData.edge_fqdn,
+								'email':     decryptedData.reg_data.email,
+								'name':      decryptedData.reg_data.name,
+								'nickname':  null,
+								'user_id':   decryptedData.reg_data.user_id
+							});
 
-			switch (auth_mode) {
-				case 'Provision':
+						validateSession(userImageRequired).then(function () {
+							userImageRequested = false;
 
-					originTmpSock.emit('InfoPacketResponse',
-						{
-							'pin':       decryptedData.reg_data.pin,
-							'otp':       decryptedData.otp,
-							'pk':        arrayBufferToBase64String(mobPK),
-							'edge_fqdn': decryptedData.edge_fqdn,
-							'email':     decryptedData.reg_data.email,
-							'name':      decryptedData.reg_data.name,
-							'nickname':  null,
-							'user_id':   decryptedData.reg_data.user_id
+						}).catch(function () {
+							userImageRequested = false;
+
 						});
-					break;
-				case 'Session':
-					if(!userImageRequested) {
-						userImageRequested = true;
+						break;
+
+					case 'Session':
 						validateSession(userImageRequired).then(function () {
 							userImageRequested = false;
 							TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
@@ -456,18 +464,19 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 							userImageRequested = false;
 							window.alert('Session failure : image validation');
 						});
-					}
+						return;
 
-					return;
-				default:
-					alert('Unknown Auth mode');
-					logout();
-					return;
+					default:
+						alert('Unknown Auth mode');
+						logout();
+						return;
+				}
+
+
 			}
-
 		})
 		.catch(function (error) {
-			originTmpSock.emit('InfoPacketResponseError',
+			originTmpSocket.emit('InfoPacketResponseError',
 				{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
 			console.log('<*********< error >*********>:', error);
 		});

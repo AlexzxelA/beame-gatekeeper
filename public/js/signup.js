@@ -30,11 +30,10 @@ try {
 }
 
 function onUserAction(accepted){
-	if(accepted){
-		window.sessionValidationComplete = true;
+	if(accepted && originTmpSocket){
+		originTmpSocket.emit('userImageOK');
 	}
 	else{
-		alert('User rejected');
-
+		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));
 	}
 }

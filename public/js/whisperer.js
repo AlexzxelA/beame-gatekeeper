@@ -232,7 +232,8 @@ app.controller("MainCtrl", function ($scope) {
 	$scope.socket.on('mobileProv1', function (data) {
 		if (data.data && getRelaySocket() && getRelaySocketID()) {
 			console.log('Whisperer mobileProv1:', data);
-			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+			if(!userImageRequired)
+				window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 			sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 		}
 	});
@@ -294,6 +295,11 @@ app.controller("MainCtrl", function ($scope) {
 
 	$scope.socket.on('requestQrData',function () {
 		sendQrDataToWhisperer(getRelayFqdn(), getVUID(),$scope.socket);
+	});
+
+	$scope.socket.on('userImageSign',function (data) {
+		window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 	});
 
 	$scope.socket.on('pindata', function (data) {
