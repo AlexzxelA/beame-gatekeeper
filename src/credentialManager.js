@@ -26,7 +26,7 @@ class CredentialManager {
 	 */
 	createInitialCredentials(token) {
 
-		const __onRegistrationError = error=> {
+		const _onRegistrationError = error=> {
 			logger.error(error);
 			process.exit(1);
 		};
@@ -44,9 +44,9 @@ class CredentialManager {
 							logger.error(BeameLogger.formatError(error));
 							resolve(metadata);
 						});
-					}).catch(__onRegistrationError)
+					}).catch(_onRegistrationError)
 
-				}).catch(__onRegistrationError);
+				}).catch(_onRegistrationError);
 			}
 		);
 	}
@@ -141,7 +141,18 @@ class CredentialManager {
 
 		let cred = new Credential(BeameStore);
 
-		return cred.createEntityWithAuthServer(token.authToken, token.authSrvFqdn, token.name, token.email);
+		let type = token.type || Constants.RequestType.RequestWithAuthServer;
+
+		switch (type){
+			case Constants.RequestType.RequestWithAuthServer:
+				return cred.createEntityWithAuthServer(token.authToken, token.authSrvFqdn, token.name, token.email);
+			case Constants.RequestType.RequestWithFqdn:
+				return cred.createEntityWithAuthToken(token.authToken, token.name, token.email);
+			default:
+				return Promis.reject(`Unknown request type`);
+		}
+
+
 
 	}
 }

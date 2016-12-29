@@ -26,7 +26,7 @@
 const apiConfig        = require('../config/api_config.json');
 const Constants        = require('../constants');
 const beameSDK         = require('beame-sdk');
-const module_name      = "BeameAdminServices";
+const module_name      = "BeameAuthServices";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
 const CommonUtils      = beameSDK.CommonUtils;

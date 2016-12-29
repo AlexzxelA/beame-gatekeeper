@@ -50,6 +50,12 @@ const RegistrationSource = {
 	"IOSSDK":         4
 };
 
+const RequestType = {
+	"RequestWithFqdn" : "RequestWithFqdn",
+	"RequestWithAuthServer" : "RequestWithAuthServer",
+};
+
+
 /**
  * Sns Message Types
  * DON'T TOUCH, should by synchronized with backend services
@@ -93,6 +99,7 @@ const CookieNames = {
 };
 
 module.exports = {
+	RequestType,
 	RegistrationSource,
 	LoadBalancerURL,
 	CredentialType,
