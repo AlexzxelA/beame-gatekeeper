@@ -76,10 +76,10 @@ if (args._[0] == 'create') {
 	/** @type {EmailRegistrationData} */
 	let token = JSON.parse(new Buffer(args._[1], 'base64').toString());
 
-	if (token.src != Constants.RegistrationSource.InstaServerSDK) {
-		logger.info(`Invitation is fot another SDK`);
-		process.exit(1);
-	}
+	// if (token.src != Constants.RegistrationSource.InstaServerSDK) {
+	// 	logger.info(`Invitation is fot another SDK`);
+	// 	process.exit(1);
+	// }
 
 	bootstrapper.initAll()
 		.then(() => {
