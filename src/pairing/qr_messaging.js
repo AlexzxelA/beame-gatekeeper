@@ -15,7 +15,8 @@ const logger           = new BeameLogger(module_name);
 const OTP_refresh_rate = 1000 * 30;
 const Bootstrapper     = require('../bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
-const Constants    = require('../../constants');
+const Constants        = require('../../constants');
+
 
 class QrMessaging {
 
@@ -47,7 +48,7 @@ class QrMessaging {
 		this._lastCommand        = null;
 		this._serviceName        = serviceName;
 		this._matchingServerFqdn = matchingServerFqdn;
-		this._userImage          = null;
+		this._pairingUtils       = null;
 	}
 
 	_sendWithAck(sock, type, msg) {
@@ -62,6 +63,11 @@ class QrMessaging {
 	 */
 	onQrBrowserConnection(socket) {
 
+		const pairingUtils     = require('./pairing_utils');
+		this._pairingUtils      = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+		socket, module_name);
+
+		this._pairingUtils.setCommonHandlers();
 
 		logger.info('<<< QR Browser just connected >>>');
 
@@ -104,18 +110,35 @@ class QrMessaging {
 			this._signBrowserHostname(socket);
 		});
 
-		socket.on('userImage', (data) => {
-			store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
-				this._userImage = selfCred.sign(data);
-			}).catch(function (e) {
-				this._userImage = 'none';
-			});
-		});
-
-		socket.on('userImageOK',()=>{
-			logger.info('user image verified');
-			socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature}, 'type': 'userImageSign'});
-		});
+		// socket.on('userImage', (data) => {
+		// 	logger.info('Got image data:', data);
+		// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
+		// 		this._userImage = selfCred.sign(data);
+		// 	}).catch(function (e) {
+		// 		this._userImage = 'none';
+		// 	});
+		// });
+		//
+		// socket.on('userImageVerify', function (data) {
+		// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
+		// 		if(selfCred.checkSignature(data)){
+		// 			client.emit('userImageStatus','pass')
+		// 		}
+		// 		else{
+		// 			client.emit('userImageStatus','fail');
+		// 		}
+		// 	}).catch(function (e) {
+		// 		client.emit('userImageStatus','fail');
+		// 	});
+		//
+		// });
+		//
+		// socket.on('userImageOK',()=>{
+		// 	logger.info('user image verified:',this._userImage.signature);
+		// 	socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature,
+		// 		'imageSignedBy':this._userImage.signedBy},
+		// 		'type': 'userImageSign'});
+		// });
 
 		socket.on('InfoPacketResponseError', (data) => {
 			logger.error(`Qr Messaging InfoPacketResponseError:`, data);

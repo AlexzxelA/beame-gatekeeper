@@ -67,6 +67,7 @@ class Whisperer {
 		this._jsonQrData              = null;
 		this._currentPin              = "none";
 		this._userImage               = null;
+		this._pairingUtils            = null;
 	}
 
 	get sessionId() {
@@ -117,6 +118,11 @@ class Whisperer {
 	}
 
 	start() {
+		const pairingUtils      = require('./pairing_utils');
+		this._pairingUtils      = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+			this._socket, module_name);
+		this._pairingUtils.setCommonHandlers();
+
 		this._socket.on('init_mobile_session', qrData => {
 			this._qrData = qrData;
 			logger.info('init_mobile_session received:', qrData);
@@ -178,18 +184,21 @@ class Whisperer {
 
 			});
 
-			this._socket.on('userImage', (data) => {
-				store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
-					this._userImage = selfCred.sign(data);
-				}).catch(function (e) {
-					this._userImage = 'none';
-				});
-			});
-
-			this._socket.on('userImageOK',()=>{
-				logger.info('user image verified');
-				this._socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature}, 'type': 'userImageSign'});
-			});
+			// this._socket.on('userImage', (data) => {
+			// 	logger.info('Got image data:', data);
+			// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
+			// 		this._userImage = selfCred.sign(data);
+			// 	}).catch(function (e) {
+			// 		this._userImage = 'none';
+			// 	});
+			// });
+			//
+			// this._socket.on('userImageOK',()=>{
+			// 	logger.info('user image verified:',this._userImage.signature);
+			// 	this._socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature,
+			// 		'imageSignedBy':this._userImage.signedBy},
+			// 		'type': 'userImageSign'});
+			// });
 
 			this._socket.on('play_please', () => {
 				logger.debug(`[${this._sessionId}] play audio received`);

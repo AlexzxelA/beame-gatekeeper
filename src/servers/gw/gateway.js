@@ -113,7 +113,7 @@ function handleRequest(req, res) {
 		unauthenticatedApp(req, res);
 		return;
 	}
-	logger.debug(`unauthenticatedApp did not handle ${req.url}`);
+	logger.debug(`unauthenticatedApp did not handle ${req.url} ${JSON.stringify(authToken)}`);
 
 	if (authToken == 'INVALID') {
 		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});

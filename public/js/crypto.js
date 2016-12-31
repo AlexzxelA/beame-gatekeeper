@@ -43,7 +43,8 @@ var sessionServiceData     = null;
 var sessionServiceDataSign = null;
 var originTmpSocket = null;
 var userImageRequired = false,
-	userImageRequested = false;
+	userImageRequested = false,
+	tmpImage = null;
 
 
 function generateUID(length) {
@@ -369,13 +370,55 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 					try{
 						var parsedData = JSON.parse(decryptedData);
 						if(parsedData.type && parsedData.type == 'userImage'){
-							originTmpSocket.emit('userImage',parsedData.payload.image);
-							var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
+							switch (auth_mode) {
+								case 'Provision':
+									originTmpSocket.emit('userImage', sha256(parsedData.payload.image));
+									var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
 
-							window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-								{
-									src: src
-								});
+									window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+										{
+											src: src
+										});
+									break;
+								case 'Session':
+									var tmpImage = 'data:image/jpeg;base64,' + parsedData.payload.image;
+									/*case 'userImage':
+									 console.log('session userImage size(b64): ', decryptedData.payload.image.length);
+									 if(decryptedData.payload.image && decryptedData.payload.imageSign && decryptedData.payload.imageSignedBy){
+									 originTmpSocket.emit('userImageVerify',
+									 JSON.stringify({'signedData':sha256(parsedData.payload.image),
+									 'signature':decryptedData.payload.imageSign,
+									 'signedBy':decryptedData.payload.imageSignedBy}));
+									 }
+
+									 var tmpImage = 'data:image/jpeg;base64,' + decryptedData.payload.image;
+
+									 //sessionValidationComplete = true;
+									 //set user image to login page
+									 break;*/
+									originTmpSocket.emit('userImageVerify',
+										JSON.stringify({'signedData':sha256(parsedData.payload.image),
+											'signature':parsedData.payload.imageSign,
+											'signedBy':parsedData.payload.imageSignedBy}));
+
+									originTmpSocket.on('userImageStatus',function (status) {
+										console.log('User image verification: ', status);
+										if(status == 'pass' && tmpImage){
+											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+												{
+													src: tmpImage
+												});
+											tmpImage = null;
+										}
+										else{
+											onUserAction(false);
+										}
+									});
+									break;
+								default:
+									console.error('invalid mode');
+
+							}
 						}
 					}
 					catch (e){
@@ -496,6 +539,12 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 			console.error('Export Public Sign Key Failed', err);
 		});
 
+}
+
+function sha256(data) {
+	return window.crypto.subtle.digest("SHA-256", str2ab(data)).then(function (hash) {
+		return arrayBufferToBase64String(hash);
+	});
 }
 
 function str2ab(str) {

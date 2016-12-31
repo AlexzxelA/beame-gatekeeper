@@ -13,7 +13,6 @@ var ActionTypes = {
 
 var logoutUrl                 = null;
 
-
 function startGatewaySession(authToken, relaySocket, uid, relay) {
 
 	var gw_socket = null, relay_socket = relaySocket, UID = uid;
@@ -183,18 +182,6 @@ function startGatewaySession(authToken, relaySocket, uid, relay) {
 							}
 						});
 
-						break;
-					case 'userImage':
-						console.log('userImage size(b64): ', decryptedData.payload.image.length);
-						var src = 'data:image/jpeg;base64,' + decryptedData.payload.image;
-
-						window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-							{
-								src: src
-							});
-
-						//sessionValidationComplete = true;
-						//set user image to login page
 						break;
 					case 'loggedOut':
 						logoutUrl ? window.location.href = logoutUrl : logout();
