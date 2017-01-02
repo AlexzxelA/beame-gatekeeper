@@ -90,6 +90,7 @@ if (args._[0] == 'create') {
 				console.log(getHelpMessage('certificate-created.txt'));
 				let gw_fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 				console.log(`https://${gw_fqdn}`);
+				console.log('');
 				process.exit(0);
 			}).catch(e => {
 				logger.error(BeameLogger.formatError(e));
