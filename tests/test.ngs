@@ -203,8 +203,8 @@ echo("*** Starting insta server ***")
 p = $(node --trace-deprecation --trace-warnings $BEAME_INSTA_SERVER_BIN server &)
 
 retry(times=18, sleep=5)
-    with code={ $(fuser 65510/tcp) }
-    with progress_cb={ echo("Waiting for insta server to be up - port 65510: $A/$B") }
+    body => { $(fuser 65510/tcp) }
+    progress_cb => { echo("Waiting for insta server to be up - port 65510: $A/$B") }
 
 echo("*** Waiting for insta server to be up - another 5 seconds ***")
 sleep 5
