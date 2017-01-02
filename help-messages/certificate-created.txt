@@ -2,6 +2,6 @@
 Congratulations!
 
 You have just obtained a certificate from Beame.io.  You can now
-proceed with setting up your 
+proceed with setting up your server.
 
 Run "beame-insta-server server" and then navigate your browser to:
