@@ -132,6 +132,7 @@ class Whisperer {
 			this._jsonQrData['matching']  = this._matchingServerFqdn;
 			this._jsonQrData['appId']     = bootstrapper.appId;
 		});
+
 		this.initMatchingServerSocketClient().then(() => {
 
 			this.runWhisperer();

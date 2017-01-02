@@ -22,15 +22,21 @@ class PairingUtils{
 		module_name              += name;
 	}
 
-	setCommonHandlers(){
-		this._socket.on('userImage', (data) => {
-			logger.info('Got image data:', data);
+	_setUserImage(data){
+		return new Promise((resolve, reject)=>{
 			store.find(this._fqdn, false).then( selfCred => {
 				this._userImage = selfCred.sign(data);
+				resolve();
 			}).catch(function (e) {
 				this._userImage = 'none';
+				reject();
 			});
 		});
+
+	}
+
+
+	setCommonHandlers(){
 
 		this._socket.on('userImageVerify',  (data) => {
 			logger.info('Requested image verification:', data);
@@ -50,11 +56,17 @@ class PairingUtils{
 
 		});
 
-		this._socket.on('userImageOK',()=>{
-			logger.info('user image verified:',this._userImage.signature);
-			this._socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature,
-				'imageSignedBy':this._userImage.signedBy},
-				'type': 'userImageSign'});
+		this._socket.on('userImageOK',(data)=>{
+			let self = this;
+			this._setUserImage(data).then(()=>{
+				logger.info('user image verified:',self._userImage.signature);
+				self._socket.emit('userImageSign', {'data': {'imageSign': self._userImage.signature,
+					'imageSignedBy':self._userImage.signedBy},
+					'type': 'userImageSign'});
+			}).catch(function (e){
+				logger.info('Failed in image signing:',e.message);
+				self._socket.emit('userImageStatus','fail');
+			});
 		});
 	}
 

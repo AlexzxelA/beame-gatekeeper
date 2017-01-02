@@ -5,14 +5,18 @@
 var userImg,
     signBox,
     imgBox,
-    lblReqImg;
+    lblReqImg,
+	activeImageData;
 function onUserImageReceived(args) {
 	if (!args || !args.src) {
 		return;
 	}
 	lblReqImg.style.display  = 'none';
+	activeImageData          = (args.imageData || 'none');
 	userImg.src              = args.src;
 	userImg.style.visibility = 'visible';
+	
+	console.log('onUserImageReceived=>activeImageData: ', activeImageData);
 
 }
 
@@ -30,6 +34,7 @@ function userImageHandler() {
 	lblReqImg = document.getElementById('lbl-req-img');
 
 	window.getNotifManagerInstance().subscribe('SHOW_USER_IMAGE', onUserImageReceived);
+
 
 	window.getNotifManagerInstance().subscribe('SHOW_USER_IMAGE_LOAD_MSG', showLoadMessage);
 }

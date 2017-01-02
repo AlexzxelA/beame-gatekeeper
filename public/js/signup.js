@@ -31,7 +31,7 @@ try {
 
 function onUserAction(accepted){
 	if(accepted && originTmpSocket){
-		originTmpSocket.emit('userImageOK');
+		originTmpSocket.emit('userImageOK', activeImageData);
 	}
 	else{
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));
