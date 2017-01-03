@@ -384,7 +384,8 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 									window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 										{
 											src: src,
-											imageData: imageData
+											imageData: imageData,
+											userID: parsedData.payload.userID
 										});
 									break;
 								case 'Session':
@@ -402,7 +403,8 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 												{
 													src: tmpImage,
-													imageData: imageData
+													imageData: imageData,
+													userID: parsedData.payload.userID
 												});
 											tmpImage = null;
 										}
