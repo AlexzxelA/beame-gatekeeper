@@ -14,6 +14,8 @@ const cookieNames = Constants.CookieNames;
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 const app          = express();
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger('CustomerAuth');
 
 const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 
@@ -54,6 +56,14 @@ app.post('/register/save', (req, res) => {
 	const AuthToken    = beameSDK.AuthToken;
 
 	const encryptTo = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+	BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( cred => {
+		let data2encrypt =  JSON.stringify(data);//TODO - check final length to be < 214 bytes if QR is overloaded
+		data.user_id = cred.encryptWithRSA(data2encrypt);
+	}).catch(function (e) {
+		logger.error(`Failed to encrypt user_id ${e.message}`);
+	});//TODO - catch if no cred found??
+
 
 	function getSigningFqdn() {
 		return new Promise((resolve, reject) => {

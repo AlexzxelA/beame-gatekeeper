@@ -1,7 +1,6 @@
 /**
  * Created by zenit1 on 26/11/2016.
  */
-
 var NotificationManager = kendo.Class.extend({
 	queue: [],
 
