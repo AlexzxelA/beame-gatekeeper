@@ -49,7 +49,7 @@ const messageHandlers = {
 		// payload: {success: true/false, session_token: ..., error: 'some str', apps: [{'App Name': {app_id: ..., online: true/false}}, ...]}
 		logger.debug('messageHandlers/auth');
 
-		let authenticatedUserInfo = null;
+		let authenticatedUserInfo = null, decryptedUserData = null;
 
 		function loginUser(token) {
 			return new Promise((resolve, reject) => {
@@ -84,13 +84,49 @@ const messageHandlers = {
 						apps:          apps,
 						//html:          page,
 						url:           `https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`,
-						user:          authenticatedUserInfo
+						user:          authenticatedUserInfo,
+						userData:      decryptedUserData
 					}
 				});
 			});
 		}
 
+		function decryptUserData(userData, token) {
+			return new Promise((resolve, reject) => {
+					let decrypt = bootstrapper.EncryptUserData;
+
+					if (decrypt) {
+						const BeameStore = new beameSDK.BeameStore();
+
+						BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
+
+							let decryptedData = cred.decryptWithRSA(userData);
+
+							if (decryptedData) {
+								decryptedUserData = decryptedData.toString();
+								resolve(token);
+							}
+							else {
+								reject(`user data decryption failed`);
+							}
+
+
+						}).catch(function (e) {
+							let errMsg = `Failed to decrypt user_id ${e.message}`;
+							logger.error(errMsg);
+							reject(errMsg)
+						});
+					}
+					else {
+						resolve(userData);
+					}
+
+				}
+			);
+		}
+
 		AuthToken.validate(payload.token)
+			.then(decryptUserData.bind(null, payload.userData))
 			.then(loginUser)
 			.then(serviceManager.listApplications.bind(serviceManager))
 			.then(createSessionToken)
@@ -288,11 +324,11 @@ class BrowserControllerSocketioApi {
 
 		client.on('browser_connected', function (data) {
 			var cred     = store.getCredential(gwServerFqdn),
-				token    = AuthToken.create(data, cred, 10),
-				tokenStr = CommonUtils.stringify({
-					"data":      data,
-					'signature': token
-				});
+			    token    = AuthToken.create(data, cred, 10),
+			    tokenStr = CommonUtils.stringify({
+				    "data":      data,
+				    'signature': token
+			    });
 			client.emit('virtHostRecovery', tokenStr);
 		});
 

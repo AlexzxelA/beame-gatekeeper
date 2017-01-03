@@ -6,7 +6,8 @@ var userImg,
     signBox,
     imgBox,
     lblReqImg,
-	activeImageData;
+    lblReqImgMsg,
+    activeImageData;
 function onUserImageReceived(args) {
 	if (!args || !args.src) {
 		return;
@@ -25,10 +26,11 @@ function showLoadMessage() {
 
 function userImageHandler() {
 
-	userImg   = document.getElementById('img-user-pict');
-	signBox   = document.getElementById('pairing-box');
-	imgBox    = document.getElementById('user-img-box');
-	lblReqImg = document.getElementById('lbl-req-img');
+	userImg      = document.getElementById('img-user-pict');
+	signBox      = document.getElementById('pairing-box');
+	imgBox       = document.getElementById('user-img-box');
+	lblReqImg    = document.getElementById('lbl-req-img');
+	lblReqImgMsg = document.getElementById('lbl-req-img-msg');
 
 	window.getNotifManagerInstance().subscribe('SHOW_USER_IMAGE', onUserImageReceived);
 

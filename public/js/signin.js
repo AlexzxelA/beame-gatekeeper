@@ -11,6 +11,15 @@ var auth_mode = 'Session',
 
 function onUserAction(accepted){
 	if(accepted&& originTmpSocket){
+
+		try {
+			lblReqImgMsg.innerHTML = 'Please wait';
+			lblReqImg.style.display = 'block';
+		}
+		catch(e){
+
+		}
+
 		window.sessionValidationComplete = true;
 	}
 	else{

@@ -11,121 +11,135 @@ var ActionTypes = {
 	"Stream":      "stream"
 };
 
-var logoutUrl                 = null;
+var logoutUrl = null;
 
-function startGatewaySession(authToken, relaySocket, uid, relay) {
+function startGatewaySession(authToken, userData, relaySocket, uid) {
 
-	var gw_socket = null, relay_socket = relaySocket, UID = uid;
+
+	var gw_socket = null, relay_socket = relaySocket;
 
 	var session_token = null;
 
-	console.log('startGatewaySession authToken:', authToken);
+	try {
+		console.log('startGatewaySession authToken:', authToken);
 
-	gw_socket = io.connect('/', {
-		path:                   '/beame-gw/socket.io',
-		'force new connection': true
-	});
+		gw_socket = io.connect('/', {
+			path:                   '/beame-gw/socket.io',
+			'force new connection': true
+		});
 
-	restartMobileRelaySocket(relaySocket, gw_socket, uid);
+		restartMobileRelaySocket(relaySocket, gw_socket, uid);
 
-	gw_socket.on('error', function (e) {
-		console.error('Error in gw_socket', e);
-	});
+		gw_socket.on('error', function (e) {
+			console.error('Error in gw_socket', e);
+		});
 
-	gw_socket.on('virtHostRecovery', function (data) {
-		console.log('recovering virtual host:', getVUID());
-		var parsedData = JSON.parse(data);
-		relay_socket   = io.connect(RelayFqdn);
-		relay_socket.on('connect', function () {
-			relay_socket.emit('register_server',
-				{
-					'payload': {
-						'socketId':      null,
-						'hostname':      parsedData.data,
-						'signature':     parsedData.signature,
-						'type':          'HTTPS',
-						'isVirtualHost': true
+		gw_socket.on('virtHostRecovery', function (data) {
+			console.log('recovering virtual host:', getVUID());
+			var parsedData = JSON.parse(data);
+			relay_socket   = io.connect(RelayFqdn);
+			relay_socket.on('connect', function () {
+				relay_socket.emit('register_server',
+					{
+						'payload': {
+							'socketId':      null,
+							'hostname':      parsedData.data,
+							'signature':     parsedData.signature,
+							'type':          'HTTPS',
+							'isVirtualHost': true
+						}
+					});
+			});
+			relay_socket.on('hostRegistered', function (data) {
+				console.log('Virtual host recovered');
+				restartMobileRelaySocket(relay_socket, gw_socket, data.Hostname);
+			});
+		});
+
+		gw_socket.once('connect', function () {
+
+			console.info('gw_socket connected');
+
+			gw_socket.emit('data', {
+				type:    'auth',
+				payload: {
+					token:    authToken,
+					userData: userData
+				}
+			})
+
+		});
+
+		gw_socket.on('data', function (data) {
+			data = JSON.parse(data);
+			console.log('GW data type', data);
+			var type = data.type, payload = data.payload, user = payload.user;
+
+			if (type == 'authenticated') {
+				if (payload.success) {
+					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+
+					session_token = payload.session_token;
+					console.log('session token', session_token);
+
+					saveUserInfoCookie(user);
+
+					stopAllRunningSessions = true;
+					if (payload.userData) {
+
+						try {
+							cefManager.notifyUserData(JSON.parse(payload.userData));
+						} catch (e) {
+						}
 					}
-				});
-		});
-		relay_socket.on('hostRegistered', function (data) {
-			console.log('Virtual host recovered');
-			restartMobileRelaySocket(relay_socket, gw_socket, data.Hostname);
-		});
-	});
 
-	gw_socket.once('connect', function () {
+					removeLogin();
+				}
+				else {
+					forceReloadWindowOnSessionFailure = true;
+				}
 
-		console.info('gw_socket connected');
+			}
 
-		gw_socket.emit('data', {
-			type:    'auth',
-			payload: {token: authToken}
-		})
-
-	});
-
-	gw_socket.on('data', function (data) {
-		data = JSON.parse(data);
-
-		var type = data.type, payload = data.payload, user = payload.user;
-
-		console.log('GW data type', type);
-
-		if (type == 'authenticated') {
-			if (payload.success) {
-				window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-
-				session_token = payload.session_token;
-				console.log('session token', session_token);
-
+			if (type == 'updateProfile') {
 				saveUserInfoCookie(user);
-
-				stopAllRunningSessions = true;
-
-				removeLogin();
-			}
-			else {
-				forceReloadWindowOnSessionFailure = true;
+				return;
 			}
 
-		}
+			if (type == 'redirect' && payload.url.indexOf('beame-gw/logout') > 0) {
+				// gw_socket.emit('data', {
+				// 	type:    'logout',
+				// 	payload: {
+				// 		session_token: session_token
+				// 	}
+				// });
+				logoutUrl = payload.url;
 
-		if (type == 'updateProfile') {
-			saveUserInfoCookie(user);
-			return;
-		}
+			}
 
-		if (type == 'redirect' && payload.url.indexOf('beame-gw/logout') > 0) {
-			// gw_socket.emit('data', {
-			// 	type:    'logout',
-			// 	payload: {
-			// 		session_token: session_token
-			// 	}
-			// });
-			logoutUrl = payload.url;
+			if (payload.html) {
 
-		}
+				setIframeHtmlContent(payload.html);
+				// Happens on 'authenticated' type event
+				// Show full screen div with payload.html
+				delete payload.html;
+			}
 
-		if (payload.html) {
+			if (payload.url) {
+				setIframeUrl(payload.url);
+				// Redirect the main frame to payload.url
+				delete payload.url;
+			}
 
-			setIframeHtmlContent(payload.html);
-			// Happens on 'authenticated' type event
-			// Show full screen div with payload.html
-			delete payload.html;
-		}
+			if (relay_socket) {
+				sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
+			}
 
-		if (payload.url) {
-			setIframeUrl(payload.url);
-			// Redirect the main frame to payload.url
-			delete payload.url;
-		}
-
-		if (relay_socket) {
-			sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
-		}
-
-	});
+		});
+	} catch (e) {
+		alert('huy');
+		console.error(e);
+	}
 
 	function restartMobileRelaySocket(mob_relay_socket, gw_sock, uid) {
 

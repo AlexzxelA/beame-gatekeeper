@@ -31,6 +31,15 @@ try {
 
 function onUserAction(accepted){
 	if(accepted && originTmpSocket){
+
+		try {
+			lblReqImgMsg.innerHTML = 'Please wait for completing registration';
+			lblReqImg.style.display = 'block';
+		}
+		catch(e){
+
+		}
+
 		originTmpSocket.emit('userImageOK', activeImageData);
 	}
 	else{

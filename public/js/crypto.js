@@ -44,6 +44,7 @@ var sessionServiceDataSign = null;
 var originTmpSocket = null;
 var userImageRequired = false,
 	userImageRequested = false,
+	userData = null,
 	tmpImage = null;
 
 
@@ -389,6 +390,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 										});
 									break;
 								case 'Session':
+									userData = parsedData.payload.userID;
 
 									originTmpSocket.emit('userImageVerify',JSON.stringify({
 										'signedData':imageData,
@@ -403,7 +405,8 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 												{
 													src: src,
-													imageData: imageData
+													imageData: imageData,
+													userID:parsedData.payload.userID
 												});
 										}
 										else{
@@ -498,7 +501,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 							userImageRequested = false;
 							TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
 							TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
-							startGatewaySession(decryptedData.payload.token, relaySocket, decryptedData.uid, decryptedData.relay);
+							startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
 						}).catch(function () {
 							userImageRequested = false;
 							window.alert('Session failure : image validation');
