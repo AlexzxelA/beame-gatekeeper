@@ -375,38 +375,36 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 					try{
 						var parsedData = JSON.parse(decryptedData);
 						if(parsedData.type && parsedData.type == 'userImage'){
+							var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
 							var imageData = sha256(parsedData.payload.image);
 							switch (auth_mode) {
 								case 'Provision':
 									console.log('Provision: sending image data for confirmation');
-									var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
+
 
 									window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 										{
 											src: src,
-											imageData: imageData,
-											userID: parsedData.payload.userID
+											imageData: imageData
 										});
 									break;
 								case 'Session':
-									var tmpImage = 'data:image/jpeg;base64,' + parsedData.payload.image;
 
 									originTmpSocket.emit('userImageVerify',JSON.stringify({
 										'signedData':imageData,
 										'signature':parsedData.payload.imageSign,
-										'signedBy':parsedData.payload.imageSignedBy
+										'signedBy':parsedData.payload.imageSignedBy,
+										'userID':parsedData.payload.userID
 									}));
 
 									originTmpSocket.on('userImageStatus',function (status) {
 										console.log('User image verification: ', status);
-										if(status == 'pass' && tmpImage){
+										if(status == 'pass' && src){
 											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 												{
-													src: tmpImage,
-													imageData: imageData,
-													userID: parsedData.payload.userID
+													src: src,
+													imageData: imageData
 												});
-											tmpImage = null;
 										}
 										else{
 											onUserAction(false);

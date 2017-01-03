@@ -11,7 +11,6 @@ var auth_mode = 'Session',
 
 function onUserAction(accepted){
 	if(accepted&& originTmpSocket){
-		originTmpSocket.emit('userImageOK', activeImageData);
 		window.sessionValidationComplete = true;
 	}
 	else{

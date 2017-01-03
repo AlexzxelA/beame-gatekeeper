@@ -12,12 +12,9 @@ function onUserImageReceived(args) {
 		return;
 	}
 	lblReqImg.style.display  = 'none';
-	activeImageData          = (args.userID || 'none');
 	userImg.src              = args.src;
+	activeImageData          = args.imageData;
 	userImg.style.visibility = 'visible';
-
-	console.log('onUserImageReceived=>activeImageData: ', activeImageData);
-
 }
 
 function showLoadMessage() {

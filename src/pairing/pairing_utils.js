@@ -42,7 +42,9 @@ class PairingUtils{
 			logger.info('Requested image verification:', data);
 			let self = this;
 			store.find(this._fqdn, false).then( selfCred => {
-				if(selfCred.checkSignature(JSON.parse(data))){
+				let parsedData = JSON.parse(data);
+				if(selfCred.checkSignature(parsedData)){
+					console.log('User image OK: ',data);
 					self._socket.emit('userImageStatus','pass')
 				}
 				else{
