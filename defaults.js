@@ -18,6 +18,9 @@ const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
+const RegistrationImageRequired = true;
+const EncryptUserData           = true;
+
 //in sec
 const RegistrationAuthTokenTtl = 60 * 10;
 const ProxyInitiatingTtl       = 60 * 10;
@@ -48,6 +51,8 @@ const ConfigProps = {
 		ServiceName:                   "ServiceName",
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
+		RegistrationImageRequired:     "RegistrationImageRequired",
+		EncryptUserData:               "EncryptUserData",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
 		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
@@ -104,6 +109,9 @@ module.exports = {
 	ProxyInitiatingTtl,
 	ProxySessionTtl,
 	BrowserSessionTtl,
+
+	RegistrationImageRequired,
+	EncryptUserData,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

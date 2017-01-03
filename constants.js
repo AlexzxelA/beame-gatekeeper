@@ -34,15 +34,16 @@ const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, Sqlit
 
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
-const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
-const registrationImageRequired = true;
+const LoadBalancerURL           = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
+
+
 /**
  * Registration sources
  * DON'T TOUCH, should by synchronized with backend services
  * @readonly
  * @enum {Number}
  */
-const RegistrationSource = {
+const RegistrationSource        = {
 	"Unknown":        0,
 	"NodeJSSDK":      1,
 	"InstaSSL":       2,
@@ -51,8 +52,8 @@ const RegistrationSource = {
 };
 
 const RequestType = {
-	"RequestWithFqdn" : "RequestWithFqdn",
-	"RequestWithAuthServer" : "RequestWithAuthServer",
+	"RequestWithFqdn":       "RequestWithFqdn",
+	"RequestWithAuthServer": "RequestWithAuthServer",
 };
 
 
@@ -129,6 +130,5 @@ module.exports = {
 	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
 	AppConfigJsonPath,
-	SqliteConfigJsonPath,
-	registrationImageRequired
+	SqliteConfigJsonPath
 };

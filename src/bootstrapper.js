@@ -285,6 +285,14 @@ class Bootstrapper {
 		}
 	}
 
+	get RegistrationImageRequired() {
+		return this._config && this._config[SettingsProps.RegistrationImageRequired] ? this._config[SettingsProps.RegistrationImageRequired] : false;
+	}
+
+	get EncryptUserData() {
+		return this._config && this._config[SettingsProps.EncryptUserData] ? this._config[SettingsProps.EncryptUserData] : false;
+	}
+
 	//noinspection JSMethodCanBeStatic
 	get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);

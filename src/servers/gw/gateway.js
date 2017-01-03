@@ -49,6 +49,7 @@ proxy.on('error', (err, req, res) => {
 	logger.error(`URL: ${req.url}`);
 	logger.error(`Headers: ${JSON.stringify(req.headers)}`);
 	logger.error(err);
+	logger.error(err.stack);
 	logger.error('--- Proxy error - end ---');
 	res.writeHead(502, {'Content-Type': 'text/plain'});
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);

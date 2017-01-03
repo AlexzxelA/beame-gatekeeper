@@ -172,7 +172,7 @@ class QrMessaging {
 					logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 					//add service name and matching fqdn for use on mobile
 
-					payload.imageRequired = Constants.registrationImageRequired;
+					payload.imageRequired = bootstrapper.RegistrationImageRequired;
 					payload.matching = this._matchingServerFqdn;
 					payload.service  = this._serviceName;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
@@ -219,7 +219,7 @@ class QrMessaging {
 						case 'token':
 							logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 							//add service name and matching fqdn for use on mobile
-							payload.imageRequired = Constants.registrationImageRequired;
+							payload.imageRequired = bootstrapper.RegistrationImageRequired;
 							payload.matching = this._matchingServerFqdn;
 							payload.service  = this._serviceName;
 							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
@@ -318,7 +318,7 @@ class QrMessaging {
 			    cred     = store.getCredential(fqdn),
 			    token    = authToken.create(this._browserHost, cred, 10),
 			    tokenStr = CommonUtils.stringify({
-				    'imageRequired': Constants.registrationImageRequired,
+				    'imageRequired': bootstrapper.RegistrationImageRequired,
 				    "data":      this._edge.endpoint,
 				    'signature': token
 			    });
