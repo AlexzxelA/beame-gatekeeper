@@ -208,10 +208,13 @@ class Bootstrapper {
 
 				creds[credType]["fqdn"] = fqdn;
 
-				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(creds, true)).then(() => {
-					logger.info(`${fqdn} saved as ${credType}...`);
+				DirectoryServices.saveFileSync(CredsJsonPath, CommonUtils.stringify(creds, true),(error) => {
+					if(error){
+						reject(error);
+						return;
+					}
 					resolve();
-				}).catch(reject);
+				});
 			}
 		);
 	}
@@ -493,7 +496,7 @@ class Bootstrapper {
 
 				servers.Servers.push(fqdn);
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers, true)).then(() => {
+			DirectoryServices.saveFileSync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers, true)).then(() => {
 					logger.info(`${fqdn} added to authorized customer servers...`);
 					resolve();
 				}).catch(reject);

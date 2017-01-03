@@ -45,6 +45,9 @@ const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 // https://github.com/nodejitsu/node-http-proxy/blob/d8fb34471594f8899013718e77d99c2acbf2c6c9/examples/http/custom-proxy-error.js
 proxy.on('error', (err, req, res) => {
 	logger.error('--- Proxy error - start ---');
+	logger.error(`Method: ${req.method}`);
+	logger.error(`URL: ${req.url}`);
+	logger.error(`Headers: ${JSON.stringify(req.headers)}`);
 	logger.error(err);
 	logger.error('--- Proxy error - end ---');
 	res.writeHead(502, {'Content-Type': 'text/plain'});
