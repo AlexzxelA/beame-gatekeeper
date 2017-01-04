@@ -3,8 +3,9 @@
  */
 
 "use strict";
+const async = require('async');
 const path = require('path');
-
+const http= require('http');
 const utils = require('../../utils');
 
 
@@ -48,6 +49,8 @@ class BeameAuthServer {
 
 		this._socketServer = null;
 
+		this._httpSocketServer = null;
+
 	}
 
 	/**
@@ -55,33 +58,66 @@ class BeameAuthServer {
 	 */
 	start(cb) {
 
-		beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
-				logger.info(`Beame authorization server started on ${this._fqdn} `);
+		/** @type {MessagingCallbacks} */
+		let callbacks = {
+			RegisterFqdn:  this._adminServices.getRegisterFqdn.bind(this._adminServices),
+			RegRecovery:   this._adminServices.recoveryRegistration.bind(this._adminServices),
+			DeleteSession: BeameAuthServices.deleteSession
+		};
 
-				this._server = app;
+		async.parallel([
+			callback=>{
+				const httpServer = http.createServer(this._app);
 
-				/** @type {MessagingCallbacks} */
-				let callbacks = {
-					RegisterFqdn:  this._adminServices.getRegisterFqdn.bind(this._adminServices),
-					RegRecovery:   this._adminServices.recoveryRegistration.bind(this._adminServices),
-					DeleteSession: BeameAuthServices.deleteSession
-				};
+				httpServer.listen(65000);
 
-				let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
+				let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
 
-				beameInstaServer.start().then(socketio_server => {
-					this._socketServer = socketio_server;
-					cb && cb(null, this._server);
-				}).catch(error => {
-					this.stop();
-					cb && cb(error, null);
+				beameHttpInstaServer.start().then(socketio_server => {
+					this._httpSocketServer = socketio_server;
+					callback(null);
+				}).catch(error=>{
+					callback(error);
 				})
+			},
+			callback=>{
+				beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {
+						logger.info(`Beame authorization server started on ${this._fqdn} `);
+
+						this._server = app;
+
+						let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
+
+						beameInstaServer.start().then(socketio_server => {
+							this._socketServer = socketio_server;
+							callback(null);
+						}).catch(error => {
+							callback(error);
+						})
 
 
-			}, error => {
-				cb && cb(error, null);
+					}, error => {
+						cb && cb(error, null);
+					}
+				);
 			}
-		);
+		],
+			error => {
+				if (error) {
+
+					logger.error(`Beame authorization server starting error: ${BeameLogger.formatError(error)}`);
+					cb && cb(error,null);
+				}
+				else {
+					cb && cb(null, this._server);
+				}
+			});
+
+
+
+
+
+
 
 	}
 
@@ -93,6 +129,10 @@ class BeameAuthServer {
 		if (this._socketServer) {
 			this._socketServer.stop();
 			this._socketServer = null;
+		}
+		if (this._httpSocketServer) {
+			this._httpSocketServer.stop();
+			this._httpSocketServer = null;
 		}
 	}
 }

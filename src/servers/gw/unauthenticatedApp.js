@@ -142,7 +142,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	const qs = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
-	const proxyingDestination = `https://${beameAuthServerFqdn}`;
+	const proxyingDestination =  'http://127.0.0.1:65000'; //`https://${beameAuthServerFqdn}`;//
 	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
 		console.log('token', token);
 		res.cookie(cookieNames.Proxy, token);

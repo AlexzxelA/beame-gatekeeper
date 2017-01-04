@@ -70,7 +70,7 @@ proxy.on('proxyRes', (proxyRes, req, res) => {
 		proxyRes.statusCode                               = 302;
 		proxyRes.statusMessage                            = 'Found';
 		proxyRes.headers['x-beame-debug-redirect-reason'] = 'error 404 from upstream';
-		proxyRes.headers['location']                      = Bootstrapper.getLogoutUrl();
+		//proxyRes.headers['location']                      = Bootstrapper.getLogoutUrl();
 	}
 	// XXX - can not be like this in production - end
 });

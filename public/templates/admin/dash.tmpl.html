@@ -48,6 +48,15 @@
                                    id="ServiceName"/>
                         </li>
 
+                        <li>
+                            <label>Use Image Authentication</label>
+                            <input type="checkbox" data-bind="checked:data.AppConfig.RegistrationImageRequired" />
+                        </li>
+
+                        <li>
+                            <label>Encrypt User Data</label>
+                            <input type="checkbox" data-bind="checked:data.AppConfig.EncryptUserData" />
+                        </li>
 
                         <li>
                             <label>Browser Session Ttl (sec)</label>
