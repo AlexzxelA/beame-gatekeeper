@@ -42,6 +42,12 @@ app.get('/register', (req, res) => {
 });
 
 
+app.get('/register/result', (req, res) => {
+	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+	res.sendFile(path.join(base_path, 'register_result.html'));
+});
+
+
 app.post('/register/save', (req, res) => {
 
 	let data = req.body; // name, email, user_id
