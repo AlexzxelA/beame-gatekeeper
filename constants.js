@@ -16,6 +16,9 @@ const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
+const BeameAuthServerLocalPort = 65000;
+
+
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
 
@@ -104,6 +107,7 @@ const CookieNames = {
 };
 
 module.exports = {
+	BeameAuthServerLocalPort,
 	RequestType,
 	RegistrationMethod,
 	RegistrationSource,

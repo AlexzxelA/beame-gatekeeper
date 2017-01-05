@@ -337,6 +337,10 @@ class BeameAuthServices {
 		return dataService.markUserAsDeleted(token.fqdn);
 	}
 
+	static isCustomerApproveRequired(){
+		return bootstrapper.registrationImageRequired;
+	}
+
 	/**
 	 *
 	 * @param {RegistrationData} data
@@ -591,7 +595,7 @@ class BeameAuthServices {
 			return new Promise((resolve, reject) => {
 					let cred = new beameSDK.Credential(store);
 
-					cred.createRegistrationToken(options).then(resolve).catch(reject);
+					cred.createMobileRegistrationToken(options).then(resolve).catch(reject);
 				}
 			);
 		};

@@ -37,11 +37,38 @@ class BeameAuthRouter {
 
 		this._router = express.Router();
 
+		this._router.use((req,res,next) => {
+			if(/approve\/[a-z]/.test(req.url)){
+				req.url = req.url.replace('/customer-approve/','/');
+			}
+
+
+			next();
+		});
+
+
 		this._initRoutes();
 	}
 
 
 	_initRoutes() {
+
+		this._router.get('/customer-approve', (req, res) => {
+
+			this._isRequestValid(req).then(() => {
+
+				let url = Bootstrapper.getLogoutUrl();
+
+				res.cookie(cookieNames.Logout, url);
+				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+
+				res.sendFile(path.join(base_path, 'client_approval.html'));
+			}).catch(error => {
+				logger.error(BeameLogger.formatError(error));
+				res.redirect(Bootstrapper.getLogoutUrl())
+			});
+		});
+
 		this._router.get('/', (req, res) => {
 
 			this._isRequestValid(req).then(data => {
@@ -60,6 +87,9 @@ class BeameAuthRouter {
 			});
 		});
 
+
+
+		//region not in use
 		this._router.post('/client/dataout', function (req, res) {
 			let body_array = [];
 			req.on('data', (chunk) => {
@@ -123,6 +153,7 @@ class BeameAuthRouter {
 				}
 			});
 		});
+		//endregion
 
 		this._router.post('/sns', function (req, res) {
 			let body_array = [];

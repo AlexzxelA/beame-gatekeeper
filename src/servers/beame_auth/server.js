@@ -69,7 +69,7 @@ class BeameAuthServer {
 				callback => {
 					const httpServer = http.createServer(this._app);
 
-					httpServer.listen(65000);
+					httpServer.listen(Constants.BeameAuthServerLocalPort);
 
 					let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
 

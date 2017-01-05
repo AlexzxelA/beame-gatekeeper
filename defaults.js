@@ -20,6 +20,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const RegistrationImageRequired = true;
 const EncryptUserData           = true;
+const UseBeameAuthOnLocal = true;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 //in sec
 const RegistrationAuthTokenTtl  = 60 * 10;
@@ -51,6 +52,7 @@ const ConfigProps = {
 		ServiceName:                   "ServiceName",
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
+		UseBeameAuthOnLocal:"UseBeameAuthOnLocal",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		RegistrationMethod:            "RegistrationMethod",
@@ -114,11 +116,12 @@ module.exports = {
 	ProxySessionTtl,
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
-	
+
 	PostEmailUrl: "",
 	PostSmsUrl:   "",
 
 	RegistrationMethod,
+	UseBeameAuthOnLocal,
 	RegistrationImageRequired,
 	EncryptUserData,
 

@@ -11,6 +11,7 @@ const cookie      = require('cookie');
 const httpProxy          = require('http-proxy');
 const Bootstrapper       = require('../../bootstrapper');
 const beameSDK           = require('beame-sdk');
+const CommonUtils  = beameSDK.CommonUtils;
 const module_name        = "GatewayServer";
 const BeameLogger        = beameSDK.Logger;
 const logger             = new BeameLogger(module_name);
@@ -47,7 +48,7 @@ proxy.on('error', (err, req, res) => {
 	logger.error('--- Proxy error - start ---');
 	logger.error(`Method: ${req.method}`);
 	logger.error(`URL: ${req.url}`);
-	logger.error(`Headers: ${JSON.stringify(req.headers)}`);
+	logger.error(`Headers: ${CommonUtils.stringify(req.headers,true)}`);
 	logger.error(err);
 	logger.error(err.stack);
 	logger.error('--- Proxy error - end ---');
@@ -117,7 +118,7 @@ function handleRequest(req, res) {
 		unauthenticatedApp(req, res);
 		return;
 	}
-	logger.debug(`unauthenticatedApp did not handle ${req.url} ${JSON.stringify(authToken)}`);
+	logger.debug(`unauthenticatedApp did not handle ${req.url} ${CommonUtils.stringify(authToken,true)}`);
 
 	if (authToken == 'INVALID') {
 		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});

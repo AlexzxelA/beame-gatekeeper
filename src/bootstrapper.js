@@ -302,11 +302,15 @@ class Bootstrapper {
 	}
 
 	get registrationImageRequired() {
-		return this._config && this._config[SettingsProps.RegistrationImageRequired] ? this._config[SettingsProps.RegistrationImageRequired] : false;
+		return this._config[SettingsProps.RegistrationImageRequired];
 	}
 
 	get encryptUserData() {
-		return this._config && this._config[SettingsProps.EncryptUserData] ? this._config[SettingsProps.EncryptUserData] : false;
+		return this._config[SettingsProps.EncryptUserData];
+	}
+
+	get useBeameAuthOnLocal() {
+		return this._config[SettingsProps.UseBeameAuthOnLocal];
 	}
 
 	//noinspection JSMethodCanBeStatic

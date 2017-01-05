@@ -1,3 +1,5 @@
+"use strict";
+
 const path = require('path');
 const querystring = require('querystring');
 const url         = require('url');
@@ -16,7 +18,7 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const BeameStore   = new beameSDK.BeameStore();
 const AuthToken    = beameSDK.AuthToken;
-
+const BeameAuthServices = require('../../authServices');
 const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
 
@@ -114,7 +116,24 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, tokenWithUserData, gwServerFqdn));
 		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, proxyInitTtl);
 
-		const url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(encryptedData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+		let url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(encryptedData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
+
+		const method = bootstrapper.registrationMethod;
+
+		switch (method) {
+			case Constants.RegistrationMethod.Email:
+			case Constants.RegistrationMethod.SMS:
+
+				try {
+					let pin = JSON.parse((JSON.parse(tokenWithUserData).signedData.data)).pin;
+					url += `&pin=${pin}`;
+				} catch (e) {
+				}
+
+				break;
+			default:
+				break;
+		}
 
 		console.log('replyWithUrl() URL', url);
 
@@ -139,16 +158,43 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	// XXX: validate proxy_enable
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	const qs = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
-	const proxyingDestination = 'http://127.0.0.1:65000'; // `https://${beameAuthServerFqdn}`;//
-	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
-		console.log('token', token);
-		res.cookie(cookieNames.Proxy, token);
-		res.append('X-Beame-Debug', 'Redirecting to GW for proxing to BeameAuthorizationServer');
-		res.redirect(`https://${gwServerFqdn}/?data=${encodeURIComponent(qs.data)}`);
-	});
+	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+	let proxyingDestination = null;
+	const method = bootstrapper.registrationMethod;
+
+	const _redirectToBeameAuth = (addQs)=>{
+
+		utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
+			console.log('token', token);
+			res.cookie(cookieNames.Proxy, token);
+			res.append('X-Beame-Debug', 'Redirecting to GW for proxing to BeameAuthorizationServer');
+			res.redirect(`https://${gwServerFqdn}/?data=${encodeURIComponent(qs.data)}${addQs}`);
+		});
+	};
+
+	switch (method) {
+		case Constants.RegistrationMethod.Pairing:
+		    proxyingDestination =	bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}` : `https://${beameAuthServerFqdn}`;
+			_redirectToBeameAuth('');
+			return;
+		case Constants.RegistrationMethod.Email:
+		case Constants.RegistrationMethod.SMS:
+
+			if(BeameAuthServices.isCustomerApproveRequired()){
+				proxyingDestination =	bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}/customer-approve` : `https://${beameAuthServerFqdn}/customer-approve`;
+				_redirectToBeameAuth(`&pin=${qs.pin}`);
+			}
+			else{
+				res.redirect(`https://${gwServerFqdn}/register-success?method=${method}`);
+			}
+
+			return;
+		default:
+			return;
+	}
+
 });
 
 unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {

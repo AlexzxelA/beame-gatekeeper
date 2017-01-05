@@ -21,13 +21,14 @@ const Constants = require('../constants');
 function setExpressApp(router, staticDir) {
 	let app = express();
 
-	if (staticDir) {
-		app.use(express.static(staticDir));
-	}
+
 
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
 	app.use('/', router);
+	if (staticDir) {
+		app.use(express.static(staticDir));
+	}
 	app.use("*", (req, res) => {
 		res.status(404).send('404');
 	});
