@@ -116,7 +116,7 @@ const messageHandlers = {
 						});
 					}
 					else {
-						resolve(userData);
+						resolve(token);
 					}
 
 				}

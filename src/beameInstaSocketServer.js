@@ -62,7 +62,7 @@ class BeameInstaSocketServer {
 					.then(this._initQrMessaging.bind(this))
 					.then(this._startSocketioServer.bind(this))
 					.then(() => {
-						logger.info(`Server started on ${this._fqdn}`);
+						logger.info(`Socket Server started on ${this._fqdn}`);
 						resolve(this._socketioServer);
 					}).catch(reject);
 			}
