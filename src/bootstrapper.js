@@ -225,31 +225,47 @@ class Bootstrapper {
 	}
 
 	get registrationAuthTokenTtl() {
-		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : null;
+		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : defaults.RegistrationAuthTokenTtl;
 	}
 
 	get proxyInitiatingTtl() {
-		return this._config && this._config[SettingsProps.ProxyInitiatingTtl] ? this._config[SettingsProps.ProxyInitiatingTtl] : null;
+		return this._config && this._config[SettingsProps.ProxyInitiatingTtl] ? this._config[SettingsProps.ProxyInitiatingTtl] : defaults.ProxyInitiatingTtl;
 	}
 
 	get proxySessionTtl() {
-		return this._config && this._config[SettingsProps.ProxySessionTtl] ? this._config[SettingsProps.ProxySessionTtl] : null;
+		return this._config && this._config[SettingsProps.ProxySessionTtl] ? this._config[SettingsProps.ProxySessionTtl] : defaults.ProxySessionTtl;
+	}
+
+	get registrationMethod() {
+		return this._config && this._config[SettingsProps.RegistrationMethod] ? this._config[SettingsProps.RegistrationMethod] : defaults.RegistrationMethod;
 	}
 
 	get browserSessionTtl() {
-		return this._config && this._config[SettingsProps.BrowserSessionTtl] ? this._config[SettingsProps.BrowserSessionTtl] : null;
+		return this._config && this._config[SettingsProps.BrowserSessionTtl] ? this._config[SettingsProps.BrowserSessionTtl] : defaults.BrowserSessionTtl;
+	}
+
+	get customerInvitationTtl() {
+		return this._config && this._config[SettingsProps.CustomerInvitationTtl] ? this._config[SettingsProps.CustomerInvitationTtl] : defaults.CustomerInvitationTtl;
 	}
 
 	get sessionRecordDeleteTimeout() {
-		return this._config && this._config[SettingsProps.SessionRecordDeleteTimeout] ? this._config[SettingsProps.SessionRecordDeleteTimeout] : null;
+		return this._config && this._config[SettingsProps.SessionRecordDeleteTimeout] ? this._config[SettingsProps.SessionRecordDeleteTimeout] : defaults.SessionRecordDeleteTimeout;
 	}
 
 	get killSocketOnDisconnectTimeout() {
-		return this._config && this._config[SettingsProps.KillSocketOnDisconnectTimeout] ? this._config[SettingsProps.KillSocketOnDisconnectTimeout] : null;
+		return this._config && this._config[SettingsProps.KillSocketOnDisconnectTimeout] ? this._config[SettingsProps.KillSocketOnDisconnectTimeout] : defaults.KillSocketOnDisconnectTimeout;
 	}
 
 	get whispererSendPinInterval() {
-		return this._config && this._config[SettingsProps.WhispererSendPinInterval] ? this._config[SettingsProps.WhispererSendPinInterval] : null;
+		return this._config && this._config[SettingsProps.WhispererSendPinInterval] ? this._config[SettingsProps.WhispererSendPinInterval] : defaults.WhispererSendPinInterval;
+	}
+
+	get postEmailUrl() {
+		return this._config && this._config[SettingsProps.PostEmailUrl] ? this._config[SettingsProps.PostEmailUrl] : null;
+	}
+
+	get postSmsUrl() {
+		return this._config && this._config[SettingsProps.PostSmsUrl] ? this._config[SettingsProps.PostSmsUrl] : null;
 	}
 
 	get serviceName() {
@@ -285,11 +301,11 @@ class Bootstrapper {
 		}
 	}
 
-	get RegistrationImageRequired() {
+	get registrationImageRequired() {
 		return this._config && this._config[SettingsProps.RegistrationImageRequired] ? this._config[SettingsProps.RegistrationImageRequired] : false;
 	}
 
-	get EncryptUserData() {
+	get encryptUserData() {
 		return this._config && this._config[SettingsProps.EncryptUserData] ? this._config[SettingsProps.EncryptUserData] : false;
 	}
 

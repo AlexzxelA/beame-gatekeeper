@@ -20,13 +20,13 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const RegistrationImageRequired = true;
 const EncryptUserData           = true;
-
+const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 //in sec
-const RegistrationAuthTokenTtl = 60 * 10;
-const ProxyInitiatingTtl       = 60 * 10;
-const ProxySessionTtl          = 86400;
-const BrowserSessionTtl        = 86400;
-
+const RegistrationAuthTokenTtl  = 60 * 10;
+const ProxyInitiatingTtl        = 60 * 10;
+const ProxySessionTtl           = 86400;
+const BrowserSessionTtl         = 86400;
+const CustomerInvitationTtl     = 60 * 60 * 24 * 2;
 // in millisec
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
@@ -53,13 +53,17 @@ const ConfigProps = {
 		DbProvider:                    "db_provider",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
+		RegistrationMethod:            "RegistrationMethod",
+		PostEmailUrl:                  "PostEmailUrl",
+		PostSmsUrl:                    "PostSmsUrl",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
 		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
 		WhispererSendPinInterval:      "WhispererSendPinInterval",
 		ProxyInitiatingTtl:            "ProxyInitiatingTtl",
 		ProxySessionTtl:               "ProxySessionTtl",
-		BrowserSessionTtl:             "BrowserSessionTtl"
+		BrowserSessionTtl:             "BrowserSessionTtl",
+		CustomerInvitationTtl:"CustomerInvitationTtl"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -109,7 +113,12 @@ module.exports = {
 	ProxyInitiatingTtl,
 	ProxySessionTtl,
 	BrowserSessionTtl,
+	CustomerInvitationTtl,
+	
+	PostEmailUrl: "",
+	PostSmsUrl:   "",
 
+	RegistrationMethod,
 	RegistrationImageRequired,
 	EncryptUserData,
 

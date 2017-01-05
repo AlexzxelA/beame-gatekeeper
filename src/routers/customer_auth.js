@@ -44,15 +44,40 @@ app.get('/register', (req, res) => {
 
 app.post('/register/save', (req, res) => {
 
-	let data = req.body; // name, email, user_id, code
-	data.pin = data.code || crypto.randomBytes(10).toString('base64');
+	let data = req.body; // name, email, user_id
 
 	console.log('DATA', data);
 
 	const BeameStore = new beameSDK.BeameStore();
 	const AuthToken  = beameSDK.AuthToken;
+	const beameAuthServices = require('../authServices').getInstance();
 
 	const encryptTo = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+	function selectRegistrationMethod() {
+
+		return new Promise((resolve, reject) => {
+				const method = bootstrapper.registrationMethod;
+
+				switch (method) {
+					case Constants.RegistrationMethod.Pairing:
+						data.pin = crypto.randomBytes(10).toString('base64');
+						resolve();
+						return;
+					case Constants.RegistrationMethod.Email:
+					case Constants.RegistrationMethod.SMS:
+						beameAuthServices.sendCustomerInvitation(method,data).then(invitation => {
+							data.pin = invitation.pin;
+							resolve();
+						}).catch(reject);
+						return;
+					default:
+						reject(`Unknown registration method`);
+						return;
+				}
+			}
+		);
+	}
 
 
 	function encryptUserData() {
@@ -77,7 +102,6 @@ app.post('/register/save', (req, res) => {
 			}
 		);
 	}
-
 
 	function getSigningFqdn() {
 		return new Promise((resolve, reject) => {
@@ -161,6 +185,7 @@ app.post('/register/save', (req, res) => {
 	}
 
 	authenticate(data)
+		.then(selectRegistrationMethod)
 		.then(encryptUserData)
 		.then(getSigningFqdn)
 		.then(getSigningCred)

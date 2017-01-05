@@ -9,6 +9,7 @@ const module_name  = "BeameAdminServices";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const CommonUtils  = beameSDK.CommonUtils;
+const Constants = require('../../../constants');
 const Bootstrapper = require('../../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 var dataService    = null;
@@ -47,7 +48,8 @@ class AdminServices {
 				let data = {
 					"AppConfig": null,
 					"DbConfig":  null,
-					"Creds":     null
+					"Creds":     null,
+					"RegMethods":null
 				};
 
 				try {
@@ -62,9 +64,22 @@ class AdminServices {
 								callback();
 
 							},
-
 							callback => {
 								data.Creds = bootstrapper.creds;
+								callback();
+							},
+							callback =>{
+
+								const options = Constants.RegistrationMethod;
+
+								let ds = [];
+
+								Object.keys(options).forEach(key=>{
+									ds.push({name:options[key]})
+								});
+
+								data.RegMethods = ds;
+
 								callback();
 							}
 						],

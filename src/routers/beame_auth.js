@@ -33,7 +33,7 @@ class BeameAuthRouter {
 	constructor(authServices) {
 
 
-		this._adminServices = authServices;
+		this._beameAuthServices = authServices;
 
 		this._router = express.Router();
 
@@ -45,7 +45,7 @@ class BeameAuthRouter {
 		this._router.get('/', (req, res) => {
 
 			this._isRequestValid(req).then(data => {
-				this._adminServices.saveSession(data);
+				this._beameAuthServices.saveSession(data);
 
 				let url = Bootstrapper.getLogoutUrl();
 
@@ -142,9 +142,9 @@ class BeameAuthRouter {
 		this._router.route('/node/auth/register')
 			.post((req, res) => {
 
-					this._adminServices.getRequestAuthToken(req).then(authToken => {
+					this._beameAuthServices.getRequestAuthToken(req).then(authToken => {
 						let metadata = req.body;
-						this._adminServices.authorizeEntity(metadata, authToken, req.get("X-BeameUserAgent")).then(payload => {
+						this._beameAuthServices.authorizeEntity(metadata, authToken, req.get("X-BeameUserAgent")).then(payload => {
 							res.json(payload);
 						}).catch(onRequestError.bind(null, res));
 
@@ -177,7 +177,7 @@ class BeameAuthRouter {
 	_isRequestValid(req) {
 		let encryptedMessage = req.query && req.query["data"];
 
-		return encryptedMessage ? this._adminServices.validateRegistrationToken(encryptedMessage) : Promise.reject(`auth token required`);
+		return encryptedMessage ? this._beameAuthServices.validateRegistrationToken(encryptedMessage) : Promise.reject(`auth token required`);
 	}
 
 	get router() {

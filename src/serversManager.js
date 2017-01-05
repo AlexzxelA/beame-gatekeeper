@@ -30,57 +30,72 @@ class ServersManager {
 
 	start() {
 
+		const _startMatching = () => {
+			return new Promise((resolve, reject) => {
+				const MatchingServer = require('BeameMatchingServer').Server;
+
+				let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
+
+				matching_server.start((error, app) => {
+					if (!error) {
+						logger.info(`Matching server started on https://${this._settings.MatchingServer.fqdn}`);
+						this._servers[Constants.CredentialType.MatchingServer] = app;
+						resolve();
+					}
+					else {
+						reject(error);
+					}
+				});
+				}
+			);
+		};
+		const _startBeameAuth = () => {
+			return new Promise((resolve, reject) => {
+				const BeameAuthServer = require('../src/servers/beame_auth/server');
+
+				let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
+
+				beame_auth_server.start((error, app) => {
+					if (!error) {
+						logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
+						this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
+						resolve()
+					}
+					else {
+						reject(error);
+					}
+				});
+				}
+			);
+		};
+		const _startGateway = () => {
+			return new Promise((resolve, reject) => {
+				logger.debug('SETTINGS', this._settings);
+				const gws = new (require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn, this._settings.MatchingServer.fqdn, this._serviceManager);
+				gws.start((error, app) => {
+					if (!error) {
+						logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
+						this._servers[Constants.CredentialType.GatewayServer] = app;
+						resolve(null);
+					}
+					else {
+						reject(error);
+					}
+				});
+				}
+			);
+		};
+
 
 		async.parallel([
 				callback => {
 
-					logger.debug('SETTINGS', this._settings);
-					const gws = new (require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn, this._settings.MatchingServer.fqdn, this._serviceManager);
-					gws.start((error, app) => {
-						if (!error) {
-							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
-							this._servers[Constants.CredentialType.GatewayServer] = app;
-							callback();
-						}
-						else {
-							callback(error);
-						}
-					});
-				},
-				callback => {
+					_startMatching()
+						.then(_startBeameAuth.bind(this))
+						.then(_startGateway.bind(this))
+						.then(callback)
+						.catch(error=>{callback(error)});
 
-					const BeameAuthServer = require('../src/servers/beame_auth/server');
-
-					let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
-
-					beame_auth_server.start((error, app) => {
-						if (!error) {
-							logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
-							this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
-							callback()
-						}
-						else {
-							callback(error);
-						}
-					});
-				},
-
-				callback => {
-
-					const MatchingServer = require('BeameMatchingServer').Server;
-
-					let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
-
-					matching_server.start((error, app) => {
-						if (!error) {
-							logger.info(`Matching server started on https://${this._settings.MatchingServer.fqdn}`);
-							this._servers[Constants.CredentialType.MatchingServer] = app;
-							callback();
-						}
-						else {
-							callback(error);
-						}
-					});
 				},
 				callback => {
 					let chatApp = new (require('../apps/chat'))();

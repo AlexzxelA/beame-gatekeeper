@@ -19,8 +19,6 @@ const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 var serviceManager      = null;
 
-var authServices = null;
-
 
 function assertSignedByGw(session_token) {
 	let signedBy;
@@ -78,7 +76,7 @@ const messageHandlers = {
 				reply({
 					type:    'authenticated',
 					payload: {
-						imageRequired: bootstrapper.RegistrationImageRequired,
+						imageRequired: bootstrapper.registrationImageRequired,
 						success:       true,
 						session_token: token,
 						apps:          apps,
@@ -93,7 +91,7 @@ const messageHandlers = {
 
 		function decryptUserData(userData, token) {
 			return new Promise((resolve, reject) => {
-					let decrypt = bootstrapper.EncryptUserData;
+					let decrypt = bootstrapper.encryptUserData;
 
 					if (decrypt) {
 						const BeameStore = new beameSDK.BeameStore();
@@ -285,7 +283,6 @@ class BrowserControllerSocketioApi {
 	constructor(fqdn, _serviceManager) {
 		this._fqdn     = fqdn;
 		serviceManager = _serviceManager;
-		authServices   = new BeameAuthServices(this._fqdn);
 		/** @type {Socket} */
 		this._socket_server = null;
 	}

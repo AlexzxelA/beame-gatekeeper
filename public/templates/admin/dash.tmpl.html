@@ -49,6 +49,18 @@
                         </li>
 
                         <li>
+                            <label>Registration method</label>
+                            <input data-role="dropdownlist"
+                                   data-auto-bind="true"
+                                   data-value-primitive="true"
+                                   data-text-field="name"
+                                   data-value-field="name"
+                                   data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"
+                                   class='k-textbox'
+                            />
+                        </li>
+
+                        <li>
                             <label>Use Image Authentication</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.RegistrationImageRequired" />
                         </li>
@@ -56,6 +68,17 @@
                         <li>
                             <label>Encrypt User Data</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.EncryptUserData" />
+                        </li>
+
+                        <li>
+                            <label>Email post url</label>
+                            <textarea  data-bind="value:data.AppConfig.PostEmailUrl"  class='k-textbox' id="PostEmailUrl" cols="30" rows="2"></textarea>
+                        </li>
+
+                        <li>
+                            <label>Customer Invitation Ttl (sec)</label>
+                            <input data-role="numerictextbox" data-bind="value:data.AppConfig.CustomerInvitationTtl"
+                                   id="CustomerInvitationTtl" type="text" data-spinners="false" data-format="{0:D}"/>
                         </li>
 
                         <li>

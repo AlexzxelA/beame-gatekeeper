@@ -16,6 +16,11 @@
             "Unsubscribe": {
                 "endpoint": "/api/v1/node/unsubscribe"
             }
+        },
+        "Matching": {
+            "SaveInvitation": {
+                "endpoint": "/v1/invitation/save"
+            }
         }
     }
 }

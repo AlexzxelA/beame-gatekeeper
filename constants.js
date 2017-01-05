@@ -56,7 +56,11 @@ const RequestType = {
 	"RequestWithAuthServer": "RequestWithAuthServer",
 };
 
-
+const RegistrationMethod = {
+	"Pairing": "Pairing",
+	"Email": "Email",
+	"SMS": "SMS",
+};
 /**
  * Sns Message Types
  * DON'T TOUCH, should by synchronized with backend services
@@ -101,6 +105,7 @@ const CookieNames = {
 
 module.exports = {
 	RequestType,
+	RegistrationMethod,
 	RegistrationSource,
 	LoadBalancerURL,
 	CredentialType,

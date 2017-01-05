@@ -18,7 +18,7 @@ const logger      = new BeameLogger(module_name);
 
 class AdminRouter {
 	constructor(adminServices) {
-		this._adminServices = adminServices;
+		this._beameAuthServices = adminServices;
 
 		this._router = express.Router();
 
@@ -35,7 +35,7 @@ class AdminRouter {
 
 		//region settings
 		this._router.get('/settings/get', (req, res) => {
-			this._adminServices.getSettings().then(data => {
+			this._beameAuthServices.getSettings().then(data => {
 				res.json(data);
 			}).catch(() => {
 				res.json({});
@@ -43,7 +43,7 @@ class AdminRouter {
 		});
 
 		this._router.post('/settings/save', (req, res) => {
-			this._adminServices.saveAppConfig(req.body).then(() => {
+			this._beameAuthServices.saveAppConfig(req.body).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -54,7 +54,7 @@ class AdminRouter {
 		//region grids actions
 		//region user
 		this._router.get('/user/list', (req, res) => {
-			this._adminServices.getUsers().then(
+			this._beameAuthServices.getUsers().then(
 				array => {
 					res.json(array);
 				}
@@ -65,7 +65,7 @@ class AdminRouter {
 
 		this._router.post('/user/update', (req, res) => {
 			let user = req.body;
-			this._adminServices.updateUser(user).then(
+			this._beameAuthServices.updateUser(user).then(
 				array => {
 					res.json(array);
 				}
@@ -77,7 +77,7 @@ class AdminRouter {
 
 		//region registrations
 		this._router.get('/registration/list', (req, res) => {
-			this._adminServices.getRegistrations().then(
+			this._beameAuthServices.getRegistrations().then(
 				array => {
 					res.json(array);
 				}
@@ -91,7 +91,7 @@ class AdminRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._adminServices.deleteRegistration(id).then(() => {
+			this._beameAuthServices.deleteRegistration(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);
@@ -102,7 +102,7 @@ class AdminRouter {
 
 		//region services
 		this._router.get('/service/list', (req, res) => {
-			this._adminServices.getServices().then(
+			this._beameAuthServices.getServices().then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -114,7 +114,7 @@ class AdminRouter {
 
 		this._router.post('/service/create', (req, res) => {
 			let service = req.body;
-			this._adminServices.saveService(service).then(
+			this._beameAuthServices.saveService(service).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -125,7 +125,7 @@ class AdminRouter {
 
 		this._router.post('/service/update', (req, res) => {
 			let service = req.body;
-			this._adminServices.updateService(service).then(
+			this._beameAuthServices.updateService(service).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -138,7 +138,7 @@ class AdminRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._adminServices.deleteService(id).then(() => {
+			this._beameAuthServices.deleteService(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);

@@ -11,14 +11,14 @@
  * @property {Object} metadata
  */
 
-const beameSDK       = require('beame-sdk');
-const module_name    = "SNS";
-const BeameLogger    = beameSDK.Logger;
-const logger         = new BeameLogger(module_name);
-const AuthServices   = require('../../authServices');
-const SnsMessageType = require('../../../constants').SnsMessageType;
-const https          = require('https'),
-      validator      = new (require('sns-validator'))();
+const beameSDK          = require('beame-sdk');
+const module_name       = "SNS";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const BeameAuthServices = require('../../authServices');
+const SnsMessageType    = require('../../../constants').SnsMessageType;
+const https             = require('https'),
+      validator         = new (require('sns-validator'))();
 
 
 class SnsServices {
@@ -57,13 +57,13 @@ class SnsServices {
 
 									switch (msgType) {
 										case SnsMessageType.Cert:
-											AuthServices.markRegistrationAsCompleted(token).then(resolve).catch(resolve);
+											BeameAuthServices.markRegistrationAsCompleted(token).then(resolve).catch(resolve);
 											return;
 										case SnsMessageType.Revoke:
-											AuthServices.onUserCertRevoked(token).then(resolve).catch(resolve);
+											BeameAuthServices.onUserCertRevoked(token).then(resolve).catch(resolve);
 											return;
 										case SnsMessageType.Delete:
-											AuthServices.onUserDeleted(token).then(resolve).catch(resolve);
+											BeameAuthServices.onUserDeleted(token).then(resolve).catch(resolve);
 											return;
 									}
 								}

@@ -74,16 +74,6 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		});
 	}
 
-	function parseJson(json) {
-		return new Promise((resolve, reject) => {
-			try {
-				resolve(JSON.parse(json));
-			} catch(e) {
-				reject(`Failed to parse JSON: ${e}`);
-			}
-		});
-	}
-
 	function decrypt(decryptingCred) {
 		return new Promise((resolve, reject) => {
 			let payload = decryptingCred.decrypt(req.body.encryptedUserData);
@@ -92,6 +82,16 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 			}
 			console.log('TRACE: Decrypted payload', payload);
 			resolve(payload);
+		});
+	}
+
+	function parseJson(json) {
+		return new Promise((resolve, reject) => {
+			try {
+				resolve(JSON.parse(json));
+			} catch(e) {
+				reject(`Failed to parse JSON: ${e}`);
+			}
 		});
 	}
 
@@ -142,7 +142,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 	const qs = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
-	const proxyingDestination =  'http://127.0.0.1:65000'; //`https://${beameAuthServerFqdn}`;//
+	const proxyingDestination = 'http://127.0.0.1:65000'; // `https://${beameAuthServerFqdn}`;//
 	utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
 		console.log('token', token);
 		res.cookie(cookieNames.Proxy, token);

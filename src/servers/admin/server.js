@@ -29,9 +29,9 @@ class BeameAdminServer {
 	constructor(fqdn, app, _serviceManager) {
 		this._fqdn = fqdn;
 
-		this._adminServices = new BeameAdminServices(_serviceManager);
+		this._beameAuthServices = new BeameAdminServices(_serviceManager);
 
-		this._app = app || utils.setExpressApp((new Router(this._adminServices)).router, public_dir);
+		this._app = app || utils.setExpressApp((new Router(this._beameAuthServices)).router, public_dir);
 
 		this._server = null;
 

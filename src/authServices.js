@@ -32,28 +32,35 @@ const logger           = new BeameLogger(module_name);
 const CommonUtils      = beameSDK.CommonUtils;
 const AuthToken        = beameSDK.AuthToken;
 const store            = new (beameSDK.BeameStore)();
-const provisionApi     = new (beameSDK.ProvApi)();
+const ProvisionApi     = beameSDK.ProvApi;
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
 var dataService        = null;
+var beameAuthServices  = null;
+const nop              = function () {
+};
 
+const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
 
 class BeameAuthServices {
 
 	/**
 	 *
 	 * @param authServerFqdn
+	 * @param matchingServerFqdn
 	 * @param {Boolean|null} [subscribeForChildCerts]
 	 */
-	constructor(authServerFqdn, subscribeForChildCerts) {
+	constructor(authServerFqdn, matchingServerFqdn, subscribeForChildCerts) {
 		this._fqdn = authServerFqdn;
+
+		this._matchingServerFqdn = matchingServerFqdn;
 
 		/** @type {Credential} */
 		this._creds = store.getCredential(authServerFqdn);
 
 		if (!this._creds) {
-			logger.fatal(`Server credential not found`);
+			logger.fatal(`Beame Auth Server credential not found`);
 		}
 
 		dataService = require('./dataServices').getInstance();
@@ -61,10 +68,13 @@ class BeameAuthServices {
 		let subscribe = subscribeForChildCerts || true;
 
 		if (subscribe) {
-			this._creds.subscribeForChildRegistration(this._fqdn);
+			this._creds.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
+				logger.error(`Auth server subscription error  ${BeameLogger.formatError(error)}`);
+			});
 		}
-	}
 
+		beameAuthServices = this;
+	}
 
 	//region Entity registration
 	/**
@@ -221,8 +231,8 @@ class BeameAuthServices {
 						}
 
 						resolve({
-							result:  'cred',
-							data: cred.getKey("X509")
+							result: 'cred',
+							data:   cred.getKey("X509")
 						});
 					}).catch(e => {
 						reject(`Credential not found with error ${BeameLogger.formatError(e)}`);
@@ -232,8 +242,8 @@ class BeameAuthServices {
 				const registerFqdn = () => {
 					self.getRegisterFqdn(data).then(payload => {
 							resolve({
-								result:  'token',
-								data: payload
+								result: 'token',
+								data:   payload
 							})
 						}
 					).catch(reject);
@@ -374,11 +384,9 @@ class BeameAuthServices {
 	 */
 	_registerFqdn(endpoint, metadata) {
 		return new Promise((resolve, reject) => {
-				let sign = this._signData(metadata);
-
-				logger.debug(`Authentication request from edge server signed`, sign);
-
-				var apiData = beameSDK.ProvApi.getApiData(endpoint, metadata);
+				let sign         = this._signData(metadata),
+				    provisionApi = new ProvisionApi(),
+				    apiData      = beameSDK.ProvApi.getApiData(endpoint, metadata);
 
 				logger.printStandardEvent(module_name, BeameLogger.StandardFlowEvent.Registering, "New entity");
 
@@ -474,7 +482,7 @@ class BeameAuthServices {
 	_signData(data2Sign) {
 		let sha = CommonUtils.generateDigest(data2Sign);
 
-		return AuthToken.create(sha, this._creds, 60 * 60 * 24 * 2);
+		return AuthToken.create(sha, this._creds, bootstrapper.registrationAuthTokenTtl);
 
 	}
 
@@ -559,6 +567,172 @@ class BeameAuthServices {
 
 	//endregion
 
+	/**
+	 * @param {String} method
+	 * @param {Object} metadata
+	 * @param {String|null|undefined} [phone_number]
+	 */
+	sendCustomerInvitation(method, metadata, phone_number) {
+
+		let options      = {
+			    fqdn:         this._fqdn,
+			    name:         metadata.name,
+			    email:        metadata.email,
+			    userId:       metadata.user_id,
+			    matchingFqdn: this._matchingServerFqdn,
+			    serviceName:  bootstrapper.serviceName,
+			    serviceId:    bootstrapper.appId,
+			    ttl:          bootstrapper.customerInvitationTtl
+		    },
+		    postEmailUrl = null,
+		    postSmsUrl   = null;
+
+		const getRegToken = () => {
+			return new Promise((resolve, reject) => {
+					let cred = new beameSDK.Credential(store);
+
+					cred.createRegistrationToken(options).then(resolve).catch(reject);
+				}
+			);
+		};
+
+		const saveInvitation = (regToken) => {
+
+			return new Promise((resolve, reject) => {
+					try {
+						let sign         = this._signData(options),
+						    provisionApi = new ProvisionApi(),
+						    fqdn         = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(new Buffer(regToken, 'base64').toString()).authToken).signedData.data).fqdn,
+						    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.SaveInvitation.endpoint}`,
+						    invitation   = {
+							    token: regToken,
+							    appId: bootstrapper.appId,
+							    fqdn:  fqdn
+						    };
+
+						provisionApi.postRequest(`https://${url}`, invitation, (error, payload) => {
+							if (error) {
+								reject(error);
+							}
+							else {
+								resolve(payload.data);
+							}
+						}, sign);
+					} catch (e) {
+						reject(e);
+					}
+				}
+			);
+		};
+
+		const sendEmail = (invitation) => {
+			return new Promise((resolve, reject) => {
+					let sign         = this._signData(options),
+					    provisionApi = new ProvisionApi(),
+					    emailToken   = {
+						    email:       options.email,
+						    service: bootstrapper.serviceName,
+						    url :`${UniversalLinkUrl}?pin=${invitation.pin}&matching=${this._matchingServerFqdn}`
+					    };
+
+					provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
+						if (error) {
+							reject(error);
+						}
+						else {
+							resolve({pin:invitation.pin});
+						}
+					}, sign);
+				}
+			);
+		};
+
+		const sendSms = (regToken, invitation) => {
+			return new Promise((resolve, reject) => {
+					let sign         = this._signData(options),
+					    provisionApi = new ProvisionApi(),
+					    smsToken     = {
+						    to:  phone_number,
+						    pin: invitation.pin
+					    };
+
+					provisionApi.postRequest(postSmsUrl, smsToken, (error) => {
+						if (error) {
+							reject(error);
+						}
+						else {
+							resolve();
+						}
+					}, sign);
+				}
+			);
+		};
+
+		const assertEmail = () => {
+			return new Promise((resolve, reject) => {
+					if (!metadata.email) {
+						reject(`Email required`);
+						return;
+					}
+
+					postEmailUrl = bootstrapper.postEmailUrl;
+
+					if (!postEmailUrl) {
+						reject(`Post Email url not defined`);
+						return;
+					}
+
+					resolve();
+				}
+			);
+		};
+
+		const assertSms = () => {
+			return new Promise((resolve, reject) => {
+					if (!phone_number) {
+						reject(`Phone number required`);
+						return;
+					}
+
+					postSmsUrl = bootstrapper.postSmsUrl;
+
+					if (!postSmsUrl) {
+						reject(`Post SMS url not defined`);
+						return;
+					}
+
+					resolve();
+				}
+			);
+		};
+
+		return new Promise((resolve, reject) => {
+				switch (method) {
+					case Constants.RegistrationMethod.Email:
+						assertEmail()
+							.then(getRegToken)
+							.then(saveInvitation)
+							.then(sendEmail)
+							.then(resolve)
+							.catch(reject);
+						return;
+
+					case Constants.RegistrationMethod.SMS:
+						assertSms()
+							.then(getRegToken)
+							.then(saveInvitation)
+							.then(sendSms)
+							.then(resolve)
+							.catch(reject);
+						return;
+					default:
+						reject(`Unknown registration method`);
+						return;
+				}
+			}
+		);
+	}
+
 	getRequestAuthToken(req) {
 		return new Promise((resolve, reject) => {
 				let authHead  = req.get('X-BeameAuthToken'),
@@ -569,7 +743,7 @@ class BeameAuthServices {
 
 				if (authHead) {
 					try {
-						authToken = JSON.parse(authHead);
+						authToken = CommonUtils.parse(authHead);
 
 						if (!CommonUtils.isObject(authToken)) {
 							logger.error(`invalid auth ${authToken} token format`);
@@ -595,6 +769,13 @@ class BeameAuthServices {
 				}).catch(reject);
 			}
 		);
+	}
+
+
+	/** @type {BeameAuthServices} */
+	static getInstance() {
+
+		return beameAuthServices;
 	}
 
 }
