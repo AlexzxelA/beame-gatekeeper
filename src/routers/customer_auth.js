@@ -88,7 +88,7 @@ app.post('/register/save', (req, res) => {
 
 	function encryptUserData() {
 		return new Promise((resolve, reject) => {
-				if (bootstrapper.EncryptUserData) {
+				if (bootstrapper.encryptUserData) {
 
 					BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
 
