@@ -22,7 +22,7 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir    = 'insta-server';
+const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
 
@@ -53,17 +53,20 @@ console.log(`version is ${version} ${typeof version}`);
 
 const compilePage = (pagePath, distPath) => {
 
+	console.log(`saving ${pagePath} to ${distPath}`);
+
 	let cdn_folder_path = `https://cdn.beame.io/${bucket_dir}/${version}/`;
 
 	gulp.src(pagePath)
 		.pipe(htmlreplace({
-			'css':            `${cdn_folder_path}css/app.min.css`,
-			'js':             `${cdn_folder_path}js/app.min.js`,
-			'lib':            `${cdn_folder_path}js/lib.min.js`,
-			'signin-js-head': `${cdn_folder_path}js/signin.min.js`,
-			'signup-js-head': `${cdn_folder_path}js/signup.min.js`,
-			'utils-head':     `${cdn_folder_path}js/utils.min.js`,
-			'logo':           `<img src="${cdn_folder_path}img/logo.svg" />`
+			'css':              `${cdn_folder_path}css/app.min.css`,
+			'js':               `${cdn_folder_path}js/app.min.js`,
+			'lib':              `${cdn_folder_path}js/lib.min.js`,
+			'signin-js-head':   `${cdn_folder_path}js/signin.min.js`,
+			'signup-js-head':   `${cdn_folder_path}js/signup.min.js`,
+			'approval-js-head': `${cdn_folder_path}js/approval.min.js`,
+			'utils-head':       `${cdn_folder_path}js/utils.min.js`,
+			'logo':             `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
@@ -194,6 +197,12 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/utils.js',
+			'./public/js/client_approval.js'
+		], 'approval.min.js', true);
+
+	compileJs(
+		[
 			'./public/js/utils.js'
 		], 'utils.min.js', true);
 
@@ -219,11 +228,13 @@ gulp.task('compile-js', () => {
 
 gulp.task('compile-pages', () => {
 
-	compilePage('./public/pages/gw/welcome.html', `./${dist_folder_name}/pages/gw/`);
-	compilePage('./public/pages/gw/signin.html', `./${dist_folder_name}/pages/gw/`);
-	compilePage('./public/pages/gw/logged-in-home.html', `./${dist_folder_name}/pages/gw/`);
+	compilePage('./public/pages/gw/unauthenticated/welcome.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/authenticated/logged-in-home.html', `./${dist_folder_name}/pages/gw/authenticated/`);
 	compilePage('./public/pages/customer_auth/register.html', `./${dist_folder_name}/pages/customer_auth/`);
+	compilePage('./public/pages/customer_auth/register_success.html', `./${dist_folder_name}/pages/customer_auth/`);
 	compilePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
+	compilePage('./public/pages/beame_auth/client_approval.html', `./${dist_folder_name}/pages/beame_auth/`);
 	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
 });
 
@@ -252,6 +263,7 @@ gulp.task('upload-to-S3', callback => {
 	uploadFile('js/lib.min.js', aws, options);
 	uploadFile('js/signin.min.js', aws, options);
 	uploadFile('js/signup.min.js', aws, options);
+	uploadFile('js/approval.min.js', aws, options);
 	uploadFile('css/app.min.css', aws, options);
 
 	gulp.src([`./${dist_folder_name}/img/***`])
