@@ -79,20 +79,20 @@ function generateKeys() {
 
 function getKeyPairs(cb) {
 	if(!keyGenerated){
-		var keyTimeout = 20;
+		var keyTimeout = 30;
 		var wait4key = setInterval(function () {
 			if(keyPair && keyPairSign && keyGenerated){
-				clearInterval(keyTimeout);
+				clearInterval(wait4key);
 				cb(null, {
 					keyPair:     keyPair,
 					keyPairSign: keyPairSign
 				});
 			}
 			else if(--keyTimeout < 1){
-				clearInterval(keyTimeout);
+				clearInterval(wait4key);
 				cb('Key generation failed', null);
 			}
-		},100);
+		}, 100);
 	}
 	else{
 		cb(null, {
