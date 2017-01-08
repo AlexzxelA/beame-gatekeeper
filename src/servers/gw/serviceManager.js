@@ -2,13 +2,13 @@
 
 // TODO: actual list + cached health status in "online" field
 
-const beameSDK     = require('beame-sdk');
-const module_name  = "ServiceManager";
-const BeameLogger  = beameSDK.Logger;
-const logger       = new BeameLogger(module_name);
-const CommonUtils  = beameSDK.CommonUtils;
+const beameSDK      = require('beame-sdk');
+const module_name   = "ServiceManager";
+const BeameLogger   = beameSDK.Logger;
+const logger        = new BeameLogger(module_name);
+const CommonUtils   = beameSDK.CommonUtils;
 const SetupServices = require('../../../constants').SetupServices;
-const Bootstrapper     = require('../../bootstrapper');
+const Bootstrapper  = require('../../bootstrapper');
 
 
 class ServiceManager {
@@ -34,16 +34,11 @@ class ServiceManager {
 							name:   approvedList[key].name
 						};
 					});
-					logger.debug('app list:',formattedList);
+					logger.debug('app list:', formattedList);
 					resolve(formattedList);
 				};
 
-				if (!CommonUtils.isObjectEmpty(this._appList)) {
-					returnList();
-				}
-				else {
-					this.evaluateAppList().then(returnList).catch(reject);
-				}
+				this.evaluateAppList().then(returnList).catch(reject);
 
 			}
 		);
@@ -53,38 +48,39 @@ class ServiceManager {
 
 		return new Promise((resolve, reject) => {
 
-				const dataService = require('../../dataServices').getInstance();
+			const dataService = require('../../dataServices').getInstance();
 
-				dataService.getActiveServices().then(apps => {
+			const bootstrapper = Bootstrapper.getInstance();
 
-					if (apps.length) {
-						for (let app of apps) {
+			let startRaspberryApps = bootstrapper.startRaspberryApp;
 
-							const bootstrapper     = Bootstrapper.getInstance();
+			dataService.getActiveServices().then(apps => {
 
-							let startRaspberryApps = bootstrapper.startRaspberryApp;
+				if (apps.length) {
+					for (let app of apps) {
 
-							if(!startRaspberryApps && app.code.startsWith('RASPBERRY_')) continue;
 
-							this._appList[app.id] = {
-								name:   app.name,
-								app_id: app.id,
-								code:   app.code,
-								url:    app.url,
-								online: app.isOnline
-							};
-						}
+						if (!startRaspberryApps && app.code.startsWith('RASPBERRY_')) continue;
 
-						resolve();
-					}
-					else {
-						reject(`no services found`);
+						this._appList[app.id] = {
+							name:   app.name,
+							app_id: app.id,
+							code:   app.code,
+							url:    app.url,
+							online: app.isOnline
+						};
 					}
 
-				}).catch(error => {
-					logger.error(`Get active services error ${BeameLogger.formatError(error)}`);
-					reject(error);
-				})
+					resolve();
+				}
+				else {
+					reject(`no services found`);
+				}
+
+			}).catch(error => {
+				logger.error(`Get active services error ${BeameLogger.formatError(error)}`);
+				reject(error);
+			})
 			}
 		);
 	}
@@ -114,7 +110,7 @@ class ServiceManager {
 	}
 
 	appUrlById(app_id) {
-		logger.debug('got app request:',app_id);
+		logger.debug('got app request:', app_id);
 		return new Promise((resolve, reject) => {
 				let app = this._appList[app_id];
 

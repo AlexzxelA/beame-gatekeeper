@@ -63,9 +63,9 @@ class QrMessaging {
 	 */
 	onQrBrowserConnection(socket) {
 
-		const pairingUtils     = require('./pairing_utils');
-		this._pairingUtils      = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
-		socket, module_name);
+		const pairingUtils = require('./pairing_utils');
+		this._pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+			socket, module_name);
 
 		this._pairingUtils.setCommonHandlers();
 
@@ -173,8 +173,8 @@ class QrMessaging {
 					//add service name and matching fqdn for use on mobile
 
 					payload.imageRequired = bootstrapper.registrationImageRequired;
-					payload.matching = this._matchingServerFqdn;
-					payload.service  = this._serviceName;
+					payload.matching      = this._matchingServerFqdn;
+					payload.service       = this._serviceName;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					this._sendWithAck(socket, "mobileProv1", {
@@ -220,8 +220,8 @@ class QrMessaging {
 							logger.info(`new fqdn ${payload.fqdn} registered, emitting mobileProv1 to socket ${socket.id}`);
 							//add service name and matching fqdn for use on mobile
 							payload.imageRequired = bootstrapper.registrationImageRequired;
-							payload.matching = this._matchingServerFqdn;
-							payload.service  = this._serviceName;
+							payload.matching      = this._matchingServerFqdn;
+							payload.service       = this._serviceName;
 							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 							break;
 						case 'cert':
@@ -300,16 +300,28 @@ class QrMessaging {
 	}
 
 	_setNewOTP(socket) {
-		this._generateOTP(24);
-		let relay = this._edge.endpoint,
-		    UID   = this._browserHost;
-		this._sendWithAck(socket, "pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
-		/*this._renewOTP = setInterval(()=> {
-		 this._generateOTP(24);
-		 logger.debug('>>> this._otp:', this._otp);
-		 console.log('QR..ID:', socket.id);
-		 this._sendWithAck(socket,"pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
-		 }, OTP_refresh_rate);*/
+
+		let counter = 0;
+
+		let waitEdge = setInterval(() => {
+			counter++;
+
+			if (this._edge && this._edge.endpoint) {
+
+				clearInterval(waitEdge);
+
+				this._generateOTP(24);
+				let relay = this._edge.endpoint,
+				    UID   = this._browserHost;
+				this._sendWithAck(socket, "pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
+			}
+
+			if (counter >= 20) {
+				clearInterval(waitEdge);
+			}
+
+		}, 1000);
+
 	}
 
 	_signBrowserHostname(socket) {
@@ -319,8 +331,8 @@ class QrMessaging {
 			    token    = authToken.create(this._browserHost, cred, 10),
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
-				    "data":      this._edge.endpoint,
-				    'signature': token
+				    "data":          this._edge.endpoint,
+				    'signature':     token
 			    });
 
 			this._sendWithAck(socket, "relayEndpoint", tokenStr);
