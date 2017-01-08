@@ -20,7 +20,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const RegistrationImageRequired = true;
 const EncryptUserData           = true;
-const UseBeameAuthOnLocal = true;
+const UseBeameAuthOnLocal       = true;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 //in sec
 const RegistrationAuthTokenTtl  = 60 * 10;
