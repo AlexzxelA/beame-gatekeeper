@@ -3,7 +3,7 @@
  */
 "use strict";
 
-var imgLight;
+var imgLight, showSupportMessage = true;
 
 function sendCmd(args){
 
@@ -27,13 +27,17 @@ function sendCmd(args){
 	xhr.open("POST", url, true);
 	xhr.onreadystatechange = function () {
 		if (xhr.readyState == 4 && xhr.status == 200) {
-			var resp = xhr.responseText;
+			var resp = JSON.parse(xhr.responseText);
 
 			if(resp.status == 200){
 				//todo move button logic here
 			}
 			else if(resp.status == 500){
-				alert(resp.message);
+				if(showSupportMessage){
+					alert(resp.message);
+					showSupportMessage = false;
+				}
+
 			}
 		}
 	};

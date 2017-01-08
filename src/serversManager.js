@@ -120,11 +120,8 @@ class ServersManager {
 				},
 				callback => {
 
-					if(bootstrapper.startRaspberryApp){
-						let raspberryApp = new (require('../apps/rasp'))();
-						raspberryApp.start();
-					}
-
+					let raspberryApp = new (require('../apps/rasp'))();
+					raspberryApp.start();
 					callback();
 				}
 			],
