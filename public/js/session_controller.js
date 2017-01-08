@@ -137,7 +137,6 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 		});
 	} catch (e) {
-		alert('huy');
 		console.error(e);
 	}
 
@@ -164,6 +163,12 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				console.log('MobileW data type', type);
 
 				switch (type) {
+					case 'appCommand':
+						window.getNotifManagerInstance().notify('RASP_CMD',
+							{
+								cmd:decryptedData.payload.data.cmd
+							});
+						break;
 					case 'mediaRequest':
 						var segment = '/' + (decryptedData.payload.url).split('/').pop();
 						console.log('Media request, signing:', segment);
@@ -253,7 +258,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				    fqdn: user.fqdn
 			    };
 
-			document.cookie = "userinfo=" + JSON.stringify(info);
+			document.cookie = "beame_userinfo=" + JSON.stringify(info);
 		}
 	}
 

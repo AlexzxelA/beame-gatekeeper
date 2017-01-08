@@ -116,6 +116,11 @@ class ServersManager {
 					let mobileStreamApp = new (require('../apps/stream'))();
 					mobileStreamApp.start();
 					callback();
+				},
+				callback => {
+					let raspberryApp = new (require('../apps/rasp'))();
+					raspberryApp.start();
+					callback();
 				}
 			],
 			error => {

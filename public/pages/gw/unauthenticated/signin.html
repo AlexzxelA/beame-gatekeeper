@@ -110,10 +110,6 @@
     </div>
 </div>
 
-<!--<div id="info-module" style="position: absolute;top:10px;right20px;background: transparent; height: 12px;display: none;">-->
-        <!--<div style=""><label id="user-name"></label></div>-->
-    <!--</div>-->
-<!--</div>-->
 
 <script>
 	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
@@ -128,11 +124,15 @@
 <!-- endbuild -->
 
 <!-- Scripts -->
-<!-- build:js -->
+<!-- build:cef -->
 <script src="js/cef_manager.js"></script>
+<!-- endbuild -->
 <script>
 	var cefManager = getCefManagerInstance();
 </script>
+
+<!-- Scripts -->
+<!-- build:js -->
 <script src="js/crypto.js"></script>
 <script src="js/virt_host_controller.js"></script>
 <script src="js/notification_manager.js"></script>

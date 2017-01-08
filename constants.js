@@ -10,6 +10,7 @@ const home = os.homedir();
 const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
 const GatewayControllerPath    = '/beame-gw';
+const SigninPath               = `${GatewayControllerPath}/signin`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
@@ -37,7 +38,7 @@ const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, Sqlit
 
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
-const LoadBalancerURL           = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
+const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
 
 /**
@@ -46,7 +47,7 @@ const LoadBalancerURL           = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT
  * @readonly
  * @enum {Number}
  */
-const RegistrationSource        = {
+const RegistrationSource = {
 	"Unknown":        0,
 	"NodeJSSDK":      1,
 	"InstaSSL":       2,
@@ -61,8 +62,8 @@ const RequestType = {
 
 const RegistrationMethod = {
 	"Pairing": "Pairing",
-	"Email": "Email",
-	"SMS": "SMS",
+	"Email":   "Email",
+	"SMS":     "SMS",
 };
 /**
  * Sns Message Types
@@ -70,7 +71,7 @@ const RegistrationMethod = {
  * @readonly
  * @enum {Number}
  */
-const SnsMessageType = {
+const SnsMessageType     = {
 	Cert:   1,
 	Revoke: 2,
 	Delete: 3
@@ -96,14 +97,16 @@ const SetupServices = {
 	"MobilePhoto":     {code: "MOBILE_PHOTO", port: 65510},
 	"MobileStream":    {code: "MOBILE_STREAM", port: 65511},
 	"SampleChat":      {code: "SAMPLE_CHAT", port: 65512},
-	"SampleFileShare": {code: "SAMPLE_FILE_SHARE", port: 65513}
+	"SampleFileShare": {code: "SAMPLE_FILE_SHARE", port: 65513},
+	"RaspberryLight":  {code: "RASPBERRY_LIGHT", port: 65514}
 };
 
 const CookieNames = {
-	"Logout":  "beame_logout_url",
-	"Service": "beame_service",
-	"RegData": "beame_reg_data",
-	"Proxy":   "proxy_enabling_token"
+	"Logout":   "beame_logout_url",
+	"Service":  "beame_service",
+	"RegData":  "beame_reg_data",
+	"Proxy":    "proxy_enabling_token",
+	"UserInfo": "beame_userinfo"
 };
 
 module.exports = {
@@ -124,6 +127,7 @@ module.exports = {
 	WebRootFolder,
 	GatewayControllerPath,
 	GwAuthenticatedPath,
+	SigninPath,
 	LogoutPath,
 	AppSwitchPath,
 

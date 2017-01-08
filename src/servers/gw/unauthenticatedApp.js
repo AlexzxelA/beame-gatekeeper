@@ -27,9 +27,19 @@ const cust_auth_app = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
 
-unauthenticatedApp.get('/signin', (req, res) => {
+const clearSessionCookie = res =>{
+	res.clearCookie(cookieNames.Proxy);
+	res.clearCookie(cookieNames.RegData);
+	res.clearCookie(cookieNames.UserInfo);
+
+};
+
+unauthenticatedApp.use('/beame-gw', express.static(public_dir));
+
+unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
@@ -261,9 +271,9 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	console.log('unauthenticatedApp/get/logout: Logging out');
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	res.clearCookie(cookieNames.Proxy);
+	clearSessionCookie(res);
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
-	res.redirect(`https://${gwServerFqdn}/signin`);
+	res.redirect(`https://${gwServerFqdn}/${Constants.SigninPath}`);
 
 });
 

@@ -22,7 +22,7 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir = 'insta-server-dev';
+const bucket_dir = 'insta-server';
 
 const dist_folder_name = 'dist';
 
@@ -66,6 +66,7 @@ const compilePage = (pagePath, distPath) => {
 			'signup-js-head':   `${cdn_folder_path}js/signup.min.js`,
 			'approval-js-head': `${cdn_folder_path}js/approval.min.js`,
 			'utils-head':       `${cdn_folder_path}js/utils.min.js`,
+			'cef':              `${cdn_folder_path}js/cef.min.js`,
 			'logo':             `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
@@ -157,6 +158,10 @@ gulp.task('web_sass', function () {
 		.pipe(sass())
 		.pipe(gulp.dest('./apps/stream/public/css/'));
 
+	gulp.src(web_src_root_path + 'scss/*.scss')
+		.pipe(sass())
+		.pipe(gulp.dest('./apps/rasp/public/css/'));
+
 });
 
 gulp.task('sass-tools', function () {
@@ -208,9 +213,15 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/cef_manager.js'
+		], 'cef.min.js', true);
+
+	compileJs(
+		[
 			'./public/js/crypto.js',
 			'./public/js/virt_host_controller.js',
 			'./public/js/notification_manager.js',
+			'./public/js/user_image.js',
 			'./public/js/session_controller.js',
 			'./public/js/qr.js',
 			'./public/js/whisper_generator.js',
@@ -264,6 +275,7 @@ gulp.task('upload-to-S3', callback => {
 	uploadFile('js/signin.min.js', aws, options);
 	uploadFile('js/signup.min.js', aws, options);
 	uploadFile('js/approval.min.js', aws, options);
+	uploadFile('js/cef.min.js', aws, options);
 	uploadFile('css/app.min.css', aws, options);
 
 	gulp.src([`./${dist_folder_name}/img/***`])

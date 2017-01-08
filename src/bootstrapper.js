@@ -54,6 +54,7 @@ class Bootstrapper {
 	constructor() {
 		let config   = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config = CommonUtils.isObjectEmpty(config) ? null : config;
+		this._sequilizeBinary = CommonUtils.getSequelizeBinaryPath();
 	}
 
 	/**
@@ -675,17 +676,17 @@ class Bootstrapper {
 
 	//region init sqlite db
 
+
 	_migrateSqliteSchema() {
 
 		logger.debug(`migrating sqlite schema...`);
 
 		return new Promise((resolve, reject) => {
 				//TODO implement https://github.com/sequelize/umzug
-				let action = path.join(__dirname, "..", "node_modules", ".bin", "sequelize"),
-				    args   = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
+				let args   = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
 				try {
-					execFile(action, args, (error) => {
+					execFile(this._sequilizeBinary, args, (error) => {
 						if (error) {
 							reject(error);
 							return;
@@ -706,11 +707,10 @@ class Bootstrapper {
 		logger.debug(`running sqlite seeders...`);
 
 		return new Promise((resolve, reject) => {
-				let action = path.join(__dirname, "..", "node_modules", ".bin", "sequelize"),
-				    args   = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
+				let args   = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
 				try {
-					execFile(action, args, (error) => {
+					execFile(this._sequilizeBinary, args, (error) => {
 						if (error) {
 							reject(error);
 							return;

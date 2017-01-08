@@ -337,7 +337,7 @@ class BeameAuthServices {
 		return dataService.markUserAsDeleted(token.fqdn);
 	}
 
-	static isCustomerApproveRequired(){
+	static isCustomerApproveRequired() {
 		return bootstrapper.registrationImageRequired;
 	}
 
@@ -633,10 +633,12 @@ class BeameAuthServices {
 			return new Promise((resolve, reject) => {
 					let sign         = this._signData(options),
 					    provisionApi = new ProvisionApi(),
+					    token        = {pin: invitation.pin, matching: this._matchingServerFqdn},
+					    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
 					    emailToken   = {
-						    email:       options.email,
+						    email:   options.email,
 						    service: bootstrapper.serviceName,
-						    url :`${UniversalLinkUrl}?pin=${invitation.pin}&matching=${this._matchingServerFqdn}`
+						    url:     `${UniversalLinkUrl}?token=${base64Token}`
 					    };
 
 					provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
@@ -644,7 +646,7 @@ class BeameAuthServices {
 							reject(error);
 						}
 						else {
-							resolve({pin:invitation.pin});
+							resolve({pin: invitation.pin});
 						}
 					}, sign);
 				}

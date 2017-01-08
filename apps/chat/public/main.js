@@ -23,7 +23,7 @@ $(function () {
 	var lastTypingTime;
 	var $currentInput = $usernameInput.focus();
 
-	var userObj = getCookie('userinfo');
+	var userObj = getCookie('beame_userinfo');
 	if (userObj) {
 		try {
 			var user = JSON.parse(userObj);

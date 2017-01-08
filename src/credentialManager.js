@@ -27,7 +27,7 @@ class CredentialManager {
 	createInitialCredentials(token) {
 
 		const _onRegistrationError = error=> {
-			logger.error(error);
+			logger.error(BeameLogger.formatError(error));
 			process.exit(1);
 		};
 
@@ -149,7 +149,7 @@ class CredentialManager {
 			case Constants.RequestType.RequestWithFqdn:
 				return cred.createEntityWithAuthToken(token.authToken, token.name, token.email);
 			default:
-				return Promis.reject(`Unknown request type`);
+				return Promise.reject(`Unknown request type`);
 		}
 
 

@@ -38,6 +38,7 @@
     "express": "^4.14.0",
     "http-proxy": "^1.15.1",
     "minimist": "^1.2.0",
+    "onoff": "^1.1.1",
     "request": "^2.78.0",
     "semver": "^5.3.0",
     "sequelize": "^3.24.8",

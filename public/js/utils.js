@@ -7,7 +7,7 @@ function deleteCookie( name ) {
 }
 
 function onStaticPageLoaded() {
-	deleteCookie('userinfo');
+	deleteCookie('beame_userinfo');
 
 	var appData = getCookie('beame_service');
 	if(!appData) return;

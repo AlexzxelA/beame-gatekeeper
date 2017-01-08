@@ -114,7 +114,9 @@ function handleRequest(req, res) {
 	const authToken = extractAuthToken(req);
 
 	logger.debug('gateway handleRequest URL', req.url);
-	if (!authToken || req.url.startsWith(Constants.LogoutPath) || req.url.startsWith(Constants.AppSwitchPath)) {
+	if (!authToken || req.url.startsWith(Constants.LogoutPath) || req.url.startsWith(Constants.SigninPath) || req.url.startsWith(Constants.AppSwitchPath) ||
+		req.url.startsWith(`${Constants.GatewayControllerPath}/css`) || req.url.startsWith(`${Constants.GatewayControllerPath}/img`) || req.url.startsWith(`${Constants.GatewayControllerPath}/js`)
+		) {
 		unauthenticatedApp(req, res);
 		return;
 	}
