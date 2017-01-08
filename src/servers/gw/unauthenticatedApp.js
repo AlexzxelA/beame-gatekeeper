@@ -273,7 +273,7 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	clearSessionCookie(res);
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
-	res.redirect(`https://${gwServerFqdn}/${Constants.SigninPath}`);
+	res.redirect(`https://${gwServerFqdn}${Constants.SigninPath}`);
 
 });
 

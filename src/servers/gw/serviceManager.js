@@ -8,6 +8,7 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const CommonUtils  = beameSDK.CommonUtils;
 const SetupServices = require('../../../constants').SetupServices;
+const Bootstrapper     = require('../../bootstrapper');
 
 
 class ServiceManager {
@@ -58,6 +59,13 @@ class ServiceManager {
 
 					if (apps.length) {
 						for (let app of apps) {
+
+							const bootstrapper     = Bootstrapper.getInstance();
+
+							let startRaspberryApps = bootstrapper.startRaspberryApp;
+
+							if(!startRaspberryApps && app.code.startsWith('RASPBERRY_')) continue;
+
 							this._appList[app.id] = {
 								name:   app.name,
 								app_id: app.id,

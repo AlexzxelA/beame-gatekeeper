@@ -314,6 +314,10 @@ class Bootstrapper {
 		return this._config[SettingsProps.UseBeameAuthOnLocal];
 	}
 
+	get startRaspberryApp() {
+		return this._config[SettingsProps.StartRaspberryApp];
+	}
+
 	//noinspection JSMethodCanBeStatic
 	get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);

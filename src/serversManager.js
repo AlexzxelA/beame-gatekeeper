@@ -11,7 +11,8 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
 const CommonUtils = beameSDK.CommonUtils;
-
+const Bootstrapper     = require('./bootstrapper');
+const bootstrapper     = Bootstrapper.getInstance();
 const Constants = require('../constants');
 
 class ServersManager {
@@ -118,8 +119,12 @@ class ServersManager {
 					callback();
 				},
 				callback => {
-					let raspberryApp = new (require('../apps/rasp'))();
-					raspberryApp.start();
+
+					if(bootstrapper.startRaspberryApp){
+						let raspberryApp = new (require('../apps/rasp'))();
+						raspberryApp.start();
+					}
+
 					callback();
 				}
 			],
