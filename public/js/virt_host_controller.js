@@ -15,6 +15,7 @@ var vUID = null,
 	allSessionsActive = true,
 	TMPsocketOriginQR = null,
 	TMPsocketOriginWh = null,
+	TMPsocketOriginAp = null,
 	TmpSocketID = null,
 	virtHostAlive = 0,
 	pingVirtHost = null,
@@ -69,6 +70,9 @@ function setOriginSocket(type, socket) {
 			break;
 		case 'WH':
 			TMPsocketOriginWh = socket;
+			break;
+		case 'AP':
+			TMPsocketOriginAp = socket;
 			break;
 	}
 }

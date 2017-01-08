@@ -49,7 +49,9 @@ class BeameInstaSocketServer {
 
 		this._whispererManager = null;
 
-		this._qrMesaaging = null;
+		this.qrMessaging = null;
+
+		this._approverManager = null;
 
 		this._serviceName = bootstrapper.serviceName;
 	}
@@ -83,8 +85,16 @@ class BeameInstaSocketServer {
 	 * @param {Socket} socket
 	 * @private
 	 */
+	_onApproverBrowserConnection(socket) {
+		this._approverManager.onApproverBrowserConnection(socket);
+	}
+
+	/**
+	 * @param {Socket} socket
+	 * @private
+	 */
 	_onQrBrowserConnection(socket) {
-		this._qrMesaaging.onQrBrowserConnection(socket);
+		this.qrMessaging.onQrBrowserConnection(socket);
 	}
 
 	/**
@@ -112,6 +122,25 @@ class BeameInstaSocketServer {
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
 
+		this._socketioServer.of('approver').on('connection', this._onApproverBrowserConnection.bind(this));
+		return Promise.resolve();
+	}
+
+	_initApproverManager() {
+
+		const ApproverManager = require('./pairing/approver_manager');
+
+
+		this._approverManager = new ApproverManager(
+			this._authMode,
+			this._fqdn,
+			this._matchingServerFqdn,
+			this._callbacks,
+			this._options,
+			bootstrapper.killSocketOnDisconnectTimeout,
+			this._serviceName
+		);
+
 		return Promise.resolve();
 	}
 
@@ -137,7 +166,7 @@ class BeameInstaSocketServer {
 	_initQrMessaging() {
 		const QrMessaging = require('./pairing/qr_messaging');
 
-		this._qrMesaaging = new QrMessaging(this._fqdn, this._matchingServerFqdn, this._callbacks, this._serviceName);
+		this.qrMessaging = new QrMessaging(this._fqdn, this._matchingServerFqdn, this._callbacks, this._serviceName);
 
 		return Promise.resolve();
 	}
