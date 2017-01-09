@@ -164,6 +164,9 @@ p + p {
 .relative {
   position: relative; }
 
+.no-select {
+  user-select: none; }
+
 .text-centered {
   text-align: center; }
 
