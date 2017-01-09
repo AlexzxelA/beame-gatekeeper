@@ -143,7 +143,7 @@ const messageHandlers = {
 
 	},
 	'choose':        function (payload, reply) {
-		// Choose application - redirect app switchig URL on GW, auth token in URL
+		// Choose application - redirect app switching URL on GW, auth token in URL
 		// --- request ---
 		// type: choose
 		// payload: {session_token: ..., app_id: ...}
@@ -152,7 +152,7 @@ const messageHandlers = {
 		// payload: {success: true/false, app_id: (same as in request), url: ...}
 
 		function makeProxyEnablingToken(session_token) {
-			// console.log('choose incomming session_token', session_token);
+			// console.log('choose incoming session_token', session_token);
 			let st = JSON.parse(JSON.parse(session_token.signedData.data));
 			// console.log('PT 10', st);
 			return utils.createAuthTokenByFqdn(
@@ -165,13 +165,17 @@ const messageHandlers = {
 		function respond(token) {
 			return new Promise(() => {
 				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
-				logger.debug('respond() URL', url);
+				logger.debug(`respond() URL is ${url}`);
+
+				let app = serviceManager.getAppById(payload.app_id);
+
 				reply({
 					type:    'redirect',
 					payload: {
 						success: true,
 						app_id:  payload.app_id,
-						url:     url
+						url:     url,
+						external: app ? app.isRasp : false
 					}
 				});
 			});

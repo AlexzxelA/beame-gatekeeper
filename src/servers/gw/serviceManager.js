@@ -31,7 +31,9 @@ class ServiceManager {
 							app_id: parseInt(key),
 							online: approvedList[key].online,
 							code:   approvedList[key].code,
-							name:   approvedList[key].name
+							name:   approvedList[key].name,
+							//TODO change to normal manage logic
+							external:approvedList[key].isRasp
 						};
 					});
 					logger.debug('app list:', formattedList);
@@ -67,7 +69,9 @@ class ServiceManager {
 							app_id: app.id,
 							code:   app.code,
 							url:    app.url,
-							online: app.isOnline
+							online: app.isOnline,
+							//TODO change to normal manage logic
+							isRasp : app.code.startsWith('RASPBERRY_')
 						};
 					}
 
@@ -101,6 +105,12 @@ class ServiceManager {
 		let app = this._appList[app_id];
 
 		return app ? app.code : null;
+	}
+
+	getAppById(app_id) {
+		let app = this._appList[app_id];
+
+		return app;
 	}
 
 	isAdminService(app_id) {

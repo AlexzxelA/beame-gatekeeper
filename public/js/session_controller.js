@@ -114,8 +114,8 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				// 	}
 				// });
 				logoutUrl = payload.url;
-
 			}
+
 
 			if (payload.html) {
 
@@ -128,10 +128,13 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 			if (payload.url) {
 				setIframeUrl(payload.url);
 				// Redirect the main frame to payload.url
-				delete payload.url;
+				if(!payload.external) {
+					delete payload.url;
+				}
 			}
 
 			if (relay_socket) {
+				console.log('******** sendEncryptedData ', data);
 				sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
 			}
 
@@ -161,7 +164,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				var type = decryptedData.type;
 
 				console.log('MobileW data type', type);
-
+				relaySocket.emit('huy');
 				switch (type) {
 					case 'appCommand':
 						window.getNotifManagerInstance().notify('RASP_CMD',
