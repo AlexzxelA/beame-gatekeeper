@@ -28,7 +28,7 @@
 
             <div class="box-signin form-main relative" id="switch-box">
 
-                <h2>Choose Blue Pill or Red Pill — Bla bla bla</h2>
+                <h2>Raspberry Light Switch</h2>
 
                 <img id="img-light" class="no-select" src="img/light-off.png" width="200" height="200">
 
@@ -37,29 +37,6 @@
                     <input type="checkbox" id="switcher">
                     <div class="slider"></div>
                 </label>
-
-                <script>
-
-                    var toggleSwitch = document.getElementById('switcher');
-
-                    toggleSwitch.addEventListener('click', function(){
-                        if(toggleSwitch.checked == true){
-                            imgLight.src = 'img/light-on.png';
-                        } else {
-                            imgLight.src = 'img/light-off.png';
-                        }
-                    });
-
-                </script>
-
-
-                <!--<div>
-
-                    <button id="btn-light-on" class="button button-inline" onclick="sendCmd(this,'on', true)">ON</button>
-
-                    <button id="btn-light-off" class="button button-inline disabled" onclick="sendCmd(this,'off',true)">OFF</button>
-
-                </div>-->
 
                 <div id="rasp-msg"></div>
             </div>

@@ -158,7 +158,10 @@ gulp.task('web_sass', function () {
 		.pipe(sass())
 		.pipe(gulp.dest('./apps/stream/public/css/'));
 
-	gulp.src(web_src_root_path + 'scss/*.scss')
+});
+
+gulp.task('rasp_sass', function () {
+	gulp.src('./apps/rasp/public/scss/*.scss')
 		.pipe(sass())
 		.pipe(gulp.dest('./apps/rasp/public/css/'));
 

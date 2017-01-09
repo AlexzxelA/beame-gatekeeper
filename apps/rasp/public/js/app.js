@@ -3,33 +3,17 @@
  */
 "use strict";
 
-var imgLight,btnLightOn,btnLightOff,raspMsgContainer , _socket = null;
+var imgLight,raspMsgContainer, toggleSwitch , _socket = null;
 
-function sendCmd(sender,cmd, sendMessage){
+function sendCmd(cmd){
 
-	// if(hasClass(sender,'disabled')){
-	// 	return;
-	// }
 
-	switch (cmd){
-		case 'on':
-			imgLight.src = 'img/light-on.png';
-			addClass(btnLightOn,'disabled');
-			removeClass(btnLightOff,'disabled');
-			break;
-		case 'off':
-			imgLight.src = 'img/light-off.png';
-			addClass(btnLightOff,'disabled');
-			removeClass(btnLightOn,'disabled');
-			break;
-	}
+	_socket.emit('switch',{cmd:cmd});
 
 	var xhr = new XMLHttpRequest();
 	var url = "/switch/" + cmd;
 	xhr.open("POST", url, true);
-	if(sendMessage){
-		_socket.emit('switch',{cmd:cmd});
-	}
+
 	xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 	xhr.onreadystatechange = function () {
 		if (xhr.readyState == 4 && xhr.status == 200) {
@@ -48,17 +32,44 @@ function sendCmd(sender,cmd, sendMessage){
 	xhr.send();
 }
 
+function switchLighter(isOn){
+	if(isOn){
+		imgLight.src = 'img/light-on.png';
+
+	} else {
+		imgLight.src = 'img/light-off.png';
+	}
+
+	toggleSwitch.checked = isOn;
+}
+
 function onRaspLoaded(){
 	imgLight = document.getElementById('img-light');
-	btnLightOn = document.getElementById('btn-light-on');
-	btnLightOff = document.getElementById('btn-light-off');
 	raspMsgContainer= document.getElementById('rasp-msg');
+
+
+	toggleSwitch = document.getElementById('switcher');
+
+	toggleSwitch.addEventListener('click', function(){
+		var cmd;
+		if(toggleSwitch.checked == true){
+
+			cmd = 'on';
+		} else {
+
+			cmd = 'off';
+		}
+
+		switchLighter(cmd == 'on');
+
+		sendCmd(cmd);
+	});
 
 	_socket = io.connect('/light', {'force new connection': true});
 
 	_socket.on('switch',function(data){
 		if(data && data.cmd){
-			sendCmd(data.cmd == 'on' ? btnLightOn : btnLightOff,data.cmd, false);
+			switchLighter(data.cmd == 'on');
 		}
 	});
 

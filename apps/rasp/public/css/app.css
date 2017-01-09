@@ -25,6 +25,7 @@ body, html {
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%); } }
+
 .logo {
   margin: 40px auto;
   display: block; }
@@ -38,6 +39,7 @@ body, html {
   .logo-insta {
     margin: 20px 0;
     text-align: left; } }
+
 .disabled {
   opacity: 0.5; }
 
@@ -51,14 +53,17 @@ body, html {
   .left-column__wrapper {
     background: none;
     padding: 0; } }
+
 @media screen and (min-width: 595px) {
   .left-column__wrapper.wider {
     padding: 50px 100px 70px; } }
+
 @media screen and (min-width: 595px) {
   .left-column__wrapper.wider-2 {
     margin-top: 0;
     padding: 20px;
     padding-bottom: 40px; } }
+
 .right-column__wrapper {
   padding-left: 15%; }
 
@@ -70,6 +75,7 @@ body, html {
   .right-column__wrapper {
     padding-left: 0;
     padding-bottom: 40px; } }
+
 h1 {
   font-family: "Source Sans Pro", Helvetica, Arial sans-serif;
   font-size: 3.5em;
@@ -93,11 +99,11 @@ h2 {
 @media screen and (max-width: 540px) {
   h1 {
     font-size: 2.5em; }
-
   h2 {
     font-size: 2em;
     padding-right: 0;
     padding-left: 0; } }
+
 .main-title {
   color: #7030a0; }
 
@@ -118,6 +124,7 @@ h3 {
 @media screen and (max-width: 540px) {
   h3 {
     font-size: 1.6em; } }
+
 p, div, input {
   font-family: "Source Sans Pro", Helvetica, Arial sans-serif; }
 
@@ -129,6 +136,7 @@ p {
 @media screen and (max-width: 540px) {
   p {
     font-size: 17px; } }
+
 p.nomar {
   margin: 0; }
 
@@ -138,6 +146,7 @@ p.nomar {
 @media screen and (max-width: 540px) {
   .small {
     font-size: 16px; } }
+
 .bold {
   font-weight: bold; }
 
@@ -161,6 +170,7 @@ p + p {
 @media screen and (max-width: 540px) {
   .star-icon::before {
     top: 0; } }
+
 .relative {
   position: relative; }
 
@@ -185,9 +195,9 @@ p + p {
 @media only all and (max-width: 595px) {
   .steps li {
     padding: 0 0 20px 40px; }
-
   .steps li .fluid {
     font-size: 3vw; } }
+
 .steps li:before {
   content: counter(steps-counter);
   counter-increment: steps-counter;
@@ -207,6 +217,7 @@ p + p {
     font: bold 16px/30px sans-serif;
     width: 30px;
     height: 30px; } }
+
 .steps li .micro {
   font-size: 16px;
   display: block;
@@ -215,6 +226,7 @@ p + p {
 @media screen and (max-width: 540px) {
   .steps li .micro {
     font-size: 14px; } }
+
 .code {
   display: inline-block;
   margin-top: 5px;
@@ -238,12 +250,14 @@ p + p {
 @media screen and (max-width: 1300px) {
   .form-main {
     padding: 20px 40px; } }
+
 @media screen and (max-width: 540px) {
   .form-main {
     max-width: 100%;
     border-radius: 0;
     margin-bottom: 0;
     padding: 10px; } }
+
 .form-main .captcha-wrapper {
   height: 78px;
   margin: 10px auto;
@@ -255,12 +269,14 @@ p + p {
     transform: scale(0.8);
     transform-origin: 0 0;
     -webkit-transform-origin: 0 0; } }
+
 @media screen and (max-width: 540px) {
   .form-main .captcha-wrapper {
     -webkit-transform: scale(0.82);
     transform: scale(0.82);
     transform-origin: 0 0;
     -webkit-transform-origin: 0 0; } }
+
 .form-main .agree-wrapper {
   display: block;
   margin: 15px 0; }
@@ -337,6 +353,7 @@ p + p {
     font-weight: bold;
     line-height: 60px;
     white-space: nowrap; } }
+
 .overlay {
   position: fixed;
   top: 0;
@@ -408,6 +425,7 @@ p + p {
 @keyframes rotate {
   100% {
     transform: rotate(360deg); } }
+
 @keyframes dash {
   0% {
     stroke-dasharray: 1, 150;
@@ -418,6 +436,7 @@ p + p {
   100% {
     stroke-dasharray: 90, 150;
     stroke-dashoffset: -124; } }
+
 .box-signin {
   background: #fff;
   margin: auto;
@@ -500,11 +519,13 @@ p + p {
     -webkit-transform: rotate(0deg); }
   100% {
     -webkit-transform: rotate(360deg); } }
+
 @keyframes spin {
   0% {
     transform: rotate(0deg); }
   100% {
     transform: rotate(360deg); } }
+
 .error-message-signin {
   visibility: hidden;
   opacity: 0;
@@ -568,8 +589,12 @@ p + p {
     content: "On";
     color: #0099FF; }
 
+.light-on {
+  background: url("img/light-on.png") no-repeat center; }
+
+.light-off {
+  background: url("img/light-off.png") no-repeat center; }
+
 @media screen and (min-width: 1441px) {
   .vertical-shift {
     margin-top: 10vw; } }
-
-/*# sourceMappingURL=app.css.map */
