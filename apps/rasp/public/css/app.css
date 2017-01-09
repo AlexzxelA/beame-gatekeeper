@@ -83,8 +83,10 @@ h1 {
 h2 {
   font-size: 3em;
   font-weight: 500;
-  letter-spacing: -1.8px;
-  line-height: 1.1;
+  letter-spacing: -2px;
+  padding-right: 2rem;
+  padding-left: 2rem;
+  line-height: 1.2;
   color: #444;
   margin: 1rem auto; }
 
@@ -93,7 +95,9 @@ h2 {
     font-size: 2.5em; }
 
   h2 {
-    font-size: 2em; } }
+    font-size: 2em;
+    padding-right: 0;
+    padding-left: 0; } }
 .main-title {
   color: #7030a0; }
 
