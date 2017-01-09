@@ -3,28 +3,34 @@
  */
 "use strict";
 
-var imgLight, showSupportMessage = true;
+var imgLight,btnLightOn,btnLightOff,raspMsgContainer , _socket = null;
 
-function sendCmd(args){
+function sendCmd(sender,cmd, sendMessage){
 
-	if(! args || !args.cmd){
-		return;
-	}
-
-	var cmd = args.cmd;
+	// if(hasClass(sender,'disabled')){
+	// 	return;
+	// }
 
 	switch (cmd){
 		case 'on':
 			imgLight.src = 'img/light-on.png';
-		break;
+			addClass(btnLightOn,'disabled');
+			removeClass(btnLightOff,'disabled');
+			break;
 		case 'off':
 			imgLight.src = 'img/light-off.png';
+			addClass(btnLightOff,'disabled');
+			removeClass(btnLightOn,'disabled');
 			break;
 	}
 
 	var xhr = new XMLHttpRequest();
 	var url = "/switch/" + cmd;
 	xhr.open("POST", url, true);
+	if(sendMessage){
+		_socket.emit('switch',{cmd:cmd});
+	}
+	xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 	xhr.onreadystatechange = function () {
 		if (xhr.readyState == 4 && xhr.status == 200) {
 			var resp = JSON.parse(xhr.responseText);
@@ -33,10 +39,8 @@ function sendCmd(args){
 				//todo move button logic here
 			}
 			else if(resp.status == 500){
-				if(showSupportMessage){
-					alert(resp.message);
-					showSupportMessage = false;
-				}
+
+				raspMsgContainer.innerHTML = resp.message;
 
 			}
 		}
@@ -46,8 +50,22 @@ function sendCmd(args){
 
 function onRaspLoaded(){
 	imgLight = document.getElementById('img-light');
+	btnLightOn = document.getElementById('btn-light-on');
+	btnLightOff = document.getElementById('btn-light-off');
+	raspMsgContainer= document.getElementById('rasp-msg');
 
-	window.parent.getNotifManagerInstance().subscribe('RASP_CMD', sendCmd);
+	_socket = io.connect('/light', {'force new connection': true});
+
+	_socket.on('switch',function(data){
+		if(data && data.cmd){
+			sendCmd(data.cmd == 'on' ? btnLightOn : btnLightOff,data.cmd, false);
+		}
+	});
+
+	_socket.on('connect', function () {
+
+		console.log('light socket connected, ');
+	});
 }
 
 function hasClass(el, className) {

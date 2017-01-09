@@ -29,7 +29,13 @@
 
                 <img id="img-light" src="img/light-off.png" style="width:200px;height: 200px;display: block;margin: 0 auto">
 
-                <div id="rasp-msg-div"></div>
+                <div class="button-group expanded">
+                    <button id="btn-light-on" class="button button-inline" onclick="sendCmd(this,'on', true)">ON</button>
+
+                    <button id="btn-light-off" class="button button-inline disabled" onclick="sendCmd(this,'off',true)">OFF</button>
+                </div>
+
+                <div id="rasp-msg"></div>
             </div>
         </div>
     </div>
@@ -41,6 +47,7 @@
 <!-- endbuild -->
 
 <!--<script src="js/notification_manager.js"></script>-->
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

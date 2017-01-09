@@ -7,14 +7,14 @@ const logger      = new BeameLogger(module_name);
 const Service     = require('../../constants').SetupServices.RaspberryLight;
 const port = Service.port;
 const host = 'localhost';
-
+const http  = require('http');
 
 class Server {
 
 	start() {
 		var express = require('express');
 		var app     = express();
-		var http    = require('http').Server(app);
+		var httpServer    = http.createServer(app);
 
 		app.use(express.static(__dirname + '/public'));
 
@@ -40,10 +40,12 @@ class Server {
 				case "on":
 					led.writeSync(1);
 					res.status(200).json({cmd,status:200});
+					this._socketioServer.socket.emit('switch',{cmd});
 					break;
 				case "off":
 					led.writeSync(0);
 					res.status(200).json({cmd,status:200});
+					this._socketioServer.socket.emit('switch',{cmd});
 					break;
 				default:
 					res.status(200).json({message:'Hello? yes, this is pi!',status:201});
@@ -52,12 +54,23 @@ class Server {
 
 		});
 
-		http.listen(port, host, function () {
+		httpServer.listen(port, host, function () {
 			logger.info(`Listening on ${host}:${port}`);
 		});
 
 		this._app = app;
+
+		this._socketioServer = require('socket.io')(httpServer);
+		//noinspection JSUnresolvedFunction
+		this._socketioServer.of('light').on('connection', (socket) =>{
+			socket.on('switch',(data)=>{
+				socket.broadcast.emit('switch',data);
+			})
+		});
+
 	}
+
+
 }
 
 module.exports = Server;

@@ -164,13 +164,12 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				var type = decryptedData.type;
 
 				console.log('MobileW data type', type);
-				relaySocket.emit('huy');
 				switch (type) {
 					case 'appCommand':
-						window.getNotifManagerInstance().notify('RASP_CMD',
-							{
-								cmd:decryptedData.payload.data.cmd
-							});
+						// window.getNotifManagerInstance().notify('RASP_CMD',
+						// 	{
+						// 		cmd:decryptedData.payload.data.cmd
+						// 	});
 						break;
 					case 'mediaRequest':
 						var segment = '/' + (decryptedData.payload.url).split('/').pop();
