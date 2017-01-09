@@ -1,0 +1,31 @@
+Mobile Application:
+1. Change UI find a UI designer.
+2. switch to centralized matching.
+3. support login from mobile with matching creds for enabled application.
+4. apps refresh automatically. 
+5. support external user provisioning
+
+Insta-vpn
+1. Support user registration from admin + email, sms
+2. Optinonally support open registration url. (registraiton with approval) 
+3. view photos in the admin tool (optional tool) 
+4. get insta-server to created under the correct location in the fqdn tree 
+5. logs and active sessions
+6. report for registrations
+
+Central Login URL 
+hosting, cert, etc. 
+
+
+beame-sdk 
+1. additonal creds creation commands. (it work right).
+2. support san (for local-ip, and global ip), we need to agree on a naming convention and add relevant CLI commands.
+
+ip and port mapping for viztek 
+add a way to custom metadata to be given to provisioning to create sha1 of that data and create a instanceid of the fqdn from that data. 
+
+Backend: 
+
+push notifications to mailchimp and salesforceiq.
+
+
