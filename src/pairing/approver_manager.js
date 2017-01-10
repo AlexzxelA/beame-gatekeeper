@@ -62,7 +62,7 @@ class ApproverManager {
 
 		this.approvers[approver.sessionId] = approver;
 
-		logger.debug(`[${approver.sessionId}] Session START on ${socket.id}`);
+		logger.debug(`Approver [${approver.sessionId}] START on ${socket.id}`);
 
 		approver.start();
 
