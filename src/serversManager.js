@@ -4,16 +4,17 @@
 "use strict";
 const async = require('async');
 
-
+const apiConfig   = require('../config/api_config.json');
 const beameSDK    = require('beame-sdk');
 const module_name = "ServersManager";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
-const CommonUtils = beameSDK.CommonUtils;
-const Bootstrapper     = require('./bootstrapper');
-const bootstrapper     = Bootstrapper.getInstance();
-const Constants = require('../constants');
+const CommonUtils       = beameSDK.CommonUtils;
+const Bootstrapper      = require('./bootstrapper');
+const bootstrapper      = Bootstrapper.getInstance();
+const Constants         = require('../constants');
+const BeameAuthServices = require('./authServices');
 
 class ServersManager {
 
@@ -31,71 +32,130 @@ class ServersManager {
 
 	start() {
 
-		const _startMatching = () => {
+		const _initAuthServices = () => {
+			new BeameAuthServices(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
+			return Promise.resolve();
+
+		};
+
+		const _startMatching  = () => {
 			return new Promise((resolve, reject) => {
-				const MatchingServer = require('BeameMatchingServer').Server;
 
-				let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
+					const externalMatchingFqdn = bootstrapper.externalMatchingFqdn;
 
-				matching_server.start((error, app) => {
-					if (!error) {
-						logger.info(`Matching server started on https://${this._settings.MatchingServer.fqdn}`);
-						this._servers[Constants.CredentialType.MatchingServer] = app;
-						resolve();
+					if (!externalMatchingFqdn) {
+						const MatchingServer = require('BeameMatchingServer').Server;
+
+						let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
+
+						matching_server.start((error, app) => {
+							if (!error) {
+								logger.info(`Matching server started on https://${this._settings.MatchingServer.fqdn}`);
+								this._servers[Constants.CredentialType.MatchingServer] = app;
+								resolve();
+							}
+							else {
+								reject(error);
+							}
+						});
+
 					}
 					else {
-						reject(error);
+
+
+						const _registerClientOnMatching = (fqdn) => {
+
+							return new Promise((resolve, reject) => {
+									try {
+										const ProvisionApi      = beameSDK.ProvApi,
+										      BeameAuthServices = require('./authServices'),
+										      authServices      = BeameAuthServices.getInstance();
+
+
+										let sign         = authServices.signData(fqdn),
+										    provisionApi = new ProvisionApi(),
+										    url          = `${externalMatchingFqdn}${apiConfig.Actions.Matching.RegisterClient.endpoint}/${fqdn}`,
+										    data         = {
+											    fqdn:       fqdn,
+											    public_key: ''
+										    };
+
+										provisionApi.postRequest(`https://${url}`, data, (error) => {
+											if (error) {
+												reject(error);
+											}
+											else {
+												resolve();
+											}
+										}, sign);
+									} catch (e) {
+										reject(e);
+									}
+								}
+							);
+						};
+
+						bootstrapper.updateCredsFqdn(externalMatchingFqdn, Constants.CredentialType.ExternalMatchingServer)
+							.then(_registerClientOnMatching.bind(this, this._settings.GatewayServer.fqdn))
+							.then(_registerClientOnMatching.bind(this, this._settings.BeameAuthorizationServer.fqdn))
+							.then(resolve).catch(reject);
 					}
-				});
+
 				}
 			);
 		};
 		const _startBeameAuth = () => {
 			return new Promise((resolve, reject) => {
-				const BeameAuthServer = require('../src/servers/beame_auth/server');
+					const BeameAuthServer = require('../src/servers/beame_auth/server');
 
-				let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
+					let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.ExternalMatchingServer.fqdn || this._settings.MatchingServer.fqdn);
 
-				beame_auth_server.start((error, app) => {
-					if (!error) {
-						logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
-						this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
-						resolve()
-					}
-					else {
-						reject(error);
-					}
-				});
+					beame_auth_server.start((error, app) => {
+						if (!error) {
+							logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
+							this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
+							resolve()
+						}
+						else {
+							reject(error);
+						}
+					});
 				}
 			);
 		};
-		const _startGateway = () => {
+		const _startGateway   = () => {
 			return new Promise((resolve, reject) => {
-				logger.debug('SETTINGS', this._settings);
-				const gws = new (require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn, this._settings.MatchingServer.fqdn, this._serviceManager);
-				gws.start((error, app) => {
-					if (!error) {
-						logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
-						this._servers[Constants.CredentialType.GatewayServer] = app;
-						resolve(null);
-					}
-					else {
-						reject(error);
-					}
-				});
+					logger.debug('SETTINGS', this._settings);
+					const gws = new (require('./servers/gw/gateway'))(this._settings.GatewayServer.fqdn, this._settings.ExternalMatchingServer.fqdn || this._settings.MatchingServer.fqdn, this._serviceManager);
+					gws.start((error, app) => {
+						if (!error) {
+							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
+							this._servers[Constants.CredentialType.GatewayServer] = app;
+							resolve(null);
+						}
+						else {
+							reject(error);
+						}
+					});
 				}
 			);
 		};
 
+		const _registerCustomerAuthServer = () =>{
+			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
+		};
 
 		async.parallel([
 				callback => {
-
-					_startMatching()
+					_initAuthServices()
+						.then(_startMatching.bind(this))
 						.then(_startBeameAuth.bind(this))
 						.then(_startGateway.bind(this))
+						.then(_registerCustomerAuthServer.bind(this))
 						.then(callback)
-						.catch(error=>{callback(error)});
+						.catch(error => {
+							callback(error)
+						});
 
 				},
 				callback => {
@@ -128,8 +188,6 @@ class ServersManager {
 			error => {
 				if (error) {
 
-					logger.error(`server starting error: ${BeameLogger.formatError(error)}`);
-
 					for (let type in this._servers) {
 						//noinspection JSUnfilteredForInLoop
 						let server = this._servers[type];
@@ -138,6 +196,8 @@ class ServersManager {
 							server.stop();
 						}
 					}
+
+					logger.fatal(`server starting error: ${BeameLogger.formatError(error)}`);
 				}
 				else {
 					logger.info(`Servers started successfully`);

@@ -34,7 +34,7 @@ class BeameAuthServer {
 
 		this._matchingServerFqdn = matchingServerFqdn;
 
-		this._beameAuthServices = new BeameAuthServices(this._fqdn,matchingServerFqdn);
+		this._beameAuthServices = BeameAuthServices.getInstance();
 
 		/** @type {MessagingCallbacks} */
 		this._callbacks = {

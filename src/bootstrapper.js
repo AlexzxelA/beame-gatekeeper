@@ -52,8 +52,8 @@ var bootstrapperInstance;
 class Bootstrapper {
 
 	constructor() {
-		let config   = DirectoryServices.readJSON(AppConfigJsonPath);
-		this._config = CommonUtils.isObjectEmpty(config) ? null : config;
+		let config            = DirectoryServices.readJSON(AppConfigJsonPath);
+		this._config          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._sequilizeBinary = CommonUtils.getSequelizeBinaryPath();
 	}
 
@@ -147,7 +147,7 @@ class Bootstrapper {
 				return;
 			}
 
-			let emptyServers = CommonUtils.filterHash(creds, (k, v) => v.fqdn === "");
+			let emptyServers = CommonUtils.filterHash(creds, (k, v) => v.fqdn === "" && v.internal);
 
 			if (!CommonUtils.isObjectEmpty(emptyServers)) {
 				Object.keys(emptyServers).forEach(key => logger.info(`${key} not found`));
@@ -166,7 +166,7 @@ class Bootstrapper {
 
 		let emptyServers = CommonUtils.filterHash(creds, (k, v) => v.fqdn === "");
 
-		return CommonUtils.filterHash(emptyServers, (k, v) => v.server);
+		return CommonUtils.filterHash(emptyServers, (k, v) => v.server && v.internal);
 	}
 
 	/**
@@ -209,8 +209,8 @@ class Bootstrapper {
 
 				creds[credType]["fqdn"] = fqdn;
 
-				DirectoryServices.saveFileSync(CredsJsonPath, CommonUtils.stringify(creds, true),(error) => {
-					if(error){
+				DirectoryServices.saveFileSync(CredsJsonPath, CommonUtils.stringify(creds, true), (error) => {
+					if (error) {
 						reject(error);
 						return;
 					}
@@ -267,6 +267,10 @@ class Bootstrapper {
 
 	get postSmsUrl() {
 		return this._config && this._config[SettingsProps.PostSmsUrl] ? this._config[SettingsProps.PostSmsUrl] : null;
+	}
+
+	get externalMatchingFqdn() {
+		return this._config && this._config[SettingsProps.ExternalMatchingFqdn] ? this._config[SettingsProps.ExternalMatchingFqdn] : null;
 	}
 
 	get serviceName() {
@@ -329,6 +333,7 @@ class Bootstrapper {
 		return creds;
 	}
 
+	//noinspection JSMethodCanBeStatic
 	get version() {
 		return packageJson.version;
 	}
@@ -343,7 +348,11 @@ class Bootstrapper {
 	static _ensureBeameServerDir() {
 
 		return new Promise((resolve, reject) => {
-				Bootstrapper._ensureDir(BeameRootPath).then(Bootstrapper._ensureDir(ConfigFolderPath)).then(Bootstrapper._ensureDir(CredsFolderPath)).then(resolve).catch(reject);
+				Bootstrapper._ensureDir(BeameRootPath)
+					.then(Bootstrapper._ensureDir(ConfigFolderPath))
+					.then(Bootstrapper._ensureDir(CredsFolderPath))
+					.then(resolve)
+					.catch(reject);
 			}
 		);
 
@@ -369,8 +378,6 @@ class Bootstrapper {
 
 			}
 		);
-
-
 	}
 
 	_createAppConfigJson() {
@@ -487,7 +494,7 @@ class Bootstrapper {
 
 				if (isExists) {
 					logger.debug(`${CredsFileName} found...`);
-					resolve();
+					this._updateCredsConfigJson().then(resolve).catch(_onConfigError);
 				}
 				else {
 					this._createCredsConfigJson().then(resolve).catch(_onConfigError);
@@ -497,15 +504,64 @@ class Bootstrapper {
 	}
 
 	_createCredsConfigJson() {
+		let credsConfig = defaults.CredsConfigTemplate;
+
+		return this._saveCredsConfig(credsConfig);
+	}
+
+	_updateCredsConfigJson() {
 
 		return new Promise((resolve, reject) => {
-				let credsConfig = defaults.CredsConfigTemplate;
+				try {
+					let config      = DirectoryServices.readJSON(CredsJsonPath),
+					    credsConfig = defaults.CredsConfigTemplate,
+					    updateFile  = false;
 
+					if (CommonUtils.isObjectEmpty(config)) {
+						return this._createCredsConfigJson();
+					}
+
+					for (let prop in credsConfig) {
+						//noinspection JSUnfilteredForInLoop
+						if (!config.hasOwnProperty(prop)) {
+							updateFile   = true;
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = credsConfig[prop];
+						}
+						else {
+							//noinspection JSUnfilteredForInLoop
+							for (let subProp in credsConfig[prop]) {
+								//noinspection JSUnfilteredForInLoop
+								if (!config[prop].hasOwnProperty(subProp)) {
+									updateFile            = true;
+									//noinspection JSUnfilteredForInLoop
+									config[prop][subProp] = credsConfig[prop][subProp];
+								}
+							}
+						}
+					}
+
+					if (!updateFile) {
+						logger.debug(`no changes found for ${CredsFileName}...`);
+						resolve();
+						return;
+					}
+
+					return this._saveCredsConfig(config);
+
+				} catch (error) {
+					reject(error);
+				}
+			}
+		);
+	}
+
+	_saveCredsConfig(credsConfig) {
+		return new Promise((resolve, reject) => {
 				dirServices.saveFileAsync(CredsJsonPath, CommonUtils.stringify(credsConfig, true)).then(() => {
 					logger.debug(`${CredsFileName} saved in ${path.dirname(CredsJsonPath)}...`);
 					resolve();
 				}).catch(reject);
-
 			}
 		);
 	}
@@ -527,12 +583,21 @@ class Bootstrapper {
 					return;
 				}
 
+				if (servers.Servers.indexOf(fqdn) >= 0) {
+					resolve();
+					return;
+				}
+
 				servers.Servers.push(fqdn);
 
-			DirectoryServices.saveFileSync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers, true)).then(() => {
+				DirectoryServices.saveFileSync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers, true), (error) => {
+					if (error) {
+						reject(error);
+						return;
+					}
 					logger.info(`${fqdn} added to authorized customer servers...`);
 					resolve();
-				}).catch(reject);
+				});
 			}
 		);
 	}
@@ -542,7 +607,6 @@ class Bootstrapper {
 			resolve(DirectoryServices.readJSON(CustomerAuthServersJsonPath).Servers);
 		});
 	}
-
 
 	/**
 	 * @returns {Promise}
@@ -680,14 +744,13 @@ class Bootstrapper {
 
 	//region init sqlite db
 
-
 	_migrateSqliteSchema() {
 
 		logger.debug(`migrating sqlite schema...`);
 
 		return new Promise((resolve, reject) => {
 				//TODO implement https://github.com/sequelize/umzug
-				let args   = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
+				let args = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
 				try {
 					execFile(this._sequilizeBinary, args, (error) => {
@@ -711,7 +774,7 @@ class Bootstrapper {
 		logger.debug(`running sqlite seeders...`);
 
 		return new Promise((resolve, reject) => {
-				let args   = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
+				let args = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
 				try {
 					execFile(this._sequilizeBinary, args, (error) => {

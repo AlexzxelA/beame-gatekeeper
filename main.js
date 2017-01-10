@@ -149,7 +149,10 @@ if (args._[0] == 'server' || args._[0] == 'serve') {
 		.then(serviceManager.evaluateAppList.bind(serviceManager))
 		.then(getServersSettings)
 		.then(assertServersSettings)
-		.then(ServersManager.go.bind(null, serviceManager));
+		.then(ServersManager.go.bind(null, serviceManager))
+		.catch(error=> {
+			logger.fatal(`Start severs error ${BeameLogger.formatError(error)}`);
+		});
 
 	commandHandled = true;
 }

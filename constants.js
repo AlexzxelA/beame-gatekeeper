@@ -82,6 +82,7 @@ const CredentialType = {
 	GatewayServer:            "GatewayServer",
 	BeameAuthorizationServer: "BeameAuthorizationServer",
 	MatchingServer:           "MatchingServer",
+	ExternalMatchingServer:   "ExternalMatchingServer",
 	CustomerAuthServer:       "CustomerAuthServer"
 };
 

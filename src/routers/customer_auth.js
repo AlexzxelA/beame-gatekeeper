@@ -111,7 +111,10 @@ app.post('/register/save', (req, res) => {
 
 	function getSigningFqdn() {
 		return new Promise((resolve, reject) => {
-			Bootstrapper.listCustomerAuthServers().then(servers => resolve(servers[0])).catch(() => {
+			Bootstrapper.listCustomerAuthServers().then(servers => {
+				  servers.length ?	resolve(servers[0]) : reject(`Signing FQDN not found`);
+				}
+				).catch(() => {
 				reject('Failed getting signing FQDN');
 			});
 		});

@@ -22,7 +22,7 @@ const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
 
-const bucket_dir = 'insta-server';
+const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
 
@@ -257,7 +257,7 @@ gulp.task('compile-static', () => {
 	gulp.src('./public/templates/**/*').pipe(gulp.dest(`./${dist_folder_name}/templates/`));
 });
 
-gulp.task('compile', ['compile-css', 'compile-js', 'compile-pages', 'compile-static']);
+gulp.task('compile', ['sass','web_sass','rasp_sass','compile-css', 'compile-js', 'compile-pages', 'compile-static']);
 
 gulp.task('upload-to-S3', callback => {
 	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},

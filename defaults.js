@@ -23,12 +23,13 @@ const EncryptUserData           = true;
 const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
+
 //in sec
-const RegistrationAuthTokenTtl  = 60 * 10;
-const ProxyInitiatingTtl        = 60 * 10;
-const ProxySessionTtl           = 86400;
-const BrowserSessionTtl         = 86400;
-const CustomerInvitationTtl     = 60 * 60 * 24 * 2;
+const RegistrationAuthTokenTtl      = 60 * 10;
+const ProxyInitiatingTtl            = 60 * 10;
+const ProxySessionTtl               = 86400;
+const BrowserSessionTtl             = 86400;
+const CustomerInvitationTtl         = 60 * 60 * 24 * 2;
 // in millisec
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
@@ -53,10 +54,11 @@ const ConfigProps = {
 		ServiceName:                   "ServiceName",
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
-		UseBeameAuthOnLocal:"UseBeameAuthOnLocal",
+		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
+		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
-		"StartRaspberryApp" : "StartRaspberryApp",
+		StartRaspberryApp:             "StartRaspberryApp",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		PostSmsUrl:                    "PostSmsUrl",
@@ -67,7 +69,7 @@ const ConfigProps = {
 		ProxyInitiatingTtl:            "ProxyInitiatingTtl",
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
-		CustomerInvitationTtl:"CustomerInvitationTtl"
+		CustomerInvitationTtl:         "CustomerInvitationTtl"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -89,15 +91,23 @@ const CredsConfigTemplate = {
 	},
 	[Servers.GatewayServer]:            {
 		fqdn:   "",
-		server: true
+		server: true,
+		internal:true
 	},
 	[Servers.BeameAuthorizationServer]: {
 		fqdn:   "",
-		server: true
+		server: true,
+		internal:true
 	},
 	[Servers.MatchingServer]:           {
 		fqdn:   "",
-		server: true
+		server: true,
+		internal:true
+	},
+	[Servers.ExternalMatchingServer]:   {
+		fqdn:   "",
+		server: true,
+		internal:false
 	}
 };
 
@@ -119,6 +129,7 @@ module.exports = {
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
 
+	ExternalMatchingFqdn: "",
 	PostEmailUrl: "",
 	PostSmsUrl:   "",
 

@@ -20,6 +20,9 @@
         "Matching": {
             "SaveInvitation": {
                 "endpoint": "/v1/invitation/save"
+            },
+            "RegisterClient":{
+                "endpoint":"/v1/client/register"
             }
         }
     }

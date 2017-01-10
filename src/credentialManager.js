@@ -72,30 +72,23 @@ class CredentialManager {
 
 				async.each(Object.keys(servers), (serverType, callback) => {
 
-					//let t = CommonUtils.randomTimeout(20);
+					logger.info(`Creating credentials for ${serverType}`);
 
-					//logger.debug(`${serverType} timeout = ${t}`);
+					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, null).then(metadata=> {
 
-					setTimeout(()=> {
-						logger.info(`Creating credentials for ${serverType}`);
+						logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
 
-						CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, null).then(metadata=> {
-
-							logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
-
-							this._bootstrapper.updateCredsFqdn(metadata.fqdn, serverType).then(()=> {
-								callback();
-							}).catch(error => {
-								logger.error(BeameLogger.formatError(error));
-								callback(error);
-							});
-
+						this._bootstrapper.updateCredsFqdn(metadata.fqdn, serverType).then(()=> {
+							callback();
 						}).catch(error => {
 							logger.error(BeameLogger.formatError(error));
 							callback(error);
 						});
-					}, 0);
 
+					}).catch(error => {
+						logger.error(BeameLogger.formatError(error));
+						callback(error);
+					});
 
 				}, (err) => {
 					if (err) {

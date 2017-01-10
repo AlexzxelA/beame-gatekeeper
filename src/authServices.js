@@ -38,8 +38,7 @@ const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
 var dataService        = null;
 var beameAuthServices  = null;
-const nop              = function () {
-};
+const nop              = function () {};
 
 const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
 
@@ -93,7 +92,7 @@ class BeameAuthServices {
 							    name:  data.name,
 							    rand:  CommonUtils.randomBytes()
 						    },
-						    authToken  = this._signData(dataToSign);
+						    authToken  = this.signData(dataToSign);
 
 						const updateHash = () => {
 							dataService.updateRegistrationHash(registration.id, authToken).then(() => {
@@ -388,7 +387,7 @@ class BeameAuthServices {
 	 */
 	_registerFqdn(endpoint, metadata) {
 		return new Promise((resolve, reject) => {
-				let sign         = this._signData(metadata),
+				let sign         = this.signData(metadata),
 				    provisionApi = new ProvisionApi(),
 				    apiData      = beameSDK.ProvApi.getApiData(endpoint, metadata);
 
@@ -397,7 +396,7 @@ class BeameAuthServices {
 				provisionApi.runRestfulAPI(apiData, (error, payload) => {
 					if (!error) {
 						logger.printStandardEvent(module_name, BeameLogger.StandardFlowEvent.Registered, payload["fqdn"]);
-						payload["sign"] = this._signData(payload);
+						payload["sign"] = this.signData(payload);
 						resolve(payload);
 					}
 					else {
@@ -481,9 +480,8 @@ class BeameAuthServices {
 	 *
 	 * @param data2Sign
 	 * @returns {String}
-	 * @private
 	 */
-	_signData(data2Sign) {
+	signData(data2Sign) {
 		let sha = CommonUtils.generateDigest(data2Sign);
 
 		return AuthToken.create(sha, this._creds, bootstrapper.registrationAuthTokenTtl);
@@ -604,7 +602,7 @@ class BeameAuthServices {
 
 			return new Promise((resolve, reject) => {
 					try {
-						let sign         = this._signData(options),
+						let sign         = this.signData(options),
 						    provisionApi = new ProvisionApi(),
 						    fqdn         = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(new Buffer(regToken, 'base64').toString()).authToken).signedData.data).fqdn,
 						    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.SaveInvitation.endpoint}`,
@@ -631,7 +629,7 @@ class BeameAuthServices {
 
 		const sendEmail = (invitation) => {
 			return new Promise((resolve, reject) => {
-					let sign         = this._signData(options),
+					let sign         = this.signData(options),
 					    provisionApi = new ProvisionApi(),
 					    token        = {pin: invitation.pin, matching: this._matchingServerFqdn},
 					    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
@@ -655,7 +653,7 @@ class BeameAuthServices {
 
 		const sendSms = (regToken, invitation) => {
 			return new Promise((resolve, reject) => {
-					let sign         = this._signData(options),
+					let sign         = this.signData(options),
 					    provisionApi = new ProvisionApi(),
 					    smsToken     = {
 						    to:  phone_number,
