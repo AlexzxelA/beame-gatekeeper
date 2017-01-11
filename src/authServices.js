@@ -674,7 +674,7 @@ class BeameAuthServices {
 				return new Promise((resolve, reject) => {
 						let sign         = this.signData(options),
 						    provisionApi = new ProvisionApi(),
-						    token        = {pin: pin.pin, matching: this._matchingServerFqdn},
+						    token        = {pin: pin, matching: this._matchingServerFqdn},
 						    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
 						    emailToken   = {
 							    email:   options.email,
