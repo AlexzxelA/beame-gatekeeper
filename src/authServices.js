@@ -786,7 +786,7 @@ class BeameAuthServices {
 					.then(pin => {
 						//existing unfinished registration with pin found
 						if (pin) {
-							resolve({pin});
+							resolve(pin);
 							return;
 						}
 
