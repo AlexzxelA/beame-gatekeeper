@@ -520,6 +520,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 							userImageRequested = false;
 							TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
 							TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');
+							userData = decryptedData.payload.userID;
 							startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
 						}).catch(function () {
 							userImageRequested = false;
