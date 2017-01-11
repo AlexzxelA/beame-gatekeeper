@@ -24,7 +24,6 @@ function onUserAction(accepted){
 	}
 	else{
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));
-		alert('User rejected');
 		window.location.reload();
 	}
 }

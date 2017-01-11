@@ -20,6 +20,7 @@ var vUID = null,
 	virtHostAlive = 0,
 	pingVirtHost = null,
 	controlWindowTimer = null,
+	RelayPath = null,
 	RelayFqdn = null;
 
 var sessionValidationActive   = null,
@@ -94,6 +95,7 @@ function connectRelaySocket(relay, sign) {
 	if(virtRelaySocket)return virtRelaySocket;
 	if(!RelayFqdn || (RelayFqdn.indexOf(relay) < 0)){
 		RelayFqdn   = "https://" + relay + "/control";
+		RelayPath   = "https://" + relay;
 	}
 	virtRelaySocket = io.connect(RelayFqdn);
 	virtRelaySocket.on('connect',function () {
@@ -136,7 +138,7 @@ function initComRelay() {
 	virtRelaySocket.on('data', function (data) {
 		console.log('QR relay data');
 		TmpSocketID = data.socketId;
-		processMobileData(virtRelaySocket, {'QR':TMPsocketOriginQR, 'WH':TMPsocketOriginWh, 'GW':null}, data);
+		processMobileData(virtRelaySocket, {'QR':TMPsocketOriginQR, 'WH':TMPsocketOriginWh, 'GW':null, 'AP': TMPsocketOriginAp}, data);
 		virtRelaySocket.beame_relay_socket_id = data.socketId;
 	});
 
@@ -148,8 +150,8 @@ function initComRelay() {
 		clearInterval(connectToRelayRetry);
 		virtHostAlive = virtHostTimeout;
 		vUID = data.Hostname;
-		TMPsocketOriginWh && sendQrDataToWhisperer(RelayFqdn, vUID, TMPsocketOriginWh);
-		TMPsocketOriginAp && sendQrDataToApprover(RelayFqdn, vUID, TMPsocketOriginAp);
+		TMPsocketOriginWh && sendQrDataToWhisperer(RelayPath, vUID, TMPsocketOriginWh);
+		TMPsocketOriginAp && sendQrDataToApprover(RelayPath, vUID, TMPsocketOriginAp);
 		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
 		TMPsocketOriginQR && setQRStatus('Virtual host registration complete');
 		TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);

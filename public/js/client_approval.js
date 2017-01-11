@@ -77,9 +77,9 @@ function sendQrDataToApprover(relay, uid, socket) {
 			.then(function (keydata) {
 				var PK = arrayBufferToBase64String(keydata);
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
-
+console.log('data:',getParameterByName('data'));
 				var qrData       = JSON.stringify({
-					'relay': relay, 'PK': PK, 'UID': uid,
+					'relay': relay, 'PK': PK, 'UID': uid, 'imageRequired':userImageRequired,
 					'pin':   getParameterByName('pin'), 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': 'approval'
 				});
 				socket.emit('init_mobile_session', qrData);
@@ -89,12 +89,6 @@ function sendQrDataToApprover(relay, uid, socket) {
 		});
 	}
 }
-
-function _logout() {
-	deleteCookie('beame_reg_data');
-	logout();
-}
-
 
 function onUserAction(accepted){
 	if(accepted && originTmpSocket){

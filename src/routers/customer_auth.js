@@ -194,8 +194,8 @@ app.post('/register/save', (req, res) => {
 	}
 
 	authenticate(data)
-		.then(selectRegistrationMethod)
 		.then(encryptUserData)
+		.then(selectRegistrationMethod)
 		.then(getSigningFqdn)
 		.then(getSigningCred)
 		.then(getEncryptToCred)

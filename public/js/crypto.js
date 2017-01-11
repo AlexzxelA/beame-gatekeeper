@@ -320,14 +320,28 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	var decryptedData;
 
 	switch (type) {
+		case 'approval_request':
+			console.log('Registration approval started');
+			cb = function () {
+				console.log('Registration validation requesting image');
+				validateSession(userImageRequired).then(function () {
+					userImageRequested = false;
+
+				}).catch(function () {
+					userImageRequested = false;
+
+				});
+			};
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
+			return;
 		case 'info_packet_response':
 			console.log('info_packet_response data = ', data.payload.data);
 
-			var onPublicKeyImported = function (keydata) {
-				console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
-				sessionRSAPK = keydata;
-				initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
-			};
+			// var onPublicKeyImported = function (keydata) {
+			// 	console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
+			// 	sessionRSAPK = keydata;
+			// 	initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+			// };
 
 			function onError() {
 				console.log('Import *Encrypt Key* failed');
@@ -337,14 +351,14 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 				if (!err) {
 					decryptedData = JSON.parse(atob(decryptedDataB64));
 
-					if (cb) {
-						cb(decryptedData);
-						return;
-					}
-
 					var key2import = decryptedData.pk;
 
-					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(onPublicKeyImported).catch(onError());
+					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
+						console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
+						sessionRSAPK = keydata;
+						initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+					}).catch(onError());
+
 					importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
 						console.log("Successfully imported RSAPKCS PK from external source");
 						sessionRSAPKverify = keydata;
@@ -358,6 +372,10 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 						'socketId': tmpSocketID,
 						'payload':  'failed to decrypt mobile PK'
 					});
+				}
+				if (cb) {
+					cb(decryptedData);
+					// return;
 				}
 			}
 
@@ -467,7 +485,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 	originTmpSocket = originSocketArray.GW;
 	console.log('...Got message from mobile:',decryptedData);
 	if(decryptedData.source){
-		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : originSocketArray.WH;
+		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound')? originSocketArray.WH : originSocketArray.AP;
 	}
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
@@ -475,7 +493,8 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 				userImageRequested = true;
 				switch (auth_mode) {
 					case 'Provision':
-						originTmpSocket.emit('InfoPacketResponse',
+						if(decryptedData.reg_data)
+							originTmpSocket.emit('InfoPacketResponse',
 							{
 								'pin':       decryptedData.reg_data.pin,
 								'otp':       decryptedData.otp,
