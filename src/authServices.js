@@ -38,7 +38,8 @@ const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
 var dataService        = null;
 var beameAuthServices  = null;
-const nop              = function () {};
+const nop              = function () {
+};
 
 const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
 
@@ -108,8 +109,7 @@ class BeameAuthServices {
 
 
 				}).catch(error => {
-					console.log('FUCK! (1):', error.toString());
-					logger.error(BeameLogger.formatError(error));
+					logger.error(`Save registration error ${BeameLogger.formatError(error)}`);
 					reject(error);
 				});
 			}
@@ -576,166 +576,240 @@ class BeameAuthServices {
 	 */
 	sendCustomerInvitation(method, metadata, phone_number) {
 
-		let options      = {
-			    fqdn:         this._fqdn,
-			    name:         metadata.name,
-			    email:        metadata.email,
-			    userId:       metadata.user_id,
-			    matchingFqdn: this._matchingServerFqdn,
-			    serviceName:  bootstrapper.serviceName,
-			    serviceId:    bootstrapper.appId,
-			    ttl:          bootstrapper.customerInvitationTtl
-		    },
-		    postEmailUrl = null,
-		    postSmsUrl   = null;
+		let existingRegistrationRecord = null;
 
-		const getRegToken = () => {
+		const _findExistingRegistration = () => {
+
 			return new Promise((resolve, reject) => {
-					let cred = new beameSDK.Credential(store);
+					dataService.isRegistrationExists(metadata).then(registration => {
+						if (registration) {
 
-					cred.createMobileRegistrationToken(options).then(resolve).catch(reject);
+							existingRegistrationRecord = registration;
+
+							if (registration.completed) {
+								reject(`Customer with email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
+								return;
+							}
+
+							resolve(registration.pin);
+						}
+						else {
+							resolve(null);
+						}
+					}).catch(reject);
 				}
 			);
 		};
 
-		const saveInvitation = (regToken) => {
-
+		const _saveRegistration = data => {
 			return new Promise((resolve, reject) => {
-					try {
+					if (existingRegistrationRecord) {
+						dataService.updateRegistrationPin(existingRegistrationRecord.id, data.pin).then(() => {
+							resolve(data.pin);
+						}).catch(reject);
+					}
+					else {
+						this.saveRegistration(data).then(() => {
+							resolve(data.pin);
+						}).catch(reject);
+					}
+				}
+			);
+		};
+
+		const _sendCustomerInvitation = (method, _metadata, phone_number) => {
+
+			let options      = {
+				    fqdn:         this._fqdn,
+				    name:         _metadata.name,
+				    email:        _metadata.email,
+				    userId:       _metadata.user_id,
+				    matchingFqdn: this._matchingServerFqdn,
+				    serviceName:  bootstrapper.serviceName,
+				    serviceId:    bootstrapper.appId,
+				    ttl:          bootstrapper.customerInvitationTtl
+			    },
+			    postEmailUrl = null,
+			    postSmsUrl   = null;
+
+			const getRegToken = () => {
+				return new Promise((resolve, reject) => {
+						let cred = new beameSDK.Credential(store);
+
+						cred.createMobileRegistrationToken(options).then(resolve).catch(reject);
+					}
+				);
+			};
+
+			const saveInvitation = (regToken) => {
+
+				return new Promise((resolve, reject) => {
+						try {
+							let sign         = this.signData(options),
+							    provisionApi = new ProvisionApi(),
+							    fqdn         = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(new Buffer(regToken, 'base64').toString()).authToken).signedData.data).fqdn,
+							    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.SaveInvitation.endpoint}`,
+							    invitation   = {
+								    token: regToken,
+								    appId: bootstrapper.appId,
+								    fqdn:  fqdn
+							    };
+
+							provisionApi.postRequest(`https://${url}`, invitation, (error, payload) => {
+								if (error) {
+									reject(error);
+								}
+								else {
+									resolve(payload.data.pin);
+								}
+							}, sign);
+						} catch (e) {
+							reject(e);
+						}
+					}
+				);
+			};
+
+			const sendEmail = (pin) => {
+				return new Promise((resolve, reject) => {
 						let sign         = this.signData(options),
 						    provisionApi = new ProvisionApi(),
-						    fqdn         = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(new Buffer(regToken, 'base64').toString()).authToken).signedData.data).fqdn,
-						    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.SaveInvitation.endpoint}`,
-						    invitation   = {
-							    token: regToken,
-							    appId: bootstrapper.appId,
-							    fqdn:  fqdn
+						    token        = {pin: pin.pin, matching: this._matchingServerFqdn},
+						    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
+						    emailToken   = {
+							    email:   options.email,
+							    service: bootstrapper.serviceName,
+							    url:     `${UniversalLinkUrl}?token=${base64Token}`
 						    };
 
-						provisionApi.postRequest(`https://${url}`, invitation, (error, payload) => {
+						provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
 							if (error) {
 								reject(error);
 							}
 							else {
-								resolve(payload.data);
+								resolve({pin});
 							}
 						}, sign);
-					} catch (e) {
-						reject(e);
 					}
-				}
-			);
-		};
+				);
+			};
 
-		const sendEmail = (invitation) => {
-			return new Promise((resolve, reject) => {
-					let sign         = this.signData(options),
-					    provisionApi = new ProvisionApi(),
-					    token        = {pin: invitation.pin, matching: this._matchingServerFqdn},
-					    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
-					    emailToken   = {
-						    email:   options.email,
-						    service: bootstrapper.serviceName,
-						    url:     `${UniversalLinkUrl}?token=${base64Token}`
-					    };
+			const sendSms = (regToken, invitation) => {
+				return new Promise((resolve, reject) => {
+						let sign         = this.signData(options),
+						    provisionApi = new ProvisionApi(),
+						    smsToken     = {
+							    to:  phone_number,
+							    pin: invitation.pin
+						    };
 
-					provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
-						if (error) {
-							reject(error);
+						provisionApi.postRequest(postSmsUrl, smsToken, (error) => {
+							if (error) {
+								reject(error);
+							}
+							else {
+								resolve();
+							}
+						}, sign);
+					}
+				);
+			};
+
+			const assertEmail = () => {
+				return new Promise((resolve, reject) => {
+						if (!_metadata.email) {
+							reject(`Email required`);
+							return;
 						}
-						else {
-							resolve({pin: invitation.pin});
+
+						postEmailUrl = bootstrapper.postEmailUrl;
+
+						if (!postEmailUrl) {
+							reject(`Post Email url not defined`);
+							return;
 						}
-					}, sign);
-				}
-			);
-		};
 
-		const sendSms = (regToken, invitation) => {
-			return new Promise((resolve, reject) => {
-					let sign         = this.signData(options),
-					    provisionApi = new ProvisionApi(),
-					    smsToken     = {
-						    to:  phone_number,
-						    pin: invitation.pin
-					    };
+						resolve();
+					}
+				);
+			};
 
-					provisionApi.postRequest(postSmsUrl, smsToken, (error) => {
-						if (error) {
-							reject(error);
+			const assertSms = () => {
+				return new Promise((resolve, reject) => {
+						if (!phone_number) {
+							reject(`Phone number required`);
+							return;
 						}
-						else {
-							resolve();
+
+						postSmsUrl = bootstrapper.postSmsUrl;
+
+						if (!postSmsUrl) {
+							reject(`Post SMS url not defined`);
+							return;
 						}
-					}, sign);
-				}
-			);
-		};
 
-		const assertEmail = () => {
+						resolve();
+					}
+				);
+			};
+
 			return new Promise((resolve, reject) => {
-					if (!metadata.email) {
-						reject(`Email required`);
-						return;
+					switch (method) {
+						case Constants.RegistrationMethod.Email:
+							assertEmail()
+								.then(getRegToken)
+								.then(saveInvitation)
+								.then(sendEmail)
+								.then(resolve)
+								.catch(reject);
+							return;
+
+						case Constants.RegistrationMethod.SMS:
+							assertSms()
+								.then(getRegToken)
+								.then(saveInvitation)
+								.then(sendSms)
+								.then(resolve)
+								.catch(reject);
+							return;
+						default:
+							reject(`Unknown registration method`);
+							return;
 					}
-
-					postEmailUrl = bootstrapper.postEmailUrl;
-
-					if (!postEmailUrl) {
-						reject(`Post Email url not defined`);
-						return;
-					}
-
-					resolve();
-				}
-			);
-		};
-
-		const assertSms = () => {
-			return new Promise((resolve, reject) => {
-					if (!phone_number) {
-						reject(`Phone number required`);
-						return;
-					}
-
-					postSmsUrl = bootstrapper.postSmsUrl;
-
-					if (!postSmsUrl) {
-						reject(`Post SMS url not defined`);
-						return;
-					}
-
-					resolve();
 				}
 			);
 		};
 
 		return new Promise((resolve, reject) => {
-				switch (method) {
-					case Constants.RegistrationMethod.Email:
-						assertEmail()
-							.then(getRegToken)
-							.then(saveInvitation)
-							.then(sendEmail)
-							.then(resolve)
-							.catch(reject);
-						return;
 
-					case Constants.RegistrationMethod.SMS:
-						assertSms()
-							.then(getRegToken)
-							.then(saveInvitation)
-							.then(sendSms)
-							.then(resolve)
-							.catch(reject);
-						return;
-					default:
-						reject(`Unknown registration method`);
-						return;
-				}
+				_findExistingRegistration()
+					.then(pin => {
+						//existing unfinished registration with pin found
+						if (pin) {
+							resolve({pin});
+							return;
+						}
+
+						_sendCustomerInvitation(method, metadata, phone_number)
+							.then(data => {
+								if (!data.pin) {
+									reject(`pin not received`);
+									return;
+								}
+
+								metadata.pin = data.pin;
+
+								_saveRegistration(metadata).then(resolve).catch(reject);
+
+							}).catch(reject);
+
+					}).catch(reject);
+
 			}
 		);
+
 	}
+
 
 	getRequestAuthToken(req) {
 		return new Promise((resolve, reject) => {

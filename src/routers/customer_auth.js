@@ -72,8 +72,8 @@ app.post('/register/save', (req, res) => {
 						return;
 					case Constants.RegistrationMethod.Email:
 					case Constants.RegistrationMethod.SMS:
-						beameAuthServices.sendCustomerInvitation(method,data).then(invitation => {
-							data.pin = invitation.pin;
+						beameAuthServices.sendCustomerInvitation(method,data).then(pincode => {
+							data.pin = pincode;
 							resolve();
 						}).catch(reject);
 						return;

@@ -105,6 +105,7 @@ class SqliteServices {
 							name:           data.name,
 							email:          data.email,
 							externalUserId: data.user_id,
+							pin:            data.pin,
 							fqdn:           data.fqdn || null
 						}).then(record => {
 							resolve(record.dataValues);
@@ -226,6 +227,32 @@ class SqliteServices {
 
 						record.update({hash: hash, hashValidTill: valid_till}).then(regs => {
 							resolve(regs.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
+
+	updateRegistrationPin(id, pin) {
+		return new Promise((resolve, reject) => {
+				try {
+					let registration = this._models.registrations;
+					//noinspection JSUnresolvedFunction
+					registration.findById(id).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`Registration record not found`));
+							return;
+						}
+						record.update({pin: pin}).then(() => {
+							resolve();
 						}).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
@@ -478,7 +505,7 @@ class SqliteServices {
 	 * @param {String} fqdn
 	 * @param {Boolean} isActive
 	 */
-	updateUserActiveStatus(fqdn,isActive) {
+	updateUserActiveStatus(fqdn, isActive) {
 		return new Promise((resolve, reject) => {
 				try {
 					let model = this._models.users;
@@ -586,7 +613,7 @@ class SqliteServices {
 							return;
 						}
 						record.update({
-							name:  user.name,
+							name:     user.name,
 							nickname: user.nickname
 						}).then(entity => {
 							resolve(entity.dataValues);

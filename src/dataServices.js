@@ -113,6 +113,10 @@ class DataServices {
 		return this._dbService.updateRegistrationHash(id, sign);
 	}
 
+	updateRegistrationPin(id, pin) {
+		return this._dbService.updateRegistrationPin(id, pin);
+	}
+
 	/**
 	 * @param {String} hash
 	 * @param {String} fqdn
@@ -121,6 +125,7 @@ class DataServices {
 	updateRegistrationFqdn(hash, fqdn) {
 		return this._dbService.updateRegistrationFqdn(hash, fqdn);
 	}
+
 
 	/**
 	 * @param {String} hash

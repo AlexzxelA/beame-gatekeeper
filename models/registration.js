@@ -18,6 +18,10 @@ module.exports = function (sequelize, DataTypes) {
 				type:     DataTypes.STRING,
 				allowNull : true
 			},
+			pin:         {
+				type:     DataTypes.STRING,
+				allowNull : true
+			},
 			hash:          {
 				type:   DataTypes.TEXT,
 				unique: true
