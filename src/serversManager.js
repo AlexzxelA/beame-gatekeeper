@@ -32,11 +32,6 @@ class ServersManager {
 
 	start() {
 
-		const _initAuthServices = () => {
-			new BeameAuthServices(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
-			return Promise.resolve();
-
-		};
 
 		const _startMatching  = () => {
 			return new Promise((resolve, reject) => {
@@ -44,6 +39,9 @@ class ServersManager {
 					const externalMatchingFqdn = bootstrapper.externalMatchingFqdn;
 
 					if (!externalMatchingFqdn) {
+
+						new BeameAuthServices(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
+
 						const MatchingServer = require('BeameMatchingServer').Server;
 
 						let matching_server = new MatchingServer(this._settings.MatchingServer.fqdn, null, [this._settings.GatewayServer.fqdn, this._settings.BeameAuthorizationServer.fqdn]);
@@ -62,6 +60,7 @@ class ServersManager {
 					}
 					else {
 
+						new BeameAuthServices(this._settings.BeameAuthorizationServer.fqdn, externalMatchingFqdn);
 
 						const _registerClientOnMatching = (fqdn) => {
 
@@ -147,8 +146,7 @@ class ServersManager {
 
 		async.parallel([
 				callback => {
-					_initAuthServices()
-						.then(_startMatching.bind(this))
+						_startMatching()
 						.then(_startBeameAuth.bind(this))
 						.then(_startGateway.bind(this))
 						.then(_registerCustomerAuthServer.bind(this))
