@@ -15,16 +15,10 @@
     <link rel="stylesheet" href="css/app.css">
     <!-- endbuild -->
 
-
-    <!-- Scripts -->
-    <!-- build:approval-js-head -->
-    <script src="js/utils.js"></script>
-    <script src="js/client_approval.js"></script>
-    <!-- endbuild -->
-
 </head>
 <body>
 
+<script src="js/utils.js"></script>
 
 <div class="main-wrapper">
 
@@ -92,29 +86,34 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
+    document.addEventListener("DOMContentLoaded", function () {
+        imgBox       = document.getElementById('user-img-box');
+        lblReqImg    = document.getElementById('lbl-req-img');
+        imgBox.style.display    = 'block';
+        lblReqImg.style.display = 'block';
+    });
+</script>
 
 <!-- Scripts -->
 <!-- build:lib -->
+<script src="lib/jquery-2.2.4.min.js"></script>
 <script src="lib/socket.io-1.4.5.min.js"></script>
 <script src="lib/angular-1.5.7.min.js"></script>
-<script src="lib/jquery-2.2.4.min.js"></script>
 <script src="lib/kendo-2016.3.1118.qr.min.js"></script>
 <!-- endbuild -->
 
 <!-- Scripts -->
+
 <!-- build:js -->
 <script src="js/crypto.js"></script>
 <script src="js/virt_host_controller.js"></script>
 <script src="js/notification_manager.js"></script>
 <script src="js/user_image.js"></script>
+<script src="js/client_approval.js"></script>
 <!-- endbuild -->
 
-<script>
-	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
-	document.addEventListener("DOMContentLoaded", function () {
-		imgBox.style.display    = 'block';
-		lblReqImg.style.display = 'block';
-	});
-</script>
+
 </body>
 </html>

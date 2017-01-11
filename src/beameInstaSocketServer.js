@@ -45,6 +45,8 @@ class BeameInstaSocketServer {
 		/** @type {Socket|null} */
 		this._socketioServer = null;
 
+		this._socketioServerAtPath = null;
+
 		this._server = srv;
 
 		this._whispererManager = null;
@@ -62,10 +64,11 @@ class BeameInstaSocketServer {
 		return new Promise((resolve, reject) => {
 				this._initWhispererManager()
 					.then(this._initQrMessaging.bind(this))
+					.then(this._initApproverManager.bind(this))
 					.then(this._startSocketioServer.bind(this))
 					.then(() => {
 						logger.info(`Socket Server started on ${this._fqdn}`);
-						resolve(this._socketioServer);
+						resolve({srv1:this._socketioServer, srv2:this._socketioServerAtPath});
 					}).catch(reject);
 			}
 		);
@@ -122,7 +125,9 @@ class BeameInstaSocketServer {
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
 
-		this._socketioServer.of('approver').on('connection', this._onApproverBrowserConnection.bind(this));
+		this._socketioServerAtPath = require('socket.io')(this._server,
+			Object.assign(this._options, {'path':'/customer-approve/socket.io'}));
+		this._socketioServerAtPath.of('approver').on('connection', this._onApproverBrowserConnection.bind(this));
 		return Promise.resolve();
 	}
 

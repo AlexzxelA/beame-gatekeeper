@@ -148,11 +148,12 @@ function initComRelay() {
 		clearInterval(connectToRelayRetry);
 		virtHostAlive = virtHostTimeout;
 		vUID = data.Hostname;
-		sendQrDataToWhisperer(RelayFqdn, vUID, TMPsocketOriginWh);
+		TMPsocketOriginWh && sendQrDataToWhisperer(RelayFqdn, vUID, TMPsocketOriginWh);
+		TMPsocketOriginAp && sendQrDataToApprover(RelayFqdn, vUID, TMPsocketOriginAp);
 		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
-		setQRStatus('Virtual host registration complete');
-		TMPsocketOriginQR.emit('virtSrvConfig', vUID);
-		keepVirtHostAlive(TMPsocketOriginQR);
+		TMPsocketOriginQR && setQRStatus('Virtual host registration complete');
+		TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
+		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
 	});
 

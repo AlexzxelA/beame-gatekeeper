@@ -8,10 +8,10 @@ const Constants    = require('../../constants');
 const beameSDK     = require('beame-sdk');
 const beameUtils   = beameSDK.BeameUtils;
 const CommonUtils  = beameSDK.CommonUtils;
-const authToken    = beameSDK.AuthToken;
 const store        = new (beameSDK.BeameStore)();
 const module_name  = "Approver";
 const BeameLogger  = beameSDK.Logger;
+const authToken    = beameSDK.AuthToken;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
@@ -56,6 +56,8 @@ class Approver {
 
 		//noinspection JSUnresolvedVariable
 		this._fqdn                    = serverFqdn;
+		this._edge = null;
+
 		this._matchingServerFqdn      = matchingServerFqdn;
 		this._callbacks               = callbacks;
 		this._socketDisconnectTimeout = socketDisconnectTimeout;
@@ -82,9 +84,11 @@ class Approver {
 					//for future use of client certificates
 					let opts   = this._creds.getHttpsServerOptions();
 					/** @type {Socket} */
-					let socket = require('socket.io-client')(this._matchingServerFqdn + '/approver', opts);
+					let socket = require('socket.io-client')(this._matchingServerFqdn + '/approve', opts);
 					/** @type {Socket} */
 					this.matchingServerSocketClient = socket;
+
+					socket.on('mobile_matched', this.mobileConnected.bind(this));
 
 					socket.on('connect', () => {
 						let signature = this._creds.sign({fqdn: this._fqdn});
@@ -93,33 +97,33 @@ class Approver {
 						resolve();
 					});
 
-					socket.on('new_pin', (randomNumbers) => {
-						this._currentPin = randomNumbers;
-						this._socket.emit('pindata', randomNumbers);
-						if (this._jsonQrData) {
-							console.log('approver: sending qrData to matching:', this._jsonQrData);
-							this._jsonQrData['currentPin'] = this._currentPin;
-							socket.emit('qrData', JSON.stringify(this._jsonQrData));
-						}
-						else {
-							this._socket.emit('requestQrData');
-						}
-					});
 
-					socket.on('mobile_matched', this.mobileConnected.bind(this));
 				} catch (e) {
+					logger.info(`initMatchingServerSocketClient failure ${e.message}`);
 					reject(e);
 				}
 			}
 		);
+	}
 
+	mobileConnected(message) {
+		logger.debug(`User identified!! Service stopped, ${this._qrData}`);
+		this._socket.emit('connect_ok');
 	}
 
 	start() {
+		logger.info('Starting approver');
+		this._getEdgeEndpoint();
 		const pairingUtils      = require('./pairing_utils');
 		this._pairingUtils      = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
 			this._socket, module_name);
 		this._pairingUtils.setCommonHandlers();
+
+		this._socket.on('browser_connected', (data) => {
+			logger.debug('<< Approver browser_connected:', data);
+			this._signBrowserHostname(this._socket, data);
+			//var signature = crypto.sign(data.UID, authServices.getMyFqdn());
+		});
 
 		this._socket.on('init_mobile_session', qrData => {
 			this._qrData = qrData;
@@ -152,69 +156,6 @@ class Approver {
 				this._socket = null;
 			});
 
-			this._socket.on('virtSrvConfig', (data) => {
-				logger.debug('<< virtSrvConfig:', data);
-				//var signature = crypto.sign(data.UID, authServices.getMyFqdn());
-
-				const onEdgeServerSelected = edge => {
-
-					let fqdn     = this._fqdn,
-					    cred     = store.getCredential(fqdn),
-					    token    = authToken.create(data.UID, cred, 10),
-					    tokenStr = CommonUtils.stringify({
-						    "data":      edge.endpoint,
-						    'signature': token
-					    });
-
-					this._socket.emit("relayEndpoint", tokenStr);
-				};
-
-				beameUtils.selectBestProxy(Constants.LoadBalancerURL, 100, 1000, (error, payload) => {
-					if (!error) {
-						onEdgeServerSelected.call(this, payload);
-					}
-					else {
-						this._socket.emit("network_problem", `Network problem: Relay server could not be found, try again later`);
-
-					}
-				});
-
-			});
-
-			this._socket.on('InfoPacketResponse', (data) => {
-				logger.debug('InfoPacketResponse:', data);
-				//createEntityWithAuthServer
-
-				let metadata = {
-					name:      data.name,
-					email:     data.email,
-					edge_fqdn: data.edge_fqdn,
-					pin:       data.pin,
-					user_id:   data.user_id
-				};
-
-				let registerFqdnFunc = this._callbacks["RegisterFqdn"];
-
-				if (!registerFqdnFunc) {
-					logger.error(`registration callback not defined`);
-					return;
-				}
-
-				registerFqdnFunc(metadata).then(payload => {
-					this._deleteSession(data.pin);
-					//add service name and matching fqdn for use on mobile
-					payload.imageRequired = bootstrapper.registrationImageRequired;
-					payload.matching = this._matchingServerFqdn;
-					payload.service  = this._serviceName;
-					this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
-				}).catch(e => {
-					logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
-					this._socket.emit("mobileProv1", {
-						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
-						'type': 'mobileSessionFail'
-					});
-				});
-			});
 
 			this._socket.on('InfoPacketResponseError', (data) => {
 				logger.error(`Approver Messaging InfoPacketResponseError`, data);
@@ -280,9 +221,19 @@ class Approver {
 		};
 
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);
-		this._socket.emit('init_mobile_session', {pin: this._sessionId, 'matching':this._matchingServerFqdn, 'service':this._serviceName, 'appId':bootstrapper.appId});
+		this._socket.emit('init_mobile_session',
+			{pin: this._sessionId, 'matching':this._matchingServerFqdn, 'service':this._serviceName, 'appId':bootstrapper.appId});
 		this.matchingServerSocketClient.emit('create_session', data);
 
+		this.matchingServerSocketClient.on('requestQrData', ()=>{
+			let waitingForData = setInterval(() => {
+				if(this._qrData){
+					clearInterval(waitingForData);
+					logger.debug('Sending qrData to matching');
+					this.matchingServerSocketClient.emit('qrData', JSON.stringify(this._jsonQrData));
+				}
+			}, 200);
+		});
 	}
 
 	stop() {
@@ -298,32 +249,44 @@ class Approver {
 		this.matchingServerSocketClient.emit('stop_play', data);
 	}
 
-	mobileConnected(message) {
-		logger.debug(`User identified!! Audio stopped, ${this._qrData}`);
-		this._socket.emit('connect_ok', 'qrData ok:' + (this._qrData != null));
-		let retryCount = 0;
+	_getEdgeEndpoint(){
+		return new Promise((resolve, reject)=>{
+			beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
+				if (!error) {
+					this._edge = payload;
+					resolve();
+				}
+				else {
+					this._edge = null;
+					reject();
+				}
+			});
+		});
 
-		let sessionRetry = setInterval(() => {
-			if (this._mobileSocket && this._qrData) {
-				clearInterval(sessionRetry);
-				//this.stop();
-				let qrDataObj         = JSON.parse(this._qrData);
-				qrDataObj['service']  = this._serviceName;
-				qrDataObj['matching'] = this._matchingServerFqdn;
-				qrDataObj['appId']    = bootstrapper.appId;
-				logger.debug('Approver sending data to mobile:', JSON.stringify(qrDataObj));
-				this._mobileSocket.emit('session_data', JSON.stringify(qrDataObj));
-			}
-			else {
-				if (retryCount++ > 30) {
-					logger.debug('Failed to send session data to mobile');
-					clearInterval(sessionRetry);
-					this._socket.emit('mobile_network_error');
+	}
+
+	_signBrowserHostname(socket , data) {
+		let waiting = false;
+		let signTimer = setInterval(()=>{
+			if (this._edge) {
+				clearInterval(signTimer);
+				let fqdn     = this._fqdn,
+					cred     = store.getCredential(fqdn),
+					token    = authToken.create(data, cred, 10),
+					tokenStr = CommonUtils.stringify({
+						'imageRequired': bootstrapper.registrationImageRequired,
+						"data":          this._edge.endpoint,
+						'signature':     token
+					});
+
+				socket.emit("relayEndpoint", tokenStr);
+			} else {
+				if(!waiting){
+					waiting = true;
+					this._getEdgeEndpoint().then(()=>{waiting = false;});
 				}
 			}
-
 		}, 100);
-		//stop playing pincodes
 	}
 }
 

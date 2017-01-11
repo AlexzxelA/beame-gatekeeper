@@ -20,7 +20,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const RegistrationImageRequired = true;
 const EncryptUserData           = true;
-const UseBeameAuthOnLocal       = true;
+const UseBeameAuthOnLocal       = false;
 const StartRaspberryApp         = false;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 
