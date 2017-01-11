@@ -576,7 +576,7 @@ class BeameAuthServices {
 	 */
 	sendCustomerInvitation(method, metadata, phone_number) {
 
-		let existingRegistrationRecord = null;
+		let existingRegistrationRecord = null, customerFqdn = null;
 
 		const _findExistingRegistration = () => {
 
@@ -609,6 +609,7 @@ class BeameAuthServices {
 						}).catch(reject);
 					}
 					else {
+						data.fqdn = customerFqdn;
 						this.saveRegistration(data).then(() => {
 							resolve(data.pin);
 						}).catch(reject);
@@ -655,6 +656,7 @@ class BeameAuthServices {
 								    fqdn:  fqdn
 							    };
 
+								customerFqdn = fqdn;
 							provisionApi.postRequest(`https://${url}`, invitation, (error, payload) => {
 								if (error) {
 									reject(error);
