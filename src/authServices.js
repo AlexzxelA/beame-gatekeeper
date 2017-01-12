@@ -14,12 +14,13 @@
 
 /**
  * @typedef {Object} RegistrationData
- * @property {String} name
- * @property {String} nickname
- * @property {String} email
- * @property {String} user_id
- * @property {String} pin
- * @property {String} fqdn
+ * @property {String} [name]
+ * @property {String} [nickname]
+ * @property {String} [email]
+ * @property {String} [user_id]
+ * @property {String} [pin]
+ * @property {String} [fqdn]
+ * @property {String} [hash]
  */
 
 
@@ -482,6 +483,7 @@ class BeameAuthServices {
 	 * @returns {String}
 	 */
 	signData(data2Sign) {
+
 		let sha = CommonUtils.generateDigest(data2Sign);
 
 		return AuthToken.create(sha, this._creds, bootstrapper.registrationAuthTokenTtl);
@@ -581,13 +583,14 @@ class BeameAuthServices {
 		const _findExistingRegistration = () => {
 
 			return new Promise((resolve, reject) => {
-					dataService.isRegistrationExists(metadata).then(registration => {
+
+					dataService.findRegistrationRecordByHash(metadata.hash).then(registration => {
 						if (registration) {
 
 							existingRegistrationRecord = registration;
 
 							if (registration.completed) {
-								reject(`Customer with email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
+								reject(`Customer with email ${metadata.email}, name ${metadata.name}, userId ${metadata.user_id} already registered`);
 								return;
 							}
 

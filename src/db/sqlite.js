@@ -106,7 +106,8 @@ class SqliteServices {
 							email:          data.email,
 							externalUserId: data.user_id,
 							pin:            data.pin,
-							fqdn:           data.fqdn || null
+							fqdn:           data.fqdn || null,
+							hash:           data.hash
 						}).then(record => {
 							resolve(record.dataValues);
 						}).catch(onError.bind(this, reject));

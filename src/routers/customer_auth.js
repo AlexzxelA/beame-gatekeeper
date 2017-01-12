@@ -52,13 +52,44 @@ app.post('/register/save', (req, res) => {
 
 	let data = req.body; // name, email, user_id
 
-	console.log('DATA', data);
+	logger.info(`Save registration with ${CommonUtils.data}`);
+
+	//for use in email or sms scenario
+	let data4hash = {email:data.email || 'email',user_id:data.user_id || 'user_id'};
+	data.hash = CommonUtils.generateDigest(data4hash);
+	console.log(`************************************************************HASH*******************`,data4hash,data.hash);
+
+
 
 	const BeameStore = new beameSDK.BeameStore();
 	const AuthToken  = beameSDK.AuthToken;
+	//TODO to POST
 	const beameAuthServices = require('../authServices').getInstance();
 
 	const encryptTo = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+	function encryptUserData() {
+		return new Promise((resolve, reject) => {
+				if (bootstrapper.encryptUserData) {
+
+					BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
+
+						let data2encrypt = CommonUtils.stringify(data,false);//TODO - check final length to be < 214 bytes if QR is overloaded
+						data.user_id     = cred.encryptWithRSA(data2encrypt);
+						resolve();
+
+					}).catch(function (e) {
+						let errMsg = `Failed to encrypt user_id ${e.message}`;
+						logger.error(errMsg);
+						reject(errMsg)
+					});
+				}
+				else{
+					resolve();
+				}
+			}
+		);
+	}
 
 	function selectRegistrationMethod() {
 
@@ -72,6 +103,7 @@ app.post('/register/save', (req, res) => {
 						return;
 					case Constants.RegistrationMethod.Email:
 					case Constants.RegistrationMethod.SMS:
+
 						beameAuthServices.sendCustomerInvitation(method,data).then(pincode => {
 							data.pin = pincode;
 							resolve();
@@ -80,30 +112,6 @@ app.post('/register/save', (req, res) => {
 					default:
 						reject(`Unknown registration method`);
 						return;
-				}
-			}
-		);
-	}
-
-
-	function encryptUserData() {
-		return new Promise((resolve, reject) => {
-				if (bootstrapper.encryptUserData) {
-
-					BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
-
-						let data2encrypt = JSON.stringify(data);//TODO - check final length to be < 214 bytes if QR is overloaded
-						data.user_id     = cred.encryptWithRSA(data2encrypt);
-						resolve();
-
-					}).catch(function (e) {
-						let errMsg = `Failed to encrypt user_id ${e.message}`;
-						logger.error(errMsg);
-						reject(errMsg)
-					});
-				}
-				else{
-					resolve();
 				}
 			}
 		);
@@ -143,8 +151,8 @@ app.post('/register/save', (req, res) => {
 	function getRedirectUrl([signingFqdn, signingCred, encryptToCred]) {
 		// TODO: move 600 to config
 		return new Promise((resolve, reject) => {
-			const tokenWithUserData = AuthToken.create(JSON.stringify(data), signingCred, 600);
-			const encryptedData     = encryptToCred.encrypt(encryptTo, JSON.stringify(tokenWithUserData), signingFqdn);
+			const tokenWithUserData = AuthToken.create(CommonUtils.stringify(data,false), signingCred, 600);
+			const encryptedData     = encryptToCred.encrypt(encryptTo, CommonUtils.stringify(tokenWithUserData,false), signingFqdn);
 			console.log('encryptedData', encryptedData);
 			// TODO: unhardcode URL and timeout below
 			const url = `https://${encryptTo}/customer-auth-done`;
