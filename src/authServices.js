@@ -665,7 +665,7 @@ class BeameAuthServices {
 									reject(error);
 								}
 								else {
-									resolve(payload.data.pin);
+									resolve(payload.data);
 								}
 							}, sign);
 						} catch (e) {
@@ -675,16 +675,17 @@ class BeameAuthServices {
 				);
 			};
 
-			const sendEmail = (pin) => {
+			const sendEmail = (data) => {
 				return new Promise((resolve, reject) => {
 						let sign         = this.signData(options),
 						    provisionApi = new ProvisionApi(),
-						    token        = {pin: pin, matching: this._matchingServerFqdn},
+						    token        = {pin: data.pin,id:data.id ,matching: this._matchingServerFqdn},
 						    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
 						    emailToken   = {
 							    email:   options.email,
 							    service: bootstrapper.serviceName,
-							    url:     `${UniversalLinkUrl}?token=${base64Token}`
+							    url:     `${UniversalLinkUrl}?token=${base64Token}`,
+							    id:data.id
 						    };
 
 						provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
@@ -692,20 +693,20 @@ class BeameAuthServices {
 								reject(error);
 							}
 							else {
-								resolve({pin});
+								resolve({pin:data.pin});
 							}
 						}, sign);
 					}
 				);
 			};
 
-			const sendSms = (regToken, invitation) => {
+			const sendSms = (data) => {
 				return new Promise((resolve, reject) => {
 						let sign         = this.signData(options),
 						    provisionApi = new ProvisionApi(),
 						    smsToken     = {
 							    to:  phone_number,
-							    pin: invitation.pin
+							    pin: data.pin
 						    };
 
 						provisionApi.postRequest(postSmsUrl, smsToken, (error) => {
