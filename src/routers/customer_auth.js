@@ -30,7 +30,7 @@ function authenticate(data) {
 			reject('You must enter either email or user_id');
 			return;
 		}
-
+		data.userImageRequired = bootstrapper.registrationImageRequired;
 		resolve();
 		// or reject('Authentication failed')
 	});
@@ -57,6 +57,7 @@ app.post('/register/save', (req, res) => {
 	//for use in email or sms scenario
 	let data4hash = {email:data.email || 'email',user_id:data.user_id || 'user_id'};
 	data.hash = CommonUtils.generateDigest(data4hash);
+	//data.userImageRequired = bootstrapper.registrationImageRequired;
 	console.log(`************************************************************HASH*******************`,data4hash,data.hash);
 
 

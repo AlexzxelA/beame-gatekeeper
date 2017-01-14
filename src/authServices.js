@@ -631,7 +631,8 @@ class BeameAuthServices {
 				    matchingFqdn: this._matchingServerFqdn,
 				    serviceName:  bootstrapper.serviceName,
 				    serviceId:    bootstrapper.appId,
-				    ttl:          bootstrapper.customerInvitationTtl
+				    ttl:          bootstrapper.customerInvitationTtl,
+					imageRequired:bootstrapper.registrationImageRequired
 			    },
 			    postEmailUrl = null,
 			    postSmsUrl   = null;

@@ -55,12 +55,13 @@ class BeameAuthRouter {
 
 		this._router.get('/customer-approve', (req, res) => {
 
-			this._isRequestValid(req).then(() => {
+			this._isRequestValid(req).then( data => {
 
 				let url = Bootstrapper.getLogoutUrl();
 
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
 
 				res.sendFile(path.join(base_path, 'client_approval.html'));
 			}).catch(error => {

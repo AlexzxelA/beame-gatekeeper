@@ -10,7 +10,28 @@ var auth_mode              = 'Provision',
 	ApTMPsocketOrigin,
 	apRelayEndpoint,
 	UID,
-	originSock;
+	originSock,
+	reg_data;
+
+function _logout() {
+	deleteCookie('beame_reg_data');
+	logout();
+}
+
+var reg_data_cookie = getCookie('beame_reg_data');
+
+if (!reg_data_cookie) {
+	alert('Registration data required');
+	_logout();
+}
+
+try {
+	reg_data = JSON.parse(decodeURIComponent(reg_data_cookie));
+	deleteCookie('beame_reg_data');
+} catch (e) {
+	console.error(e);
+	_logout();
+}
 
 $(document).ready(function () {
 	var waitingForWindow = setInterval(function () {
@@ -77,10 +98,13 @@ function sendQrDataToApprover(relay, uid, socket) {
 			.then(function (keydata) {
 				var PK = arrayBufferToBase64String(keydata);
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
-console.log('data:',getParameterByName('data'));
+console.log('data:',reg_data);
+				var imgReq = (reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
 				var qrData       = JSON.stringify({
-					'relay': relay, 'PK': PK, 'UID': uid, 'imageRequired':userImageRequired,
-					'pin':   getParameterByName('pin'), 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': 'approval'
+					'relay': relay, 'PK': PK, 'UID': uid,
+					'pin':   getParameterByName('pin'), 'TYPE': tmp_type,
+					'TIME': Date.now(), 'REG': 'approval',
+					'imageRequired': imgReq
 				});
 				socket.emit('init_mobile_session', qrData);
 				console.log('sending qr data to approver:', qrData);//XXX
