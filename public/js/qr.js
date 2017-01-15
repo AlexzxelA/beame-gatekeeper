@@ -104,6 +104,7 @@ $(document).ready(function () {
 				console.log('QR! RENEW QR');
 				var parsed = JSON.parse(data);
 				if (parsed['data'] && keyGenerated) {
+					if(reg_data && reg_data.hash){delete reg_data.hash;}
 					console.log('QR Generating information packet');
 					window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 						.then(function (keydata) {
