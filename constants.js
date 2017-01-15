@@ -56,8 +56,9 @@ const RegistrationSource = {
 };
 
 const RequestType = {
-	"RequestWithFqdn":       "RequestWithFqdn",
-	"RequestWithAuthServer": "RequestWithAuthServer",
+	"RequestWithFqdn" : "RequestWithFqdn",
+	"RequestWithParentFqdn" : "RequestWithParentFqdn",
+	"RequestWithAuthServer" : "RequestWithAuthServer",
 };
 
 const RegistrationMethod = {

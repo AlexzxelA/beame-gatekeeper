@@ -134,18 +134,7 @@ class CredentialManager {
 
 		let cred = new Credential(BeameStore);
 
-		let type = token.type || Constants.RequestType.RequestWithAuthServer;
-
-		switch (type){
-			case Constants.RequestType.RequestWithAuthServer:
-				return cred.createEntityWithAuthServer(token.authToken, token.authSrvFqdn, token.name, token.email);
-			case Constants.RequestType.RequestWithFqdn:
-				return cred.createEntityWithAuthToken(token.authToken, token.name, token.email);
-			default:
-				return Promise.reject(`Unknown request type`);
-		}
-
-
+		return cred.createEntityWithRegistrationToken(token);
 
 	}
 }
