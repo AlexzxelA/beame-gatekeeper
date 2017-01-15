@@ -20,6 +20,22 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 	var session_token = null;
 
+
+	window.getNotifManagerInstance().subscribe('CLOSE_SESSION', function(){
+
+		var data = {
+			type:'redirect',
+			payload:{
+				'logout':true,
+				'sucess':true
+				}
+		};
+
+		sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
+
+		cefManager.changeState(0);
+	});
+
 	try {
 		console.log('startGatewaySession authToken:', authToken);
 

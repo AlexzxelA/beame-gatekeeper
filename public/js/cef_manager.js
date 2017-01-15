@@ -10,7 +10,15 @@ var CefManager = kendo.Class.extend({
     },
 
 	notifyUserData:function(data) {
-		this.cefObj && this.cefObj.showUserdata(data.user_id);
+		if(this.cefObj){
+			var userIdActionResult =	this.cefObj.showUserdata(data.user_id);
+
+			if(userIdActionResult){
+				this.changeState(1);
+
+				window.getNotifManagerInstance().notify('CLOSE_SESSION');
+			}
+		}
 	},
 
     changeState:function(state) {

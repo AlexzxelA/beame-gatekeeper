@@ -16,6 +16,8 @@ function onUserImageReceived(args) {
 	userImg.src              = args.src;
 	activeImageData          = args.imageData;
 	userImg.style.visibility = 'visible';
+	cefManager.changeState(1);
+
 }
 
 function showLoadMessage() {

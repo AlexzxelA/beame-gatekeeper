@@ -10,7 +10,7 @@ var auth_mode = 'Session',
     socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true}; //, transports: ['polling']};
 
 function onUserAction(accepted){
-	if(accepted&& originTmpSocket){
+	if(accepted && originTmpSocket){
 
 		try {
 			lblReqImgMsg.innerHTML = 'Please wait';
