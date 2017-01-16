@@ -329,8 +329,8 @@ class BeameAuthServices {
 
 				};
 
-				const _updateRegistrationStatus = () => {
-					return isCompleted ? dataService.markRegistrationAsCompleted(token.fqdn) : Promise.resolve();
+				const _updateRegistrationStatus = registration => {
+					return isCompleted ? dataService.markRegistrationAsCompleted(token.fqdn) : Promise.resolve(registration);
 				};
 
 				dataService.findRegistrationRecordByFqdn(token.fqdn)
