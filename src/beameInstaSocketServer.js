@@ -42,6 +42,8 @@ class BeameInstaSocketServer {
 
 		this._options = socket_options || {};
 
+		this._optionsApprover = socket_options || {};
+
 		/** @type {Socket|null} */
 		this._socketioServer = null;
 
@@ -126,7 +128,7 @@ class BeameInstaSocketServer {
 		this._socketioServer.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
 
 		this._socketioServerAtPath = require('socket.io')(this._server,
-			Object.assign(this._options, {'path':'/customer-approve/socket.io'}));
+			Object.assign(this._optionsApprover, {'path':'/customer-approve/socket.io'}));
 		this._socketioServerAtPath.of('approver').on('connection', this._onApproverBrowserConnection.bind(this));
 		return Promise.resolve();
 	}
@@ -141,7 +143,7 @@ class BeameInstaSocketServer {
 			this._fqdn,
 			this._matchingServerFqdn,
 			this._callbacks,
-			this._options,
+			this._optionsApprover,
 			bootstrapper.killSocketOnDisconnectTimeout,
 			this._serviceName
 		);
