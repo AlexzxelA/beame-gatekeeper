@@ -15,10 +15,11 @@ default:
 build:
 	$(CHRONIC) npm install
 	export version=$$(date +%Y%m%d%H%M%S) && gulp clean sass web_sass
-	rm -rf node_modules
 	$(CHRONIC) npm prune --production
 	mkdir -p build
-	tar --transform='s#^#$(BUILD_NUMBER)/#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --exclude=dist --exclude='*.md' --exclude='*.txt' --exclude='gulpfile.js' --exclude=build --exclude=Makefile *
+	jq '.build={buildNumber: $(BUILD_NUMBER), commit:"$(GIT_COMMIT)", branch:"$(GIT_BRANCH)", job:"$(JOB_NAME)"}' package.json >package.build.json
+	tar --transform='s#^#$(BUILD_NUMBER)/#' --transform='s#package.build.json#package.json#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --anchored --exclude=dist --exclude='*.md' --exclude='*.text' --exclude='gulpfile.js' --exclude=build --exclude=Makefile --exclude=package.json * package.build.json
+	rm package.build.json
 
 build-s3:
 	$(CHRONIC) npm install
