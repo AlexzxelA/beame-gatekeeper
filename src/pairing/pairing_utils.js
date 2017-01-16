@@ -57,6 +57,7 @@ class PairingUtils{
 
 		this._socket.on('userImageOK',(data)=>{
 			let self = this, hash = data.hash;
+			delete data.hash;
 			this._setUserImage(data).then(()=>{
 				logger.info('user image verified:',self._userImage.signature);
 				self._socket.emit('userImageSign', {'data': {'imageSign': self._userImage.signature,
