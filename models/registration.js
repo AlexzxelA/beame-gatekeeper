@@ -29,6 +29,16 @@ module.exports = function (sequelize, DataTypes) {
 			hashValidTill: {
 				type: DataTypes.TIME
 			},
+			certReceived:     {
+				type:         DataTypes.BOOLEAN,
+				allowNull:    false,
+				defaultValue: false
+			},
+			userDataReceived:     {
+				type:         DataTypes.BOOLEAN,
+				allowNull:    false,
+				defaultValue: false
+			},
 			completed:     {
 				type:         DataTypes.BOOLEAN,
 				allowNull:    false,

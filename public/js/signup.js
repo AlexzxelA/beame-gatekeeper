@@ -40,7 +40,11 @@ function onUserAction(accepted){
 
 		}
 
-		originTmpSocket.emit('userImageOK', activeImageData);
+		var data = JSON.parse(decodeURIComponent(reg_data_cookie));
+
+		activeImageData.hash = data.hash;
+
+		window.originTmpSocket.emit('userImageOK', activeImageData);
 	}
 	else{
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));

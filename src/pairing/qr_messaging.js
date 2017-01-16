@@ -157,7 +157,8 @@ class QrMessaging {
 					email:     data.email,
 					edge_fqdn: data.edge_fqdn,
 					pin:       data.pin,
-					user_id:   data.user_id
+					user_id:   data.user_id,
+					hash:      data.hash
 				};
 
 				let registerFqdnFunc = this._callbacks["RegisterFqdn"];

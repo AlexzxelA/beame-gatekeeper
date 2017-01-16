@@ -285,42 +285,99 @@ class BeameAuthServices {
 	 *
 	 * @param {SnsNotificationToken} token
 	 */
-	static markRegistrationAsCompleted(token) {
+	static onCertSnsReceived(token) {
 		return new Promise((resolve, reject) => {
-				try {
-					//mark registration record if exists
-					dataService.markRegistrationAsCompleted(token.fqdn).then(registration => {
 
+				let isImageRequired = bootstrapper.registrationImageRequired, isCompleted = false;
 
-						BeameAuthServices.IsAdminCreated().then(created => {
-							/** @type  {User} */
-							let User = {
-								name:           registration.name,
-								email:          registration.email,
-								externalUserId: registration.externalUserId,
-								fqdn:           registration.fqdn,
-								isAdmin:        created != true
-							};
+				const _onStatusUpdated = registration => {
 
-							dataService.saveUser(User).then(() => {
-								//load credentials
-								let creds = new beameSDK.Credential(store);
-								creds.initFromX509(token.x509, token.metadata);
+					BeameAuthServices.IsAdminCreated().then(created => {
+						/** @type  {User} */
+						let User = {
+							name:           registration.name,
+							email:          registration.email,
+							externalUserId: registration.externalUserId,
+							fqdn:           registration.fqdn,
+							isAdmin:        created != true
+						};
 
-								logger.info(`credentials ${token.metadata.fqdn} loaded to store from sns notification`)
-							}).catch(reject);
-						});
+						dataService.saveUser(User).then(() => {
+							//load credentials
+							let creds = new beameSDK.Credential(store);
+							creds.initFromX509(token.x509, token.metadata);
 
-					}).catch(reject);
+							logger.info(`credentials ${token.metadata.fqdn} loaded to store from sns notification`)
+						}).catch(reject);
+					});
 
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					reject(error);
-				}
+				};
+
+				const _assertRegistrationStatus = (reg) => {
+
+					return new Promise((resolve, reject) => {
+							if (!reg) {
+								reject(`registration record for fqdn ${token.fqdn} not found`);
+								return;
+							}
+
+							isCompleted = !isImageRequired || reg.userDataReceived;
+
+							resolve(reg.id);
+						}
+					);
+
+				};
+
+				const _updateRegistrationStatus = () => {
+					return isCompleted ? dataService.markRegistrationAsCompleted(token.fqdn) : Promise.resolve();
+				};
+
+				dataService.findRegistrationRecordByFqdn(token.fqdn)
+					.then(_assertRegistrationStatus)
+					.then(dataService.updateRegistrationCertFlag.bind(dataService))
+					.then(_updateRegistrationStatus)
+					.then(_onStatusUpdated)
+					.then(resolve)
+					.catch(reject);
 			}
 		);
+	}
 
+	static onUserDataReceived(hash) {
+		return new Promise((resolve, reject) => {
+
+				let isCompleted = false;
+
+
+				const _assertRegistrationStatus = (record) => {
+
+					return new Promise((resolve, reject) => {
+							if (!record) {
+								reject(`registration record for hash ${hash} not found`);
+								return;
+							}
+
+							isCompleted = record.certReceived;
+
+							resolve(record.id);
+						}
+					);
+
+				};
+
+				const _updateRegistrationStatus = (record) => {
+					return isCompleted ? dataService.markRegistrationAsCompleted(record.fqdn) : Promise.resolve();
+				};
+
+				dataService.findRegistrationRecordByHash(hash)
+					.then(_assertRegistrationStatus)
+					.then(dataService.updateRegistrationUserDataFlag.bind(dataService))
+					.then(_updateRegistrationStatus)
+					.then(resolve)
+					.catch(reject);
+			}
+		);
 	}
 
 	/**
@@ -589,10 +646,10 @@ class BeameAuthServices {
 
 							existingRegistrationRecord = registration;
 
-							if (registration.completed) {
-								reject(`Customer with email ${metadata.email}, name ${metadata.name}, userId ${metadata.user_id} already registered`);
-								return;
-							}
+							// if (registration.completed) {
+							// 	reject(`Customer with email ${metadata.email}, name ${metadata.name}, userId ${metadata.user_id} already registered`);
+							// 	return;
+							// }
 
 							resolve(registration.pin);
 						}
@@ -624,15 +681,15 @@ class BeameAuthServices {
 		const _sendCustomerInvitation = (method, _metadata, phone_number) => {
 
 			let options      = {
-				    fqdn:         this._fqdn,
-				    name:         _metadata.name,
-				    email:        _metadata.email,
-				    userId:       _metadata.user_id,
-				    matchingFqdn: this._matchingServerFqdn,
-				    serviceName:  bootstrapper.serviceName,
-				    serviceId:    bootstrapper.appId,
-				    ttl:          bootstrapper.customerInvitationTtl,
-					imageRequired:bootstrapper.registrationImageRequired
+				    fqdn:          this._fqdn,
+				    name:          _metadata.name,
+				    email:         _metadata.email,
+				    userId:        _metadata.user_id,
+				    matchingFqdn:  this._matchingServerFqdn,
+				    serviceName:   bootstrapper.serviceName,
+				    serviceId:     bootstrapper.appId,
+				    ttl:           bootstrapper.customerInvitationTtl,
+				    imageRequired: bootstrapper.registrationImageRequired
 			    },
 			    postEmailUrl = null,
 			    postSmsUrl   = null;
@@ -660,7 +717,7 @@ class BeameAuthServices {
 								    fqdn:  fqdn
 							    };
 
-								customerFqdn = fqdn;
+							customerFqdn = fqdn;
 							provisionApi.postRequest(`https://${url}`, invitation, (error, payload) => {
 								if (error) {
 									reject(error);
@@ -680,13 +737,13 @@ class BeameAuthServices {
 				return new Promise((resolve, reject) => {
 						let sign         = this.signData(options),
 						    provisionApi = new ProvisionApi(),
-						    token        = {pin: data.pin,id:data.id ,matching: this._matchingServerFqdn},
+						    token        = {pin: data.pin, id: data.id, matching: this._matchingServerFqdn},
 						    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
 						    emailToken   = {
 							    email:   options.email,
 							    service: bootstrapper.serviceName,
 							    url:     `${UniversalLinkUrl}?token=${base64Token}`,
-							    id:data.id
+							    id:      data.id
 						    };
 
 						provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
@@ -694,7 +751,7 @@ class BeameAuthServices {
 								reject(error);
 							}
 							else {
-								resolve({pin:data.pin});
+								resolve({pin: data.pin});
 							}
 						}, sign);
 					}

@@ -38,9 +38,10 @@ class BeameAuthServer {
 
 		/** @type {MessagingCallbacks} */
 		this._callbacks = {
-			RegisterFqdn:  this._beameAuthServices.getRegisterFqdn.bind(this._beameAuthServices),
-			RegRecovery:   this._beameAuthServices.recoveryRegistration.bind(this._beameAuthServices),
-			DeleteSession: BeameAuthServices.deleteSession
+			RegisterFqdn:     this._beameAuthServices.getRegisterFqdn.bind(this._beameAuthServices),
+			RegRecovery:      this._beameAuthServices.recoveryRegistration.bind(this._beameAuthServices),
+			UserDataReceived: BeameAuthServices.onUserDataReceived,
+			DeleteSession:    BeameAuthServices.deleteSession
 		};
 
 		this._app = app || utils.setExpressApp((new Router(this._beameAuthServices)).router, public_dir);
@@ -58,20 +59,13 @@ class BeameAuthServer {
 	 */
 	start(cb) {
 
-		/** @type {MessagingCallbacks} */
-		let callbacks = {
-			RegisterFqdn:  this._beameAuthServices.getRegisterFqdn.bind(this._beameAuthServices),
-			RegRecovery:   this._beameAuthServices.recoveryRegistration.bind(this._beameAuthServices),
-			DeleteSession: BeameAuthServices.deleteSession
-		};
-
 		async.parallel([
 				callback => {
 					const httpServer = http.createServer(this._app);
 
 					httpServer.listen(Constants.BeameAuthServerLocalPort);
 
-					let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
+					let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, this._callbacks);
 
 					beameHttpInstaServer.start().then(socketio_server => {
 						this._httpSocketServer = socketio_server;
@@ -86,7 +80,7 @@ class BeameAuthServer {
 
 							this._server = app;
 
-							let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, callbacks);
+							let beameInstaServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, this._callbacks);
 
 							beameInstaServer.start().then(socketio_server => {
 								this._socketServer = socketio_server;
@@ -124,7 +118,7 @@ class BeameAuthServer {
 			this._socketServer = null;
 		}
 		if (this._httpSocketServer) {
-			for(var srvKey in this._httpSocketServer){
+			for (var srvKey in this._httpSocketServer) {
 				this._httpSocketServer[srvKey].stop();
 				this._httpSocketServer[srvKey] = null;
 			}

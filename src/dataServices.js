@@ -117,6 +117,14 @@ class DataServices {
 		return this._dbService.updateRegistrationPin(id, pin);
 	}
 
+	updateRegistrationCertFlag(id) {
+		return this._dbService.updateRegistrationCertFlag(id);
+	}
+
+	updateRegistrationUserDataFlag(id){
+		return this._dbService.updateRegistrationUserDataFlag(id);
+	}
+
 	/**
 	 * @param {String} hash
 	 * @param {String} fqdn
@@ -133,6 +141,10 @@ class DataServices {
 	 */
 	findRegistrationRecordByHash(hash) {
 		return this._dbService.findRegistrationRecordByHash(hash);
+	}
+
+	findRegistrationRecordByFqdn(fqdn) {
+		return this._dbService.findRegistrationRecordByFqdn(fqdn);
 	}
 
 	//endregion

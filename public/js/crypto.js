@@ -41,11 +41,11 @@ var sessionRSAPKverify;
 
 var sessionServiceData     = null;
 var sessionServiceDataSign = null;
-var originTmpSocket = null;
-var userImageRequired = false,
-	userImageRequested = false,
-	userData = null,
-	tmpImage = null;
+var originTmpSocket        = null;
+var userImageRequired      = false,
+    userImageRequested     = false,
+    userData               = null,
+    tmpImage               = null;
 
 
 function generateUID(length) {
@@ -64,8 +64,8 @@ function generateKeys() {
 			window.crypto.subtle.generateKey(RSAPKCS, true, ["sign"])
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
-					keyPair = key;
-					keyPairSign = key1;
+					keyPair      = key;
+					keyPairSign  = key1;
 					keyGenerated = true;
 				})
 				.catch(function (error) {
@@ -78,23 +78,23 @@ function generateKeys() {
 }
 
 function getKeyPairs(cb) {
-	if(!keyGenerated){
+	if (!keyGenerated) {
 		var keyTimeout = 30;
-		var wait4key = setInterval(function () {
-			if(keyPair && keyPairSign && keyGenerated){
+		var wait4key   = setInterval(function () {
+			if (keyPair && keyPairSign && keyGenerated) {
 				clearInterval(wait4key);
 				cb(null, {
 					keyPair:     keyPair,
 					keyPairSign: keyPairSign
 				});
 			}
-			else if(--keyTimeout < 1){
+			else if (--keyTimeout < 1) {
 				clearInterval(wait4key);
 				cb('Key generation failed', null);
 			}
 		}, 100);
 	}
-	else{
+	else {
 		cb(null, {
 			keyPair:     keyPair,
 			keyPairSign: keyPairSign
@@ -107,14 +107,14 @@ function signArbitraryData(data, cb) {
 		{name: "RSASSA-PKCS1-v1_5"},
 		keyPairSign.privateKey,
 		str2ab(data)
-	)
-		.then(function(signature){
+		)
+		.then(function (signature) {
 			//console.log('signData:',data,'..sign:',arrayBufferToBase64String(signature));
 			cb(null, signature);
 		})
-		.catch(function(err){
+		.catch(function (err) {
 			console.error(err);
-			cb(err,null);
+			cb(err, null);
 		});
 }
 
@@ -129,7 +129,9 @@ function encryptWithPK(data, cb) {
 		var dataToEncrypt = data.slice(i * dataToEncryptSize, i * dataToEncryptSize + chunkSize);
 		inputArray.push(dataToEncrypt);
 	}
-	Promise.all(inputArray.map(function(inData) {return window.crypto.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData)})).then(function(values) {
+	Promise.all(inputArray.map(function (inData) {
+		return window.crypto.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData)
+	})).then(function (values) {
 		var finalLength = 0;
 
 		for (j = 0; j < values.length; j++) {
@@ -149,7 +151,7 @@ function encryptWithPK(data, cb) {
 
 function decryptMobileData(msgParsed, encryption, SK, cb) {
 	try {
-		if(msgParsed['data'] && msgParsed['metadata']){
+		if (msgParsed['data'] && msgParsed['metadata']) {
 			var msgBA    = str2ab(window.atob(msgParsed['metadata']));
 			var dataSize = msgBA.byteLength;
 			var j;
@@ -169,8 +171,9 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 				}
 			}
 
-			Promise.all(inputArray.map(function(inData) {
-				return window.crypto.subtle.decrypt(encryption, SK, inData)})).then(function(values) {
+			Promise.all(inputArray.map(function (inData) {
+				return window.crypto.subtle.decrypt(encryption, SK, inData)
+			})).then(function (values) {
 				var finalLength = 0;
 
 				for (j = 0; j < values.length; j++) {
@@ -183,42 +186,44 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 					offset += values[j].byteLength;
 				}
 				var outData = ab2str(joinedData);
-				var parsed = JSON.parse(atob(outData));
+				var parsed  = JSON.parse(atob(outData));
 
-				if(parsed['key'] && parsed['iv']){
+				if (parsed['key'] && parsed['iv']) {
 					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
 					window.crypto.subtle.importKey(
 						"raw", //can be "jwk" or "raw"
-						rawAESkey.slice(0,AESkeySize),//remove b64 padding
+						rawAESkey.slice(0, AESkeySize),//remove b64 padding
 						{name: "AES-CBC"},
 						false, //extractable (i.e. can be used in exportKey)
 						["encrypt", "decrypt"] //can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-					).then(function(key){
+					).then(function (key) {
 						console.log('imported aes key <ok>');
-						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0,AESkeySize);
+						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0, AESkeySize);
 						window.crypto.subtle.decrypt(
-							{ name: 'AES-CBC',
-								iv: rawIV },
+							{
+								name: 'AES-CBC',
+								iv:   rawIV
+							},
 							key,
 							msgParsed['data']
 						).then(function (decrypted) {
 							var outData = (ab2str(decrypted));
-							if(outData.length > 256){
-								console.log('decrypted data (length): ',outData.length);
+							if (outData.length > 256) {
+								console.log('decrypted data (length): ', outData.length);
 							}
-							else{
-								console.log('decrypted data: ',outData);
+							else {
+								console.log('decrypted data: ', outData);
 							}
 							cb(null, outData);
-						}).catch(function(err){
+						}).catch(function (err) {
 							console.error(err);
 						});
 
-					}).catch(function(err){
+					}).catch(function (err) {
 						console.error(err);
 					});
 				}
-				else{
+				else {
 					cb(null, outData);
 				}
 
@@ -228,7 +233,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 			});
 		}
 	}
-	catch(e){
+	catch (e) {
 		cb(e, null);
 	}
 }
@@ -314,7 +319,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 
 function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 
-	var type = data.payload.data.type;
+	var type          = data.payload.data.type;
 	var tmpSocketID   = data.socketId;
 	var encryptedData = data.payload.data;
 	var decryptedData;
@@ -343,41 +348,41 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			// 	initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
 			// };
 
-			function onError() {
-				console.log('Import *Encrypt Key* failed');
+		function onError() {
+			console.log('Import *Encrypt Key* failed');
+		}
+
+		function onMessageDecryptedKey(err, decryptedDataB64) {
+			if (!err) {
+				decryptedData = JSON.parse(atob(decryptedDataB64));
+
+				var key2import = decryptedData.pk;
+
+				importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
+					console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
+					sessionRSAPK = keydata;
+					initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+				}).catch(onError());
+
+				importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+					console.log("Successfully imported RSAPKCS PK from external source");
+					sessionRSAPKverify = keydata;
+				}).catch(function (err) {
+					console.error('Import *Verify Key* Failed', err);
+				});
 			}
-
-			function onMessageDecryptedKey(err, decryptedDataB64) {
-				if (!err) {
-					decryptedData = JSON.parse(atob(decryptedDataB64));
-
-					var key2import = decryptedData.pk;
-
-					importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
-						console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
-						sessionRSAPK = keydata;
-						initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
-					}).catch(onError());
-
-					importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-						console.log("Successfully imported RSAPKCS PK from external source");
-						sessionRSAPKverify = keydata;
-					}).catch(function (err) {
-						console.error('Import *Verify Key* Failed', err);
-					});
-				}
-				else {
-					console.log('failed to decrypt mobile PK');
-					TMPsocketRelay.emit('data', {
-						'socketId': tmpSocketID,
-						'payload':  'failed to decrypt mobile PK'
-					});
-				}
-				if (cb) {
-					cb(decryptedData);
-					// return;
-				}
+			else {
+				console.log('failed to decrypt mobile PK');
+				TMPsocketRelay.emit('data', {
+					'socketId': tmpSocketID,
+					'payload':  'failed to decrypt mobile PK'
+				});
 			}
+			if (cb) {
+				cb(decryptedData);
+				// return;
+			}
+		}
 
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
@@ -390,11 +395,11 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 				if (cb) {
 					cb(decryptedData);
 				}
-				else{
-					try{
+				else {
+					try {
 						var parsedData = JSON.parse(decryptedData);
-						if(parsedData.type && parsedData.type == 'userImage'){
-							var src = 'data:image/jpeg;base64,' + parsedData.payload.image;
+						if (parsedData.type && parsedData.type == 'userImage') {
+							var src       = 'data:image/jpeg;base64,' + parsedData.payload.image;
 							var imageData = sha256(parsedData.payload.image);
 							switch (auth_mode) {
 								case 'Provision':
@@ -403,31 +408,31 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 
 									window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 										{
-											src: src,
+											src:       src,
 											imageData: imageData
 										});
 									break;
 								case 'Session':
 									userData = parsedData.payload.userID;
 
-									originTmpSocket.emit('userImageVerify',JSON.stringify({
-										'signedData':imageData,
-										'signature':parsedData.payload.imageSign,
-										'signedBy':parsedData.payload.imageSignedBy,
-										'userID':parsedData.payload.userID
+									originTmpSocket.emit('userImageVerify', JSON.stringify({
+										'signedData': imageData,
+										'signature':  parsedData.payload.imageSign,
+										'signedBy':   parsedData.payload.imageSignedBy,
+										'userID':     parsedData.payload.userID
 									}));
 
-									originTmpSocket.on('userImageStatus',function (status) {
+									originTmpSocket.on('userImageStatus', function (status) {
 										console.log('User image verification: ', status);
-										if(status == 'pass' && src){
+										if (status == 'pass' && src) {
 											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 												{
-													src: src,
+													src:       src,
 													imageData: imageData,
-													userID:parsedData.payload.userID
+													userID:    parsedData.payload.userID
 												});
 										}
-										else{
+										else {
 											onUserAction(false);
 										}
 									});
@@ -438,7 +443,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 							}
 						}
 					}
-					catch (e){
+					catch (e) {
 						console.error(e);
 					}
 				}
@@ -451,6 +456,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 				});
 			}
 		}
+
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecrypted);
 			return;
 		case 'registration_complete':
@@ -483,29 +489,37 @@ function sendEncryptedData(target, socketId, data) {
 
 function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) {
 	originTmpSocket = originSocketArray.GW;
-	console.log('...Got message from mobile:',decryptedData);
-	if(decryptedData.source){
-		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound')? originSocketArray.WH : originSocketArray.AP;
+	console.log('...Got message from mobile:', decryptedData);
+	if (decryptedData.source) {
+		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound') ? originSocketArray.WH : originSocketArray.AP;
 	}
 	window.crypto.subtle.exportKey('spki', keyPair.publicKey)
 		.then(function (mobPK) {
-			if(!userImageRequested) {
+			if (!userImageRequested) {
 				userImageRequested = true;
 				switch (auth_mode) {
 					case 'Provision':
-						if(decryptedData.reg_data)
-							originTmpSocket.emit('InfoPacketResponse',
-							{
-								'pin':       decryptedData.reg_data.pin,
-								'otp':       decryptedData.otp,
-								'pk':        arrayBufferToBase64String(mobPK),
-								'edge_fqdn': decryptedData.edge_fqdn,
-								'email':     decryptedData.reg_data.email,
-								'name':      decryptedData.reg_data.name,
-								'nickname':  null,
-								'user_id':   decryptedData.reg_data.user_id
-							});
+						if (decryptedData.reg_data) {
+							var user_hash = null;
 
+							try {
+								user_hash = JSON.parse(decodeURIComponent(getCookie('beame_reg_data'))).hash;
+							} catch (e) {
+							}
+
+							originTmpSocket.emit('InfoPacketResponse',
+								{
+									'pin':       decryptedData.reg_data.pin,
+									'otp':       decryptedData.otp,
+									'pk':        arrayBufferToBase64String(mobPK),
+									'edge_fqdn': decryptedData.edge_fqdn,
+									'email':     decryptedData.reg_data.email,
+									'name':      decryptedData.reg_data.name,
+									'nickname':  null,
+									'user_id':   decryptedData.reg_data.user_id,
+									'hash':      user_hash
+								});
+						}
 						validateSession(userImageRequired).then(function () {
 							userImageRequested = false;
 
@@ -547,12 +561,14 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
 			sendEncryptedData(relaySocket, data.socketId,
-				str2ab(JSON.stringify({'type': 'sessionSecData',
+				str2ab(JSON.stringify({
+					'type': 'sessionSecData',
 					'data': {
-						'pk':arrayBufferToBase64String(keydata1),
-						'sign':sessionServiceDataSign,
-						'sessionData':sessionServiceData
-			}})));
+						'pk':          arrayBufferToBase64String(keydata1),
+						'sign':        sessionServiceDataSign,
+						'sessionData': sessionServiceData
+					}
+				})));
 		})
 		.catch(function (err) {
 			console.error('Export Public Sign Key Failed', err);
@@ -578,12 +594,12 @@ function str2ab(str) {
 function ab2str(buffer) {
 	//return window.btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
 	var binary = '';
-	var bytes = new Uint8Array( buffer );
-	var len = bytes.byteLength;
+	var bytes  = new Uint8Array(buffer);
+	var len    = bytes.byteLength;
 	for (var i = 0; i < len; i++) {
-		binary += String.fromCharCode( bytes[ i ] );
+		binary += String.fromCharCode(bytes[i]);
 	}
-	return window.btoa( binary );
+	return window.btoa(binary);
 }
 
 function arrayBufferToBase64String(arrayBuffer) {

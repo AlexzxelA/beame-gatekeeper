@@ -57,7 +57,7 @@ class SnsServices {
 
 									switch (msgType) {
 										case SnsMessageType.Cert:
-											BeameAuthServices.markRegistrationAsCompleted(token).then(resolve).catch(resolve);
+											BeameAuthServices.onCertSnsReceived(token).then(resolve).catch(resolve);
 											return;
 										case SnsMessageType.Revoke:
 											BeameAuthServices.onUserCertRevoked(token).then(resolve).catch(resolve);

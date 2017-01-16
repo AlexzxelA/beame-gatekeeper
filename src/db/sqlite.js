@@ -5,6 +5,7 @@
 
 const Sequelize    = require('sequelize');
 const beameSDK     = require('beame-sdk');
+const CommonUtils  = beameSDK.CommonUtils;
 const module_name  = "SqliteServices";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
@@ -226,8 +227,8 @@ class SqliteServices {
 						    hash       = signedData.data,
 						    valid_till = signedData.valid_till;
 
-						record.update({hash: hash, hashValidTill: valid_till}).then(regs => {
-							resolve(regs.dataValues);
+						record.update({hash: hash, hashValidTill: valid_till}).then(reg => {
+							resolve(reg.dataValues);
 						}).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
@@ -240,7 +241,6 @@ class SqliteServices {
 			}
 		);
 	}
-
 
 	updateRegistrationPin(id, pin) {
 		return new Promise((resolve, reject) => {
@@ -267,32 +267,82 @@ class SqliteServices {
 		);
 	}
 
+	updateRegistrationCertFlag(id) {
+		return new Promise((resolve, reject) => {
+				let registration = this._models.registrations;
+				//noinspection JSUnresolvedFunction
+				registration.findById(id).then(record => {
+					if (!record) {
+						reject(logger.formatErrorMessage(`Registration recorc not found`));
+						return;
+					}
+					record.update({certReceived: true}).then(rec => {
+						resolve(rec.dataValues);
+					}).catch(onError.bind(this, reject));
+
+				}).catch(onError.bind(this, reject));
+
+			}
+		);
+	}
+
+	updateRegistrationUserDataFlag(id) {
+		return new Promise((resolve, reject) => {
+				let registration = this._models.registrations;
+				//noinspection JSUnresolvedFunction
+				registration.findById(id).then(record => {
+					if (!record) {
+						reject(logger.formatErrorMessage(`Registration record not found`));
+						return;
+					}
+					record.update({userDataReceived: true}).then(rec => {
+						resolve(rec.dataValues);
+					}).catch(onError.bind(this, reject));
+
+				}).catch(onError.bind(this, reject));
+
+			}
+		);
+	}
+
 	/**
 	 * @param {String} hash
 	 * @returns {Promise}
 	 */
 	findRegistrationRecordByHash(hash) {
 		return new Promise((resolve) => {
-				try {
-					let model = this._models.registrations;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							hash: hash
-						}
-					}).then(record => {
-						resolve(record ? record.dataValues : null);
+				let model = this._models.registrations;
+				//noinspection JSUnresolvedFunction
+				model.findOne({
+					where: {
+						hash: hash
+					}
+				}).then(record => {
+					resolve(record ? record.dataValues : null);
 
-					}).catch(error => {
-						logger.error(BeameLogger.formatError(error));
-						resolve(null);
-					});
-
-				}
-				catch (error) {
+				}).catch(error => {
 					logger.error(BeameLogger.formatError(error));
 					resolve(null);
-				}
+				});
+			}
+		);
+	}
+
+	findRegistrationRecordByFqdn(fqdn) {
+		return new Promise((resolve) => {
+				let model = this._models.registrations;
+				//noinspection JSUnresolvedFunction
+				model.findOne({
+					where: {
+						fqdn: fqdn
+					}
+				}).then(record => {
+					resolve(record ? record.dataValues : null);
+
+				}).catch(error => {
+					logger.error(BeameLogger.formatError(error));
+					resolve(null);
+				});
 			}
 		);
 	}
@@ -305,7 +355,8 @@ class SqliteServices {
 				logger.debug(`try delete session by id ${id}`);
 				let model = this._models.sessions;
 				model.destroy({where: {id: id}}).then(resolve).catch(error => {
-					logger.error(`delete session with id ${id} error ${BeameLogger.formatError(error)}`, error)
+					logger.error(`delete session with id ${id} error ${BeameLogger.formatError(error)}`, error);
+					reject(error);
 				});
 			}
 		);
@@ -317,7 +368,7 @@ class SqliteServices {
 	 * @returns {Promise}
 	 */
 	deleteSessionByPin(pin) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 				logger.debug(`try delete session by pin ${pin}`);
 
 

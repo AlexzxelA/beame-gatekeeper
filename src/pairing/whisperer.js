@@ -118,8 +118,8 @@ class Whisperer {
 	}
 
 	start() {
-		const pairingUtils      = require('./pairing_utils');
-		this._pairingUtils      = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+		const pairingUtils = require('./pairing_utils');
+		this._pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
 			this._socket, module_name);
 		this._pairingUtils.setCommonHandlers();
 
@@ -220,7 +220,8 @@ class Whisperer {
 					email:     data.email,
 					edge_fqdn: data.edge_fqdn,
 					pin:       data.pin,
-					user_id:   data.user_id
+					user_id:   data.user_id,
+					hash:      data.hash
 				};
 
 				let registerFqdnFunc = this._callbacks["RegisterFqdn"];
@@ -234,8 +235,8 @@ class Whisperer {
 					this._deleteSession(data.pin);
 					//add service name and matching fqdn for use on mobile
 					payload.imageRequired = bootstrapper.registrationImageRequired;
-					payload.matching = this._matchingServerFqdn;
-					payload.service  = this._serviceName;
+					payload.matching      = this._matchingServerFqdn;
+					payload.service       = this._serviceName;
 					this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
@@ -273,8 +274,8 @@ class Whisperer {
 						case 'token':
 							//add service name and matching fqdn for use on mobile
 							payload.imageRequired = bootstrapper.registrationImageRequired;
-							payload.matching = this._matchingServerFqdn;
-							payload.service  = this._serviceName;
+							payload.matching      = this._matchingServerFqdn;
+							payload.service       = this._serviceName;
 							this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 							break;
 						case 'cert':
@@ -356,7 +357,12 @@ class Whisperer {
 		};
 
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);
-		this._socket.emit('init_mobile_session', {pin: this._sessionId, 'matching':this._matchingServerFqdn, 'service':this._serviceName, 'appId':bootstrapper.appId});
+		this._socket.emit('init_mobile_session', {
+			pin:        this._sessionId,
+			'matching': this._matchingServerFqdn,
+			'service':  this._serviceName,
+			'appId':    bootstrapper.appId
+		});
 		this.matchingServerSocketClient.emit('create_session', data);
 
 	}
