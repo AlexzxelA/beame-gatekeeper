@@ -14,7 +14,11 @@ default:
 .PHONY: build build-s3
 build:
 	$(CHRONIC) npm install
-	export version=$$(date +%Y%m%d%H%M%S) && $(CHRONIC) gulp clean sass compile
+	export version=$$(date +%Y%m%d%H%M%S) && gulp clean sass web_sass
+	rm -rf node_modules
+	$(CHRONIC) npm prune --production
+	mkdir -p build
+	tar --transform='s#^#$(BUILD_NUMBER)/#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --exclude=dist --exclude='*.md' --exclude='*.txt' --exclude='gulpfile.js' --exclude=Makefile *
 
 build-s3:
 	$(CHRONIC) npm install
