@@ -1,5 +1,6 @@
 BUILD_NUMBER ?= 0
 BRANCH ?= unknown-branch
+export PATH := node_modules/.bin:$(PATH)
 
 ifeq (, $(shell which chronic))
 	CHRONIC=
@@ -10,8 +11,16 @@ endif
 default:
 	exit 1
 
-.PHONY: build
+.PHONY: build build-s3
 build:
+	$(CHRONIC) npm install
+	export version=$$(date +%Y%m%d%H%M%S) && gulp clean sass web_sass
+	rm -rf node_modules
+	$(CHRONIC) npm prune --production
+	mkdir -p build
+	tar --transform='s#^#$(BUILD_NUMBER)/#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --exclude=dist --exclude='*.md' --exclude='*.txt' --exclude='gulpfile.js' --exclude=build --exclude=Makefile *
+
+build-s3:
 	$(CHRONIC) npm install
 	export version=$$(date +%Y%m%d%H%M%S) && $(CHRONIC) gulp clean && $(CHRONIC) gulp sass && $(CHRONIC) gulp compile && $(CHRONIC) gulp upload-to-S3
 	mkdir -p build
