@@ -1,6 +1,6 @@
 BUILD_NUMBER ?= 0
 BRANCH ?= unknown-branch
-export PATH := node_modules/.bin/gulp:$(PATH)
+export PATH := node_modules/.bin:$(PATH)
 
 ifeq (, $(shell which chronic))
 	CHRONIC=
