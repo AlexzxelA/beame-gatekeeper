@@ -42,7 +42,7 @@ class BeameInstaSocketServer {
 
 		this._options = socket_options || {};
 
-		this._optionsApprover = socket_options || {};
+		this._optionsApprover = Object.assign({},socket_options || {});
 
 		/** @type {Socket|null} */
 		this._socketioServer = null;

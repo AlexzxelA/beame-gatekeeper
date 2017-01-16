@@ -46,7 +46,7 @@ class Approver {
 		this._socket = socket;
 
 		/** @type {Object} */
-		this._options = socket_options;
+		this._optionsApprover = socket_options;
 
 		/** @type {Socket} */
 		this._mobileSocket = null;
@@ -214,7 +214,7 @@ class Approver {
 			sessionId:      this._sessionId,
 			approverFqdn:   this._fqdn,
 			mode:           this._mode,
-			socket_options: this._options,
+			socket_options: this._optionsApprover,
 			matching:       this._matchingServerFqdn,
 			service:        this._serviceName,
 			appId:          bootstrapper.appId

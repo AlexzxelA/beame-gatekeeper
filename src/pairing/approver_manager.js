@@ -34,7 +34,7 @@ class ApproverManager {
 		this._fqdn = fqdn;
 
 		/** @type {Object} */
-		this._options = socket_options || {};
+		this._optionsApprover = socket_options || {};
 
 		/** @type {AuthMode} */
 		this._mode = mode;
@@ -58,7 +58,8 @@ class ApproverManager {
 	 */
 	onApproverBrowserConnection(socket) {
 
-		let approver = new Approver(this._mode, socket, this._fqdn, this._matchingServerFqdn, this._callbacks,  this._options, this._socketDisconnectTimeout,this._serviceName);
+		let approver = new Approver(this._mode, socket, this._fqdn, this._matchingServerFqdn,
+			this._callbacks,  this._optionsApprover, this._socketDisconnectTimeout,this._serviceName);
 
 		this.approvers[approver.sessionId] = approver;
 
