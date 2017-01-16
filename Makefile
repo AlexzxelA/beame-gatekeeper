@@ -18,7 +18,7 @@ build:
 	rm -rf node_modules
 	$(CHRONIC) npm prune --production
 	mkdir -p build
-	tar --transform='s#^#$(BUILD_NUMBER)/#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --exclude=dist --exclude='*.md' --exclude='*.txt' --exclude='gulpfile.js' --exclude=Makefile *
+	tar --transform='s#^#$(BUILD_NUMBER)/#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --exclude=dist --exclude='*.md' --exclude='*.txt' --exclude='gulpfile.js' --exclude=build --exclude=Makefile *
 
 build-s3:
 	$(CHRONIC) npm install
