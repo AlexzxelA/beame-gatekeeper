@@ -1,5 +1,6 @@
 BUILD_NUMBER ?= 0
 GIT_BRANCH ?= unknown-branch
+BRANCH_NAME ?= $(notdir $(GIT_BRANCH))
 export PATH := node_modules/.bin:$(PATH)
 
 ifeq (, $(shell which chronic))
@@ -19,7 +20,7 @@ build:
 	mkdir -p build
 	jq '.build={buildNumber: $(BUILD_NUMBER), commit:"$(GIT_COMMIT)", branch:"$(GIT_BRANCH)", job:"$(JOB_NAME)"}' package.json >package.build.json
 	# tar --transform='s#^#$(BUILD_NUMBER)/#' --transform='s#package.build.json#package.json#' -czf build/beame-insta-server-$(BUILD_NUMBER).tar.gz --anchored --exclude=dist --exclude='*.md' --exclude='*.text' --exclude='gulpfile.js' --exclude=build --exclude=Makefile --exclude=package.json * package.build.json
-	tar --transform='s#package.build.json#package.json#' -czf 'build/beame-insta-server-$(GIT_BRANCH)-$(BUILD_NUMBER).tar.gz' --anchored --exclude=dist --exclude='*.md' --exclude='*.text' --exclude='gulpfile.js' --exclude=build --exclude=Makefile --exclude=package.json * package.build.json
+	tar --transform='s#package.build.json#package.json#' -czf 'build/beame-insta-server-$(BRANCH_NAME)-$(BUILD_NUMBER).tar.gz' --anchored --exclude=dist --exclude='*.md' --exclude='*.text' --exclude='gulpfile.js' --exclude=build --exclude=Makefile --exclude=package.json * package.build.json
 	rm package.build.json
 
 build-s3:
