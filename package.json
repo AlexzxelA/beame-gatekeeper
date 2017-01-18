@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/beameio/beame-insta-server#readme",
   "dependencies": {
-    "BeameMatchingServer": "git+ssh://git@github.com/beameio/BeameMatchingServer.git",
+    "BeameMatchingServer": "git+ssh://git@github.com/beameio/BeameMatchingServer.git#prod",
     "async": "^2.1.2",
     "beame-sdk": "2.0.17",
     "body-parser": "^1.15.2",
