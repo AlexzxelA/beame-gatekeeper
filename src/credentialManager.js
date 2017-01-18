@@ -12,6 +12,8 @@ const logger       = new BeameLogger(module_name);
 const BeameStore   = new beameSDK.BeameStore();
 const Credential   = beameSDK.Credential;
 const Bootstrapper = require('./bootstrapper');
+const bootstrapper      = Bootstrapper.getInstance();
+const defaults      = require('../defaults');
 const Constants    = require('../constants');
 const CommonUtils  = beameSDK.CommonUtils;
 
@@ -72,9 +74,12 @@ class CredentialManager {
 
 				async.each(Object.keys(servers), (serverType, callback) => {
 
-					logger.info(`Creating credentials for ${serverType}`);
 
-					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, null).then(metadata=> {
+					let name = bootstrapper.serviceName && bootstrapper.serviceName != defaults.ServiceName ? bootstrapper.serviceName : bootstrapper.appId;
+
+					logger.info(`Creating credentials for ${serverType} ${name}`);
+
+					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType} (${name})`, null).then(metadata=> {
 
 						logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
 
