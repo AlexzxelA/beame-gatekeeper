@@ -367,7 +367,7 @@ class BeameAuthServices {
 				};
 
 				const _updateRegistrationStatus = (record) => {
-					return isCompleted ? dataService.markRegistrationAsCompleted(record.fqdn) : Promise.resolve();
+					return isCompleted ? dataService.markRegistrationAsCompleted(record.fqdn) : Promise.resolve(record);
 				};
 
 				dataService.findRegistrationRecordByHash(hash)

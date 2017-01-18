@@ -40,6 +40,10 @@ class ServersManager {
 
 					if (!externalMatchingFqdn) {
 
+						if(!CommonUtils.isObjectEmpty(this._settings.ExternalMatchingServer)){
+							this._settings.ExternalMatchingServer.fqdn = null;
+						}
+
 						new BeameAuthServices(this._settings.BeameAuthorizationServer.fqdn, this._settings.MatchingServer.fqdn);
 
 						const MatchingServer = require('BeameMatchingServer').Server;
