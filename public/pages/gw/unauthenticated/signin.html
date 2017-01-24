@@ -121,7 +121,15 @@
 <script src="lib/angular-1.5.7.min.js"></script>
 <script src="lib/jquery-2.2.4.min.js"></script>
 <script src="lib/kendo-2016.3.1118.qr.min.js"></script>
+
 <!-- endbuild -->
+
+<script type="text/javascript">
+    if(/MSIE \d|Trident.*rv:/.test(navigator.userAgent))
+        document.write('<script src="lib/promiz.min.js"><\/script>');
+        document.write('<script src="lib/webcrypto-shim.js"><\/script>');
+</script>
+
 
 <!-- Scripts -->
 <!-- build:cef -->

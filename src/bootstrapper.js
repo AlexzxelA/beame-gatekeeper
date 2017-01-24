@@ -10,17 +10,12 @@ const packageJson   = require('../package.json');
 const defaults      = require('../defaults');
 const SqliteProps   = defaults.ConfigProps.Sqlite;
 const SettingsProps = defaults.ConfigProps.Settings;
-//const ServersFqdn   = defaults.ConfigProps.CredentialType;
-const execFile      = require('child_process').execFile;
-
 
 const beameSDK    = require('beame-sdk');
 const module_name = "Bootstrapper";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const CommonUtils = beameSDK.CommonUtils;
-// const BeameStore        = beameSDK.BeameStore;
-// const beameUtils        = beameSDK.BeameUtils;
 const DirectoryServices = beameSDK.DirectoryServices;
 const dirServices       = new DirectoryServices();
 
@@ -54,8 +49,7 @@ class Bootstrapper {
 	constructor() {
 		let config            = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config          = CommonUtils.isObjectEmpty(config) ? null : config;
-		this._sequilizeBinary = CommonUtils.getSequelizeBinaryPath();
-	}
+	 }
 
 	/**
 	 * init config files and then db
@@ -743,7 +737,6 @@ class Bootstrapper {
 	//endregion
 
 	//region init sqlite db
-
 	_migrateSqliteSchema() {
 
 		logger.debug(`migrating sqlite schema...`);
@@ -752,19 +745,11 @@ class Bootstrapper {
 				//TODO implement https://github.com/sequelize/umzug
 				let args = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
-				try {
-					execFile(this._sequilizeBinary, args, (error) => {
-						if (error) {
-							reject(error);
-							return;
-						}
-						logger.debug(`sqlite migration completed successfully...`);
-						resolve();
-					});
-				}
-				catch (e) {
-					reject(e);
-				}
+				CommonUtils.runSequilizeCmd(args).then(()=>{
+					logger.debug(`sqlite migration completed successfully...`);
+					resolve();
+				}).catch(reject);
+			
 			}
 		);
 	}
@@ -775,20 +760,11 @@ class Bootstrapper {
 
 		return new Promise((resolve, reject) => {
 				let args = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
-
-				try {
-					execFile(this._sequilizeBinary, args, (error) => {
-						if (error) {
-							reject(error);
-							return;
-						}
-						logger.debug(`sqlite seeders applied successfully...`);
-						resolve();
-					});
-				}
-				catch (e) {
-					reject(e);
-				}
+			
+				CommonUtils.runSequilizeCmd(args).then(()=>{
+					logger.debug(`sqlite seeders applied successfully...`);
+					resolve();
+				}).catch(reject);
 			}
 		);
 	}

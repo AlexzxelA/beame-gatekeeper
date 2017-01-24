@@ -106,7 +106,7 @@ $(document).ready(function () {
 				if (parsed['data'] && keyGenerated) {
 					if(reg_data && reg_data.hash){delete reg_data.hash;}
 					console.log('QR Generating information packet');
-					window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+					cryptoObj.subtle.exportKey('spki', keyPair.publicKey)
 						.then(function (keydata) {
 							var PK = arrayBufferToBase64String(keydata);
 							//console.log('Public Key Is Ready:', PK, '==>', PK);
