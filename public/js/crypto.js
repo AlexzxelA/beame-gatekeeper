@@ -401,47 +401,92 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 						var parsedData = JSON.parse(decryptedData);
 						if (parsedData.type && parsedData.type == 'userImage') {
 							var src       = 'data:image/jpeg;base64,' + parsedData.payload.image;
-							var imageData = sha256(parsedData.payload.image);
-							switch (auth_mode) {
-								case 'Provision':
-									console.log('Provision: sending image data for confirmation');
+							// var imageData = sha256(parsedData.payload.image);
+							// switch (auth_mode) {
+							// 	case 'Provision':
+							// 		console.log('Provision: sending image data for confirmation');
+							//
+							//
+							// 		window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+							// 			{
+							// 				src:       src,
+							// 				imageData: imageData
+							// 			});
+							// 		break;
+							// 	case 'Session':
+							// 		userData = parsedData.payload.userID;
+							//
+							// 		originTmpSocket.emit('userImageVerify', JSON.stringify({
+							// 			'signedData': imageData,
+							// 			'signature':  parsedData.payload.imageSign,
+							// 			'signedBy':   parsedData.payload.imageSignedBy,
+							// 			'userID':     parsedData.payload.userID
+							// 		}));
+							//
+							// 		originTmpSocket.on('userImageStatus', function (status) {
+							// 			console.log('User image verification: ', status);
+							// 			if (status == 'pass' && src) {
+							// 				window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+							// 					{
+							// 						src:       src,
+							// 						imageData: imageData,
+							// 						userID:    parsedData.payload.userID
+							// 					});
+							// 			}
+							// 			else {
+							// 				onUserAction(false);
+							// 			}
+							// 		});
+							// 		break;
+							// 	default:
+							// 		console.error('invalid mode');
+							//
+							// }
+							sha256(parsedData.payload.image).then(function(imageData){
+								console.log('*************************************************!!!!!!!!!!!!!!!!!!!!!!!!!!!Image data',imageData,auth_mode);
+								switch (auth_mode) {
+									case 'Provision':
+										console.log('Provision: sending image data for confirmation');
 
 
-									window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-										{
-											src:       src,
-											imageData: imageData
+										window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+											{
+												src:       src,
+												imageData: imageData
+											});
+										break;
+									case 'Session':
+										userData = parsedData.payload.userID;
+
+										originTmpSocket.emit('userImageVerify', JSON.stringify({
+											'signedData': imageData,
+											'signature':  parsedData.payload.imageSign,
+											'signedBy':   parsedData.payload.imageSignedBy,
+											'userID':     parsedData.payload.userID
+										}));
+
+										originTmpSocket.on('userImageStatus', function (status) {
+											console.log('User image verification: ', status);
+											if (status == 'pass' && src) {
+												window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+													{
+														src:       src,
+														imageData: imageData,
+														userID:    parsedData.payload.userID
+													});
+											}
+											else {
+												onUserAction(false);
+											}
 										});
-									break;
-								case 'Session':
-									userData = parsedData.payload.userID;
+										break;
+									default:
+										console.error('invalid mode');
 
-									originTmpSocket.emit('userImageVerify', JSON.stringify({
-										'signedData': imageData,
-										'signature':  parsedData.payload.imageSign,
-										'signedBy':   parsedData.payload.imageSignedBy,
-										'userID':     parsedData.payload.userID
-									}));
-
-									originTmpSocket.on('userImageStatus', function (status) {
-										console.log('User image verification: ', status);
-										if (status == 'pass' && src) {
-											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-												{
-													src:       src,
-													imageData: imageData,
-													userID:    parsedData.payload.userID
-												});
-										}
-										else {
-											onUserAction(false);
-										}
-									});
-									break;
-								default:
-									console.error('invalid mode');
-
-							}
+								}
+							}).catch(function(error){
+								console.error(error);
+							});
 						}
 					}
 					catch (e) {
@@ -557,7 +602,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 				{'pin': data.payload.data.otp, 'error': 'mobile PK failure'});
 			console.log('<*********< error >*********>:', error);
 		});
-	
+
 	cryptoObj.subtle.exportKey('spki', keyPairSign.publicKey)
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));

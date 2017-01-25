@@ -14,7 +14,7 @@ function onUserImageReceived(args) {
 	}
 	lblReqImg.style.display  = 'none';
 	userImg.src              = args.src;
-	activeImageData          = args.imageData;
+	activeImageData          = {signedData:args.imageData};
 	userImg.style.visibility = 'visible';
 	cefManager.changeState(1);
 
