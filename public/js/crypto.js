@@ -80,7 +80,7 @@ function generateKeys() {
 
 function getKeyPairs(cb) {
 	if (!keyGenerated) {
-		var keyTimeout = 30;
+		var keyTimeout = 300;
 		var wait4key   = setInterval(function () {
 			if (keyPair && keyPairSign && keyGenerated) {
 				clearInterval(wait4key);
@@ -404,54 +404,12 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 						var parsedData = JSON.parse(decryptedData);
 						if (parsedData.type && parsedData.type == 'userImage') {
 							var src       = 'data:image/jpeg;base64,' + parsedData.payload.image;
-							// var imageData = sha256(parsedData.payload.image);
-							// switch (auth_mode) {
-							// 	case 'Provision':
-							// 		console.log('Provision: sending image data for confirmation');
-							//
-							//
-							// 		window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-							// 			{
-							// 				src:       src,
-							// 				imageData: imageData
-							// 			});
-							// 		break;
-							// 	case 'Session':
-							// 		userData = parsedData.payload.userID;
-							//
-							// 		originTmpSocket.emit('userImageVerify', JSON.stringify({
-							// 			'signedData': imageData,
-							// 			'signature':  parsedData.payload.imageSign,
-							// 			'signedBy':   parsedData.payload.imageSignedBy,
-							// 			'userID':     parsedData.payload.userID
-							// 		}));
-							//
-							// 		originTmpSocket.on('userImageStatus', function (status) {
-							// 			console.log('User image verification: ', status);
-							// 			if (status == 'pass' && src) {
-							// 				window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-							// 					{
-							// 						src:       src,
-							// 						imageData: imageData,
-							// 						userID:    parsedData.payload.userID
-							// 					});
-							// 			}
-							// 			else {
-							// 				onUserAction(false);
-							// 			}
-							// 		});
-							// 		break;
-							// 	default:
-							// 		console.error('invalid mode');
-							//
-							// }
 							sha256(parsedData.payload.image).then(function(imageData){
-								console.log('*************************************************!!!!!!!!!!!!!!!!!!!!!!!!!!!Image data',imageData,auth_mode);
 								switch (auth_mode) {
 									case 'Provision':
 										console.log('Provision: sending image data for confirmation');
-
-
+										
+										
 										window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 											{
 												src:       src,
@@ -460,14 +418,14 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 										break;
 									case 'Session':
 										userData = parsedData.payload.userID;
-
+										
 										originTmpSocket.emit('userImageVerify', JSON.stringify({
 											'signedData': imageData,
 											'signature':  parsedData.payload.imageSign,
 											'signedBy':   parsedData.payload.imageSignedBy,
 											'userID':     parsedData.payload.userID
 										}));
-
+										
 										originTmpSocket.on('userImageStatus', function (status) {
 											console.log('User image verification: ', status);
 											if (status == 'pass' && src) {
@@ -485,7 +443,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 										break;
 									default:
 										console.error('invalid mode');
-
+									
 								}
 							}).catch(function(error){
 								console.error(error);
