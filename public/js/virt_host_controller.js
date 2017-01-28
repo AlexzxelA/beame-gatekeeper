@@ -131,7 +131,7 @@ function getRelaySocketID() {
 
 function initComRelay() {
 	virtRelaySocket.on('disconnect', function () {
-		setQRStatus('Virtual host disconnected');
+		setQRStatus && setQRStatus('Virtual host disconnected');
 		console.log('relay disconnected, ID = ', virtRelaySocket.id);
 	});
 

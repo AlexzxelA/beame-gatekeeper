@@ -325,6 +325,43 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	var encryptedData = data.payload.data;
 	var decryptedData;
 
+	function onMessageDecryptedKey(err, decryptedDataB64) {
+		if (!err) {
+			decryptedData = JSON.parse(atob(decryptedDataB64));
+
+			var key2import = decryptedData.pk;
+
+			importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
+				console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
+				sessionRSAPK = keydata;
+				initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+
+				importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+					console.log("Successfully imported RSAPKCS PK from external source");
+					sessionRSAPKverify = keydata;
+					if (cb) {
+						cb(decryptedData);
+					}
+				}).catch(function (err) {
+					console.error('Import *Verify Key* Failed', err);
+				});
+
+			}).catch(function (err) {
+				console.error('Import *Encrypt Key* Failed', err);
+			});
+
+
+		}
+		else {
+			console.log('failed to decrypt mobile PK');
+			TMPsocketRelay.emit('data', {
+				'socketId': tmpSocketID,
+				'payload':  'failed to decrypt mobile PK'
+			});
+		}
+
+	}
+
 	switch (type) {
 		case 'approval_request':
 			console.log('Registration approval started');
@@ -349,41 +386,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			// 	initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
 			// };
 
-		function onError() {
-			console.log('Import *Encrypt Key* failed');
-		}
 
-		function onMessageDecryptedKey(err, decryptedDataB64) {
-			if (!err) {
-				decryptedData = JSON.parse(atob(decryptedDataB64));
-
-				var key2import = decryptedData.pk;
-
-				importPublicKey(key2import, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
-					console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
-					sessionRSAPK = keydata;
-					initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
-				}).catch(onError());
-
-				importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-					console.log("Successfully imported RSAPKCS PK from external source");
-					sessionRSAPKverify = keydata;
-				}).catch(function (err) {
-					console.error('Import *Verify Key* Failed', err);
-				});
-			}
-			else {
-				console.log('failed to decrypt mobile PK');
-				TMPsocketRelay.emit('data', {
-					'socketId': tmpSocketID,
-					'payload':  'failed to decrypt mobile PK'
-				});
-			}
-			if (cb) {
-				cb(decryptedData);
-				// return;
-			}
-		}
 
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
