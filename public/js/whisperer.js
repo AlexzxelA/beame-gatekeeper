@@ -383,7 +383,7 @@ app.controller("MainCtrl", function ($scope) {
 function sendQrDataToWhisperer(relay, uid, socket) {
 	console.log('sendQrDataToWhisperer - entering');
 	if(keyPair){
-		window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
 			.then(function (keydata) {
 				var PK = arrayBufferToBase64String(keydata);
 				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";

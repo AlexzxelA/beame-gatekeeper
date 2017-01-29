@@ -28,7 +28,7 @@ var sessionValidationActive   = null,
 
 function validateSession(imageRequired) {
 
-	return new Promise((resolve, reject) => {
+	return new Promise(function(resolve, reject) {
 			if (imageRequired) {
 				sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageRequest'})));
 				window.getNotifManagerInstance().notify('SHOW_USER_IMAGE_LOAD_MSG');
@@ -131,7 +131,7 @@ function getRelaySocketID() {
 
 function initComRelay() {
 	virtRelaySocket.on('disconnect', function () {
-		setQRStatus('Virtual host disconnected');
+		setQRStatus && setQRStatus('Virtual host disconnected');
 		console.log('relay disconnected, ID = ', virtRelaySocket.id);
 	});
 

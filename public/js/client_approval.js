@@ -94,7 +94,7 @@ function initSocketInterface(socket) {
 function sendQrDataToApprover(relay, uid, socket) {
 	console.log('sendQrDataToApprover - entering');
 	if(keyPair){
-		window.crypto.subtle.exportKey('spki', keyPair.publicKey)
+		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
 			.then(function (keydata) {
 				var PK = arrayBufferToBase64String(keydata);
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
