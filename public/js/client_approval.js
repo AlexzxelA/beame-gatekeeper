@@ -94,24 +94,22 @@ function initSocketInterface(socket) {
 function sendQrDataToApprover(relay, uid, socket) {
 	console.log('sendQrDataToApprover - entering');
 	if(keyPair){
-		exportKeyIE(keyPair.publicKey, function (err, keydata) {
-			if(!err) {
+		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+			.then(function (keydata) {
 				var PK = arrayBufferToBase64String(keydata);
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
-				console.log('data:', reg_data);
-				var imgReq = (reg_data.userImageRequired) ? reg_data.userImageRequired : userImageRequired;
-				var qrData = JSON.stringify({
+console.log('data:',reg_data);
+				var imgReq = (reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
+				var qrData       = JSON.stringify({
 					'relay': relay, 'PK': PK, 'UID': uid,
-					'pin': getParameterByName('pin'), 'TYPE': tmp_type,
+					'pin':   getParameterByName('pin'), 'TYPE': tmp_type,
 					'TIME': Date.now(), 'REG': 'approval',
 					'imageRequired': imgReq
 				});
 				socket.emit('init_mobile_session', qrData);
 				console.log('sending qr data to approver:', qrData);//XXX
-			}
-			else{
-				console.error(err);
-			}
+			}).catch(function (err) {
+			console.error('Export Public Key Failed', err);
 		});
 	}
 }

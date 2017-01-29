@@ -106,7 +106,8 @@ $(document).ready(function () {
 				if (parsed['data'] && keyGenerated) {
 					if(reg_data && reg_data.hash){delete reg_data.hash;}
 					console.log('QR Generating information packet');
-					exportKeyIE(keyPair.publicKey, function (err, keydata) {
+					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+						.then(function (keydata) {
 							var PK = arrayBufferToBase64String(keydata);
 							//console.log('Public Key Is Ready:', PK, '==>', PK);
 							if (qrRelayEndpoint.indexOf(getRelaySocket().io.engine.hostname) < 0) {
@@ -156,6 +157,9 @@ $(document).ready(function () {
 
 							//exampleSocket.send(JSON.stringify({'type':'key','payload':{'data':PK, 'token':
 							//{'signedData':'key','signedBy':'signedBy','signature':'signature'}}}));
+						})
+						.catch(function (err) {
+							console.error('Export Public Key Failed', err);
 						});
 
 				}
