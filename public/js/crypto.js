@@ -48,6 +48,18 @@ var userImageRequired      = false,
     userData               = null,
     tmpImage               = null;
 
+function events2promise(promise_or_operation) {
+	if (promise_or_operation instanceof Promise) {
+		return promise_or_operation;
+	}
+	return new Promise(function(resolve, reject) {
+		promise_or_operation.onerror = reject;
+		promise_or_operation.oncomplete = function operation_complete_cb(e) {
+			resolve(e.target.result);
+		}
+	});
+}
+
 
 function generateUID(length) {
 	var text     = "";
@@ -59,10 +71,10 @@ function generateUID(length) {
 }
 
 function generateKeys() {
-	cryptoObj.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"])
+	events2promise(cryptoObj.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
 		.then(function (key) {
 			console.log('RSA KeyPair', key);
-			cryptoObj.subtle.generateKey(RSAPKCS, true, ["sign"])
+			events2promise(cryptoObj.subtle.generateKey(RSAPKCS, true, ["sign"]))
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
 					keyPair      = key;
@@ -104,11 +116,11 @@ function getKeyPairs(cb) {
 }
 
 function signArbitraryData(data, cb) {
-	cryptoObj.subtle.sign(
+	events2promise(cryptoObj.subtle.sign(
 		{name: "RSASSA-PKCS1-v1_5"},
 		keyPairSign.privateKey,
 		str2ab(data)
-		)
+		))
 		.then(function (signature) {
 			//console.log('signData:',data,'..sign:',arrayBufferToBase64String(signature));
 			cb(null, signature);
@@ -131,7 +143,7 @@ function encryptWithPK(data, cb) {
 		inputArray.push(dataToEncrypt);
 	}
 	Promise.all(inputArray.map(function (inData) {
-		return cryptoObj.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData)
+		return events2promise(cryptoObj.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
 	})).then(function (values) {
 		var finalLength = 0;
 
@@ -173,7 +185,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 			}
 
 			Promise.all(inputArray.map(function (inData) {
-				return cryptoObj.subtle.decrypt(encryption, SK, inData)
+				return events2promise(cryptoObj.subtle.decrypt(encryption, SK, inData))
 			})).then(function (values) {
 				var finalLength = 0;
 
@@ -191,23 +203,23 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 
 				if (parsed['key'] && parsed['iv']) {
 					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
-					cryptoObj.subtle.importKey(
+					events2promise(cryptoObj.subtle.importKey(
 						"raw", //can be "jwk" or "raw"
 						rawAESkey.slice(0, AESkeySize),//remove b64 padding
 						{name: "AES-CBC"},
 						false, //extractable (i.e. can be used in exportKey)
 						["encrypt", "decrypt"] //can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-					).then(function (key) {
+					)).then(function (key) {
 						console.log('imported aes key <ok>');
 						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0, AESkeySize);
-						cryptoObj.subtle.decrypt(
+						events2promise(cryptoObj.subtle.decrypt(
 							{
 								name: 'AES-CBC',
 								iv:   rawIV
 							},
 							key,
 							msgParsed['data']
-						).then(function (decrypted) {
+						)).then(function (decrypted) {
 							var outData = (ab2str(decrypted));
 							if (outData.length > 256) {
 								console.log('decrypted data (length): ', outData.length);
@@ -242,19 +254,19 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 function encryptWithSymK(data, plainData, cb) {
 	if (sessionAESkey) {
 		var abData = str2ab(data);
-		cryptoObj.subtle.encrypt(
+		events2promise(cryptoObj.subtle.encrypt(
 			{name: 'AES-CBC', iv: sessionIV}
 			, sessionAESkey
 			, abData
-		).then(function (encrypted) {
+		)).then(function (encrypted) {
 			//plaindata will be signed but not encrypted
 			var cipheredValue = (plainData) ? plainData + arrayBufferToBase64String(encrypted) : arrayBufferToBase64String(encrypted);
 			console.log('Signing data: <', cipheredValue, '>');
-			cryptoObj.subtle.sign(
+			events2promise(cryptoObj.subtle.sign(
 				{name: "RSASSA-PKCS1-v1_5"},
 				keyPairSign.privateKey, //from generateKey or importKey above
 				str2ab(cipheredValue)
-				)
+				))
 				.then(function (signature) {
 					console.log(signature);//new Uint8Array(signature));
 					cb(null, cipheredValue, signature);
@@ -307,7 +319,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 	if (pemKey.length == 360)
 		pemKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A" + pemKey;
 	return new Promise(function (resolve) {
-		var importer = cryptoObj.subtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage);
+		var importer = events2promise(cryptoObj.subtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
 		importer.then(function (keydata) {
 				resolve(keydata);
 			})
@@ -408,8 +420,8 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 								switch (auth_mode) {
 									case 'Provision':
 										console.log('Provision: sending image data for confirmation');
-										
-										
+
+
 										window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
 											{
 												src:       src,
@@ -418,14 +430,14 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 										break;
 									case 'Session':
 										userData = parsedData.payload.userID;
-										
+
 										originTmpSocket.emit('userImageVerify', JSON.stringify({
 											'signedData': imageData,
 											'signature':  parsedData.payload.imageSign,
 											'signedBy':   parsedData.payload.imageSignedBy,
 											'userID':     parsedData.payload.userID
 										}));
-										
+
 										originTmpSocket.on('userImageStatus', function (status) {
 											console.log('User image verification: ', status);
 											if (status == 'pass' && src) {
@@ -443,7 +455,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 										break;
 									default:
 										console.error('invalid mode');
-									
+
 								}
 							}).catch(function(error){
 								console.error(error);
@@ -500,7 +512,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 	if (decryptedData.source) {
 		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound') ? originSocketArray.WH : originSocketArray.AP;
 	}
-	cryptoObj.subtle.exportKey('spki', keyPair.publicKey)
+	events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
 		.then(function (mobPK) {
 			if (!userImageRequested) {
 				userImageRequested = true;
@@ -564,7 +576,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 			console.log('<*********< error >*********>:', error);
 		});
 
-	cryptoObj.subtle.exportKey('spki', keyPairSign.publicKey)
+	events2promise(cryptoObj.subtle.exportKey('spki', keyPairSign.publicKey))
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
 			sendEncryptedData(relaySocket, data.socketId,
@@ -584,7 +596,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 }
 
 function sha256(data) {
-	return cryptoObj.subtle.digest("SHA-256", str2ab(data)).then(function (hash) {
+	return events2promise(cryptoObj.subtle.digest("SHA-256", str2ab(data))).then(function (hash) {
 		return arrayBufferToBase64String(hash);
 	});
 }
