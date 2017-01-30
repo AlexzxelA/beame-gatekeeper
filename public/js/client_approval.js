@@ -35,7 +35,7 @@ try {
 
 $(document).ready(function () {
 	var waitingForWindow = setInterval(function () {
-		if(getVUID()){
+		if(getVUID){
 			console.log('UID:',getVUID());
 			clearInterval(waitingForWindow);
 			if(!originSock){
