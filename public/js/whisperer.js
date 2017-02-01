@@ -12,6 +12,7 @@ var WhPIN = null,
     whTmpSocketId,
     WhRelayEndpoint,
 	tmpHostArr=[],
+	activeHosts = [],
 	tmpHostNdx,
 	pinRefreshRate,
 	pairingSession;
@@ -285,10 +286,12 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 	function processTmpHost(tmpHost, lclNdx, data) {
+		var sockId = tmpHost.sock.id;
 		var appId = data.appId;
-		tmpHost.sock.on('connect', function () {
-			console.log('Socket <',lclNdx,'> Connected, ID = ', tmpHost.sock.id);
-			tmpHost.sock.emit('register_server',
+		activeHosts[sockId] = tmpHost;
+		activeHosts[sockId].sock.on('connect', function () {
+			console.log('Socket <',lclNdx,'> Connected, ID = ', activeHosts[sockId].sock.id);
+			activeHosts[sockId].sock.emit('register_server',
 				{
 					'payload': {
 						'socketId': null,
@@ -300,17 +303,17 @@ app.controller("MainCtrl", function ($scope) {
 				});
 		});
 
-		tmpHost.sock.on('hostRegistered', function (data) {
+		activeHosts[sockId].sock.on('hostRegistered', function (data) {
 			console.log('Virtual host registered:', data);
-			tmpHost.name = data.hostname;
-			tmpHost.ID = data.socketId;
+			activeHosts[sockId].name = data.hostname;
+			activeHosts[sockId].ID = data.socketId;
 		});
 
-		tmpHost.sock.on('data', function (data) {
-			tmpHost.isConnected = true;
-			tmpHost.ID = data.socketId;
+		activeHosts[sockId].sock.on('data', function (data) {
+			activeHosts[sockId].isConnected = true;
+			activeHosts[sockId].ID = data.socketId;
 			var type          = data.payload.data.type;
-			console.log(tmpHost,':',type);
+			console.log(activeHosts[sockId],':',type);
 			if(type == 'direct_mobile'){
 				if(keyPair){
 					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
@@ -321,12 +324,12 @@ app.controller("MainCtrl", function ($scope) {
 
 							fullQrData       = JSON.stringify({
 								'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
-								'PIN':   tmpHost.pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+								'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
 							});
 
 
-							tmpHost.sock.emit('data',
-								{'socketId': tmpHost.ID, 'payload':fullQrData});
+							activeHosts[sockId].sock.emit('data',
+								{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
 							console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
 						}).catch(function (err) {
 						console.error('Export Public Key Failed', err);
@@ -338,11 +341,11 @@ app.controller("MainCtrl", function ($scope) {
 				stopAllRunningSessions = true;
 				clearInterval(pairingSession);
 				pairingSession = undefined;
-				tmpHostArr.forEach(function (tmpHostX, index) {
-					if(tmpHostArr[index].sock){
-						console.log('Done, deleting host <', index, '> :', tmpHostArr[index].name);
-						tmpHostArr[index].sock.emit('cut_client',{'socketId':tmpHostArr[index].ID});
-						tmpHostArr[index] = undefined;
+				activeHosts.forEach(function (tmpHostX, index) {
+					if(activeHosts[index].sock){
+						console.log('Done, deleting host <', index, '> :', activeHosts[index].name);
+						activeHosts[index].sock.emit('cut_client',{'socketId':activeHosts[index].ID});
+						activeHosts[index] = undefined;
 					}
 				});
 				(tmpHost) = undefined;
@@ -372,6 +375,12 @@ app.controller("MainCtrl", function ($scope) {
 
 		if(tmpHostArr[lclNdx] && tmpHostArr[lclNdx].sock){
 			console.log('Killing host:', lclNdx);
+			if(activeHosts[tmpHostArr[lclNdx].sock.id]){
+				activeHosts[tmpHostArr[lclNdx].sock.id].sock.emit('cut_client',{'socketId':activeHosts[tmpHostArr[lclNdx].sock.id].ID});
+				activeHosts[tmpHostArr[lclNdx].sock.id].sock.removeAllListeners();
+				delete (activeHosts[tmpHostArr[lclNdx].sock.id]);
+			}
+
 			tmpHostArr[lclNdx].sock.removeAllListeners();
 			delete(tmpHostArr[lclNdx]);
 		}
