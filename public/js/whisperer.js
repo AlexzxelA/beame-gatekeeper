@@ -10,11 +10,16 @@ var WhPIN = null,
     WhUID = null,
     WhTMPSocketRelay,
     whTmpSocketId,
-    WhRelayEndpoint;
+    WhRelayEndpoint,
+	tmpHostArr=[],
+	tmpHostNdx,
+	pinRefreshRate,
+	pairingSession;
 
 var app = angular.module("WhispererWeb", []);
 
 app.controller("MainCtrl", function ($scope) {
+	tmpHostNdx = 0;
 
 	var tryDigest = function (scope) {
 		if (!scope.$phase) {
@@ -193,30 +198,7 @@ app.controller("MainCtrl", function ($scope) {
 				var WhUID = data.Hostname;
 				//noinspection JSUnresolvedFunction,JSUnresolvedVariable
 				sendQrDataToWhisperer('https://' + WhRelayEndpoint, WhUID, $scope.socket);
-				// window.crypto.subtle.exportKey('spki', keyPair.publicKey)
-				// 	.then(function (keydata) {
-				// 		var PK = arrayBufferToBase64String(keydata);
-				// 		console.log('Public Key Is Ready:', PK, '==>', PK);
-				// 		if (WhRelayEndpoint.indexOf(WhTMPSocketRelay.io.engine.hostname) < 0) {
-				// 			console.log('Crap(w)::', WhRelayEndpoint, '..', WhTMPSocketRelay.io.engine.hostname);
-				// 			window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
-				// 		}
-				// 		else {
-				// 			var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-				// 			var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
-				//
-				// 			var qrData       = JSON.stringify({
-				// 				'relay': 'https://' + WhRelayEndpoint, 'PK': PK, 'UID': WhUID,
-				// 				'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-				// 			});
-				// 			console.log('sending qr data to whisperer %j', qrData);//XXX
-				// 			$scope.socket.emit('init_mobile_session', qrData);
-				// 		}
-				//
-				// 	})
-				// 	.catch(function (err) {
-				// 		console.error('Export Public Key Failed', err);
-				// 	});
+
 			}
 		});
 
@@ -302,17 +284,131 @@ app.controller("MainCtrl", function ($scope) {
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 	});
 
-	$scope.socket.on('pindata', function (data) {
+	function processTmpHost(tmpHost, lclNdx, data) {
+		var appId = data.appId;
+		tmpHost.sock.on('connect', function () {
+			console.log('Socket <',lclNdx,'> Connected, ID = ', tmpHost.sock.id);
+			tmpHost.ID =
+				tmpHost.sock.emit('register_server',
+					{
+						'payload': {
+							'socketId': null,
+							'hostname': data['name'],
+							'signature': data['signature'],
+							'type': 'HTTPS',
+							'isVirtualHost': true
+						}
+					});
+		});
+
+		tmpHost.sock.on('hostRegistered', function (data) {
+			console.log('Virtual host registered:', data);
+			tmpHost.name = data.hostname;
+			tmpHost.ID = data.socketId;
+		});
+
+		tmpHost.sock.on('data', function (data) {
+			tmpHost.isConnected = true;
+			tmpHost.ID = data.socketId;
+			var type          = data.payload.data.type;
+			console.log(tmpHost,':',type);
+			if(type == 'direct_mobile'){
+				if(keyPair){
+					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+						.then(function (keydata) {
+							var PK = arrayBufferToBase64String(keydata);
+							var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+							var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+
+							fullQrData       = JSON.stringify({
+								'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
+								'PIN':   tmpHost.pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+							});
+
+
+							tmpHost.sock.emit('data',
+								{'socketId': tmpHost.ID, 'payload':fullQrData});
+							console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
+						}).catch(function (err) {
+						console.error('Export Public Key Failed', err);
+					});
+				}
+
+			}
+			else if(type == 'done'){
+				clearInterval(pairingSession);
+				tmpHostArr.forEach(function (tmpHostX, index) {
+					if(tmpHostArr[index].sock){
+						console.log('Done, deleting host:', tmpHostX.name);
+						tmpHostArr[index].sock.emit('cut_client',{'socketId':tmpHostArr[index].ID});
+						tmpHostArr[index] = undefined;
+					}
+				});
+				(tmpHost) = undefined;
+			}
+		});
+
+		tmpHost.sock.on('disconnect', function () {
+			tmpHost.sock.emit('cut_client',{'socketId':tmpHost.ID});
+			tmpHost = undefined;
+		});
+	}
+
+	function initTmpHost(data) {
+
+		if(!data.signature || !data.relay || !data.name || !data.appId ||
+			(tmpHostArr[tmpHostNdx] && tmpHostArr[tmpHostNdx].isConnected) ||
+			(tmpHostArr[!tmpHostNdx] && tmpHostArr[!tmpHostNdx].isConnected))return;
+
+		var lclNdx = tmpHostNdx;
+		tmpHostNdx = !tmpHostNdx;
+
+		if(tmpHostArr[tmpHostNdx] && tmpHostArr[tmpHostNdx].ID){
+			console.log('Killing host:', tmpHostNdx, ': ',tmpHostArr[tmpHostNdx].name);
+			tmpHostArr[tmpHostNdx].sock.emit('cut_client',{'socketId':tmpHostArr[tmpHostNdx].ID});
+			tmpHostArr[tmpHostNdx].sock.removeAllListeners();
+			delete(tmpHostArr[tmpHostNdx]);
+		}
+		tmpHostArr[lclNdx] = {};
+		tmpHostArr[lclNdx].pin = data.pin;
+		tmpHostArr[lclNdx].name = data.name;
+		tmpHostArr[lclNdx].sock = io.connect(data.relay);
+		processTmpHost(tmpHostArr[lclNdx], lclNdx, data);
+
+	}
+
+	$scope.socket.on('startPairingSession',function (data) {
+		console.log('Starting pairing session with data:', data);
+
+		// setTimeout(function () {
+		// 	socket.emit('pinRequest');
+		// },10);
+
+		if (!pairingSession) {
+			var parsed = JSON.parse(data);
+			initTmpHost(parsed);
+			pinRefreshRate = parsed.refresh_rate || 10000;
+			pairingSession = setInterval(function () {
+				console.log('Tmp Host requesting data');
+				$scope.socket.emit('pinRequest');
+			}, pinRefreshRate);
+		}
+	});
+
+	$scope.socket.on('pindata', function (dataRaw) {
+		var data = JSON.parse(dataRaw);
 		if (!$scope.soundOn) return;
 		$scope.showConn = false;
 		tryDigest($scope);
-		$scope.pinData = data;
-		getWAV(data);
-		//$scope.keepAlive = 5;
-		console.log('PIN:' + data);
+		$scope.pinData = data.pin;
+
+		initTmpHost(data);
+
+		getWAV(data.pin);
+		console.log('PIN:' + data.pin);
 		var pinElement = document.getElementById("pin");
 		if (pinElement) {
-			pinElement.innerHTML = data;
+			pinElement.innerHTML = data.pin;
 		}
 	});
 
@@ -380,6 +476,8 @@ app.controller("MainCtrl", function ($scope) {
 
 });
 
+var TmpQrData,
+	fullQrData;
 function sendQrDataToWhisperer(relay, uid, socket) {
 	console.log('sendQrDataToWhisperer - entering');
 	if(keyPair){
@@ -389,12 +487,15 @@ function sendQrDataToWhisperer(relay, uid, socket) {
 				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 
-				var qrData       = JSON.stringify({
+				TmpQrData       = JSON.stringify({
 					'relay': relay, 'PK': PK, 'UID': uid,
 					'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
 				});
-				socket.emit('init_mobile_session', qrData);
-				console.log('sending qr data to whisperer:', qrData);//XXX
+
+				if(!fullQrData)fullQrData = TmpQrData;
+
+				socket.emit('init_mobile_session', TmpQrData);
+				console.log('sending qr data to whisperer:', TmpQrData);//XXX
 			}).catch(function (err) {
 			console.error('Export Public Key Failed', err);
 		});
