@@ -285,33 +285,22 @@ app.controller("MainCtrl", function ($scope) {
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 	});
 
-	function processTmpHost(tmpHost, lclNdx, data) {
+	function processTmpHost(tmpHost, data) {
 		var sockId = tmpHost.sock.id;
 		var appId = data.appId;
+
 		activeHosts[sockId] = tmpHost;
-		activeHosts[sockId].sock.on('connect', function () {
-			console.log('Socket <',lclNdx,'> Connected, ID = ', activeHosts[sockId].sock.id);
-			activeHosts[sockId].sock.emit('register_server',
-				{
-					'payload': {
-						'socketId': null,
-						'hostname': data['name'],
-						'signature': data['signature'],
-						'type': 'HTTPS',
-						'isVirtualHost': true
-					}
-				});
-		});
+		console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
 		activeHosts[sockId].sock.on('hostRegistered', function (data) {
 			console.log('Virtual host registered:', data);
-			activeHosts[sockId].name = data.hostname;
-			activeHosts[sockId].ID = data.socketId;
+			activeHosts[sockId].name = data.Hostname;
 		});
 
 		activeHosts[sockId].sock.on('data', function (data) {
-			activeHosts[sockId].isConnected = true;
 			activeHosts[sockId].ID = data.socketId;
+			activeHosts[sockId].isConnected = true;
+			// activeHosts[sockId].ID = data.socketId;
 			var type          = data.payload.data.type;
 			console.log(activeHosts[sockId],':',type);
 			if(type == 'direct_mobile'){
@@ -339,29 +328,46 @@ app.controller("MainCtrl", function ($scope) {
 			}
 			else if(type == 'done'){
 				stopAllRunningSessions = true;
-				clearInterval(pairingSession);
-				pairingSession = undefined;
-				activeHosts.forEach(function (tmpHostX, index) {
-					if(activeHosts[index].sock){
-						console.log('Done, deleting host <', index, '> :', activeHosts[index].name);
-						activeHosts[index].sock.emit('cut_client',{'socketId':activeHosts[index].ID});
-						activeHosts[index] = undefined;
-					}
-				});
+				destroyTmpHosts();
 				(tmpHost) = undefined;
 			}
 		});
 
-		tmpHost.sock.on('disconnect', function () {
-			tmpHost.sock.emit('cut_client',{'socketId':tmpHost.ID});
-			tmpHost = undefined;
+
+
+		activeHosts[sockId].sock.on('disconnect', function () {
+			activeHosts[sockId].sock.emit('cut_client',{'socketId':tmpHost.ID});
+			activeHosts[sockId] = undefined;
 		});
-		return tmpHost;
+
+		activeHosts[sockId].sock.emit('register_server',
+			{
+				'payload': {
+					'socketId': null,
+					'hostname': data['name'],
+					'signature': data['signature'],
+					'type': 'HTTPS',
+					'isVirtualHost': true
+				}
+			});
+
+	}
+
+	function destroyTmpHosts() {
+		clearInterval(pairingSession);
+		pairingSession = undefined;
+		Object.keys(activeHosts).map(function (tmpHostX, index) {
+			if(activeHosts[tmpHostX].sock){
+				console.log('Done, deleting host <', index, '> :', activeHosts[tmpHostX].name);
+				activeHosts[tmpHostX].sock.emit('cut_client',{'socketId':activeHosts[tmpHostX].ID});
+				activeHosts[tmpHostX] = undefined;
+			}
+		});
+		activeHosts = [];
 	}
 
 	function initTmpHost(data) {
-		$scope.showConn = false;
-		tryDigest($scope);
+
 		$scope.pinData = data.pin;
 
 		if(!data.signature || !data.relay || !data.name || !data.appId ||
@@ -376,6 +382,7 @@ app.controller("MainCtrl", function ($scope) {
 		if(tmpHostArr[lclNdx] && tmpHostArr[lclNdx].sock){
 			console.log('Killing host:', lclNdx);
 			if(activeHosts[tmpHostArr[lclNdx].sock.id]){
+				console.log('Closing sockets for host:', lclNdx);
 				activeHosts[tmpHostArr[lclNdx].sock.id].sock.emit('cut_client',{'socketId':activeHosts[tmpHostArr[lclNdx].sock.id].ID});
 				activeHosts[tmpHostArr[lclNdx].sock.id].sock.removeAllListeners();
 				delete (activeHosts[tmpHostArr[lclNdx].sock.id]);
@@ -388,7 +395,10 @@ app.controller("MainCtrl", function ($scope) {
 		tmpHostArr[lclNdx].pin = data.pin;
 		tmpHostArr[lclNdx].name = data.name;
 		tmpHostArr[lclNdx].sock = io.connect(data.relay);
-		tmpHostArr[lclNdx] = processTmpHost(tmpHostArr[lclNdx], lclNdx, data);
+		tmpHostArr[lclNdx].sock.on('connect',function () {
+			processTmpHost(tmpHostArr[lclNdx], data);
+		});
+
 		setBrowserforNewPin(data);
 	}
 
@@ -409,10 +419,17 @@ app.controller("MainCtrl", function ($scope) {
 
 			pinRefreshRate = parsed.refresh_rate || 10000;
 			pairingSession = setInterval(function () {
-				console.log('Tmp Host requesting data');
-				$scope.socket.emit('pinRequest');
-			}, pinRefreshRate);
+				if(stopAllRunningSessions){
+					destroyTmpHosts();
+				}
+				else{
+					console.log('Tmp Host requesting data');
+					$scope.socket.emit('pinRequest');
+				}
 
+			}, pinRefreshRate);
+			$scope.showConn = false;
+			tryDigest($scope);
 			initTmpHost(parsed);
 		}
 	});
