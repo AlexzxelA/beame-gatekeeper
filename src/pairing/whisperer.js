@@ -15,7 +15,7 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
-const AudioPIN_refresh_rate = 1000 * 5;
+const AudioPIN_refresh_rate = 1000 * 30;
 
 const pairingShortcut = true;
 

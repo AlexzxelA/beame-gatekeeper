@@ -99,7 +99,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 					console.log('session token', session_token);
 
 					saveUserInfoCookie(user);
-
+					console.log('Pairing completed. Session started.');
 					stopAllRunningSessions = true;
 					if (payload.userData) {
 
