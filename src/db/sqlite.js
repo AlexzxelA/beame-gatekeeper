@@ -601,7 +601,7 @@ class SqliteServices {
 							reject(logger.formatErrorMessage(`User record not found`));
 							return;
 						}
-						record.update({isDeleted: true}).then(resolve).catch(onError.bind(this, reject));
+						record.update({isDeleted: true,isActive:false}).then(resolve).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
 
