@@ -11,7 +11,8 @@ var ActionTypes = {
 	"Stream":      "stream"
 };
 
-var logoutUrl = null;
+var logoutUrl = null,
+	logoutTimeout = null;
 
 function startGatewaySession(authToken, userData, relaySocket, uid) {
 
@@ -130,6 +131,13 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				// 	}
 				// });
 				logoutUrl = payload.url;
+				var safetyCounter = 10;
+				logoutTimeout = setInterval(function () {
+					if(safetyCounter-- <= 0){
+						clearInterval(logoutTimeout);
+						logoutUrl ? window.location.href = logoutUrl : logout();
+					}
+				}, 1000);
 			}
 
 
@@ -221,6 +229,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 						break;
 					case 'loggedOut':
+						logoutTimeout && clearInterval(logoutTimeout);
 						logoutUrl ? window.location.href = logoutUrl : logout();
 						break;
 					case 'logout':

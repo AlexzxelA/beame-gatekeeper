@@ -316,7 +316,7 @@ class Whisperer {
 		this._currentPin = pin;
 		let fqdn     = this._fqdn,
 			cred     = store.getCredential(fqdn),
-			name     = pin + '.virt.beameio.net',
+			name     = pin.toString().replace(/,/g,'-') + '.pin.virt.beameio.net',
 			token    = authToken.create(name, cred, 10),
 			tokenStr = CommonUtils.stringify({
 				//'relay':      'https://qy1i7x14ul48efb9.tr9k0gta5imrufpf.v1.p.beameio.net/control',
