@@ -319,6 +319,7 @@ class Whisperer {
 			name     = pin + '.virt.beameio.net',
 			token    = authToken.create(name, cred, 10),
 			tokenStr = CommonUtils.stringify({
+				//'relay':      'https://qy1i7x14ul48efb9.tr9k0gta5imrufpf.v1.p.beameio.net/control',
 				'relay':      'https://arn5e5bh1s9mkqwr.bqnp2d2beqol13qn.v1.d.beameio.net/control',
 				'signature': token,
 				'pin':pin,

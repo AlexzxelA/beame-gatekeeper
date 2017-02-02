@@ -285,16 +285,27 @@ app.controller("MainCtrl", function ($scope) {
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 	});
 
-	function processTmpHost(tmpHost, data) {
+	function processTmpHost(tmpHost, srcData) {
 		var sockId = tmpHost.sock.id;
-		var appId = data.appId;
+		var appId = srcData.appId;
 
 		activeHosts[sockId] = tmpHost;
 		console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
+		activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
+			if(msg.error && (msg.error != 'Invalid payload type')){
+				console.log('hostRegisterFailed: ', msg);
+				activeHosts[sockId].sock.removeAllListeners();
+				activeHosts[sockId] = undefined;
+				tmpHost = undefined;
+				$scope.socket.emit('pinRequest');
+			}
+		});
+
 		activeHosts[sockId].sock.on('hostRegistered', function (data) {
 			console.log('Virtual host registered:', data);
 			activeHosts[sockId].name = data.Hostname;
+			setBrowserforNewPin(srcData);
 		});
 
 		activeHosts[sockId].sock.on('data', function (data) {
@@ -344,8 +355,8 @@ app.controller("MainCtrl", function ($scope) {
 			{
 				'payload': {
 					'socketId': null,
-					'hostname': data['name'],
-					'signature': data['signature'],
+					'hostname': srcData['name'],
+					'signature': srcData['signature'],
 					'type': 'HTTPS',
 					'isVirtualHost': true
 				}
@@ -399,7 +410,6 @@ app.controller("MainCtrl", function ($scope) {
 			processTmpHost(tmpHostArr[lclNdx], data);
 		});
 
-		setBrowserforNewPin(data);
 	}
 
 	function setBrowserforNewPin(data) {
