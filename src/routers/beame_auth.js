@@ -88,8 +88,6 @@ class BeameAuthRouter {
 			});
 		});
 
-
-
 		//region not in use
 		this._router.post('/client/dataout', function (req, res) {
 			let body_array = [];
