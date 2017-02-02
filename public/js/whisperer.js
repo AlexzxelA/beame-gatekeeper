@@ -311,6 +311,9 @@ app.controller("MainCtrl", function ($scope) {
 		activeHosts[sockId].sock.on('data', function (data) {
 			activeHosts[sockId].ID = data.socketId;
 			activeHosts[sockId].isConnected = true;
+			activeHosts[sockId].connectTimeout = setTimeout(function () {
+				if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
+			}, 3000);
 			// activeHosts[sockId].ID = data.socketId;
 			var type          = data.payload.data.type;
 			console.log(activeHosts[sockId],':',type);
@@ -365,6 +368,7 @@ app.controller("MainCtrl", function ($scope) {
 	}
 
 	function destroyTmpHosts() {
+		stopAllRunningSessions = true;
 		clearInterval(pairingSession);
 		pairingSession = undefined;
 		Object.keys(activeHosts).map(function (tmpHostX, index) {
@@ -390,7 +394,7 @@ app.controller("MainCtrl", function ($scope) {
 		var lclNdx = tmpHostNdx;
 		tmpHostNdx = (tmpHostNdx & 1)?0:1;
 
-		if(tmpHostArr[lclNdx] && tmpHostArr[lclNdx].sock){
+		if(tmpHostArr[lclNdx] && tmpHostArr[lclNdx].sock && tmpHostArr[tmpHostNdx] && tmpHostArr[tmpHostNdx].sock){
 			console.log('Killing host:', lclNdx);
 			if(activeHosts[tmpHostArr[lclNdx].sock.id]){
 				console.log('Closing sockets for host:', lclNdx);
