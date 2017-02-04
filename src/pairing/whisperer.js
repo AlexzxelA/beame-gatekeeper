@@ -33,15 +33,18 @@ class Whisperer {
 	 * @param {Object} socket
 	 * @param {String} serverFqdn
 	 * @param {String} matchingServerFqdn
+	 * @param {String} relayFqdn
 	 * @param {MessagingCallbacks} callbacks
 	 * @param {Number} sendPinInterval
 	 * @param {Number} socketDisconnectTimeout
 	 * @param {Object} socket_options
 	 * @param {String} serviceName
 	 */
-	constructor(mode, socket, serverFqdn, matchingServerFqdn, callbacks, socket_options, sendPinInterval, socketDisconnectTimeout, serviceName) {
+	constructor(mode, socket, serverFqdn, matchingServerFqdn, relayFqdn, callbacks, socket_options, sendPinInterval, socketDisconnectTimeout, serviceName) {
 
 		this._sessionId = uuid.v4();
+
+		this._relay = relayFqdn;
 
 		/** @type {AuthMode} */
 		this._mode = mode;
@@ -320,7 +323,7 @@ class Whisperer {
 			token    = authToken.create(name, cred, 10),
 			tokenStr = CommonUtils.stringify({
 				//'relay':      'https://qy1i7x14ul48efb9.tr9k0gta5imrufpf.v1.p.beameio.net/control',
-				'relay':      'https://arn5e5bh1s9mkqwr.bqnp2d2beqol13qn.v1.d.beameio.net/control',
+				'relay':     'https://'+ this._relay + '/control',//'https://arn5e5bh1s9mkqwr.bqnp2d2beqol13qn.v1.d.beameio.net/control',
 				'signature': token,
 				'pin':pin,
 				'name': name,
