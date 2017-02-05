@@ -18,6 +18,7 @@ const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
+const PublicRegistration        = true;
 const RegistrationImageRequired = true;
 const EncryptUserData           = true;
 const UseBeameAuthOnLocal       = false;
@@ -56,6 +57,7 @@ const ConfigProps = {
 		DbProvider:                    "db_provider",
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
+		PublicRegistration:            "PublicRegistration",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
@@ -90,24 +92,24 @@ const CredsConfigTemplate = {
 		server: false
 	},
 	[Servers.GatewayServer]:            {
-		fqdn:   "",
-		server: true,
-		internal:true
+		fqdn:     "",
+		server:   true,
+		internal: true
 	},
 	[Servers.BeameAuthorizationServer]: {
-		fqdn:   "",
-		server: true,
-		internal:true
+		fqdn:     "",
+		server:   true,
+		internal: true
 	},
 	[Servers.MatchingServer]:           {
-		fqdn:   "",
-		server: true,
-		internal:true
+		fqdn:     "",
+		server:   true,
+		internal: true
 	},
 	[Servers.ExternalMatchingServer]:   {
-		fqdn:   "",
-		server: true,
-		internal:false
+		fqdn:     "",
+		server:   true,
+		internal: false
 	}
 };
 
@@ -130,11 +132,12 @@ module.exports = {
 	CustomerInvitationTtl,
 
 	ExternalMatchingFqdn: "",
-	PostEmailUrl: "",
-	PostSmsUrl:   "",
+	PostEmailUrl:         "",
+	PostSmsUrl:           "",
 
 	RegistrationMethod,
 	UseBeameAuthOnLocal,
+	PublicRegistration,
 	RegistrationImageRequired,
 	EncryptUserData,
 	StartRaspberryApp,

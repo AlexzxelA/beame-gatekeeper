@@ -22,6 +22,8 @@ var app = angular.module("WhispererWeb", []);
 app.controller("MainCtrl", function ($scope) {
 	tmpHostNdx = 0;
 
+	if(auth_mode == 'Provision') return;
+
 	var tryDigest = function (scope) {
 		if (!scope.$phase) {
 			try {
