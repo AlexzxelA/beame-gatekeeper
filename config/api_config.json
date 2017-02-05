@@ -18,8 +18,14 @@
             }
         },
         "Matching": {
+            "GetInvitations": {
+                "endpoint": "/v1/invitation/list"
+            },
             "SaveInvitation": {
                 "endpoint": "/v1/invitation/save"
+            },
+            "DeleteInvitation": {
+                "endpoint": "/v1/invitation/delete/"
             },
             "RegisterClient":{
                 "endpoint":"/v1/client/register"

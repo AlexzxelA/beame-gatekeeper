@@ -19,7 +19,8 @@
 
     <h4>Upload Invitations CSV</h4>
     <section id="inv-upload-form-container" style="margin-bottom: 50px">
-            <form id="upload-form" action="/upload/data" method="post" enctype="multipart/form-data"  class="form-main">
+            <div id="upload-info">&nbsp;</div>
+            <form id="upload-form" action="/invitation/upload" method="post" enctype="multipart/form-data"  class="form-main">
                 <fieldset>
                     <legend>Upload Data</legend>
                     <div>
@@ -44,17 +45,17 @@
 		$("#inv-grid").kendoGrid({
 			toolbar:    ["excel"],
 			excel:      {
-				fileName: "Registrations.xlsx",
+				fileName: "Invitations.xlsx",
 				allPages: true
 			},
 			dataSource: {
 				transport: {
 					read:    {
-						url: "/registration/list"
+						url: "/invitation/list"
 					},
 					destroy: {
-						url:      "/registration/destroy",
-						method:   "POST",
+						url:      "/invitation/destroy",
+						method:   "DELETE",
 						dataType: "json"
 					}
 				},
@@ -63,12 +64,13 @@
 						id:     "id",
 						fields: {
 							id:        {type: "number"},
+                            reg_id:    {type: "number"},
 							name:      {type: "string"},
 							email:     {type: "string"},
+                            userId:     {type: "string"},
 							fqdn:      {type: "string"},
 							createdAt: {type: "date"},
-							source:    {type: "string"},
-							completed: {type: "boolean"}
+							status:    {type: "string"}
 						}
 					}
 				},
@@ -88,7 +90,7 @@
 				var grid = e.sender;
 				var data = grid.dataSource.data();
 				$.each(data, function (i, item) {
-					if (item.completed ) {
+					if (item.status == "Completed" ) {
 						$('tr[data-uid="' + item.uid + '"] ').find('.k-grid-delete').hide();//.addClass("disabled");
 					}
 
@@ -117,18 +119,17 @@
 					field: "email",
 					title: "Email"
 				},
-
+				{
+					field: "userId",
+					title: "UserId"
+				},
 				{
 					field: "fqdn",
 					title: "Fqdn"
 				},
 				{
-					field: "source",
-					title: "Source"
-				},
-				{
-					field: "completed",
-					title: "Completed"
+					field: "status",
+					title: "Status"
 				},
 				{
 					field:  "createdAt",
@@ -144,22 +145,57 @@
 
 	function initInvForm(){
 		$('#invitation_form').submit(function () {
-			console.log('huy');
+
 			//	document.getElementById("overlay").style.display = "block";
 			$(this).ajaxSubmit({
 				error: function (response) {
-					console.log('success response',response);
-					$("#inv-info").html(response.responseDesc);
-					$("#inv-info").removeClass('ad-success').addClass('ad-error');
+
+
 				},
 				success: function (response) {
 					document.getElementById("inv-info").innerHTML = response.responseDesc;
+
+
 					$("#inv-grid").data('kendoGrid').dataSource.read();
-					$("#inv-info").removeClass('ad-error').addClass('ad-success');
+
+                    if(response.responseCode == 1)
+                    {
+	                    $("#inv-info").removeClass('ad-error').addClass('ad-success');
+                    }
+                    else{
+	                    $("#inv-info").removeClass('ad-success').addClass('ad-error');
+                    }
+					$("#inv-info").html(response.responseDesc);
 				}
 			});
 			//Very important line, it disable the page refresh.
 			return false;
 		});
+
+//		$('#upload-form').submit(function () {
+//
+//			//	document.getElementById("overlay").style.display = "block";
+//			$(this).ajaxSubmit({
+//				error: function (response) {
+//					console.error(response);
+//
+//				},
+//				success: function (response) {
+//					console.log(response)
+//					$("#inv-grid").data('kendoGrid').dataSource.read();
+//
+//					if(response.responseCode == 1)
+//					{
+//						$("#upload-info").removeClass('ad-error').addClass('ad-success');
+//					}
+//					else{
+//						$("#upload-info").removeClass('ad-success').addClass('ad-error');
+//					}
+//					$("#upload-info").html(JSON.stringify(response.result));
+//				}
+//			});
+//			//Very important line, it disable the page refresh.
+//			return false;
+//		});
     }
 </script>
