@@ -628,12 +628,74 @@ class BeameAuthServices {
 
 	//endregion
 
+	//region invitations
+	getInvitations() {
+		return new Promise((resolve, reject) => {
+				try {
+					const appId = bootstrapper.appId;
+
+					let sign         = this.signData({appId}),
+					    provisionApi = new ProvisionApi(),
+					    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.GetInvitations.endpoint}`;
+
+					provisionApi.makeGetRequest(`https://${url}`, {appId}, (error, payload) => {
+						if (error) {
+							reject(error);
+						}
+						else {
+
+							let invitations = payload.data;
+
+							Promise.all(invitations.map(data => {
+									return dataService.findRegistrationRecordByFqdn(data.fqdn).then(reg => {
+										if (reg) {
+											data.name   = reg.name;
+											data.email  = reg.email;
+											data.userId = reg.externalUserId;
+											data.reg_id = reg.id;
+										}
+
+										return data;
+									});
+								}
+							)).then(() => {
+								resolve(invitations)
+							}).catch(reject);
+
+							//resolve(payload.data);
+						}
+					}, sign);
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
+
+	deleteInvitation(id, fqdn) {
+		return new Promise((resolve, reject) => {
+				try {
+					let sign         = this.signData({fqdn}),
+					    provisionApi = new ProvisionApi(),
+					    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.DeleteInvitation.endpoint}${id}`;
+
+					provisionApi.postRequest(`https://${url}`, {fqdn}, (error) => {
+						error ? reject(error) : resolve();
+					}, sign);
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
+
 	/**
 	 * @param {String} method
 	 * @param {Object} metadata
 	 * @param {String|null|undefined} [phone_number]
+	 * @param {Boolean} forceSend
 	 */
-	sendCustomerInvitation(method, metadata, phone_number) {
+	sendCustomerInvitation(method, metadata, phone_number, forceSend = false) {
 
 		let existingRegistrationRecord = null, customerFqdn = null;
 
@@ -712,9 +774,12 @@ class BeameAuthServices {
 							    fqdn         = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(new Buffer(regToken, 'base64').toString()).authToken).signedData.data).fqdn,
 							    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.SaveInvitation.endpoint}`,
 							    invitation   = {
-								    token: regToken,
-								    appId: bootstrapper.appId,
-								    fqdn:  fqdn
+								    token:  regToken,
+								    appId:  bootstrapper.appId,
+								    fqdn:   fqdn,
+								    name:   options.name,
+								    email:  options.email,
+								    userId: options.user_id
 							    };
 
 							customerFqdn = fqdn;
@@ -874,6 +939,7 @@ class BeameAuthServices {
 
 	}
 
+	//endregion
 
 	getRequestAuthToken(req) {
 		return new Promise((resolve, reject) => {
@@ -913,6 +979,40 @@ class BeameAuthServices {
 		);
 	}
 
+
+
+	//region Registration token
+	findCreds(fqdnPart){
+		return new Promise((resolve) => {
+				let list = store.list(null,{hasPrivateKey:true});
+
+				const _isContains = (cred) =>{
+					return cred.getKey("FQDN").indexOf(fqdnPart) >= 0;
+				};
+
+				resolve(list.filter(_isContains).map(item=>{return {fqdn:item.fqdn}}));
+			}
+		);
+	}
+
+	createRegToken(data) {
+		return new Promise((resolve, reject) => {
+			const Credential = beameSDK.Credential;
+			let cred = new Credential(store),ttl = 60*60*24;
+
+			try {
+				ttl = parseInt(data.ttl);
+			} catch (e) {
+
+			}
+
+			cred.createRegistrationToken({fqdn: data.fqdn, name: data.name, email:data.email, userId:data.user_id, ttl:ttl, serviceName:bootstrapper.serviceName, serviceId:bootstrapper.appId, matchingFqdn:this._matchingServerFqdn})
+				.then(resolve)
+				.catch(reject);
+			}
+		);
+	}
+	//endregion
 
 	/** @type {BeameAuthServices} */
 	static getInstance() {

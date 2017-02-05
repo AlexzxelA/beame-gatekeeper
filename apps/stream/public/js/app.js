@@ -8,12 +8,13 @@ var videoEl, canvas, wsavc,loader;
 
 
 function onDocLoaded() {
-
+console.log('onDocLoaded stream');
 	loader = document.getElementById('img-loader');
 
 	window.parent.document.title = 'Mobile Stream';
 
 	window.parent.getNotifManagerInstance().subscribe('MOBILE_STREAM', function (args) {
+		console.log('MOBILE_STREAM stream:',args);
 		if (!args || !args.url || !args.sign) {
 			return;
 		}

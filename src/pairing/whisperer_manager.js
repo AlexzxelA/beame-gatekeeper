@@ -10,8 +10,12 @@
  * @property {Function|null} [DeleteSession]
  * @property {Function|null} [Login]
  */
-
+const request = require('request');
 const beameSDK    = require('beame-sdk');
+const ProvisionApi     = beameSDK.ProvApi;
+const beameUtils   = beameSDK.BeameUtils;
+const authToken    = beameSDK.AuthToken;
+const store        = new (beameSDK.BeameStore)();
 const module_name = "WhispererManager";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
@@ -53,7 +57,48 @@ class WhisperersManager {
 		this._callbacks = callbacks;
 
 		this._serviceName = serviceName;
+
+		this._relayUrl = null;
+
+		this.getRelay().then((data)=>{
+			this._relayUrl = data;
+		}).catch((err)=>{
+			logger.fatal('Failed to get relay data from matching');
+		});
+
+		// this.getRelayUrl(10, 1000, (err, data)=>{
+		// 	if(!err)
+		// 		this._relayUrl = data;
+		// 	else
+		// 		logger.error(err);
+		// });
+
 	}
+
+	getRelay(){
+
+		return new Promise((resolve, reject) => {
+			try {
+				let fqdn     = this._fqdn,
+					cred     = store.getCredential(fqdn),
+					token    = authToken.create(fqdn, cred, 10),
+					provisionApi = new ProvisionApi(),
+					url          = `${this._matchingServerFqdn}/v1/relay/get`;
+
+				provisionApi.postRequest(`https://${url}`, null, (error, payload) => {
+					if (error) {
+						reject(error);
+					}
+					else {
+						resolve(payload.relay);
+					}
+				}, token);
+			} catch (e) {
+				reject(e);
+			}
+		});
+	};
+
 
 
 	//noinspection JSUnusedGlobalSymbols
@@ -62,7 +107,8 @@ class WhisperersManager {
 	 */
 	onBrowserConnection(socket) {
 
-		let whisperer = new Whisperer(this._mode, socket, this._fqdn, this._matchingServerFqdn, this._callbacks,  this._options, this._sendPinInterval, this._socketDisconnectTimeout,this._serviceName);
+		let whisperer = new Whisperer(this._mode, socket, this._fqdn, this._matchingServerFqdn, this._relayUrl,
+			this._callbacks,  this._options, this._sendPinInterval, this._socketDisconnectTimeout,this._serviceName);
 
 		this.whisperers[whisperer.sessionId] = whisperer;
 

@@ -15,6 +15,9 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
+const AudioPIN_refresh_rate = 1000 * 30;
+
+const pairingShortcut = true;
 
 /**
  * @typedef {Object} SessionData
@@ -30,15 +33,18 @@ class Whisperer {
 	 * @param {Object} socket
 	 * @param {String} serverFqdn
 	 * @param {String} matchingServerFqdn
+	 * @param {String} relayFqdn
 	 * @param {MessagingCallbacks} callbacks
 	 * @param {Number} sendPinInterval
 	 * @param {Number} socketDisconnectTimeout
 	 * @param {Object} socket_options
 	 * @param {String} serviceName
 	 */
-	constructor(mode, socket, serverFqdn, matchingServerFqdn, callbacks, socket_options, sendPinInterval, socketDisconnectTimeout, serviceName) {
+	constructor(mode, socket, serverFqdn, matchingServerFqdn, relayFqdn, callbacks, socket_options, sendPinInterval, socketDisconnectTimeout, serviceName) {
 
 		this._sessionId = uuid.v4();
+
+		this._relay = relayFqdn;
 
 		/** @type {AuthMode} */
 		this._mode = mode;
@@ -96,8 +102,8 @@ class Whisperer {
 					});
 
 					socket.on('new_pin', (randomNumbers) => {
-						this._currentPin = randomNumbers;
-						this._socket.emit('pindata', randomNumbers);
+						this._sendPindata(this._socket, randomNumbers);
+
 						if (this._jsonQrData) {
 							console.log('whisperer: sending qrData to matching:', this._jsonQrData);
 							this._jsonQrData['currentPin'] = this._currentPin;
@@ -133,182 +139,211 @@ class Whisperer {
 			this._jsonQrData['appId']     = bootstrapper.appId;
 		});
 
-		this.initMatchingServerSocketClient().then(() => {
-
-			this.runWhisperer();
-
-			this._socket.emit('wh_timeout', this._sendPinInterval);
-
-			this._socket.on('disconnect', () => {
-				logger.debug(`whisperers ${this._sessionId} session disconnected`);
-				setTimeout(() => {
-					logger.debug('Whisperer socket closing');
-
-					this.disconnectFromMatchingServer();
-
-				}, this._socketDisconnectTimeout);
-			});
-
-			this._socket.on('_disconnect', () => {
-				//force disconnect event
-				this.disconnectFromMatchingServer();
-				this._socket.disconnect();
-				this._socket = null;
-			});
-
-			this._socket.on('virtSrvConfig', (data) => {
-				logger.debug('<< virtSrvConfig:', data);
-				//var signature = crypto.sign(data.UID, authServices.getMyFqdn());
-
-				const onEdgeServerSelected = edge => {
-
-					let fqdn     = this._fqdn,
-					    cred     = store.getCredential(fqdn),
-					    token    = authToken.create(data.UID, cred, 10),
-					    tokenStr = CommonUtils.stringify({
-						    "data":      edge.endpoint,
-						    'signature': token
-					    });
-
-					this._socket.emit("relayEndpoint", tokenStr);
-				};
-
-				beameUtils.selectBestProxy(Constants.LoadBalancerURL, 100, 1000, (error, payload) => {
-					if (!error) {
-						onEdgeServerSelected.call(this, payload);
-					}
-					else {
-						this._socket.emit("network_problem", `Network problem: Relay server could not be found, try again later`);
-
-					}
-				});
-
-			});
-
-			// this._socket.on('userImage', (data) => {
-			// 	logger.info('Got image data:', data);
-			// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
-			// 		this._userImage = selfCred.sign(data);
-			// 	}).catch(function (e) {
-			// 		this._userImage = 'none';
-			// 	});
-			// });
-			//
-			// this._socket.on('userImageOK',()=>{
-			// 	logger.info('user image verified:',this._userImage.signature);
-			// 	this._socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature,
-			// 		'imageSignedBy':this._userImage.signedBy},
-			// 		'type': 'userImageSign'});
-			// });
-
-			this._socket.on('play_please', () => {
-				logger.debug(`[${this._sessionId}] play audio received`);
-				this.play();
-			});
-
-			this._socket.on('stop_please', () => {
-				logger.debug(`[${this._sessionId}] stop audio received`);
-				this.stop();
-			});
-
-			this._socket.on('InfoPacketResponse', (data) => {
-				logger.debug('InfoPacketResponse:', data);
-				//createEntityWithAuthServer
-
-				let metadata = {
-					name:      data.name,
-					email:     data.email,
-					edge_fqdn: data.edge_fqdn,
-					pin:       data.pin,
-					user_id:   data.user_id,
-					hash:      data.hash
-				};
-
-				let registerFqdnFunc = this._callbacks["RegisterFqdn"];
-
-				if (!registerFqdnFunc) {
-					logger.error(`registration callback not defined`);
-					return;
-				}
-
-				registerFqdnFunc(metadata).then(payload => {
-					this._deleteSession(data.pin);
-					//add service name and matching fqdn for use on mobile
-					payload.imageRequired = bootstrapper.registrationImageRequired;
-					payload.matching      = this._matchingServerFqdn;
-					payload.service       = this._serviceName;
-					this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
-				}).catch(e => {
-					logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
-					this._socket.emit("mobileProv1", {
-						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
-						'type': 'mobileSessionFail'
-					});
-				});
-			});
-
-			this._socket.on('regRecovery', (data) => {
-				logger.debug('regRecovery:', data);
-				//createEntityWithAuthServer
-
-				let metadata = {
-					name:      data.name,
-					email:     data.email,
-					edge_fqdn: data.edge_fqdn,
-					pin:       data.pin,
-					user_id:   data.user_id
-				};
-
-				let recoveryRegisterFunc = this._callbacks["RegRecovery"];
-
-				if (!recoveryRegisterFunc) {
-					logger.error(`recovery registration callback not defined`);
-					return;
-				}
-
-				recoveryRegisterFunc(metadata).then(payload => {
-					this._deleteSession(data.pin);
-
-
-					switch (payload.type) {
-						case 'token':
-							//add service name and matching fqdn for use on mobile
-							payload.imageRequired = bootstrapper.registrationImageRequired;
-							payload.matching      = this._matchingServerFqdn;
-							payload.service       = this._serviceName;
-							this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
-							break;
-						case 'cert':
-							//TODO add logic
-							break;
-					}
-
-				}).catch(e => {
-					logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
-					this._socket.emit("mobileProv1", {
-						'data': `User data validation failed ${BeameLogger.formatError(e)}`,
-						'type': 'mobileSessionFail'
-					});
-				});
-			});
-
-			this._socket.on('InfoPacketResponseError', (data) => {
-				logger.error(`Whisperer Messaging InfoPacketResponseError`, data);
-			});
-
-			this._socket.on('close_session', () => {
-				logger.debug('close_session received');
-
-				this._socket.disconnect();
-				setTimeout(() => {
-					this.disconnectFromMatchingServer();
-				}, 1000)
-			});
-
-		}).catch(error => {
-			logger.error(`connection to matching failed`, error);
-			this._socket.emit('match_not_found');
+		this._socket.on('pinRequest', () => {
+			let lclPin = this._getRandomPin(15,0);
+			this._socket.emit('pindata', this._buildDataPack(lclPin));
 		});
+
+		if(!pairingShortcut){
+			this.initMatchingServerSocketClient().then(() => {
+
+				this.runWhisperer();
+
+				this._socket.emit('wh_timeout', this._sendPinInterval);
+
+				this._socket.on('disconnect', () => {
+					logger.debug(`whisperers ${this._sessionId} session disconnected`);
+					setTimeout(() => {
+						logger.debug('Whisperer socket closing');
+
+						this.disconnectFromMatchingServer();
+
+					}, this._socketDisconnectTimeout);
+				});
+
+				this._socket.on('_disconnect', () => {
+					//force disconnect event
+					this.disconnectFromMatchingServer();
+					this._socket.disconnect();
+					this._socket = null;
+				});
+
+				this._socket.on('virtSrvConfig', (data) => {
+					logger.debug('<< virtSrvConfig:', data);
+					//var signature = crypto.sign(data.UID, authServices.getMyFqdn());
+
+					const onEdgeServerSelected = edge => {
+
+						let fqdn     = this._fqdn,
+							cred     = store.getCredential(fqdn),
+							token    = authToken.create(data.UID, cred, 10),
+							tokenStr = CommonUtils.stringify({
+								"data":      edge.endpoint,
+								'signature': token
+							});
+
+						this._socket.emit("relayEndpoint", tokenStr);
+					};
+
+					beameUtils.selectBestProxy(Constants.LoadBalancerURL, 100, 1000, (error, payload) => {
+						if (!error) {
+							onEdgeServerSelected.call(this, payload);
+						}
+						else {
+							this._socket.emit("network_problem", `Network problem: Relay server could not be found, try again later`);
+
+						}
+					});
+
+				});
+
+
+
+				this._socket.on('play_please', () => {
+					logger.debug(`[${this._sessionId}] play audio received`);
+					this.play();
+				});
+
+				this._socket.on('stop_please', () => {
+					logger.debug(`[${this._sessionId}] stop audio received`);
+					this.stop();
+				});
+
+				this._socket.on('InfoPacketResponse', (data) => {
+					logger.debug('InfoPacketResponse:', data);
+					//createEntityWithAuthServer
+
+					let metadata = {
+						name:      data.name,
+						email:     data.email,
+						edge_fqdn: data.edge_fqdn,
+						pin:       data.pin,
+						user_id:   data.user_id,
+						hash:      data.hash
+					};
+
+					let registerFqdnFunc = this._callbacks["RegisterFqdn"];
+
+					if (!registerFqdnFunc) {
+						logger.error(`registration callback not defined`);
+						return;
+					}
+
+					registerFqdnFunc(metadata).then(payload => {
+						this._deleteSession(data.pin);
+						//add service name and matching fqdn for use on mobile
+						payload.imageRequired = bootstrapper.registrationImageRequired;
+						payload.matching      = this._matchingServerFqdn;
+						payload.service       = this._serviceName;
+						this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
+					}).catch(e => {
+						logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
+						this._socket.emit("mobileProv1", {
+							'data': `User data validation failed ${BeameLogger.formatError(e)}`,
+							'type': 'mobileSessionFail'
+						});
+					});
+				});
+
+				this._socket.on('regRecovery', (data) => {
+					logger.debug('regRecovery:', data);
+					//createEntityWithAuthServer
+
+					let metadata = {
+						name:      data.name,
+						email:     data.email,
+						edge_fqdn: data.edge_fqdn,
+						pin:       data.pin,
+						user_id:   data.user_id
+					};
+
+					let recoveryRegisterFunc = this._callbacks["RegRecovery"];
+
+					if (!recoveryRegisterFunc) {
+						logger.error(`recovery registration callback not defined`);
+						return;
+					}
+
+					recoveryRegisterFunc(metadata).then(payload => {
+						this._deleteSession(data.pin);
+
+
+						switch (payload.type) {
+							case 'token':
+								//add service name and matching fqdn for use on mobile
+								payload.imageRequired = bootstrapper.registrationImageRequired;
+								payload.matching      = this._matchingServerFqdn;
+								payload.service       = this._serviceName;
+								this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
+								break;
+							case 'cert':
+								//TODO add logic
+								break;
+						}
+
+					}).catch(e => {
+						logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
+						this._socket.emit("mobileProv1", {
+							'data': `User data validation failed ${BeameLogger.formatError(e)}`,
+							'type': 'mobileSessionFail'
+						});
+					});
+				});
+
+				this._socket.on('InfoPacketResponseError', (data) => {
+					logger.error(`Whisperer Messaging InfoPacketResponseError`, data);
+				});
+
+				this._socket.on('close_session', () => {
+					logger.debug('close_session received');
+
+					this._socket.disconnect();
+					setTimeout(() => {
+						this.disconnectFromMatchingServer();
+					}, 1000)
+				});
+
+			}).catch(error => {
+				logger.error(`connection to matching failed`, error);
+				this._socket.emit('match_not_found');
+			});
+		}
+		else{
+			let lclPin = this._getRandomPin(15,0);
+			this._socket.emit('startPairingSession', this._buildDataPack(lclPin));
+		}
+
+	}
+
+	_buildDataPack(pin){
+		this._currentPin = pin;
+		let fqdn     = this._fqdn,
+			cred     = store.getCredential(fqdn),
+			name     = pin.toString().replace(/,/g,'-') + '.pin.virt.beameio.net',
+			token    = authToken.create(name, cred, 10),
+			tokenStr = CommonUtils.stringify({
+				//'relay':      'https://qy1i7x14ul48efb9.tr9k0gta5imrufpf.v1.p.beameio.net/control',
+				'relay':     'https://'+ this._relay + '/control',//'https://arn5e5bh1s9mkqwr.bqnp2d2beqol13qn.v1.d.beameio.net/control',
+				'signature': token,
+				'pin':pin,
+				'name': name,
+				'service':this._serviceName,
+				'matching': this._matchingServerFqdn,
+				'appId': bootstrapper.appId,
+				'refresh_rate': AudioPIN_refresh_rate
+			});
+		return tokenStr;
+	}
+
+
+	_getRandomPin(high, low) {
+		let i,
+			dig = [9, 7, 4, 7, 11, 0];
+
+		for (i = 0; i < 6; i++) {
+			dig[i] = Math.round(Math.random() * (high - low) + low);
+		}
+		return dig;
 	}
 
 	_deleteSession(pin) {

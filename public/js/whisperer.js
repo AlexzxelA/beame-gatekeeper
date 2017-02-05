@@ -10,11 +10,17 @@ var WhPIN = null,
     WhUID = null,
     WhTMPSocketRelay,
     whTmpSocketId,
-    WhRelayEndpoint;
+    WhRelayEndpoint,
+	tmpHostArr=[],
+	activeHosts = [],
+	tmpHostNdx,
+	pinRefreshRate,
+	pairingSession;
 
 var app = angular.module("WhispererWeb", []);
 
 app.controller("MainCtrl", function ($scope) {
+	tmpHostNdx = 0;
 
 	var tryDigest = function (scope) {
 		if (!scope.$phase) {
@@ -170,64 +176,41 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 
-	function initRelay() {
-
-		WhTMPSocketRelay.on('disconnect', function () {
-			console.log('disconnected, ID = ', WhTMPSocketRelay.id);
-			$scope.socket.emit('virtSrvConfig', {'UID': WhUID});
-		});
-
-		WhTMPSocketRelay.on('data', function (data) {
-			whTmpSocketId = data.socketId;
-			processMobileData(WhTMPSocketRelay, $scope.socket, data);
-			WhTMPSocketRelay.beame_relay_socket_id = data.socketId;
-		});
-
-		WhTMPSocketRelay.on('create_connection', function () {
-			console.log('Wh create_connection, ID = ', WhTMPSocketRelay.id);
-		});
-
-		WhTMPSocketRelay.on('hostRegistered', function (data) {
-			console.log('Wh hostRegistered, ID = ', WhTMPSocketRelay.id, '.. hostname: ', data.Hostname);
-			if (keyGenerated) {
-				var WhUID = data.Hostname;
-				//noinspection JSUnresolvedFunction,JSUnresolvedVariable
-				sendQrDataToWhisperer('https://' + WhRelayEndpoint, WhUID, $scope.socket);
-				// window.crypto.subtle.exportKey('spki', keyPair.publicKey)
-				// 	.then(function (keydata) {
-				// 		var PK = arrayBufferToBase64String(keydata);
-				// 		console.log('Public Key Is Ready:', PK, '==>', PK);
-				// 		if (WhRelayEndpoint.indexOf(WhTMPSocketRelay.io.engine.hostname) < 0) {
-				// 			console.log('Crap(w)::', WhRelayEndpoint, '..', WhTMPSocketRelay.io.engine.hostname);
-				// 			window.alert('Warning! Suspicious content, please verify domain URL and reload the page..');
-				// 		}
-				// 		else {
-				// 			var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-				// 			var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
-				//
-				// 			var qrData       = JSON.stringify({
-				// 				'relay': 'https://' + WhRelayEndpoint, 'PK': PK, 'UID': WhUID,
-				// 				'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-				// 			});
-				// 			console.log('sending qr data to whisperer %j', qrData);//XXX
-				// 			$scope.socket.emit('init_mobile_session', qrData);
-				// 		}
-				//
-				// 	})
-				// 	.catch(function (err) {
-				// 		console.error('Export Public Key Failed', err);
-				// 	});
-			}
-		});
-
-		WhTMPSocketRelay.on('error', function () {
-			console.log('error, ID = ', WhTMPSocketRelay.id);
-		});
-
-		WhTMPSocketRelay.on('_end', function () {
-			console.log('end, ID = ', WhTMPSocketRelay.id);
-		});
-	}
+	// function initRelay() {
+	//
+	// 	WhTMPSocketRelay.on('disconnect', function () {
+	// 		console.log('disconnected, ID = ', WhTMPSocketRelay.id);
+	// 		$scope.socket.emit('virtSrvConfig', {'UID': WhUID});
+	// 	});
+	//
+	// 	WhTMPSocketRelay.on('data', function (data) {
+	// 		whTmpSocketId = data.socketId;
+	// 		processMobileData(WhTMPSocketRelay, $scope.socket, data);
+	// 		WhTMPSocketRelay.beame_relay_socket_id = data.socketId;
+	// 	});
+	//
+	// 	WhTMPSocketRelay.on('create_connection', function () {
+	// 		console.log('Wh create_connection, ID = ', WhTMPSocketRelay.id);
+	// 	});
+	//
+	// 	WhTMPSocketRelay.on('hostRegistered', function (data) {
+	// 		console.log('Wh hostRegistered, ID = ', WhTMPSocketRelay.id, '.. hostname: ', data.Hostname);
+	// 		if (keyGenerated) {
+	// 			var WhUID = data.Hostname;
+	// 			//noinspection JSUnresolvedFunction,JSUnresolvedVariable
+	// 			sendQrDataToWhisperer('https://' + WhRelayEndpoint, WhUID, $scope.socket);
+	//
+	// 		}
+	// 	});
+	//
+	// 	WhTMPSocketRelay.on('error', function () {
+	// 		console.log('error, ID = ', WhTMPSocketRelay.id);
+	// 	});
+	//
+	// 	WhTMPSocketRelay.on('_end', function () {
+	// 		console.log('end, ID = ', WhTMPSocketRelay.id);
+	// 	});
+	// }
 
 	$scope.socket.on('mobileProv1', function (data) {
 		if (data.data && getRelaySocket() && getRelaySocketID()) {
@@ -238,42 +221,42 @@ app.controller("MainCtrl", function ($scope) {
 		}
 	});
 
-	$scope.socket.on('relayEndpoint', function (data) {
-		if(isAudioSession()) {
-			console.log('relayEndpoint', data);
-			try {
-				if (WhTMPSocketRelay)WhTMPSocketRelay.disconnect();
-				var parsedData = JSON.parse(data);
-				WhRelayEndpoint = parsedData['data'];
-				var lclTarget = "https://" + WhRelayEndpoint + "/control";
-
-				if (WhRelayEndpoint) {
-					//noinspection ES6ModulesDependencies,NodeModulesDependencies
-					WhTMPSocketRelay = io.connect(lclTarget);
-					WhTMPSocketRelay.on('connect', function () {
-						console.log('Connected, ID = ', WhTMPSocketRelay.id);
-						WhTMPSocketRelay.emit('register_server',
-							{
-								'payload': {
-									'socketId': null,
-									'hostname': WhUID,
-									//'signedData':WhUID,
-									'signature': parsedData['signature'],
-									//'signedBy':window.location.hostname,
-									'type': 'HTTPS',
-									'isVirtualHost': true
-								}
-							});
-						initRelay();
-					});
-				}
-			}
-			catch (e) {
-				$scope.socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
-				console.error('failed to parse data:', e);
-			}
-		}
-	});
+	// $scope.socket.on('relayEndpoint', function (data) {
+	// 	if(isAudioSession()) {
+	// 		console.log('relayEndpoint', data);
+	// 		try {
+	// 			if (WhTMPSocketRelay)WhTMPSocketRelay.disconnect();
+	// 			var parsedData = JSON.parse(data);
+	// 			WhRelayEndpoint = parsedData['data'];
+	// 			var lclTarget = "https://" + WhRelayEndpoint + "/control";
+	//
+	// 			if (WhRelayEndpoint) {
+	// 				//noinspection ES6ModulesDependencies,NodeModulesDependencies
+	// 				WhTMPSocketRelay = io.connect(lclTarget);
+	// 				WhTMPSocketRelay.on('connect', function () {
+	// 					console.log('Connected, ID = ', WhTMPSocketRelay.id);
+	// 					WhTMPSocketRelay.emit('register_server',
+	// 						{
+	// 							'payload': {
+	// 								'socketId': null,
+	// 								'hostname': WhUID,
+	// 								//'signedData':WhUID,
+	// 								'signature': parsedData['signature'],
+	// 								//'signedBy':window.location.hostname,
+	// 								'type': 'HTTPS',
+	// 								'isVirtualHost': true
+	// 							}
+	// 						});
+	// 					initRelay();
+	// 				});
+	// 			}
+	// 		}
+	// 		catch (e) {
+	// 			$scope.socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
+	// 			console.error('failed to parse data:', e);
+	// 		}
+	// 	}
+	// });
 
 	$scope.socket.on('mobile_network_error', function () {
 		console.log('Mobile connection failed');
@@ -302,18 +285,175 @@ app.controller("MainCtrl", function ($scope) {
 		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 	});
 
-	$scope.socket.on('pindata', function (data) {
-		if (!$scope.soundOn) return;
-		$scope.showConn = false;
-		tryDigest($scope);
-		$scope.pinData = data;
-		getWAV(data);
-		//$scope.keepAlive = 5;
-		console.log('PIN:' + data);
+	function processTmpHost(tmpHost, srcData) {
+		var sockId = tmpHost.sock.id;
+		var appId = srcData.appId;
+
+		activeHosts[sockId] = tmpHost;
+		console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
+
+		activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
+			if(msg.error && (msg.error != 'Invalid payload type')){
+				console.log('hostRegisterFailed: ', msg);
+				activeHosts[sockId].sock.removeAllListeners();
+				activeHosts[sockId] = undefined;
+				tmpHost = undefined;
+				$scope.socket.emit('pinRequest');
+			}
+		});
+
+		activeHosts[sockId].sock.on('hostRegistered', function (data) {
+			console.log('Virtual host registered:', data);
+			activeHosts[sockId].name = data.Hostname;
+			setBrowserforNewPin(srcData);
+		});
+
+		activeHosts[sockId].sock.on('data', function (data) {
+			activeHosts[sockId].ID = data.socketId;
+			activeHosts[sockId].isConnected = true;
+			activeHosts[sockId].connectTimeout = setTimeout(function () {
+				if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
+			}, 3000);
+			// activeHosts[sockId].ID = data.socketId;
+			var type          = data.payload.data.type;
+			console.log(activeHosts[sockId],':',type);
+			if(type == 'direct_mobile'){
+				if(keyPair){
+					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+						.then(function (keydata) {
+							var PK = arrayBufferToBase64String(keydata);
+							var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+							var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+
+							fullQrData       = JSON.stringify({
+								'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
+								'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+							});
+
+
+							activeHosts[sockId].sock.emit('data',
+								{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
+							console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
+						}).catch(function (err) {
+						console.error('Export Public Key Failed', err);
+					});
+				}
+
+			}
+			else if(type == 'done'){
+				stopAllRunningSessions = true;
+				destroyTmpHosts();
+				(tmpHost) = undefined;
+			}
+		});
+
+
+
+		activeHosts[sockId].sock.on('disconnect', function () {
+			activeHosts[sockId].sock.emit('cut_client',{'socketId':tmpHost.ID});
+			activeHosts[sockId] = undefined;
+		});
+
+		activeHosts[sockId].sock.emit('register_server',
+			{
+				'payload': {
+					'socketId': null,
+					'hostname': srcData['name'],
+					'signature': srcData['signature'],
+					'type': 'HTTPS',
+					'isVirtualHost': true
+				}
+			});
+
+	}
+
+	function destroyTmpHosts() {
+		stopAllRunningSessions = true;
+		clearInterval(pairingSession);
+		pairingSession = undefined;
+		Object.keys(activeHosts).map(function (tmpHostX, index) {
+			if(activeHosts[tmpHostX].sock){
+				console.log('Done, deleting host <', index, '> :', activeHosts[tmpHostX].name);
+				activeHosts[tmpHostX].sock.emit('cut_client',{'socketId':activeHosts[tmpHostX].ID});
+				activeHosts[tmpHostX] = undefined;
+			}
+		});
+		activeHosts = [];
+	}
+
+	function initTmpHost(data) {
+
+		$scope.pinData = data.pin;
+
+		if(!data.signature || !data.relay || !data.name || !data.appId ||
+			(tmpHostArr[tmpHostNdx] && tmpHostArr[tmpHostNdx].isConnected) ||
+			(tmpHostArr[!tmpHostNdx] && tmpHostArr[!tmpHostNdx].isConnected) ||
+			!pairingSession)
+			return;
+
+		var lclNdx = tmpHostNdx;
+		tmpHostNdx = (tmpHostNdx & 1)?0:1;
+
+		if(tmpHostArr[lclNdx] && tmpHostArr[lclNdx].sock && tmpHostArr[tmpHostNdx] && tmpHostArr[tmpHostNdx].sock){
+			console.log('Killing host:', lclNdx);
+			if(activeHosts[tmpHostArr[lclNdx].sock.id]){
+				console.log('Closing sockets for host:', lclNdx);
+				activeHosts[tmpHostArr[lclNdx].sock.id].sock.emit('cut_client',{'socketId':activeHosts[tmpHostArr[lclNdx].sock.id].ID});
+				activeHosts[tmpHostArr[lclNdx].sock.id].sock.removeAllListeners();
+				delete (activeHosts[tmpHostArr[lclNdx].sock.id]);
+			}
+
+			tmpHostArr[lclNdx].sock.removeAllListeners();
+			delete(tmpHostArr[lclNdx]);
+		}
+		tmpHostArr[lclNdx] = {};
+		tmpHostArr[lclNdx].pin = data.pin;
+		tmpHostArr[lclNdx].name = data.name;
+		tmpHostArr[lclNdx].sock = io.connect(data.relay);
+		tmpHostArr[lclNdx].sock.on('connect',function () {
+			processTmpHost(tmpHostArr[lclNdx], data);
+		});
+
+	}
+
+	function setBrowserforNewPin(data) {
+		getWAV(data.pin);
+		console.log('PIN:' + data.pin);
 		var pinElement = document.getElementById("pin");
 		if (pinElement) {
-			pinElement.innerHTML = data;
+			pinElement.innerHTML = data.pin;
 		}
+	}
+
+	$scope.socket.on('startPairingSession',function (data) {
+		console.log('Starting pairing session with data:', data);
+
+		if (!pairingSession) {
+			var parsed = JSON.parse(data);
+
+			pinRefreshRate = parsed.refresh_rate || 10000;
+			pairingSession = setInterval(function () {
+				if(stopAllRunningSessions){
+					destroyTmpHosts();
+				}
+				else{
+					console.log('Tmp Host requesting data');
+					$scope.socket.emit('pinRequest');
+				}
+
+			}, pinRefreshRate);
+			$scope.showConn = false;
+			tryDigest($scope);
+			initTmpHost(parsed);
+		}
+	});
+
+	$scope.socket.on('pindata', function (dataRaw) {
+		var data = JSON.parse(dataRaw);
+		if (!$scope.soundOn) return;
+
+		initTmpHost(data);
+
 	});
 
 	//$scope.socket.on('data', function (data) {
@@ -380,6 +520,8 @@ app.controller("MainCtrl", function ($scope) {
 
 });
 
+var TmpQrData,
+	fullQrData;
 function sendQrDataToWhisperer(relay, uid, socket) {
 	console.log('sendQrDataToWhisperer - entering');
 	if(keyPair){
@@ -389,12 +531,15 @@ function sendQrDataToWhisperer(relay, uid, socket) {
 				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 
-				var qrData       = JSON.stringify({
+				TmpQrData       = JSON.stringify({
 					'relay': relay, 'PK': PK, 'UID': uid,
 					'PIN':   WhPIN, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
 				});
-				socket.emit('init_mobile_session', qrData);
-				console.log('sending qr data to whisperer:', qrData);//XXX
+
+				if(!fullQrData)fullQrData = TmpQrData;
+
+				socket.emit('init_mobile_session', TmpQrData);
+				console.log('sending qr data to whisperer:', TmpQrData);//XXX
 			}).catch(function (err) {
 			console.error('Export Public Key Failed', err);
 		});
