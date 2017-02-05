@@ -29,6 +29,10 @@
 				path:  "templates/admin/registrations.tmpl.html",
 				event: "regsLoaded"
 			},
+            Invitation:    {
+				path:  "templates/admin/invitations.tmpl.html",
+				event: "invitationLoaded"
+			},
 			Service: {
 				path:  "templates/admin/services.tmpl.html",
 				event: "serviceLoaded"
@@ -44,7 +48,7 @@
 						.success(function (result) {
 							//Add templates to DOM
 							$("body").append(result);
-							console.log(path + ' loaded')
+							//console.log(path + ' loaded')
 						})
 						.error(function (result) {
 							alert("Error Loading Templates -- TODO: Better Error Handling");
@@ -52,7 +56,7 @@
 
 					tmplLoader.complete(function () {
 						$(host).trigger(event, [path]);
-						console.log(path + ' complete')
+						//console.log(path + ' complete')
 					});
 				}
 			};
@@ -61,6 +65,7 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Dash.path, ADMIN_TEMPLATES.Dash.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.User.path, ADMIN_TEMPLATES.User.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 
 
@@ -84,10 +89,13 @@
             width: 210px;
             display: inline-flex
         }
+        .admin-main-wrapper{width: 100%}
+        .ad-success{color:green}
+        .ad-error{color:red}
     </style>
 </head>
 <body>
-<div class="main-wrapper">
+<div class="admin-main-wrapper">
 
     <div class="row">
         <div class="column large-6 large-offset-1 end">
@@ -109,6 +117,7 @@
                     <li><a id="showDash" href="#">Dashboard</a></li>
                     <li><a id="showUsers" href="#/users">Users</a></li>
                     <li><a id="showRegs" href="#/regs">Registrations</a></li>
+                    <li><a id="showInvs" href="#/inv">Invitations</a></li>
                     <li><a id="showSrv" href="#/srvc">Services</a></li>
                     <li style="float: right"><a id="btn-logout" href="/beame-gw/logout">Logout</a></li>
                 </ul>
@@ -124,12 +133,13 @@
 
 <script>
 
-	var settings = null, viewDash, viewUsers, viewRegs,viewService ,layout;
+	var settings = null, viewDash, viewUsers, viewRegs, viewInvs, viewService ,layout;
 
 	function initAdminRouters() {
 		viewDash  = new kendo.View("#home", {model: settings});
 		viewUsers = new kendo.View("#user");
 		viewRegs  = new kendo.View("#regs");
+		viewInvs  = new kendo.View("#inv");
 		viewService  = new kendo.View("#services");
 
 		layout = new kendo.Layout("<section id='content'></section>");
@@ -159,6 +169,11 @@
 			loadRegs();
 		};
 
+		var initInvitations = function () {
+			layout.showIn("#content", viewInvs);
+			loadInvitations();
+		};
+
 		var initServices = function () {
 			layout.showIn("#content", viewService);
 			loadServices();
@@ -173,6 +188,9 @@
 		$("#showRegs").on("click", function () {
 			initRegs();
 		});
+		$("#showInvs").on("click", function () {
+			initInvitations();
+		});
 		$("#showSrv").on("click", function () {
 			initServices();
 		});
@@ -186,11 +204,17 @@
 		router.route("/", function () {
 			subscribe(ADMIN_TEMPLATES.Dash.event, initDash);
 		});
+
 		router.route("/users", function () {
 			subscribe(ADMIN_TEMPLATES.User.event, initUsers);
 		});
+
 		router.route("/regs", function () {
 			subscribe(ADMIN_TEMPLATES.Regs.event, initRegs);
+		});
+
+		router.route("/inv", function () {
+			subscribe(ADMIN_TEMPLATES.Invitation.event, initInvitations);
 		});
 
 		router.route("/srvc", function () {

@@ -12,9 +12,12 @@ const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'admin');
 
 const beameSDK    = require('beame-sdk');
+const CommonUtils = beameSDK.CommonUtils;
 const module_name = "BeameAdminServices";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = Bootstrapper.getInstance();
 
 class AdminRouter {
 	constructor(adminServices) {
@@ -146,6 +149,80 @@ class AdminRouter {
 
 		});
 		//endregion
+
+		//region invitations
+		this._router.post('/invitation/send', (req, res) => {
+
+			let data = req.body;
+
+			logger.info(`Save invitation  with ${CommonUtils.data}`);
+
+			//for use in email or sms scenario
+			let data4hash = {email:data.email || 'email',user_id:data.user_id || 'user_id'};
+			data.hash = CommonUtils.generateDigest(data4hash);
+
+			//TODO to POST
+			const beameAuthServices = require('../authServices').getInstance();
+
+			let method = null;
+
+			function selectRegistrationMethod() {
+
+				return new Promise((resolve, reject) => {
+						method = bootstrapper.registrationMethod;
+
+						switch (method) {
+							case Constants.RegistrationMethod.Email:
+							case Constants.RegistrationMethod.SMS:
+								beameAuthServices.sendCustomerInvitation(method,data).then(pincode => {
+									data.pin = pincode;
+									resolve();
+								}).catch(reject);
+								return;
+							default:
+								reject(`Unknown registration method`);
+								return;
+						}
+					}
+				);
+			}
+
+			function resolve(){
+				return res.json({
+					"responseCode": 0,
+					"responseDesc": `Invitation sent to ${method == Constants.RegistrationMethod.Email ? 'email' : 'phone'}`
+				});
+			}
+
+			function sendError(e) {
+				console.error('/invitation/send error', e);
+				return res.json({
+					"responseCode": 1,
+					"responseDesc": e
+				});
+			}
+
+			selectRegistrationMethod()
+				.then(resolve)
+				.catch(sendError);
+
+		});
+
+		this._router.post("/upload/data", function(req, res) {
+			const csv = require("csv");
+			var formidable = require('formidable');
+
+
+			var form = new formidable.IncomingForm();
+
+			form.parse(req, function(err, fields, files) {
+				res.writeHead(200, {'content-type': 'text/plain'});
+				res.write('received upload:\n\n');
+				//res.end(util.inspect({fields: fields, files: files}));
+			});
+		});
+		//endregion
+
 		//endregion
 	}
 
