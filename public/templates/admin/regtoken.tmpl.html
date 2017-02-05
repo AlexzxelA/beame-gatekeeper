@@ -3,7 +3,8 @@
 
 <script type="text/x-kendo-template" id="reg-token">
 
-    <h4>Create Invitation</h4>
+
+    <h4>Create Registration token</h4>
     <section id="token-form-container" style="margin-bottom: 50px">
         <form id="token_form" action='/regtoken/create' method="post" class="form-main admin-form-main">
             <div id="token-info">&nbsp;</div>
@@ -18,12 +19,18 @@
             <input type="submit" name="submit" value="Create Registration Token" class="button">
         </form>
 
-        <textarea id="reg_token" style="width: 80%" rows="10"></textarea>
+        <div id="reg-token-container" style="display:none;"  class="form-main admin-form-main">
+            <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="button" data-clipboard-action="copy" data-clipboard-target="#reg_token" />
+            <textarea id="reg_token" name="reg_token" style="width: 80%;margin: 0 10%;" rows="10"></textarea>
+        </div>
+
     </section>
 
 </script>
 <script>
 	function loadRegToken() {
+
+		new Clipboard('#copy-btn');
 
 		$("#fqdn").kendoAutoComplete({
 			dataTextField: "fqdn",
@@ -40,6 +47,9 @@
 
 		$('#token_form').submit(function () {
 
+			$('#reg_token').html(null);
+			$('#reg-token-container').hide();
+
 			var handleInviResponse = function (response) {
 				//$("#inv-grid").data('kendoGrid').dataSource.read();
 				console.log(response);
@@ -48,6 +58,7 @@
 					$("#token-info").removeClass('ad-error').addClass('ad-success');
 
 					$('#reg_token').html(response.token);
+					$('#reg-token-container').show();
 				}
 				else {
 					$("#token-info").removeClass('ad-success').addClass('ad-error');

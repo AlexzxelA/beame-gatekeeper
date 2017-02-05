@@ -342,7 +342,7 @@ class AdminRouter {
 						}).catch(reject);
 						return;
 					default:
-						reject(`Unknown registration method`);
+						reject(`${method} registration method not supports offline registrations`);
 						return;
 				}
 			}
