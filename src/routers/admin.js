@@ -8,8 +8,8 @@ const path    = require('path');
 const express = require('express');
 
 const Constants  = require('../../constants');
-const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
-const base_path  = path.join(public_dir, 'pages', 'admin');
+const public_dir            = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const base_path           = path.join(public_dir, 'pages', 'admin');
 
 const beameSDK          = require('beame-sdk');
 const CommonUtils       = beameSDK.CommonUtils;
@@ -20,8 +20,8 @@ const Bootstrapper      = require('../bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const beameAuthServices = require('../authServices').getInstance();
 
-const UPLOAD_SUCCESS_CODE = 1;
-const UPLOAD_ERROR_CODE = 0;
+const RESPONSE_SUCCESS_CODE = 1;
+const RESPONSE_ERROR_CODE = 0;
 
 class AdminRouter {
 	constructor(adminServices) {
@@ -55,6 +55,44 @@ class AdminRouter {
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
 			});
+		});
+		//endregion
+
+		//region Registration token
+		this._router.get('/creds/filter', (req, res) => {
+
+			let parts = req.query.filter.filters[0].value;
+
+			beameAuthServices.findCreds(parts).then(list=>{
+				res.json(list);
+			})
+		});
+
+		this._router.post('/regtoken/create', (req, res) => {
+
+			let data = req.body;
+
+			logger.info(`Create registration token  with ${CommonUtils.data}`);
+
+			function resolve(token) {
+				return res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"token": token
+				});
+			}
+
+			function sendError(e) {
+				console.error('/regtoken/create error', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			}
+
+			beameAuthServices.createRegToken(data)
+				.then(resolve)
+				.catch(sendError);
+
 		});
 		//endregion
 
@@ -174,7 +212,7 @@ class AdminRouter {
 
 			function resolve() {
 				return res.json({
-					"responseCode": 0,
+					"responseCode": RESPONSE_SUCCESS_CODE,
 					"responseDesc": `Invitation sent`
 				});
 			}
@@ -182,7 +220,7 @@ class AdminRouter {
 			function sendError(e) {
 				console.error('/invitation/send error', e);
 				return res.json({
-					"responseCode": 1,
+					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": e
 				});
 			}
@@ -217,7 +255,7 @@ class AdminRouter {
 							totalRows++;
 
 							if (csvrow.length != 3) {
-								resultCsvData.push(csvrow.concat([UPLOAD_ERROR_CODE, 'invalid row format']));
+								resultCsvData.push(csvrow.concat([RESPONSE_ERROR_CODE, 'invalid row format']));
 								totalInvalid++;
 							}
 							else {
@@ -239,10 +277,10 @@ class AdminRouter {
 								this._sendInvitation(item).then(
 									() => {
 										invitationSend++;
-										resultCsvData.push(csvrow.concat([UPLOAD_SUCCESS_CODE]));
+										resultCsvData.push(csvrow.concat([RESPONSE_SUCCESS_CODE]));
 										cb();
 									}).catch((err) => {
-										resultCsvData.push(csvrow.concat([UPLOAD_ERROR_CODE, BeameLogger.formatError(err).replace(',',';')]));
+										resultCsvData.push(csvrow.concat([RESPONSE_ERROR_CODE, BeameLogger.formatError(err).replace(',',';')]));
 										totalInvalid++;
 										cb();
 									}
@@ -253,7 +291,7 @@ class AdminRouter {
 
 								const csv = require('express-csv');
 
-								res.setHeader('Content-disposition', `attachment; filename=${CommonUtils.timeStamp().replace('-','').replace(':','').replace(' ','')}_upload_result.csv`);
+								res.setHeader('Content-disposition', `attachment; filename=${CommonUtils.timeStampShort()}_upload_result.csv`);
 								res.set('Content-Type', 'application/octet-stream');
 								res.csv(responseCsv);
 
@@ -285,7 +323,6 @@ class AdminRouter {
 
 		});
 		//endregion
-
 		//endregion
 	}
 

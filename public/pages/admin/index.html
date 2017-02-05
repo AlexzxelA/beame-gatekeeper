@@ -33,6 +33,10 @@
 				path:  "templates/admin/invitations.tmpl.html",
 				event: "invitationLoaded"
 			},
+            RegToken:    {
+				path:  "templates/admin/regtoken.tmpl.html",
+				event: "tokenLoaded"
+			},
 			Service: {
 				path:  "templates/admin/services.tmpl.html",
 				event: "serviceLoaded"
@@ -66,6 +70,7 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.User.path, ADMIN_TEMPLATES.User.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.RegToken.path, ADMIN_TEMPLATES.RegToken.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 
 
@@ -90,6 +95,7 @@
             display: inline-flex
         }
         .admin-main-wrapper{width: 100%}
+        .admin-form-main{padding: 5px;margin: 0}
         .ad-success{color:green}
         .ad-error{color:red}
     </style>
@@ -118,6 +124,7 @@
                     <li><a id="showUsers" href="#/users">Users</a></li>
                     <li><a id="showRegs" href="#/regs">Registrations</a></li>
                     <li><a id="showInvs" href="#/inv">Invitations</a></li>
+                    <li><a id="showRegtoken" href="#/tkn">Reg Token</a></li>
                     <li><a id="showSrv" href="#/srvc">Services</a></li>
                     <li style="float: right"><a id="btn-logout" href="/beame-gw/logout">Logout</a></li>
                 </ul>
@@ -133,13 +140,14 @@
 
 <script>
 
-	var settings = null, viewDash, viewUsers, viewRegs, viewInvs, viewService ,layout;
+	var settings = null, viewDash, viewUsers, viewRegs, viewInvs,viewToken, viewService ,layout;
 
 	function initAdminRouters() {
 		viewDash  = new kendo.View("#home", {model: settings});
 		viewUsers = new kendo.View("#user");
 		viewRegs  = new kendo.View("#regs");
 		viewInvs  = new kendo.View("#inv");
+		viewToken  = new kendo.View("#reg-token");
 		viewService  = new kendo.View("#services");
 
 		layout = new kendo.Layout("<section id='content'></section>");
@@ -174,6 +182,11 @@
 			loadInvitations();
 		};
 
+		var initRegToken = function () {
+			layout.showIn("#content", viewToken);
+			loadRegToken();
+		};
+
 		var initServices = function () {
 			layout.showIn("#content", viewService);
 			loadServices();
@@ -190,6 +203,10 @@
 		});
 		$("#showInvs").on("click", function () {
 			initInvitations();
+		});
+
+		$("#showRegtoken").on("click", function () {
+			initRegToken();
 		});
 		$("#showSrv").on("click", function () {
 			initServices();
@@ -215,6 +232,10 @@
 
 		router.route("/inv", function () {
 			subscribe(ADMIN_TEMPLATES.Invitation.event, initInvitations);
+		});
+
+		router.route("/tkn", function () {
+			subscribe(ADMIN_TEMPLATES.RegToken.event, initRegToken);
 		});
 
 		router.route("/srvc", function () {

@@ -1,0 +1,63 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+
+
+<script type="text/x-kendo-template" id="reg-token">
+
+    <h4>Create Invitation</h4>
+    <section id="token-form-container" style="margin-bottom: 50px">
+        <form id="token_form" action='/regtoken/create' method="post" class="form-main admin-form-main">
+            <div id="token-info">&nbsp;</div>
+            <input id="fqdn"  placeholder="FQDN"  style="width: 80%;" />
+            <input name="name" placeholder="Name" class="form-input"/>
+            <input name="email" type="email" placeholder="Email" class="form-input"/>
+            <input name="user_id" placeholder="External user ID" class="form-input"/>
+            <input name="ttl" placeholder="Token TTL in seconds" class="form-input" />
+            <!--
+            <input name="session_pin" placeholder="4 digits registration code from mobile" class="form-input"/>
+            -->
+            <input type="submit" name="submit" value="Create Registration Token" class="button">
+        </form>
+    </section>
+
+</script>
+<script>
+	function loadRegToken() {
+
+		$("#fqdn").kendoAutoComplete({
+			dataTextField: "fqdn",
+            dataValueField: "fqdn",
+			filter: "contains",
+			minLength: 3,
+			dataSource: {
+				serverFiltering: true,
+				transport: {
+					read: "/creds/filter"
+				}
+			}
+		});
+
+		$('#token_form').submit(function () {
+
+			var handleInviResponse = function (response) {
+				//$("#inv-grid").data('kendoGrid').dataSource.read();
+				console.log(response);
+				if (response.responseCode == 1) {
+
+					$("#token-info").removeClass('ad-error').addClass('ad-success');
+				}
+				else {
+					$("#token-info").removeClass('ad-success').addClass('ad-error');
+				}
+				$("#token-info").html(response.responseDesc);
+			};
+
+			//	document.getElementById("overlay").style.display = "block";
+			$(this).ajaxSubmit({
+				error:   handleInviResponse,
+				success: handleInviResponse
+			});
+			//Very important line, it disable the page refresh.
+			return false;
+		});
+	}
+</script>

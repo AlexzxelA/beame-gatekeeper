@@ -2,39 +2,39 @@
 
 
 <script type="text/x-kendo-template" id="inv">
-    <h4>Create Invitation</h4>
-    <section id="inv-form-container" style="margin-bottom: 50px">
-        <form id="invitation_form" action='/invitation/send' method="post" class="form-main">
-            <div id="inv-info">&nbsp;</div>
-            <input name="name" placeholder="Name" class="form-input"/>
-            <input name="email" type="email" placeholder="Email" class="form-input"/>
-            <input name="user_id" placeholder="External user ID" class="form-input"/>
-            <!--
-            <input name="session_pin" placeholder="4 digits registration code from mobile" class="form-input"/>
-            -->
-            <input type="submit" name="submit" value="Send invitation" class="button">
-        </form>
-    </section>
 
-
-    <h4>Upload Invitations CSV</h4>
-    <section id="inv-upload-form-container" style="margin-bottom: 50px">
-            <div id="upload-info">&nbsp;</div>
-            <form id="upload-form" action="/invitation/upload" method="post" enctype="multipart/form-data"  class="form-main">
-                <fieldset>
-                    <legend>Upload Data</legend>
+    <ul id="inv-panelbar" style="width: 90%;">
+        <li>
+            <h4>Create Invitation</h4>
+            <section id="inv-form-container" style="margin-bottom: 50px">
+                <form id="invitation_form" action='/invitation/send' method="post" class="form-main admin-form-main">
+                    <div id="inv-info">&nbsp;</div>
+                    <input name="name" placeholder="Name" class="form-input"/>
+                    <input name="email" type="email" placeholder="Email" class="form-input"/>
+                    <input name="user_id" placeholder="External user ID" class="form-input"/>
+                    <!--
+                    <input name="session_pin" placeholder="4 digits registration code from mobile" class="form-input"/>
+                    -->
+                    <input type="submit" name="submit" value="Send invitation" class="button">
+                </form>
+            </section>
+        </li>
+        <li>
+            <h4>Upload Invitations CSV</h4>
+            <section id="inv-upload-form-container" style="margin-bottom: 50px">
+                <div id="upload-info">&nbsp;</div>
+                <form id="upload-form" action="/invitation/upload" method="post" enctype="multipart/form-data"
+                      class="form-main admin-form-main">
                     <div>
-                        <!-- The name here is important, and will be used later to reference the data -->
-                        <input type="file" name="csvdata" accept="text/csv" class="button">
+                        <input type="file" name="csvdata" accept="text/csv" >
                     </div>
                     <div>
                         <input type="submit" value="Submit" class="button"/>
                     </div>
-                </fieldset>
-            </form>
-    </section>
-
-
+                </form>
+            </section>
+        </li>
+    </ul>
 
     <h4>Invitations Report</h4>
     <div id="inv-grid"></div>
@@ -64,10 +64,10 @@
 						id:     "id",
 						fields: {
 							id:        {type: "number"},
-                            reg_id:    {type: "number"},
+							reg_id:    {type: "number"},
 							name:      {type: "string"},
 							email:     {type: "string"},
-                            userId:     {type: "string"},
+							userId:    {type: "string"},
 							fqdn:      {type: "string"},
 							createdAt: {type: "date"},
 							status:    {type: "string"}
@@ -86,17 +86,17 @@
 				mode:         "inline",
 				confirmation: true
 			},
-			dataBound: function(e) {
+			dataBound:  function (e) {
 				var grid = e.sender;
 				var data = grid.dataSource.data();
 				$.each(data, function (i, item) {
-					if (item.status == "Completed" ) {
+					if (item.status == "Completed") {
 						$('tr[data-uid="' + item.uid + '"] ').find('.k-grid-delete').hide();//.addClass("disabled");
 					}
 
 				});
 			},
-			remove: function(e) {
+			remove:     function (e) {
 				if (e.model.completed) {
 					e.preventDefault();
 					alert("Registration is completed, and can't be removed");
@@ -140,62 +140,29 @@
 			]
 		});
 
-		initInvForm();
-	}
 
-	function initInvForm(){
 		$('#invitation_form').submit(function () {
+
+			var handleInviResponse = function (response) {
+				$("#inv-grid").data('kendoGrid').dataSource.read();
+				console.log(response);
+				if (response.responseCode == 1) {
+
+					$("#inv-info").removeClass('ad-error').addClass('ad-success');
+				}
+				else {
+					$("#inv-info").removeClass('ad-success').addClass('ad-error');
+				}
+				$("#inv-info").html(response.responseDesc);
+			};
 
 			//	document.getElementById("overlay").style.display = "block";
 			$(this).ajaxSubmit({
-				error: function (response) {
-
-
-				},
-				success: function (response) {
-					document.getElementById("inv-info").innerHTML = response.responseDesc;
-
-
-					$("#inv-grid").data('kendoGrid').dataSource.read();
-
-                    if(response.responseCode == 1)
-                    {
-	                    $("#inv-info").removeClass('ad-error').addClass('ad-success');
-                    }
-                    else{
-	                    $("#inv-info").removeClass('ad-success').addClass('ad-error');
-                    }
-					$("#inv-info").html(response.responseDesc);
-				}
+				error:   handleInviResponse,
+				success: handleInviResponse
 			});
 			//Very important line, it disable the page refresh.
 			return false;
 		});
-
-//		$('#upload-form').submit(function () {
-//
-//			//	document.getElementById("overlay").style.display = "block";
-//			$(this).ajaxSubmit({
-//				error: function (response) {
-//					console.error(response);
-//
-//				},
-//				success: function (response) {
-//					console.log(response)
-//					$("#inv-grid").data('kendoGrid').dataSource.read();
-//
-//					if(response.responseCode == 1)
-//					{
-//						$("#upload-info").removeClass('ad-error').addClass('ad-success');
-//					}
-//					else{
-//						$("#upload-info").removeClass('ad-success').addClass('ad-error');
-//					}
-//					$("#upload-info").html(JSON.stringify(response.result));
-//				}
-//			});
-//			//Very important line, it disable the page refresh.
-//			return false;
-//		});
-    }
+	}
 </script>

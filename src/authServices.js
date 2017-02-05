@@ -980,6 +980,40 @@ class BeameAuthServices {
 	}
 
 
+
+	//region Registration token
+	findCreds(fqdnPart){
+		return new Promise((resolve) => {
+				let list = store.list(null,{hasPrivateKey:true});
+
+				const _isContains = (cred) =>{
+					return cred.getKey("FQDN").indexOf(fqdnPart) >= 0;
+				};
+
+				resolve(list.filter(_isContains).map(item=>{return {fqdn:item.fqdn}}));
+			}
+		);
+	}
+
+	createRegToken(data) {
+		return new Promise((resolve, reject) => {
+			const Credential = beameSDK.Credential;
+			let cred = new Credential(store),ttl = 60*60*24;
+
+			try {
+				ttl = parseInt(data.ttl);
+			} catch (e) {
+
+			}
+
+			cred.createRegistrationToken({fqdn: data.fqdn, name: data.name, email:data.email, userId:data.user_id, ttl:ttl, serviceName:bootstrapper.serviceName, serviceId:bootstrapper.appId, matchingFqdn:this._matchingServerFqdn})
+				.then(resolve)
+				.catch(reject);
+			}
+		);
+	}
+	//endregion
+
 	/** @type {BeameAuthServices} */
 	static getInstance() {
 
