@@ -47,11 +47,12 @@
 
 		$('#token_form').submit(function () {
 
+			showLoader();
 			$('#reg_token').html(null);
 			$('#reg-token-container').hide();
 
 			var handleInviResponse = function (response) {
-				//$("#inv-grid").data('kendoGrid').dataSource.read();
+				hideLoader();
 				console.log(response);
 				if (response.responseCode == 1) {
 

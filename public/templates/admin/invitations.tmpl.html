@@ -1,5 +1,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+<script>
+	function rebindInvitations(){
+		$("#inv-grid").data('kendoGrid').dataSource.read();
+	}
 
+	function onUploadStart(){
+		showLoader();
+		var token = new Date().getTime();
+
+		setCookie("fileDownloadToken", token, 1);
+
+		// To check the cookie returned back from the server every one second
+		var downloadCheck = window.setInterval(function () {
+			var cookieValue = getCookie('fileDownloadToken');
+			if (!cookieValue){
+				hideLoader();
+				clearInterval(downloadCheck);
+				rebindInvitations();
+            }
+		}, 100);
+
+	}
+
+</script>
 
 <script type="text/x-kendo-template" id="inv">
 
@@ -29,7 +52,7 @@
                         <input type="file" name="csvdata" accept="text/csv" >
                     </div>
                     <div>
-                        <input type="submit" value="Submit" class="button"/>
+                        <input type="submit" value="Upload" class="button" onclick="onUploadStart()" />
                     </div>
                 </form>
             </section>
@@ -142,9 +165,10 @@
 
 
 		$('#invitation_form').submit(function () {
-
+            showLoader();
 			var handleInviResponse = function (response) {
-				$("#inv-grid").data('kendoGrid').dataSource.read();
+				hideLoader();
+				rebindInvitations();
 				console.log(response);
 				if (response.responseCode == 1) {
 
@@ -164,5 +188,8 @@
 			//Very important line, it disable the page refresh.
 			return false;
 		});
+
+
+
 	}
 </script>

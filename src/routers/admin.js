@@ -206,6 +206,13 @@ class AdminRouter {
 
 		this._router.post('/invitation/send', (req, res) => {
 
+			if(bootstrapper.registrationImageRequired){
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": 'Offline registration not allowed, when Required Image flag set to true'
+				});
+			}
+
 			let data = req.body;
 
 			logger.info(`Save invitation  with ${CommonUtils.data}`);
@@ -232,6 +239,11 @@ class AdminRouter {
 		});
 
 		this._router.post("/invitation/upload", (req, res) => {
+
+			if(bootstrapper.registrationImageRequired){
+				res.sendFile(path.join(base_path, 'offline_reg_forbidden.html'));
+				return;
+			}
 
 			const fs         = require('fs');
 			const formidable = require('formidable');
@@ -293,6 +305,7 @@ class AdminRouter {
 
 								res.setHeader('Content-disposition', `attachment; filename=${CommonUtils.timeStampShort()}_upload_result.csv`);
 								res.set('Content-Type', 'application/octet-stream');
+								res.clearCookie('fileDownloadToken');
 								res.csv(responseCsv);
 
 							};
@@ -328,6 +341,7 @@ class AdminRouter {
 
 	_sendInvitation(data) {
 		return new Promise((resolve, reject) => {
+
 				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
 				data.hash     = CommonUtils.generateDigest(data4hash);
 

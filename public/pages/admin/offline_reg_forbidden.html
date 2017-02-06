@@ -23,15 +23,16 @@
 </head>
 <body>
 
-<div class="main-wrapper">
+<div class="admin-main-wrapper">
 
     <div class="row">
         <div class="column large-6 large-offset-1 end">
             <div class="logo"><a href="//www.beame.io/">
                 <!-- build:logo -->
-                <img src="img/logo.svg">
+                <img src="../../img/logo.svg">
                 <!-- endbuild -->
-            </a></div>
+            </a>
+            </div>
         </div>
     </div>
 
@@ -42,11 +43,16 @@
             <div class="left-column__wrapper">
                 <h1>Forbidden</h1>
                 <p>Offline registration not allowed, when Required Image flag set to true</p>
+                <button onclick="goBack()">Go Back</button>
             </div>
         </div>
 
     </div>
-
+    <script>
+		function goBack() {
+			window.history.back();
+		}
+    </script>
 </div>
 
 

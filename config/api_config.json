@@ -29,6 +29,9 @@
             },
             "RegisterClient":{
                 "endpoint":"/v1/client/register"
+            },
+            "GetRelay":{
+                "endpoint":"/v1/relay/get"
             }
         }
     }
