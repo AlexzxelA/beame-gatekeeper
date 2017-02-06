@@ -14,6 +14,7 @@ default:
 
 .PHONY: build build-s3
 build:
+    -rm -r node_modules
 	$(CHRONIC) npm install
 	export version=$$(date +%Y%m%d%H%M%S) && gulp clean sass web_sass
 	$(CHRONIC) npm prune --production
@@ -24,6 +25,7 @@ build:
 	rm package.build.json
 
 build-s3:
+    -rm -r node_modules
 	$(CHRONIC) npm install
 	export version=$$(date +%Y%m%d%H%M%S) && $(CHRONIC) gulp clean && $(CHRONIC) gulp sass && $(CHRONIC) gulp compile && $(CHRONIC) gulp upload-to-S3
 	mkdir -p build
