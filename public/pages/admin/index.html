@@ -14,7 +14,8 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://kendo.cdn.telerik.com/2016.3.1118/js/kendo.web.min.js"></script>
-
+    <script src="lib/clipboard.min.js"></script>
+    <script src="js/utils.js"></script>
     <script>
 		var ADMIN_TEMPLATES = {
 			Dash:    {
@@ -79,6 +80,13 @@
 
 		});
 
+        function showLoader(){
+	        document.getElementById("overlay").style.display = "block";
+        }
+        function hideLoader(){
+	        document.getElementById("overlay").style.display = "none";
+        }
+
     </script>
 
     <style>
@@ -134,7 +142,14 @@
 
     </div>
 </div>
-
+<div id="overlay" class="overlay">
+    <div>
+        <h3>Processing Request</h3>
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+    </div>
+</div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.4.0/jszip.min.js"></script>
 

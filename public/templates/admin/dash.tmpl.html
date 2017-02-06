@@ -61,6 +61,11 @@
                         </li>
 
                         <li>
+                            <label>Allow Public Registration</label>
+                            <input type="checkbox" data-bind="checked:data.AppConfig.PublicRegistration" />
+                        </li>
+
+                        <li>
                             <label>Use Image Authentication</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.RegistrationImageRequired" />
                         </li>
@@ -207,15 +212,10 @@
 			$('#save-app-config-btn').kendoButton();
 		};
 
-		if(settings){
+		$.getJSON('/settings/get',function(data){
+			console.log('Settings data %j', data);
+			settings = data;
 			loadDash();
-		}
-		else {
-			$.getJSON('/settings/get',function(data){
-				console.log('Settings data %j', data);
-				settings = data;
-				loadDash();
-			})
-		}
+		})
 	}
 </script>

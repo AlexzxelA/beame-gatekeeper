@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"  ng-app="WhispererWeb">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
@@ -23,7 +23,7 @@
     <!-- endbuild -->
 
 </head>
-<body  ng-controller="MainCtrl">
+<body >
 
 
 <!-- IFRAME IS HIDDEN - add 'show' class to iframe to show it -->
@@ -47,7 +47,7 @@
         <div class="column large-6 large-offset-1">
             <div class="left-column__wrapper wider-2">
                 <h1 class="text-center">Sign up</h1>
-                <p class="text-center nomar">Choose your pairing method please</p>
+
 
                     <div class="box-signin form-main" id="user-img-box" style="display: none;position: relative">
                         <div class="overlay overlay-white" id="lbl-req-img" style="position: absolute;height: 100%;width: 100%">
@@ -75,8 +75,6 @@
                             <div id="qr" style="margin: 0 auto;width: 200px;height: 200px;" class="qr-spinner"></div>
                             <label class="qr-status"></label>
                         </div>
-                        <p class="signin-divider small">Or use ultrasound</p>
-                        <welcome-template></welcome-template>
                     </div>
             </div>
         </div>
@@ -133,8 +131,6 @@
 <script src="js/notification_manager.js"></script>
 <script src="js/user_image.js"></script>
 <script src="js/qr.js"></script>
-<script src="js/whisper_generator.js"></script>
-<script src="js/whisperer.js"></script>
 <!-- endbuild -->
 
 </body>

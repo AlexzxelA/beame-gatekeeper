@@ -304,6 +304,10 @@ class Bootstrapper {
 		return this._config[SettingsProps.RegistrationImageRequired];
 	}
 
+	get publicRegistration() {
+		return this._config[SettingsProps.PublicRegistration];
+	}
+
 	get encryptUserData() {
 		return this._config[SettingsProps.EncryptUserData];
 	}
@@ -749,7 +753,7 @@ class Bootstrapper {
 					logger.debug(`sqlite migration completed successfully...`);
 					resolve();
 				}).catch(reject);
-			
+
 			}
 		);
 	}
@@ -760,7 +764,7 @@ class Bootstrapper {
 
 		return new Promise((resolve, reject) => {
 				let args = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
-			
+
 				CommonUtils.runSequilizeCmd(args).then(()=>{
 					logger.debug(`sqlite seeders applied successfully...`);
 					resolve();

@@ -58,6 +58,8 @@ class BeameInstaSocketServer {
 		this._approverManager = null;
 
 		this._serviceName = bootstrapper.serviceName;
+
+		this._relayFqdn = null;
 	}
 
 
@@ -67,6 +69,7 @@ class BeameInstaSocketServer {
 				this._initWhispererManager()
 					.then(this._initQrMessaging.bind(this))
 					.then(this._initApproverManager.bind(this))
+					.then(this._getRelayFqdn.bind(this))
 					.then(this._startSocketioServer.bind(this))
 					.then(() => {
 						logger.info(`Socket Server started on ${this._fqdn}`);
@@ -74,8 +77,34 @@ class BeameInstaSocketServer {
 					}).catch(reject);
 			}
 		);
-
 	}
+
+	_getRelayFqdn(){
+		const apiConfig   = require('../config/api_config.json');
+		const ProvisionApi     = beameSDK.ProvApi;
+		const authToken    = beameSDK.AuthToken;
+		const store        = new (beameSDK.BeameStore)();
+		return new Promise((resolve, reject) => {
+			try {
+				let fqdn     = this._fqdn,
+				    cred     = store.getCredential(fqdn),
+				    token    = authToken.create(fqdn, cred, 10),
+				    provisionApi = new ProvisionApi();
+
+				provisionApi.makeGetRequest(`https://${this._matchingServerFqdn}${apiConfig.Actions.Matching.GetRelay.endpoint}`, null, (error, payload) => {
+					if (error) {
+						reject(error);
+					}
+					else {
+						this._relayFqdn = payload.relay;
+						resolve();
+					}
+				}, token);
+			} catch (e) {
+				reject(e);
+			}
+		});
+	};
 
 	/**
 	 * @param {Socket} socket
@@ -83,7 +112,7 @@ class BeameInstaSocketServer {
 	 */
 	_onWhispererBrowserConnection(socket) {
 
-		this._whispererManager.onBrowserConnection(socket);
+		this._whispererManager.onBrowserConnection(socket,this._relayFqdn);
 	}
 
 	/**

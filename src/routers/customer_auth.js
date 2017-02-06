@@ -38,7 +38,10 @@ function authenticate(data) {
 
 app.get('/register', (req, res) => {
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
-	res.sendFile(path.join(base_path, 'register.html'));
+
+	let isPublicRegistrationEnabled = bootstrapper.publicRegistration;
+
+	res.sendFile(path.join(base_path, isPublicRegistrationEnabled ? 'register.html' : 'forbidden.html'));
 });
 
 
@@ -58,9 +61,6 @@ app.post('/register/save', (req, res) => {
 	let data4hash = {email:data.email || 'email',user_id:data.user_id || 'user_id'};
 	data.hash = CommonUtils.generateDigest(data4hash);
 	//data.userImageRequired = bootstrapper.registrationImageRequired;
-	console.log(`************************************************************HASH*******************`,data4hash,data.hash);
-
-
 
 	const BeameStore = new beameSDK.BeameStore();
 	const AuthToken  = beameSDK.AuthToken;
