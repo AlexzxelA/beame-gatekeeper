@@ -476,7 +476,7 @@ app.controller("MainCtrl", function ($scope) {
 		}
 	};
 
-	$scope.$on('newData', function (event, data) {
+	$scope.socket.$on('newData', function (event, data) {
 		$scope.gotData(data);
 	});
 

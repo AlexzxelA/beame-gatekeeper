@@ -69,6 +69,7 @@ class BeameInstaSocketServer {
 				this._initWhispererManager()
 					.then(this._initQrMessaging.bind(this))
 					.then(this._initApproverManager.bind(this))
+					.then(this._initLoginManager(this))
 					.then(this._getRelayFqdn.bind(this))
 					.then(this._startSocketioServer.bind(this))
 					.then(() => {
@@ -155,10 +156,12 @@ class BeameInstaSocketServer {
 		this._socketioServer.of('mobile').on('connection', this._onMobileConnection.bind(this));
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
+		this._socketioServer.of('beame_login').on('connection', this._onLoginBrowserConnection.bind(this));
 
 		this._socketioServerAtPath = require('socket.io')(this._server,
 			Object.assign(this._optionsApprover, {'path':'/customer-approve/socket.io'}));
 		this._socketioServerAtPath.of('approver').on('connection', this._onApproverBrowserConnection.bind(this));
+
 		return Promise.resolve();
 	}
 
@@ -205,6 +208,23 @@ class BeameInstaSocketServer {
 		this.qrMessaging = new QrMessaging(this._fqdn, this._matchingServerFqdn, this._callbacks, this._serviceName);
 
 		return Promise.resolve();
+	}
+
+	_initLoginManager() {
+		const LoginManager = require('./pairing/beame_login_manager');
+
+		this._loginManager = new LoginManager(
+			this._fqdn,
+			this._matchingServerFqdn,
+			this._callbacks,
+			this._options,
+			this._serviceName
+		);
+
+		return Promise.resolve();
+	}
+	_onLoginBrowserConnection(socket) {
+		this._loginManager.onBrowserConnection(socket,this._relayFqdn);
 	}
 
 	//noinspection JSUnusedGlobalSymbols
