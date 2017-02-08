@@ -285,7 +285,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				    fqdn: user.fqdn
 			    };
 
-			document.cookie = "beame_userinfo=" + JSON.stringify(info);
+			document.cookie = "beame_userinfo=" + JSON.stringify(info)+ ";path=/";
 		}
 	}
 
