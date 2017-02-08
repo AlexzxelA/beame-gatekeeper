@@ -573,7 +573,35 @@ function initTmpHost(data) {
 
 }
 
+function setQr(pin) {
+	qrContainer = $('#qr');
+	try {
+		var qrCode = JSON.stringify(pin);
+		if (qrCode.length > 10) {
+
+			console.log(qrCode);
+			qrContainer.empty();
+			qrContainer.removeClass('qr-spinner');
+			qrContainer.kendoQRCode({
+				value:           qrCode,
+				errorCorrection: "L",
+				color:           "#000",
+				background:      "transparent",
+				padding:         0,
+				size:            220
+			});
+		}
+		else {
+			console.log('data is short:', qrCode.length);//resend qr
+		}
+	}
+	catch (e) {
+		console.log('Invalid QR data:', pin);
+	}
+}
+
 function setBrowserforNewPin(data) {
+	setQr(data.pin);
 	getWAV(data.pin);
 	console.log('PIN:' + data.pin);
 	var pinElement = document.getElementById("pin");
