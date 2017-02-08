@@ -41,7 +41,7 @@ jspm_packages
 stuff
 data/beame_server.db
 /config/config.json
-public/css
+#public/css
 build
 certs
 bower_components
@@ -49,6 +49,6 @@ dist
 local_config/
 tools
 npm-shrinkwrap.json
-apps/photo/public/css
-apps/stream/public/css
+#apps/photo/public/css
+#apps/stream/public/css
 .sass-cache
