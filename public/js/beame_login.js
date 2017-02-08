@@ -347,7 +347,10 @@ var _setBit = function (freq, phase, samples, padding) {
 	var i;
 	for (i = 0; i < samples; i++) {
 		if (i < samples - padding)
-			data[i] = Math.sin(phase + i * twoPi * (freq / SR));
+			data[i] = (Math.sin(phase + i * twoPi * (freq / SR)) +
+			(Math.sin(phase + i * twoPi * ((freq - 10) / SR))) +
+			(Math.sin(phase + i * twoPi * ((freq + 10) / SR))) +
+			(Math.sin(phase + i * twoPi * ((freq + 20) / SR))));
 		else
 			data[i] = 0;
 	}
@@ -959,7 +962,6 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 		cb(e, null);
 	}
 }
-
 
 function str2ab(str) {
 	var buf     = new ArrayBuffer(str.length);//* 2); // 2 bytes for each char
