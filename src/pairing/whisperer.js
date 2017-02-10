@@ -42,6 +42,7 @@ class Whisperer {
 	 */
 	constructor(mode, socket, serverFqdn, matchingServerFqdn, relayFqdn, callbacks, socket_options, sendPinInterval, socketDisconnectTimeout, serviceName) {
 
+		this._gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		this._sessionId = uuid.v4();
 
 		this._relay = relayFqdn;
@@ -235,6 +236,7 @@ class Whisperer {
 						payload.imageRequired = bootstrapper.registrationImageRequired;
 						payload.matching      = this._matchingServerFqdn;
 						payload.service       = this._serviceName;
+						payload.gwFqdn        = this._gwFqdn;
 						this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 					}).catch(e => {
 						logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
@@ -274,6 +276,7 @@ class Whisperer {
 								payload.imageRequired = bootstrapper.registrationImageRequired;
 								payload.matching      = this._matchingServerFqdn;
 								payload.service       = this._serviceName;
+								payload.gwFqdn        = this._gwFqdn;
 								this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 								break;
 							case 'cert':

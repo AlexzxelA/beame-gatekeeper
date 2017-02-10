@@ -44,6 +44,13 @@ unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 });
 
 
+unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
+	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	clearSessionCookie(res);
+	res.sendFile(path.join(base_path, 'login.html'));
+});
+
 unauthenticatedApp.get('/', (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'welcome.html'));

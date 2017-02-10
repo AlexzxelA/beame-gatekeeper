@@ -476,9 +476,9 @@ app.controller("MainCtrl", function ($scope) {
 		}
 	};
 
-	$scope.socket.$on('newData', function (event, data) {
-		$scope.gotData(data);
-	});
+	// $scope.socket.$on('newData', function (event, data) {
+	// 	$scope.gotData(data);
+	// });
 
 	// Welcome screen actions
 	$scope.turnSoundOn = function () {

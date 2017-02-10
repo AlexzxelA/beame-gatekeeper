@@ -46,7 +46,6 @@ class BeameLogin {
 	}
 
 
-
 	start() {
 
 		this._socket.on('pinRequest', () => {

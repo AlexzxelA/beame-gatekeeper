@@ -11,6 +11,7 @@ const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
 const GatewayControllerPath    = '/beame-gw';
 const SigninPath               = `${GatewayControllerPath}/signin`;
+const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
@@ -130,6 +131,7 @@ module.exports = {
 	GatewayControllerPath,
 	GwAuthenticatedPath,
 	SigninPath,
+	LoginPath,
 	LogoutPath,
 	AppSwitchPath,
 

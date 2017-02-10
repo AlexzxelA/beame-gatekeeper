@@ -244,6 +244,7 @@ gulp.task('compile-pages', () => {
 
 	compilePage('./public/pages/gw/unauthenticated/welcome.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
 	compilePage('./public/pages/gw/unauthenticated/signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/login.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
 	compilePage('./public/pages/gw/authenticated/logged-in-home.html', `./${dist_folder_name}/pages/gw/authenticated/`);
 	compilePage('./public/pages/customer_auth/register.html', `./${dist_folder_name}/pages/customer_auth/`);
 	compilePage('./public/pages/customer_auth/register_success.html', `./${dist_folder_name}/pages/customer_auth/`);

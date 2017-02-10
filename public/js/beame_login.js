@@ -433,9 +433,22 @@ var startPlaying = function () {
 	}
 };
 
+var stopPlaying  = function () {
+	try {
+		if (audio) {
+			audio.pause();
+			audio.playing = false;
+			audio.loop    = false;
+		}
+	} catch (e) {
+		console.error('stop playing', e);
+	}
+};
+
 var gotData = function (data) {
 	if (stopAllRunningSessions) {
-		closeSession();
+		console.log('Audio: close_session received');
+		stopPlaying();
 	}
 	else {
 		console.log("data received:" + data.length);
@@ -551,6 +564,7 @@ function initTmpHost(data) {
 		!pairingSession)
 		return;
 
+	RelayEndpoint = data.relay;
 	var lclNdx = tmpHostNdx;
 	tmpHostNdx = (tmpHostNdx & 1)?0:1;
 
@@ -868,6 +882,21 @@ function processMobileData(TMPsocketRelay, data, cb) {
 			console.log('info_packet_response data = ', data.payload.data);
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
+		case 'direct_mobile':
+			// var xhr = new XMLHttpRequest();
+			// xhr.open('GET', "https://gsvewupg9e8tl75r.kl9gozbgs9nlfxpw.v1.p.beameio.net/", true);
+			// xhr.withCredentials = false;
+			// //xhr.setRequestHeader('Access-Control-Allow-Origin','*');
+			// //xhr.setRequestHeader('Access-Control-Allow-Methods','GET');
+			// xhr.send();
+			// xhr.onreadystatechange = processRequest;
+			// function processRequest(e) {
+			// 	if (xhr.readyState == 4) {
+			// 		window.alert('xhr READY:'+xhr.status)
+			// 	}
+			// }
+			break;
+
 		default:
 			console.error('unknown payload type for Beame-Login' + type);
 			return;
