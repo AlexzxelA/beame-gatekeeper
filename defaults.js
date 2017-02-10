@@ -21,7 +21,8 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 const PublicRegistration        = true;
 const RegistrationImageRequired = true;
 const EncryptUserData           = true;
-const UseBeameAuthOnLocal       = false;
+const PairingRequired           = false;
+const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 
@@ -58,6 +59,7 @@ const ConfigProps = {
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
+		PairingRequired:     "PairingRequired",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
@@ -138,6 +140,7 @@ module.exports = {
 	RegistrationMethod,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
+	PairingRequired,
 	RegistrationImageRequired,
 	EncryptUserData,
 	StartRaspberryApp,

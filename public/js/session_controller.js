@@ -34,7 +34,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 		sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
 
-		cefManager.changeState(0);
+		setTimeout(window.cefManager.reload,200);
 	});
 
 	try {
