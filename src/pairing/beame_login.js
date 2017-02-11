@@ -53,9 +53,18 @@ class BeameLogin {
 			this._socket.emit('pindata', this._buildDataPack(lclPin));
 		});
 
+		this._socket.on('verifyToken', (token) => {
+			authToken.validate(token).then(()=>{
+				let parsed = JSON.parse(token);
+				var targetFqdn = (!(parsed.signedBy == parsed.signedData.data))?(parsed.signedData.data+'/beame-gw/signin'):'none';
+				this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, pin:parsed.signedData.valid_till}));
+			}).catch(e=>{
+				this._socket.emit('tokenVerified', JSON.stringify({success:false, error: e}));
+			});
+		});
+
 		let lclPin = this._getRandomPin(15,0);
 		this._socket.emit('startPairingSession', this._buildDataPack(lclPin));
-
 
 	}
 

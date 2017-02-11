@@ -13,17 +13,15 @@ var BIT_N    = 500;
 var SHRT_MAX = 32767;
 var audio,
 	audioData,
-	WhPIN = null,
-	WhUID = null,
-	WhTMPSocketRelay,
-	whTmpSocketId,
+	UID = null,
 	RelayEndpoint,
 	tmpHostArr=[],
 	activeHosts = [],
 	tmpHostNdx,
 	pinRefreshRate,
 	pairingSession,
-	fullQrData;
+	fullQrData,
+	activeHost;
 
 var bpf = [
 	0.0054710543943477024,
@@ -517,6 +515,7 @@ function processTmpHost(tmpHost, srcData) {
 		}
 		else if(type == 'done'){
 			stopAllRunningSessions = true;
+			activeHost = activeHosts[sockId];
 			// destroyTmpHosts();
 			initComRelay(activeHosts[sockId].sock);
 		}
@@ -656,7 +655,19 @@ originSocket.on('pindata', function (dataRaw) {
 
 });
 
-
+originSocket.on('tokenVerified', function (data) {
+	console.log('tokenVerified', data);
+	var parsed = JSON.parse(data);
+	if(parsed.success){
+		if(parsed.target != 'none'){
+			document.cookie = "beame_userid=" + JSON.stringify({pin:parsed.pin,uid:UID}) + ";path=/";
+			window.location.href = 'https://' + parsed.target;
+		}
+	}
+	else{
+		console.log('Token validation failed:',parsed.error);
+	}
+});
 //*********** crypto **********
 var cryptoObj = window.crypto || window.msCrypto;
 
@@ -849,6 +860,7 @@ function processMobileData(TMPsocketRelay, data, cb) {
 				sessionRSAPK = keydata;
 				console.log('...Got message from mobile:', decryptedData);
 
+				originSocket.emit('verifyToken',decryptedData.payload.token);
 				startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
 
 				importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
