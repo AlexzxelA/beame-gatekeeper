@@ -57,7 +57,7 @@ class BeameLogin {
 			authToken.validate(token).then(()=>{
 				let parsed = JSON.parse(token);
 				var targetFqdn = (!(parsed.signedBy == parsed.signedData.data))?(parsed.signedData.data+'/beame-gw/signin'):'none';
-				this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, pin:parsed.signedData.valid_till}));
+				this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, token:token}));
 			}).catch(e=>{
 				this._socket.emit('tokenVerified', JSON.stringify({success:false, error: e}));
 			});

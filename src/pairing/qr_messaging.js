@@ -336,7 +336,11 @@ class QrMessaging {
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
 				    "data":          this._edge.endpoint,
-				    'signature':     token
+				    'signature':     token,
+					'refresh_rate': OTP_refresh_rate,
+					'matching':     this._matchingServerFqdn,
+					'service':      this._serviceName,
+					'appId':        bootstrapper.appId
 			    });
 
 			this._sendWithAck(socket, "relayEndpoint", tokenStr);

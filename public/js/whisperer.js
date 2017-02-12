@@ -279,7 +279,7 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 	$scope.socket.on('requestQrData',function () {
-		sendQrDataToWhisperer(getRelayFqdn(), getVUID(),$scope.socket);
+		sendQrDataToWhisperer(getRelayFqdn(), getVUID($scope.socket),$scope.socket);
 	});
 
 	$scope.socket.on('userImageSign',function (data) {

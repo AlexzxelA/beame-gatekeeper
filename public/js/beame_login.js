@@ -482,43 +482,51 @@ function processTmpHost(tmpHost, srcData) {
 	});
 
 	activeHosts[sockId].sock.on('data', function (data) {
-		activeHosts[sockId].ID = data.socketId;
-		activeHosts[sockId].isConnected = true;
-		activeHosts[sockId].connectTimeout = setTimeout(function () {
-			if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
-		}, 3000);
-		// activeHosts[sockId].ID = data.socketId;
-		var type          = data.payload.data.type;
-		console.log(activeHosts[sockId],':',type);
-		if(type == 'direct_mobile'){
-			if(keyPair){
-				events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
-					.then(function (keydata) {
-						var PK = arrayBufferToBase64String(keydata);
-						var tmp_reg_data = "login";
-						var tmp_type = "BEAME_LOGIN";
+		if(!activeHosts[sockId]){
+			window.alert('Session inactive: reload');
+			window.location.reload();
+		}
+		else{
+			activeHosts[sockId].ID = data.socketId;
+			activeHosts[sockId].isConnected = true;
+			activeHosts[sockId].connectTimeout = setTimeout(function () {
+				if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
+			}, 3000);
+			// activeHosts[sockId].ID = data.socketId;
+			var type          = data.payload.data.type;
+			console.log(activeHosts[sockId],':',type);
+			UID = activeHosts[sockId].name;
+			if(type == 'direct_mobile'){
+				if(keyPair){
+					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+						.then(function (keydata) {
+							var PK = arrayBufferToBase64String(keydata);
+							var tmp_reg_data = "login";
+							var tmp_type = "BEAME_LOGIN";
 
-						fullQrData       = JSON.stringify({
-							'relay': RelayEndpoint, 'PK': PK, 'UID': activeHosts[sockId].name, 'appId' : appId,
-							'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-						});
+							fullQrData       = JSON.stringify({
+								'relay': RelayEndpoint, 'PK': PK, 'UID': activeHosts[sockId].name, 'appId' : appId,
+								'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+							});
 
 
-						activeHosts[sockId].sock.emit('data',
-							{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
-						console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
-					}).catch(function (err) {
-					console.error('Export Public Key Failed', err);
-				});
+							activeHosts[sockId].sock.emit('data',
+								{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
+							console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
+						}).catch(function (err) {
+						console.error('Export Public Key Failed', err);
+					});
+				}
+
 			}
+			else if(type == 'done'){
+				stopAllRunningSessions = true;
+				activeHost = activeHosts[sockId];
+				// destroyTmpHosts();
+				initComRelay(activeHosts[sockId].sock);
+			}
+		}
 
-		}
-		else if(type == 'done'){
-			stopAllRunningSessions = true;
-			activeHost = activeHosts[sockId];
-			// destroyTmpHosts();
-			initComRelay(activeHosts[sockId].sock);
-		}
 	});
 
 	activeHosts[sockId].sock.on('disconnect', function () {
@@ -539,18 +547,19 @@ function processTmpHost(tmpHost, srcData) {
 
 }
 
-function destroyTmpHosts() {
+function destroyTmpHosts(cb) {
 	stopAllRunningSessions = true;
 	clearInterval(pairingSession);
 	pairingSession = undefined;
 	Object.keys(activeHosts).map(function (tmpHostX, index) {
-		if(activeHosts[tmpHostX].sock){
+		if(activeHosts[tmpHostX] && activeHosts[tmpHostX].sock){
 			console.log('Done, deleting host <', index, '> :', activeHosts[tmpHostX].name);
 			activeHosts[tmpHostX].sock.emit('cut_client',{'socketId':activeHosts[tmpHostX].ID});
 			activeHosts[tmpHostX] = undefined;
 		}
 	});
 	activeHosts = [];
+	cb && cb();
 }
 
 function initTmpHost(data) {
@@ -660,8 +669,10 @@ originSocket.on('tokenVerified', function (data) {
 	var parsed = JSON.parse(data);
 	if(parsed.success){
 		if(parsed.target != 'none'){
-			document.cookie = "beame_userid=" + JSON.stringify({pin:parsed.pin,uid:UID}) + ";path=/";
-			window.location.href = 'https://' + parsed.target;
+			document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/";
+			destroyTmpHosts(function () {
+					window.location.href = 'https://' + parsed.target;
+			});
 		}
 	}
 	else{
@@ -861,17 +872,17 @@ function processMobileData(TMPsocketRelay, data, cb) {
 				console.log('...Got message from mobile:', decryptedData);
 
 				originSocket.emit('verifyToken',decryptedData.payload.token);
-				startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
+				//startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
 
-				importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-					console.log("Successfully imported RSAPKCS PK from external source");
-					sessionRSAPKverify = keydata;
-					if (cb) {
-						cb(decryptedData);
-					}
-				}).catch(function (err) {
-					console.error('Import *Verify Key* Failed', err);
-				});
+				// importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
+				// 	console.log("Successfully imported RSAPKCS PK from external source");
+				// 	sessionRSAPKverify = keydata;
+				// 	if (cb) {
+				// 		cb(decryptedData);
+				// 	}
+				// }).catch(function (err) {
+				// 	console.error('Import *Verify Key* Failed', err);
+				// });
 
 			}).catch(function (err) {
 				console.error('Import *Encrypt Key* Failed', err);

@@ -125,7 +125,15 @@ function isAudioSession() {
 
 function getVUID() {
 	if(vUID)return vUID;
+	// if(delegatedUserId){
+	// 	var usrParsed = JSON.parse(delegatedUserId);
+	// 	delegatedUID = usrParsed.uid;
+	// 	vUID = delegatedUID;
+	// }
+	// else{
 	vUID = generateUID(24) + VirtualPrefix;
+	//}
+
 	return vUID;
 }
 
@@ -161,6 +169,26 @@ function initComRelay() {
 		TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
 		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
+		if(delegatedUserId){
+			var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
+			events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
+			then(function (keydata) {
+				var PK = arrayBufferToBase64String(keydata);
+				var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
+				var qrData       = JSON.stringify({
+					'relay': RelayPath, 'PK': PK, 'UID': getVUID(),
+					'PIN':   getParameterByName('pin') || 'none', 'TYPE': 'LOGIN',
+					'TIME': Date.now(), 'REG': 'LOGIN',
+					'imageRequired': imgReq, 'appId':JSON.parse(sessionServiceData).appId
+				});
+
+				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:qrData})));
+				delegatedUserId = undefined;
+			}).catch(function (e) {
+				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
+				delegatedUserId = undefined;
+			});
+		}
 	});
 
 	virtRelaySocket.on('hostRegisterFailed',function (data) {
