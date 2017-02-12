@@ -1,5 +1,5 @@
 {
-  "name": "beame-insta-server",
+  "name": "beame-gatekeeper",
   "version": "1.0.4",
   "description": "Gateway TLS (SSL) server for authenticated access to your services",
   "main": "index.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:beameio/beame-insta-server.git"
+    "url": "git@github.com:beameio/beame-gatekeeper.git"
   },
   "keywords": [
     "beame",
@@ -26,9 +26,9 @@
   "author": "beame.io",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/beameio/beame-insta-server/issues"
+    "url": "https://github.com/beameio/beame-gatekeeper/issues"
   },
-  "homepage": "https://github.com/beameio/beame-insta-server#readme",
+  "homepage": "https://github.com/beameio/beame-gatekeeper#readme",
   "dependencies": {
     "BeameMatchingServer": "git+ssh://git@github.com/beameio/BeameMatchingServer.git#prod",
     "async": "^2.1.2",
