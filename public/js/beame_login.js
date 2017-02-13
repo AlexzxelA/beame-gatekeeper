@@ -1,6 +1,7 @@
 /**
  * Created by Alexz on 07/02/2017.
  */
+const onPairedTimeout = 600000;//ms
 var BITS_PER_WORD = 21;
 
 var twoPi    = 6.28318530718;
@@ -21,7 +22,8 @@ var audio,
 	pinRefreshRate,
 	pairingSession,
 	fullQrData,
-	activeHost;
+	activeHost,
+	tryToReconnect;
 
 var bpf = [
 	0.0054710543943477024,
@@ -522,8 +524,13 @@ function processTmpHost(tmpHost, srcData) {
 			else if(type == 'done'){
 				stopAllRunningSessions = true;
 				activeHost = activeHosts[sockId];
+				activeHosts[sockId].sock.removeAllListeners();
 				// destroyTmpHosts();
 				initComRelay(activeHosts[sockId].sock);
+				setTimeout(function () {
+					window.alert('Timed out waiting for mobile directive');
+					window.location.reload();
+				}, onPairedTimeout);
 			}
 		}
 
@@ -572,6 +579,13 @@ function initTmpHost(data) {
 		!pairingSession)
 		return;
 
+	var usrData = getCookie('usrInData');
+	if(usrData){
+		document.cookie = 'usrInData=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
+		var usrDataObj = JSON.parse(usrData);
+		originSocket.emit('notifyMobile',JSON.stringify(Object.assign(usrDataObj,{qrData:data})));
+	}
+
 	RelayEndpoint = data.relay;
 	var lclNdx = tmpHostNdx;
 	tmpHostNdx = (tmpHostNdx & 1)?0:1;
@@ -595,7 +609,6 @@ function initTmpHost(data) {
 	tmpHostArr[lclNdx].sock.on('connect',function () {
 		processTmpHost(tmpHostArr[lclNdx], data);
 	});
-
 }
 
 function setQr(pin) {
@@ -635,9 +648,12 @@ function setBrowserforNewPin(data) {
 	}
 }
 
+originSocket.on('mobileIsOnline',function (status) {
+	console.log('mobile status: <<', status, '>>');
+});
+
 originSocket.on('startPairingSession',function (data) {
 	console.log('Starting pairing session with data:', data);
-
 	if (!pairingSession) {
 		var parsed = JSON.parse(data);
 
@@ -669,9 +685,11 @@ originSocket.on('tokenVerified', function (data) {
 	var parsed = JSON.parse(data);
 	if(parsed.success){
 		if(parsed.target != 'none'){
-			document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/";
+			//var target = JSON.parse(parsed.token).signedData;
+			//document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/;domain="+target.data;
 			destroyTmpHosts(function () {
-					window.location.href = 'https://' + parsed.target;
+				var l = 'https://' + parsed.target + "?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:UID})));
+				window.location.href = l;
 			});
 		}
 	}
@@ -919,7 +937,9 @@ function processMobileData(TMPsocketRelay, data, cb) {
 			// 	}
 			// }
 			break;
-
+		case 'restart_pairing':
+			window.location.reload();
+			break;
 		default:
 			console.error('unknown payload type for Beame-Login' + type);
 			return;
@@ -1050,7 +1070,6 @@ var TmpSocketID,
 	vUID;
 
 function initComRelay(virtRelaySocket) {
-	virtRelaySocket.removeAllListeners();
 
 	virtRelaySocket.on('disconnect', function () {
 		//setQRStatus && setQRStatus('Virtual host disconnected');

@@ -208,7 +208,7 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise(() => {
-				const url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
+				const url = `https://${gwServerFqdn}/beame-gw/logout-to-login?token=${encodeURIComponent(token)}`;
 				logger.debug('respond() URL', url);
 				reply({
 					type:    'redirect',

@@ -13,6 +13,7 @@ const GatewayControllerPath    = '/beame-gw';
 const SigninPath               = `${GatewayControllerPath}/signin`;
 const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
+const LogoutToLoginPath        = `${GatewayControllerPath}/logout-to-login`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const beame_server_folder_name = ".beame_server";
@@ -106,6 +107,8 @@ const SetupServices = {
 
 const CookieNames = {
 	"Logout":   "beame_logout_url",
+	"Logout2Login":   "beame_logout_to_login_url",
+	"Login":    "beame_login_url",
 	"Service":  "beame_service",
 	"RegData":  "beame_reg_data",
 	"Proxy":    "proxy_enabling_token",
@@ -133,6 +136,7 @@ module.exports = {
 	SigninPath,
 	LoginPath,
 	LogoutPath,
+	LogoutToLoginPath,
 	AppSwitchPath,
 
 	BeameRootPath,

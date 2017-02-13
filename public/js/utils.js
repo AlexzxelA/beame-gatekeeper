@@ -57,7 +57,9 @@ function getCookie(cname) {
 
 function logout(){
 	try {
-		window.location.href = decodeURIComponent(getCookie('beame_logout_url'));
+		var usrData = getCookie('usrInData');
+		var target = (usrData)?'beame_logout_to_login_url':'beame_logout_url';
+		window.location.href = decodeURIComponent(getCookie(target));
 	} catch (e) {
 	}
 }

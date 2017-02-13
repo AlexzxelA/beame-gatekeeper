@@ -38,6 +38,7 @@ unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
@@ -46,6 +47,7 @@ unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 
 unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'login.html'));
@@ -277,6 +279,15 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	clearSessionCookie(res);
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
 	res.redirect(`https://${gwServerFqdn}${Constants.SigninPath}`);
+
+});
+
+unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
+	console.log('unauthenticatedApp/get/logout-to-login: Logging out');
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	clearSessionCookie(res);
+	res.append('X-Beame-Debug', 'Redirecting to GW login after logging out');
+	res.redirect(`https://${gwServerFqdn}${Constants.LoginPath}`);
 
 });
 

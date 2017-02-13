@@ -8,9 +8,10 @@ var auth_mode = 'Session',
 	forceReloadWindowOnSessionFailure = false,
     reg_data = null,
     socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true},
-	delegatedUserId = getCookie('beame_userid');
+	delegatedUserId = getParameterByName('usrInData');
 	if(delegatedUserId){
-		document.cookie = "beame_userid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		delegatedUserId = window.atob(decodeURIComponent(delegatedUserId));
+		setCookie("usrInData",delegatedUserId,0.24);
 	}
 
 function onUserAction(accepted){

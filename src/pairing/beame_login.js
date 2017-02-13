@@ -11,7 +11,7 @@ const CommonUtils  = beameSDK.CommonUtils;
 const authToken    = beameSDK.AuthToken;
 const store        = new (beameSDK.BeameStore)();
 
-const AudioPIN_refresh_rate = 1000 * 30;
+const PIN_refresh_rate = 1000 * 60;
 /**
  * @typedef {Object} SessionData
  * @property {String} sessionId
@@ -63,6 +63,22 @@ class BeameLogin {
 			});
 		});
 
+		this._socket.on('notifyMobile', (data) => {
+			const ProvisionApi     = beameSDK.ProvApi;
+			const provisionApi     = new ProvisionApi();
+			let parsed = JSON.parse(data);
+			let target = JSON.parse(parsed.token).signedBy;
+			console.log(`notifyMobile with: ${data}`);
+			provisionApi.postRequest('https://'+target+'/login/restart', data, (error) => {
+				if(!error){
+					this._socket.emit('mobileIsOnline', true);
+				}
+				else{
+					console.log('Failed to notify Mobile:', error);
+				}
+			},null, 10, {rejectUnauthorized: false});
+		});
+
 		let lclPin = this._getRandomPin(15,0);
 		this._socket.emit('startPairingSession', this._buildDataPack(lclPin));
 
@@ -82,7 +98,7 @@ class BeameLogin {
 				'name': name,
 				'service':this._serviceName,
 				'matching': this._matchingServerFqdn,
-				'refresh_rate': AudioPIN_refresh_rate,
+				'refresh_rate': PIN_refresh_rate,
 				'appId':'beame-login'
 			});
 		return tokenStr;

@@ -29,7 +29,6 @@ class PairingUtils {
 				reject(e);
 			});
 		});
-
 	}
 
 
