@@ -291,6 +291,45 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 
 });
 
+unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
+	console.log('unauthenticatedApp/get/config-data');
+	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
+	function getRelayFqdn(){
+		const apiConfig    = require('../../../config/api_config.json');
+		const ProvisionApi = beameSDK.ProvApi;
+		const authToken    = beameSDK.AuthToken;
+		const store        = new (beameSDK.BeameStore)();
+
+		return new Promise((resolve, reject) => {
+			try {
+				let fqdn     = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+					cred     = store.getCredential(fqdn),
+					token    = authToken.create(fqdn, cred, 10),
+					provisionApi = new ProvisionApi();
+
+				provisionApi.makeGetRequest(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`, null, (error, payload) => {
+					if (error) {
+						reject(error);
+					}
+					else {
+						resolve(payload.relay);
+					}
+				}, token);
+			} catch (e) {
+				reject(e);
+			}
+		});
+	}
+	getRelayFqdn().then((relay)=>{
+		res.send(JSON.stringify({'beame_login_config': {relay:(relay || 'none'), matching:matching}}));
+	}).catch((e)=>{
+		res.send(JSON.stringify({'beame_login_config': {error:e}}));
+	});
+
+});
+
+
+
 unauthenticatedApp.use(cust_auth_app);
 
 module.exports = unauthenticatedApp;

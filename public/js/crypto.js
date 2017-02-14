@@ -549,6 +549,10 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 
 					case 'Session':
 						validateSession(userImageRequired).then(function () {
+							if(getCookie('usrInData')){
+								setCookie('usrInData',
+									JSON.stringify({token:decryptedData.payload.token,uid:getVUID()}), 0.24);
+							}
 							userImageRequested = false;
 							TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
 							TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');

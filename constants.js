@@ -13,6 +13,7 @@ const GatewayControllerPath    = '/beame-gw';
 const SigninPath               = `${GatewayControllerPath}/signin`;
 const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
+const ConfigData               = `${GatewayControllerPath}/config-data`;
 const LogoutToLoginPath        = `${GatewayControllerPath}/logout-to-login`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
@@ -136,6 +137,7 @@ module.exports = {
 	SigninPath,
 	LoginPath,
 	LogoutPath,
+	ConfigData,
 	LogoutToLoginPath,
 	AppSwitchPath,
 
