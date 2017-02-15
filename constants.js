@@ -41,6 +41,8 @@ const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, Sqlit
 
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
+const BeameLoginURL = "https://dev.login.beameio.net";
+
 const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
 
@@ -122,6 +124,7 @@ module.exports = {
 	RegistrationMethod,
 	RegistrationSource,
 	LoadBalancerURL,
+	BeameLoginURL,
 	CredentialType,
 	SnsMessageType,
 	SetupServices,

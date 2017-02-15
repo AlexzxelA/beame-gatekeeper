@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const https      = require('https');
 const express    = require('express');
 const path       = require('path');
+const Bootstrapper = require('./bootstrapper');
 
 const beameSDK   = require('beame-sdk');
 const BeameStore = new beameSDK.BeameStore();
@@ -41,6 +42,51 @@ function setExpressAppCommonRoutes(app) {
 	app.use(express.static(path.join(__dirname, '..', Constants.WebRootFolder)));
 }
 
+function getLocalRelayFqdn() {
+	const apiConfig    = require('../config/api_config.json');
+	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
+	return new Promise((resolve, reject) => {
+		getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
+			Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then((relay)=> {
+			resolve(relay);
+		}).catch((e)=> {
+			reject(e);
+		});
+	});
+}
+
+function getRelayFqdn(target, lclFqdn){
+
+	const ProvisionApi = beameSDK.ProvApi;
+	const authToken    = beameSDK.AuthToken;
+	const store        = new (beameSDK.BeameStore)();
+
+	return new Promise((resolve, reject) => {
+		try {
+			let fqdn     = lclFqdn,
+				cred     = fqdn && store.getCredential(fqdn),
+				token    = cred && authToken.create(fqdn, cred, 10),
+				provisionApi = new ProvisionApi();
+			    //matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
+
+			//provisionApi.makeGetRequest(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`, null, (error, payload) => {
+			provisionApi.makeGetRequest(target, null, (error, payload) => {
+				if (error) {
+					reject(error);
+				}
+				else {
+					if(payload.beame_login_config)
+						resolve(payload.beame_login_config.relay);
+					else
+						resolve(payload.relay);
+				}
+			}, token);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
 function createAuthTokenByFqdn(fqdn, data, ttl) {
 	if (arguments.length < 3) {
 		return Promise.reject('createAuthTokenByFqdn() requires 3 arguments');
@@ -58,5 +104,7 @@ function createAuthTokenByFqdn(fqdn, data, ttl) {
 module.exports = {
 	setExpressApp,
 	setExpressAppCommonRoutes,
-	createAuthTokenByFqdn
+	createAuthTokenByFqdn,
+	getRelayFqdn,
+	getLocalRelayFqdn
 };

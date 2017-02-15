@@ -528,6 +528,8 @@ function processTmpHost(tmpHost, srcData) {
 				// destroyTmpHosts();
 				initComRelay(activeHosts[sockId].sock);
 				setTimeout(function () {
+					activeHosts[sockId].sock.emit('data',
+						{'socketId': activeHosts[sockId].ID, 'payload':'sessionTimeout'});
 					window.alert('Timed out waiting for mobile directive');
 					window.location.reload();
 				}, onPairedTimeout);

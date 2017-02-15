@@ -16,7 +16,8 @@ const beameSDK    = require('beame-sdk');
 const module_name = "BeameInstaSocketServer";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
-
+const utils       = require('./utils');
+const Constants   = require('../constants');
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 
@@ -60,6 +61,8 @@ class BeameInstaSocketServer {
 		this._serviceName = bootstrapper.serviceName;
 
 		this._relayFqdn = null;
+
+		this._loginRelayFqdn = null;
 	}
 
 
@@ -70,7 +73,8 @@ class BeameInstaSocketServer {
 					.then(this._initQrMessaging.bind(this))
 					.then(this._initApproverManager.bind(this))
 					.then(this._initLoginManager(this))
-					.then(this._getRelayFqdn.bind(this))
+					.then(this._getLocalRelay.bind(this))
+					.then(this._getLoginRelay.bind(this))
 					.then(this._startSocketioServer.bind(this))
 					.then(() => {
 						logger.info(`Socket Server started on ${this._fqdn}`);
@@ -80,7 +84,22 @@ class BeameInstaSocketServer {
 		);
 	}
 
-	_getRelayFqdn(){
+	_getLoginRelay(){
+		return new Promise((resolve, reject) => {
+			utils.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn)=> {
+				this._loginRelayFqdn = relayFqdn;// || this._relayFqdn;
+				resolve();
+			}).catch((e)=>{this._loginRelayFqdn = this._relayFqdn; resolve();});
+		});
+	}
+
+	_getLocalRelay(){
+		return new Promise((resolve, reject) => {
+			utils.getLocalRelayFqdn().then((relay)=>{this._relayFqdn = relay; resolve();}).catch((e)=>{reject(e);});
+		});
+	}
+
+	/*_getLocalRelay(){
 		const apiConfig   = require('../config/api_config.json');
 		const ProvisionApi     = beameSDK.ProvApi;
 		const authToken    = beameSDK.AuthToken;
@@ -105,7 +124,7 @@ class BeameInstaSocketServer {
 				reject(e);
 			}
 		});
-	};
+	};*/
 
 	/**
 	 * @param {Socket} socket
@@ -224,7 +243,7 @@ class BeameInstaSocketServer {
 		return Promise.resolve();
 	}
 	_onLoginBrowserConnection(socket) {
-		this._loginManager.onBrowserConnection(socket,this._relayFqdn);
+		this._loginManager.onBrowserConnection(socket,this._loginRelayFqdn);
 	}
 
 	//noinspection JSUnusedGlobalSymbols

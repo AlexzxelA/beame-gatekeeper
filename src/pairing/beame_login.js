@@ -6,7 +6,7 @@
 
 //const uuid         = require('uuid');
 const beameSDK     = require('beame-sdk');
-
+const Constants    = require('../../constants');
 const CommonUtils  = beameSDK.CommonUtils;
 const authToken    = beameSDK.AuthToken;
 const store        = new (beameSDK.BeameStore)();

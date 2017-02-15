@@ -208,9 +208,13 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise(() => {
+				console.log('*************** Logout with data:', payload);
 				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
-				if(payload.logout2login)
+				if(payload.logout2login){//} && (payload.logout2login.indexOf('https') >= 0)){
 					url = `https://${gwServerFqdn}/beame-gw/logout-to-login?token=${encodeURIComponent(token)}`;
+					//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
+				}
+
 				logger.debug('respond() URL', url);
 				reply({
 					type:    'redirect',
