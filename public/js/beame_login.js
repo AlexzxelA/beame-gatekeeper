@@ -525,13 +525,17 @@ function processTmpHost(tmpHost, srcData) {
 				stopAllRunningSessions = true;
 				activeHost = activeHosts[sockId];
 				activeHosts[sockId].sock.removeAllListeners();
-				// destroyTmpHosts();
+
 				initComRelay(activeHosts[sockId].sock);
 				setTimeout(function () {
 					activeHosts && activeHosts[sockId] && activeHosts[sockId].sock.emit('data',
 						{'socketId': activeHosts[sockId].ID, 'payload':'sessionTimeout'});
-					window.alert('Timed out waiting for mobile directive');
-					window.location.reload();
+
+					destroyTmpHosts(function () {
+						window.alert('Timed out waiting for mobile directive');
+						window.location.reload();
+					});
+
 				}, onPairedTimeout);
 			}
 		}
@@ -662,7 +666,7 @@ originSocket.on('startPairingSession',function (data) {
 		pinRefreshRate = parsed.refresh_rate || 10000;
 		pairingSession = setInterval(function () {
 			if(stopAllRunningSessions){
-				destroyTmpHosts();
+				//destroyTmpHosts();
 			}
 			else{
 				console.log('Tmp Host requesting data');
