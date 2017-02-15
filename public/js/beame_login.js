@@ -1,7 +1,7 @@
 /**
  * Created by Alexz on 07/02/2017.
  */
-const onPairedTimeout = 600000;//ms
+const onPairedTimeout = 60000;//ms
 var BITS_PER_WORD = 21;
 
 var twoPi    = 6.28318530718;
@@ -528,7 +528,7 @@ function processTmpHost(tmpHost, srcData) {
 				// destroyTmpHosts();
 				initComRelay(activeHosts[sockId].sock);
 				setTimeout(function () {
-					activeHosts[sockId].sock.emit('data',
+					activeHosts && activeHosts[sockId] && activeHosts[sockId].sock.emit('data',
 						{'socketId': activeHosts[sockId].ID, 'payload':'sessionTimeout'});
 					window.alert('Timed out waiting for mobile directive');
 					window.location.reload();
