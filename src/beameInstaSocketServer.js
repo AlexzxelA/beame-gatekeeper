@@ -86,6 +86,12 @@ class BeameInstaSocketServer {
 
 	_getLoginRelay(){
 		return new Promise((resolve, reject) => {
+			let tmp = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+			console.log('Constants.BeameLoginURL:',Constants.BeameLoginURL,',tmp:',tmp);
+			if(Constants.BeameLoginURL.indexOf(tmp) >= 0){
+				this._loginRelayFqdn = this._relayFqdn;resolve();
+			}
+			else
 			utils.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn)=> {
 				this._loginRelayFqdn = relayFqdn;// || this._relayFqdn;
 				resolve();

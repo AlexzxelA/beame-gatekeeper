@@ -43,6 +43,7 @@ function setExpressAppCommonRoutes(app) {
 }
 
 function getLocalRelayFqdn() {
+	console.log(getLocalRelayFqdn);
 	const apiConfig    = require('../config/api_config.json');
 	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
 	return new Promise((resolve, reject) => {
