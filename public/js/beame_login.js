@@ -21,9 +21,7 @@ var audio,
 	tmpHostNdx,
 	pinRefreshRate,
 	pairingSession,
-	fullQrData,
-	activeHost,
-	tryToReconnect;
+	fullQrData;
 
 var bpf = [
 	0.0054710543943477024,
@@ -523,7 +521,7 @@ function processTmpHost(tmpHost, srcData) {
 			}
 			else if(type == 'done'){
 				stopAllRunningSessions = true;
-				activeHost = activeHosts[sockId];
+
 				activeHosts[sockId].sock.removeAllListeners();
 
 				initComRelay(activeHosts[sockId].sock);
@@ -545,6 +543,12 @@ function processTmpHost(tmpHost, srcData) {
 	activeHosts[sockId].sock.on('disconnect', function () {
 		activeHosts[sockId].sock.emit('cut_client',{'socketId':tmpHost.ID});
 		activeHosts[sockId] = undefined;
+	});
+
+	activeHosts[sockId].sock.on('restart_pairing', function () {
+		destroyTmpHosts(function () {
+			window.location.reload();
+		});
 	});
 
 	activeHosts[sockId].sock.emit('register_server',

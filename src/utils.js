@@ -43,17 +43,38 @@ function setExpressAppCommonRoutes(app) {
 }
 
 function getLocalRelayFqdn() {
-	console.log(getLocalRelayFqdn);
-	const apiConfig    = require('../config/api_config.json');
-	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
+	console.log('getLocalRelayFqdn');
+	// const apiConfig    = require('../config/api_config.json');
+	// const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
+	// return new Promise((resolve, reject) => {
+	// 	getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
+	// 		Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then((relay)=> {
+	// 		resolve(relay);
+	// 	}).catch((e)=> {
+	// 		reject(e);
+	// 	});
+	// });
 	return new Promise((resolve, reject) => {
-		getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
-			Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then((relay)=> {
+		getBestRelay().then(relay=> {
 			resolve(relay);
-		}).catch((e)=> {
-			reject(e);
-		});
+		}).catch(e=>{reject(e);})
 	});
+}
+
+function getBestRelay() {
+	return new Promise((resolve, reject) => {
+
+			const beameUtils = beameSDK.BeameUtils;
+			beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
+				if (!error) {
+					resolve(payload.endpoint);
+				}
+				else {
+					reject(error);
+				}
+			});
+		}
+	);
 }
 
 function getRelayFqdn(target, lclFqdn){
