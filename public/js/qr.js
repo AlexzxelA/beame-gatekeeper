@@ -103,7 +103,7 @@ $(document).ready(function () {
 			console.log('QR session stopped from server');
 			resetQR();
 		}
-		else {
+		else if(!waitingForMobileConnection && !delegatedUserId){
 			try {
 				console.log('QR! RENEW QR');
 				var parsed = JSON.parse(data);

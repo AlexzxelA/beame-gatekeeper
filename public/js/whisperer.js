@@ -87,7 +87,7 @@ app.controller("MainCtrl", function ($scope) {
 
 
 	$scope.startPlaying = function () {
-		if ($scope.audio) {//} && $scope.socketAlive) {
+		if ($scope.audio && !waitingForMobileConnection && !delegatedUserId) {//} && $scope.socketAlive) {
 			console.log('playing: ' + $scope.pinData);
 			try {
 				if ($scope.audio.playing === true) {

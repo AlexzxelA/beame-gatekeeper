@@ -6,6 +6,7 @@
 const audioOnlySession = false;
 const activateVirtHostRecovery = false;
 const virtHostTimeout = 5;
+const wait4MobileTimeout = 7000;
 var vUID = null,
 	virtRelaySocket = null,
 	virtHostConnected = false,
@@ -21,7 +22,8 @@ var vUID = null,
 	pingVirtHost = null,
 	controlWindowTimer = null,
 	RelayPath = null,
-	RelayFqdn = null;
+	RelayFqdn = null,
+	waitingForMobileConnection = null;
 
 var sessionValidationActive   = null,
 	sessionValidationComplete = false;
@@ -170,6 +172,9 @@ function initComRelay() {
 		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
 		if(delegatedUserId){
+			waitingForMobileConnection = setTimeout(function () {
+				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+			},wait4MobileTimeout);
 			var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
 			events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
 			then(function (keydata) {
@@ -187,6 +192,7 @@ function initComRelay() {
 			}).catch(function (e) {
 				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
 				delegatedUserId = undefined;
+				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
 			});
 		}
 	});

@@ -68,7 +68,7 @@ class BeameLogin {
 			const provisionApi     = new ProvisionApi();
 			let parsed = JSON.parse(data);
 			let target = JSON.parse(parsed.token).signedBy;
-			console.log(`notifyMobile with: ${data}`);
+			console.log(`notifyMobile with: ${data} => ${target}`);
 			provisionApi.postRequest('https://'+target+'/login/restart', data, (error) => {
 				if(!error){
 					this._socket.emit('mobileIsOnline', true);

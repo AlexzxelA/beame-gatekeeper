@@ -390,7 +390,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			return;
 		case 'info_packet_response':
 			console.log('info_packet_response data = ', data.payload.data);
-
+			waitingForMobileConnection && clearTimeout(waitingForMobileConnection);
 			// var onPublicKeyImported = function (keydata) {
 			// 	console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
 			// 	sessionRSAPK = keydata;
