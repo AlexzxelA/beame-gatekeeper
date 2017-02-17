@@ -283,11 +283,12 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 });
 
 unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
-	console.log('unauthenticatedApp/get/logout-to-login: Logging out');
-	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	console.log('unauthenticatedApp/get/login-reinit: Logging out');
+	//const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	clearSessionCookie(res);
-	res.append('X-Beame-Debug', 'Redirecting to GW login after logging out');
-	res.redirect(`https://${gwServerFqdn}${Constants.LoginPath}`);
+	//res.append('X-Beame-Debug', 'Redirecting to GW login after logging out');
+	//res.redirect(`https://${gwServerFqdn}${Constants.LoginPath}`);
+	res.sendFile(path.join(base_path, 'logged-out.html'));
 
 });
 

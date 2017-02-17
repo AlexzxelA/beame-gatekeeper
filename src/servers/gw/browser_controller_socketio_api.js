@@ -211,7 +211,7 @@ const messageHandlers = {
 				console.log('*************** Logout with data:', payload);
 				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
 				if(payload.logout2login){//} && (payload.logout2login.indexOf('https') >= 0)){
-					url = `https://${gwServerFqdn}/beame-gw/logout-to-login?token=${encodeURIComponent(token)}`;
+					url = `https://${gwServerFqdn}/beame-gw/login-reinit?token=${encodeURIComponent(token)}`;
 					//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
 				}
 

@@ -13,6 +13,7 @@ const beameSDK   = require('beame-sdk');
 const BeameStore = new beameSDK.BeameStore();
 const AuthToken  = beameSDK.AuthToken;
 const Constants = require('../constants');
+
 /**
  *
  * @param router
@@ -42,6 +43,7 @@ function setExpressAppCommonRoutes(app) {
 	app.use(express.static(path.join(__dirname, '..', Constants.WebRootFolder)));
 }
 
+var localSigninRelayFqdn = null;
 function getLocalRelayFqdn() {
 	console.log('getLocalRelayFqdn');
 	// const apiConfig    = require('../config/api_config.json');
@@ -55,9 +57,13 @@ function getLocalRelayFqdn() {
 	// 	});
 	// });
 	return new Promise((resolve, reject) => {
-		getBestRelay().then(relay=> {
-			resolve(relay);
-		}).catch(e=>{reject(e);})
+		if(localSigninRelayFqdn)
+			resolve(localSigninRelayFqdn);
+		else
+			getBestRelay().then(relay=> {
+				localSigninRelayFqdn = relay;
+				resolve(relay);
+			}).catch(e=>{reject(e);})
 	});
 }
 

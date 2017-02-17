@@ -6,13 +6,10 @@
 /**
  * Created by filip on 18/07/2016.
  */
-const onPairedTimeout = 60000;
 var WhPIN = null,
     WhUID = null,
     WhTMPSocketRelay,
-    whTmpSocketId,
-    WhRelayEndpoint,
-	tmpHostArr=[],
+    tmpHostArr=[],
 	activeHosts = [],
 	tmpHostNdx,
 	pinRefreshRate,
@@ -355,16 +352,6 @@ app.controller("MainCtrl", function ($scope) {
 					activeHosts[sockId].sock.removeAllListeners();
 
 					initComRelay(activeHosts[sockId].sock);
-					setTimeout(function () {
-						activeHosts && activeHosts[sockId] && activeHosts[sockId].sock.emit('data',
-							{'socketId': activeHosts[sockId].ID, 'payload':'sessionTimeout'});
-
-						destroyTmpHosts(function () {
-							window.alert('Timed out waiting for mobile directive');
-							window.location.reload();
-						});
-
-					}, onPairedTimeout);
 				}
 			}
 
