@@ -350,7 +350,7 @@ class AdminRouter {
 				switch (method) {
 					case Constants.RegistrationMethod.Email:
 					case Constants.RegistrationMethod.SMS:
-						beameAuthServices.sendCustomerInvitation(method, data, null, true).then(pincode => {
+						beameAuthServices.sendCustomerInvitation(method, data, null).then(pincode => {
 							data.pin = pincode;
 							resolve();
 						}).catch(reject);

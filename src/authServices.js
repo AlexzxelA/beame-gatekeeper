@@ -37,8 +37,8 @@ const ProvisionApi     = beameSDK.ProvApi;
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
-var dataService        = null;
-var beameAuthServices  = null;
+let dataService        = null;
+let beameAuthServices  = null;
 const nop              = function () {
 };
 
@@ -219,7 +219,7 @@ class BeameAuthServices {
 	 */
 	recoveryRegistration(data) {
 
-		var self = this;
+		let self = this;
 
 		return new Promise((resolve, reject) => {
 
@@ -693,9 +693,8 @@ class BeameAuthServices {
 	 * @param {String} method
 	 * @param {Object} metadata
 	 * @param {String|null|undefined} [phone_number]
-	 * @param {Boolean} forceSend
 	 */
-	sendCustomerInvitation(method, metadata, phone_number, forceSend = false) {
+	sendCustomerInvitation(method, metadata, phone_number) {
 
 		let existingRegistrationRecord = null, customerFqdn = null;
 
@@ -791,7 +790,7 @@ class BeameAuthServices {
 								else {
 									resolve(payload.data);
 								}
-							}, sign);
+							}, sign,10);
 						} catch (e) {
 							reject(e);
 						}

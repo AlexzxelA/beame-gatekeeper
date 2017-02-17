@@ -312,6 +312,10 @@ class Bootstrapper {
 		return this._config[SettingsProps.PublicRegistration];
 	}
 
+	get pairingRequired() {
+		return this._config[SettingsProps.PairingRequired];
+	}
+
 	get encryptUserData() {
 		return this._config[SettingsProps.EncryptUserData];
 	}
