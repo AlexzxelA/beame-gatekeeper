@@ -351,7 +351,9 @@ class BrowserControllerSocketioApi {
 				return sendError(client, 'Data must have "type" and "payload" fields');
 			}
 			if (!messageHandlers[data.type]) {
-				return sendError(client, `Don't know how to handle message of type ${data.type}`);
+				let expectedMessages = ['userImage','loggedOut','beamePing','restart_pairing','approval_request'];
+				if(expectedMessages.indexOf(data.type)<0)
+					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
 			messageHandlers[data.type](data.payload, reply);
 		});

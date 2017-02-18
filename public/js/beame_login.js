@@ -525,6 +525,7 @@ function processTmpHost(tmpHost, srcData) {
 				activeHosts[sockId].sock.removeAllListeners();
 
 				initComRelay(activeHosts[sockId].sock);
+				updateUIelements();
 				setTimeout(function () {
 					activeHosts && activeHosts[sockId] && activeHosts[sockId].sock.emit('data',
 						{'socketId': activeHosts[sockId].ID, 'payload':'sessionTimeout'});
@@ -1125,6 +1126,18 @@ function initComRelay(virtRelaySocket) {
 		console.log('Relay end, ID = ', virtRelaySocket.id);
 	});
 
+}
+
+
+function updateUIelements() {
+	var
+	signBox      = document.getElementById('pairing-box'),
+	imgBox       = document.getElementById('user-img-box'),
+	lblReqImg    = document.getElementById('lbl-req-img'),
+	lblReqImgMsg = document.getElementById('lbl-req-img-msg');
+	if(signBox) signBox.style.display   = 'none';
+	if(imgBox) imgBox.style.display    = 'block';
+	if(lblReqImg) lblReqImg.style.display = 'block';
 }
 
 function beameLoginData(){
