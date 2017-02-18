@@ -172,7 +172,9 @@ function initComRelay() {
 		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
 		if(delegatedUserId){
+			var qrData = 'none';
 			waitingForMobileConnection = setTimeout(function () {
+				window.alert('Timed out waiting for mobile connection:'+qrData);
 				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
 			},wait4MobileTimeout);
 			var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
@@ -180,7 +182,7 @@ function initComRelay() {
 			then(function (keydata) {
 				var PK = arrayBufferToBase64String(keydata);
 				var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
-				var qrData       = JSON.stringify({
+				qrData       = JSON.stringify({
 					'relay': RelayPath, 'PK': PK, 'UID': getVUID(),
 					'PIN':   getParameterByName('pin') || 'none', 'TYPE': 'LOGIN',
 					'TIME': Date.now(), 'REG': 'LOGIN',
