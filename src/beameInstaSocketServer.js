@@ -89,13 +89,13 @@ class BeameInstaSocketServer {
 			let tmp = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 			console.log('Constants.BeameLoginURL:',Constants.BeameLoginURL,',tmp:',tmp);
 			if(Constants.BeameLoginURL.indexOf(tmp) >= 0){
-				this._loginRelayFqdn = this._relayFqdn;resolve();
+				this._loginRelayFqdn = this._relayFqdn;resolve(this._loginRelayFqdn);
 			}
 			else
 			utils.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn)=> {
 				this._loginRelayFqdn = relayFqdn;// || this._relayFqdn;
-				resolve();
-			}).catch((e)=>{this._loginRelayFqdn = this._relayFqdn; resolve();});
+				resolve(relayFqdn);
+			}).catch((e)=>{this._loginRelayFqdn = this._relayFqdn; resolve(this._loginRelayFqdn);});
 		});
 	}
 
@@ -249,7 +249,10 @@ class BeameInstaSocketServer {
 		return Promise.resolve();
 	}
 	_onLoginBrowserConnection(socket) {
-		this._loginManager.onBrowserConnection(socket,this._loginRelayFqdn);
+		this._getLoginRelay().then((relay)=>{
+			this._loginManager.onBrowserConnection(socket, relay);
+		}).catch(()=>{this._loginManager.onBrowserConnection(socket,this._loginRelayFqdn);});
+
 	}
 
 	//noinspection JSUnusedGlobalSymbols
