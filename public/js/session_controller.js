@@ -34,7 +34,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 		sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
 
-		cefManager.changeState(0);
+		setTimeout(window.cefManager.reload,200);
 	});
 
 	try {
@@ -194,6 +194,13 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 						// 	{
 						// 		cmd:decryptedData.payload.data.cmd
 						// 	});
+						break;
+					case 'new_session_init':
+						console.log('Requested new session with:',decryptedData.payload);
+						var parsed = decryptedData.payload;
+						var parsedToken = JSON.parse(parsed.token);
+						var l = 'https://' + parsedToken.signedData.data + "/beame-gw/signin?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:parsed.uid})));
+						window.location.href = l;
 						break;
 					case 'mediaRequest':
 						var segment = '/' + (decryptedData.payload.url).split('/').pop();

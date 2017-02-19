@@ -7,7 +7,12 @@ var auth_mode = 'Session',
     stopAllRunningSessions = false,
 	forceReloadWindowOnSessionFailure = false,
     reg_data = null,
-    socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true}; //, transports: ['polling']};
+    socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true},
+	delegatedUserId = getParameterByName('usrInData');
+	if(delegatedUserId){
+		delegatedUserId = window.atob(decodeURIComponent(delegatedUserId));
+		setCookie("usrInData",delegatedUserId,0.24);
+	}
 
 function onUserAction(accepted){
 	if(accepted && originTmpSocket){

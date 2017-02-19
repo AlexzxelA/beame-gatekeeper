@@ -29,11 +29,20 @@ class PairingUtils {
 				reject(e);
 			});
 		});
-
 	}
 
 
 	setCommonHandlers() {
+		this._socket.on('notifyMobile', (data) => {
+			const ProvisionApi     = beameSDK.ProvApi;
+			const provisionApi     = new ProvisionApi();
+			let parsed = JSON.parse(data);
+			let target = JSON.parse(parsed.token).signedBy;
+			logger.info(`notifyMobile with: ${data}`);
+			provisionApi.postRequest('https://'+target+'/login/pairing', data, (error) => {
+				error && console.log('Failed to notify Mobile:', error);
+			},null, 10, {rejectUnauthorized: false});
+		});
 
 		this._socket.on('userImageVerify', (data) => {
 			logger.debug('Requested image verification: ', data);

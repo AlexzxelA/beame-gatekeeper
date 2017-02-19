@@ -37,6 +37,7 @@ class QrMessaging {
 				this._edge = null;
 			}
 		});
+		this._gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		this._fqdn               = fqdn;
 		this._callbacks          = callbacks;
 		this._browserHost        = null;
@@ -176,6 +177,7 @@ class QrMessaging {
 					payload.imageRequired = bootstrapper.registrationImageRequired;
 					payload.matching      = this._matchingServerFqdn;
 					payload.service       = this._serviceName;
+					payload.gwFqdn        = this._gwFqdn;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					this._sendWithAck(socket, "mobileProv1", {
@@ -223,6 +225,7 @@ class QrMessaging {
 							payload.imageRequired = bootstrapper.registrationImageRequired;
 							payload.matching      = this._matchingServerFqdn;
 							payload.service       = this._serviceName;
+							payload.gwFqdn        = this._gwFqdn;
 							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 							break;
 						case 'cert':
@@ -333,7 +336,11 @@ class QrMessaging {
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
 				    "data":          this._edge.endpoint,
-				    'signature':     token
+				    'signature':     token,
+					'refresh_rate': OTP_refresh_rate,
+					'matching':     this._matchingServerFqdn,
+					'service':      this._serviceName,
+					'appId':        bootstrapper.appId
 			    });
 
 			this._sendWithAck(socket, "relayEndpoint", tokenStr);

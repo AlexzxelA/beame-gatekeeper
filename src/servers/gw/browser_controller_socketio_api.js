@@ -208,7 +208,13 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise(() => {
-				const url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
+				console.log('*************** Logout with data:', payload);
+				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
+				if(payload.logout2login){//} && (payload.logout2login.indexOf('https') >= 0)){
+					url = `https://${gwServerFqdn}/beame-gw/login-reinit?token=${encodeURIComponent(token)}`;
+					//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
+				}
+
 				logger.debug('respond() URL', url);
 				reply({
 					type:    'redirect',
@@ -345,7 +351,9 @@ class BrowserControllerSocketioApi {
 				return sendError(client, 'Data must have "type" and "payload" fields');
 			}
 			if (!messageHandlers[data.type]) {
-				return sendError(client, `Don't know how to handle message of type ${data.type}`);
+				let expectedMessages = ['userImage','loggedOut','beamePing','restart_pairing','approval_request'];
+				if(expectedMessages.indexOf(data.type)<0)
+					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
 			messageHandlers[data.type](data.payload, reply);
 		});

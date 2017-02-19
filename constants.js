@@ -11,7 +11,10 @@ const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
 const GatewayControllerPath    = '/beame-gw';
 const SigninPath               = `${GatewayControllerPath}/signin`;
+const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
+const ConfigData               = `${GatewayControllerPath}/config-data`;
+const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const beame_server_folder_name = ".beame_server";
@@ -37,6 +40,8 @@ const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppCo
 const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
 
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
+
+const BeameLoginURL = "https://dev.login.beameio.net";
 
 const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
@@ -105,6 +110,8 @@ const SetupServices = {
 
 const CookieNames = {
 	"Logout":   "beame_logout_url",
+	"Logout2Login":   "beame_logout_to_login_url",
+	"Login":    "beame_login_url",
 	"Service":  "beame_service",
 	"RegData":  "beame_reg_data",
 	"Proxy":    "proxy_enabling_token",
@@ -117,6 +124,7 @@ module.exports = {
 	RegistrationMethod,
 	RegistrationSource,
 	LoadBalancerURL,
+	BeameLoginURL,
 	CredentialType,
 	SnsMessageType,
 	SetupServices,
@@ -130,7 +138,10 @@ module.exports = {
 	GatewayControllerPath,
 	GwAuthenticatedPath,
 	SigninPath,
+	LoginPath,
 	LogoutPath,
+	ConfigData,
+	LogoutToLoginPath,
 	AppSwitchPath,
 
 	BeameRootPath,

@@ -9,9 +9,7 @@
 var WhPIN = null,
     WhUID = null,
     WhTMPSocketRelay,
-    whTmpSocketId,
-    WhRelayEndpoint,
-	tmpHostArr=[],
+    tmpHostArr=[],
 	activeHosts = [],
 	tmpHostNdx,
 	pinRefreshRate,
@@ -89,7 +87,7 @@ app.controller("MainCtrl", function ($scope) {
 
 
 	$scope.startPlaying = function () {
-		if ($scope.audio) {//} && $scope.socketAlive) {
+		if ($scope.audio && !waitingForMobileConnection && !delegatedUserId) {//} && $scope.socketAlive) {
 			console.log('playing: ' + $scope.pinData);
 			try {
 				if ($scope.audio.playing === true) {
@@ -279,7 +277,7 @@ app.controller("MainCtrl", function ($scope) {
 	});
 
 	$scope.socket.on('requestQrData',function () {
-		sendQrDataToWhisperer(getRelayFqdn(), getVUID(),$scope.socket);
+		sendQrDataToWhisperer(getRelayFqdn(), getVUID($scope.socket),$scope.socket);
 	});
 
 	$scope.socket.on('userImageSign',function (data) {
@@ -311,42 +309,52 @@ app.controller("MainCtrl", function ($scope) {
 		});
 
 		activeHosts[sockId].sock.on('data', function (data) {
-			activeHosts[sockId].ID = data.socketId;
-			activeHosts[sockId].isConnected = true;
-			activeHosts[sockId].connectTimeout = setTimeout(function () {
-				if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
-			}, 3000);
-			// activeHosts[sockId].ID = data.socketId;
-			var type          = data.payload.data.type;
-			console.log(activeHosts[sockId],':',type);
-			if(type == 'direct_mobile'){
-				if(keyPair){
-					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
-						.then(function (keydata) {
-							var PK = arrayBufferToBase64String(keydata);
-							var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-							var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+			if(!activeHosts[sockId]){
+				window.alert('Session inactive: reload');
+				window.location.reload();
+			}
+			else{
+				activeHosts[sockId].ID = data.socketId;
+				activeHosts[sockId].isConnected = true;
+				activeHosts[sockId].connectTimeout = setTimeout(function () {
+					if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
+				}, 3000);
+				// activeHosts[sockId].ID = data.socketId;
+				var type          = data.payload.data.type;
+				console.log(activeHosts[sockId],':',type);
 
-							fullQrData       = JSON.stringify({
-								'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
-								'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-							});
+				if(type == 'direct_mobile'){
+					if(keyPair){
+						events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+							.then(function (keydata) {
+								var PK = arrayBufferToBase64String(keydata);
+								var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
+								var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+
+								fullQrData       = JSON.stringify({
+									'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
+									'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+								});
 
 
-							activeHosts[sockId].sock.emit('data',
-								{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
-							console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
-						}).catch(function (err) {
-						console.error('Export Public Key Failed', err);
-					});
+								activeHosts[sockId].sock.emit('data',
+									{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
+								console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
+							}).catch(function (err) {
+							console.error('Export Public Key Failed', err);
+						});
+					}
+
 				}
+				else if(type == 'done'){
+					stopAllRunningSessions = true;
 
+					activeHosts[sockId].sock.removeAllListeners();
+
+					initComRelay(activeHosts[sockId].sock);
+				}
 			}
-			else if(type == 'done'){
-				stopAllRunningSessions = true;
-				destroyTmpHosts();
-				(tmpHost) = undefined;
-			}
+
 		});
 
 
@@ -369,18 +377,19 @@ app.controller("MainCtrl", function ($scope) {
 
 	}
 
-	function destroyTmpHosts() {
+	function destroyTmpHosts(cb) {
 		stopAllRunningSessions = true;
 		clearInterval(pairingSession);
 		pairingSession = undefined;
 		Object.keys(activeHosts).map(function (tmpHostX, index) {
-			if(activeHosts[tmpHostX].sock){
+			if(activeHosts[tmpHostX] && activeHosts[tmpHostX].sock){
 				console.log('Done, deleting host <', index, '> :', activeHosts[tmpHostX].name);
 				activeHosts[tmpHostX].sock.emit('cut_client',{'socketId':activeHosts[tmpHostX].ID});
 				activeHosts[tmpHostX] = undefined;
 			}
 		});
 		activeHosts = [];
+		cb && cb();
 	}
 
 	function initTmpHost(data) {
@@ -476,9 +485,9 @@ app.controller("MainCtrl", function ($scope) {
 		}
 	};
 
-	$scope.$on('newData', function (event, data) {
-		$scope.gotData(data);
-	});
+	// $scope.socket.$on('newData', function (event, data) {
+	// 	$scope.gotData(data);
+	// });
 
 	// Welcome screen actions
 	$scope.turnSoundOn = function () {

@@ -38,11 +38,20 @@ unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
+
+unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
+	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
+	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	clearSessionCookie(res);
+	res.sendFile(path.join(base_path, 'login.html'));
+});
 
 unauthenticatedApp.get('/', (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
@@ -272,6 +281,38 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 	res.redirect(`https://${gwServerFqdn}${Constants.SigninPath}`);
 
 });
+
+unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
+	console.log('unauthenticatedApp/get/login-reinit: Logging out');
+	//const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	clearSessionCookie(res);
+	//res.append('X-Beame-Debug', 'Redirecting to GW login after logging out');
+	//res.redirect(`https://${gwServerFqdn}${Constants.LoginPath}`);
+	res.sendFile(path.join(base_path, 'logged-out.html'));
+
+});
+
+unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
+	console.log('unauthenticatedApp/get/config-data');
+	// const apiConfig    = require('../../../config/api_config.json');
+	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
+
+	utils.getLocalRelayFqdn().then((relay)=>{
+		res.send(JSON.stringify({'beame_login_config': {relay:(relay || 'none'), matching:matching}}));
+	}).catch((e)=>{
+		res.send(JSON.stringify({'beame_login_config': {error:e}}));
+	});
+
+	// utils.getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
+	// 	Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then((relay)=>{
+	// 	res.send(JSON.stringify({'beame_login_config': {relay:(relay || 'none'), matching:matching}}));
+	// }).catch((e)=>{
+	// 	res.send(JSON.stringify({'beame_login_config': {error:e}}));
+	// });
+
+});
+
+
 
 unauthenticatedApp.use(cust_auth_app);
 

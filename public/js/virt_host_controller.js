@@ -6,6 +6,7 @@
 const audioOnlySession = false;
 const activateVirtHostRecovery = false;
 const virtHostTimeout = 5;
+const wait4MobileTimeout = 7000;
 var vUID = null,
 	virtRelaySocket = null,
 	virtHostConnected = false,
@@ -21,7 +22,8 @@ var vUID = null,
 	pingVirtHost = null,
 	controlWindowTimer = null,
 	RelayPath = null,
-	RelayFqdn = null;
+	RelayFqdn = null,
+	waitingForMobileConnection = null;
 
 var sessionValidationActive   = null,
 	sessionValidationComplete = false;
@@ -125,7 +127,15 @@ function isAudioSession() {
 
 function getVUID() {
 	if(vUID)return vUID;
+	// if(delegatedUserId){
+	// 	var usrParsed = JSON.parse(delegatedUserId);
+	// 	delegatedUID = usrParsed.uid;
+	// 	vUID = delegatedUID;
+	// }
+	// else{
 	vUID = generateUID(24) + VirtualPrefix;
+	//}
+
 	return vUID;
 }
 
@@ -161,6 +171,32 @@ function initComRelay() {
 		TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
 		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
+		if(delegatedUserId){
+			var qrData = 'none';
+			waitingForMobileConnection = setTimeout(function () {
+				window.alert('Timed out waiting for mobile connection:'+qrData);
+				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+			},wait4MobileTimeout);
+			var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
+			events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
+			then(function (keydata) {
+				var PK = arrayBufferToBase64String(keydata);
+				var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
+				qrData       = JSON.stringify({
+					'relay': RelayPath, 'PK': PK, 'UID': getVUID(),
+					'PIN':   getParameterByName('pin') || 'none', 'TYPE': 'LOGIN',
+					'TIME': Date.now(), 'REG': 'LOGIN',
+					'imageRequired': imgReq, 'appId':JSON.parse(sessionServiceData).appId
+				});
+
+				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:qrData})));
+				delegatedUserId = undefined;
+			}).catch(function (e) {
+				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
+				delegatedUserId = undefined;
+				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+			});
+		}
 	});
 
 	virtRelaySocket.on('hostRegisterFailed',function (data) {

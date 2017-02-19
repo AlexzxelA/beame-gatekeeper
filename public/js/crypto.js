@@ -45,8 +45,7 @@ var sessionServiceDataSign = null;
 var originTmpSocket        = null;
 var userImageRequired      = false,
     userImageRequested     = false,
-    userData               = null,
-    tmpImage               = null;
+    userData               = null;
 
 function events2promise(promise_or_operation) {
 	if (promise_or_operation instanceof Promise) {
@@ -391,7 +390,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			return;
 		case 'info_packet_response':
 			console.log('info_packet_response data = ', data.payload.data);
-
+			waitingForMobileConnection && clearTimeout(waitingForMobileConnection);
 			// var onPublicKeyImported = function (keydata) {
 			// 	console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
 			// 	sessionRSAPK = keydata;
@@ -404,77 +403,77 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			return;
 		case 'session_data':
 			console.log('session_data');
-		function onMessageDecrypted(err, decryptedDataB64) {
-			if (!err) {
-				decryptedData = atob(decryptedDataB64);
+			function onMessageDecrypted(err, decryptedDataB64) {
+				if (!err) {
+					decryptedData = atob(decryptedDataB64);
 
-				if (cb) {
-					cb(decryptedData);
-				}
-				else {
-					try {
-						var parsedData = JSON.parse(decryptedData);
-						if (parsedData.type && parsedData.type == 'userImage') {
-							var src       = 'data:image/jpeg;base64,' + parsedData.payload.image;
-							sha256(parsedData.payload.image).then(function(imageData){
-								switch (auth_mode) {
-									case 'Provision':
-										console.log('Provision: sending image data for confirmation');
+					if (cb) {
+						cb(decryptedData);
+					}
+					else {
+						try {
+							var parsedData = JSON.parse(decryptedData);
+							if (parsedData.type && parsedData.type == 'userImage') {
+								var src       = 'data:image/jpeg;base64,' + parsedData.payload.image;
+								sha256(parsedData.payload.image).then(function(imageData){
+									switch (auth_mode) {
+										case 'Provision':
+											console.log('Provision: sending image data for confirmation');
 
 
-										window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-											{
-												src:       src,
-												imageData: imageData
+											window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+												{
+													src:       src,
+													imageData: imageData
+												});
+											break;
+										case 'Session':
+											userData = parsedData.payload.userID;
+
+											originTmpSocket.emit('userImageVerify', JSON.stringify({
+												'signedData': imageData,
+												'signature':  parsedData.payload.imageSign,
+												'signedBy':   parsedData.payload.imageSignedBy,
+												'userID':     parsedData.payload.userID
+											}));
+
+											originTmpSocket.on('userImageStatus', function (status) {
+												console.log('User image verification: ', status);
+												if (status == 'pass' && src) {
+													window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
+														{
+															src:       src,
+															imageData: imageData,
+															userID:    parsedData.payload.userID
+														});
+												}
+												else {
+													onUserAction(false);
+												}
 											});
-										break;
-									case 'Session':
-										userData = parsedData.payload.userID;
+											break;
+										default:
+											console.error('invalid mode');
 
-										originTmpSocket.emit('userImageVerify', JSON.stringify({
-											'signedData': imageData,
-											'signature':  parsedData.payload.imageSign,
-											'signedBy':   parsedData.payload.imageSignedBy,
-											'userID':     parsedData.payload.userID
-										}));
-
-										originTmpSocket.on('userImageStatus', function (status) {
-											console.log('User image verification: ', status);
-											if (status == 'pass' && src) {
-												window.getNotifManagerInstance().notify('SHOW_USER_IMAGE',
-													{
-														src:       src,
-														imageData: imageData,
-														userID:    parsedData.payload.userID
-													});
-											}
-											else {
-												onUserAction(false);
-											}
-										});
-										break;
-									default:
-										console.error('invalid mode');
-
-								}
-							}).catch(function(error){
-								console.error(error);
-							});
+									}
+								}).catch(function(error){
+									console.error(error);
+								});
+							}
+						}
+						catch (e) {
+							console.error(e);
 						}
 					}
-					catch (e) {
-						console.error(e);
-					}
+				}
+				else {
+					console.log('failed to decrypt session data');
+					TMPsocketRelay.emit('data', {
+						'socketId': tmpSocketID,
+						'payload':  'failed to decrypt data'
+					});
 				}
 			}
-			else {
-				console.log('failed to decrypt session data');
-				TMPsocketRelay.emit('data', {
-					'socketId': tmpSocketID,
-					'payload':  'failed to decrypt data'
-				});
-			}
-		}
 
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecrypted);
 			return;
@@ -550,6 +549,10 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 
 					case 'Session':
 						validateSession(userImageRequired).then(function () {
+							if(getCookie('usrInData')){
+								setCookie('usrInData',
+									JSON.stringify({token:decryptedData.payload.token,uid:getVUID()}), 0.24);
+							}
 							userImageRequested = false;
 							TMPsocketOriginQR && TMPsocketOriginQR.emit('_disconnect');
 							TMPsocketOriginWh && TMPsocketOriginWh.emit('_disconnect');

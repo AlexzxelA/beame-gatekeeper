@@ -23,6 +23,10 @@ var CefManager = kendo.Class.extend({
 
     changeState:function(state) {
        this.cefObj && this.cefObj.changeState(state);
+    },
+
+    reload:function() {
+       this.cefObj && this.cefObj.relaod();
     }
 });
 

@@ -7,7 +7,8 @@ var auth_mode              = 'Provision',
     stopAllRunningSessions = false,
     forceReloadWindowOnSessionFailure = false,
     socketio_options       = {'force new connection': true},//, transports: ['polling']},
-    reg_data;
+    reg_data,
+	delegatedUserId = null;
 
 function _logout() {
 	deleteCookie('beame_reg_data');

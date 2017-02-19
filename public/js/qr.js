@@ -11,6 +11,7 @@ var qrContainer     = null;
 var qrSession       = null;
 
 $(document).ready(function () {
+	delegatedUserId && console.log('*** Delegated ID: <', delegatedUserId, '> ***');
 	generateKeys();
 	setQRStatus('QR initializing session');
 	var resetQR = function () {
@@ -33,8 +34,7 @@ $(document).ready(function () {
 	window.getNotifManagerInstance().subscribe('STOP_PAIRING', resetQR, null);
 
 
-	var UID = getVUID();//generateUID(24) + VirtualPrefix;
-	console.log('UID:', UID);
+
 
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
 	var socket = io.connect("/qr", socketio_options);
@@ -44,6 +44,10 @@ $(document).ready(function () {
 		setQRStatus('Connected to origin');
 		console.log('QR socket connected, ', qrRelayEndpoint);
 		QrTMPsocketOrigin = socket;//remove towards prod
+
+		var UID = getVUID(socket);//generateUID(24) + VirtualPrefix;
+		console.log('UID:', UID);
+
 		if (!qrRelayEndpoint) {
 			socket.emit('browser_connected', UID);
 		}
@@ -67,7 +71,7 @@ $(document).ready(function () {
 		socket.emit('ack', 'startQrSession');
 		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
-		if(data && !sessionServiceData){/*do not factor out: AZ*/
+		if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
 			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
 			signArbitraryData(sessionServiceData, function (err, sign) {
 				if(!err){
@@ -99,7 +103,7 @@ $(document).ready(function () {
 			console.log('QR session stopped from server');
 			resetQR();
 		}
-		else {
+		else if(!waitingForMobileConnection && !delegatedUserId){
 			try {
 				console.log('QR! RENEW QR');
 				var parsed = JSON.parse(data);
@@ -204,6 +208,7 @@ $(document).ready(function () {
 	socket.on('relayEndpoint', function (data) {
 		socket.emit('ack', 'relayEndpoint');
 		console.log('QR relayEndpoint', data);
+
 		setQRStatus('Got virtual host registration token');
 		getKeyPairs(function (error, keydata) {
 			if (error) {
@@ -212,6 +217,7 @@ $(document).ready(function () {
 			}
 			try {
 				var parsedData  = JSON.parse(data);
+				sessionServiceData = JSON.stringify({'matching':parsedData.matching, 'service':parsedData.service, 'appId': parsedData.appId});
 				userImageRequired = parsedData['imageRequired'];
 				qrRelayEndpoint = parsedData['data'];
 				connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
