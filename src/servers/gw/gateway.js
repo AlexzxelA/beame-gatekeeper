@@ -102,48 +102,110 @@ function sendError(req, res, code, err, extra_headers = {}) {
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
 }
 
-function handleRequest(req, res) {
+function is_unauth_app_url(url) {
+	url.startsWith(Constants.LogoutPath)    ||
+	url.startsWith(Constants.LoginPath)     ||
+	url.startsWith(Constants.SigninPath)    ||
+	url.startsWith(Constants.AppSwitchPath) ||
+	url.startsWith(`${Constants.GatewayControllerPath}/css`) ||
+	url.startsWith(`${Constants.GatewayControllerPath}/img`) ||
+	url.startsWith(`${Constants.GatewayControllerPath}/js`)
+}
 
-	logger.debug('[GW] handleRequest', req.url);
+function handleRequest(type, p1, p2, p3) {
+
+	const req = p1;
+	let res, socket, head, proxy_func;
+
+	function proxy_web(url) {
+		proxy.web(req, res, {target: url});
+	}
+
+	function proxy_ws(url) {
+		proxy.ws(req, socket, head, {target: url});
+	}
+
+	switch(type) {
+		case 'request':
+			res = p2;
+			proxy_func = proxy_web;
+			break;
+		case 'upgrade':
+			socket = p2;
+			head = p3;
+			proxy_func = proxy_ws;
+			break;
+		default:
+			throw new Error(`Programming error. handleRequest() first parameter must be 'request' or 'upgrade', not ${type}`)
+	}
+
+
+	logger.debug('[GW] handleRequest', type, req.url);
+
+	function upgrade_not_supported() {
+
+		(function closure(url, stack) {
+			setTimeout(function() {
+				if (socket.writable && socket.bytesWritten <= 0) {
+					logger.error(stack);
+					socket.end();
+				} else {
+					logger.error(`Ugrade not supported by proxy, done by someone else for url ${url}`);
+				}
+			}, 1000);
+		})(req.url, new Error(`Ugrade not supported by proxy at this place ${req.url} closing socket`).stack);
+	}
 
 	const authToken = extractAuthToken(req);
 
 	logger.debug('gateway handleRequest URL', req.url);
-	if (!authToken || req.url.startsWith(Constants.LogoutPath) || req.url.startsWith(Constants.LoginPath) || req.url.startsWith(Constants.SigninPath) || req.url.startsWith(Constants.AppSwitchPath) ||
-		req.url.startsWith(`${Constants.GatewayControllerPath}/css`) || req.url.startsWith(`${Constants.GatewayControllerPath}/img`) || req.url.startsWith(`${Constants.GatewayControllerPath}/js`)
-		) {
+	if (!authToken || is_unauth_app_url(req.url)) {
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		unauthenticatedApp(req, res);
 		return;
 	}
 	logger.debug(`unauthenticatedApp did not handle ${req.url} ${CommonUtils.stringify(authToken,true)}`);
 
 	if (authToken == 'INVALID') {
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		sendError(req, res, 401 /* Unauthorized */, 'Invalid token', {'Set-Cookie': `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`});
 		return;
 	}
 
 	if (req.url.startsWith(`${Constants.GwAuthenticatedPath}`)) {
 		logger.debug(`handle authenticated GW request with ${req.url}`);
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		authenticatedApp(req, res);
 		return;
 	}
 
 	if (authToken.url) {
 		logger.debug(`Proxying to authToken.url ${authToken.url}`);
-		proxy.web(req, res, {target: authToken.url});
-		// proxy.web(req, res, {target: 'http://google.com'});
+		proxy_func(authToken.url);
 		return;
 	}
 
 	let appCode = serviceManager.getAppCodeById(authToken.app_id);
 
 	if (!appCode) {
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		return;
 	}
 
 	if (serviceManager.isAdminService(authToken.app_id) && authToken.isAdmin) {
 		logger.debug(`Proxying to Admin server`);
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		adminApp(req, res);
 		return;
 	}
@@ -151,9 +213,12 @@ function handleRequest(req, res) {
 	if (authToken.app_id) {
 		logger.debug(`Proxying to app_id ${authToken.app_id}`);
 		serviceManager.appUrlById(authToken.app_id).then(url => {
-			logger.info(`redirecting to ${url}`);
-			proxy.web(req, res, {target: url});
+			logger.info(`Proxying request to ${url}`);
+			proxy_func(url);
 		}).catch(e => {
+			if(type == 'upgrade') {
+				return upgrade_not_supported();
+			}
 			logger.error(`Error handling authToken.app_id: ${e}`);
 			sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		});
@@ -164,10 +229,16 @@ function handleRequest(req, res) {
 	// Internal proxying to configuration application
 	if (authToken.allowConfigApp) {
 		console.log('Proxying to config app');
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		configApp(req, res);
 		return;
 	}
 
+	if(type == 'upgrade') {
+		return upgrade_not_supported();
+	}
 	sendError(req, res, 500, `Don't know how to proxy. Probably invalid proxying token.`);
 
 }
@@ -263,8 +334,9 @@ class GatewayServer {
 
 			let serverCerts = cert.getHttpsServerOptions();
 
-			this._server = https.createServer(serverCerts, handleRequest);
-
+			this._server = https.createServer(serverCerts);
+			this._server.on('request', handleRequest.bind(null, 'request'));
+			this._server.on('upgrade', handleRequest.bind(null, 'upgrade'));
 
 			this._startBrowserControllerServer()
 				.then(this._startSocketServer.bind(this))
@@ -305,7 +377,7 @@ class GatewayServer {
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 
-				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`};
+				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`, destroyUpgradeTimeout: 10*1000};
 
 				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.SESSION, callbacks, options);
 
