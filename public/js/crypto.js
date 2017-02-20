@@ -480,6 +480,9 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 		case 'registration_complete':
 			logout();
 			return;
+		case 'restart_pairing':
+			window.top.location = 'https://dev.login.beameio.net';//TODO - set top location to global variable
+			return;
 		default:
 			console.error('unknown payload type ' + type);
 			return;
