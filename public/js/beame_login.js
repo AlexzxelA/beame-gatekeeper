@@ -18,7 +18,7 @@ var audio,
 	RelayEndpoint,
 	tmpHostArr=[],
 	activeHosts = [],
-	tmpHostNdx,
+	tmpHostNdx = 0,
 	pinRefreshRate,
 	pairingSession,
 	fullQrData;
@@ -1081,7 +1081,7 @@ var TmpSocketID,
 	vUID;
 
 function initComRelay(virtRelaySocket) {
-
+	console.log('initComRelay - login session started');
 	virtRelaySocket.on('disconnect', function () {
 		//setQRStatus && setQRStatus('Virtual host disconnected');
 		console.log('relay disconnected, ID = ', virtRelaySocket.id);
