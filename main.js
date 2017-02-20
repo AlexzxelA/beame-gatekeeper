@@ -208,7 +208,22 @@ if (args._[0] == 'setName') {
 	commandHandled = true;
 }
 
-if (args._[0] == 'config' || args._[0] == 'admin') {
+if (args._[0] == 'apps') {
+
+	// TODO: factor out catch(...) { .. exit(1) .. }
+
+	bootstrapper.initAll()
+		.then(startDataService)
+		.then(serviceManager.evaluateAppList.bind(serviceManager))
+		.then(() => serviceManager.listApplications({isAdmin: true}))
+		.then(apps => {
+			console.log(JSON.stringify(apps))
+		});
+
+	commandHandled = true;
+}
+
+if (args._[0] == 'config' || args._[0] == 'admin' || args._[0] == 'app') {
 
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
@@ -220,7 +235,8 @@ if (args._[0] == 'config' || args._[0] == 'admin') {
 
 			const tokenInfoByCommand = {
 				'config': {allowConfigApp: true},
-				'admin':  {app_id: app_id, isAdmin: true}
+				'admin':  {app_id: app_id, isAdmin: true},
+				'app':    {app_id: args._[1]}
 			};
 
 			// TODO: move 600 to config
