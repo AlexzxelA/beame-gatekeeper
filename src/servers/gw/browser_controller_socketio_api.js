@@ -302,8 +302,7 @@ class BrowserControllerSocketioApi {
 				try {
 					this._socket_server = socket_io(server, {
 						path:  `${Constants.GatewayControllerPath}/socket.io`,
-						force: true,
-						destroyUpgradeTimeout: 10*1000
+						force: true
 					});
 					this._socket_server.on('connection', this._onConnection);
 					resolve(this._socket_server);
