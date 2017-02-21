@@ -7,7 +7,10 @@ var BIT0     = 17915;
 var BIT1     = 18088;
 var SYNC     = 17743;
 var BIT_N    = 500;
-var SHRT_MAX = 32767;
+
+
+const SHRT_MAX = 32767;
+const SOUND_ATT = 8;
 
 var bpf = [
 	0.0054710543943477024,
@@ -203,7 +206,7 @@ var getWAV = function (pin) {
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
 
-		var scale = SHRT_MAX / 16;
+		var scale = SHRT_MAX / SOUND_ATT;
 		for (i = 0; i < filteredMessage.length; i++) {
 			filteredMessage[i] = message[i] * scale;
 		}
