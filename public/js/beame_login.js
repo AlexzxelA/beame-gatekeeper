@@ -521,7 +521,7 @@ function processTmpHost(tmpHost, srcData) {
 			}
 			else if(type == 'done'){
 				stopAllRunningSessions = true;
-				stopPlaying();
+
 				activeHosts[sockId].sock.removeAllListeners();
 
 				initComRelay(activeHosts[sockId].sock);

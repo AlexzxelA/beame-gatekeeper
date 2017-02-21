@@ -103,14 +103,13 @@ function sendError(req, res, code, err, extra_headers = {}) {
 }
 
 function is_unauth_app_url(url) {
-	return(
 	url.startsWith(Constants.LogoutPath)    ||
 	url.startsWith(Constants.LoginPath)     ||
 	url.startsWith(Constants.SigninPath)    ||
 	url.startsWith(Constants.AppSwitchPath) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/css`) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/img`) ||
-	url.startsWith(`${Constants.GatewayControllerPath}/js`));
+	url.startsWith(`${Constants.GatewayControllerPath}/js`)
 }
 
 function handleRequest(type, p1, p2, p3) {
