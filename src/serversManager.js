@@ -159,7 +159,7 @@ class ServersManager {
 							callback(error)
 						});
 
-				},
+				} /* ,
 				callback => {
 					let chatApp = new (require('../apps/chat'))();
 					chatApp.start();
@@ -186,6 +186,7 @@ class ServersManager {
 					raspberryApp.start();
 					callback();
 				}
+				*/
 			],
 			error => {
 				if (error) {

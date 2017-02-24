@@ -33,8 +33,54 @@ const proxy = httpProxy.createProxyServer({
 	// Set request hostname to hostname from destination URL
 	changeOrigin: true,
 	// Do proxy web sockets
-	ws:           true
+	ws:           true,
+
+	autoRewrite: true,
 });
+
+// KEEP ALIVE - START
+const httpsAgent = new https.Agent({
+	maxSockets: 100,
+	keepAlive: true,
+	maxFreeSockets: 10,
+	keepAliveMsecs:500,
+	timeout: 60000,
+	keepAliveTimeout: 30000 // free socket keepalive for 30 seconds
+});
+
+const proxy2 = httpProxy.createProxyServer({
+	xfwd:         true,
+	// Verify SSL cert
+	secure:       true,
+	// Set request hostname to hostname from destination URL
+	changeOrigin: true,
+	// Do proxy web sockets
+	ws:           true,
+	// KEEP ALIVE - START
+	agent:        httpsAgent,
+	autoRewrite:  true,
+	// KEEP ALIVE - END
+});
+
+const old_proxy_web = proxy.web;
+proxy.web = function(req, res, options) {
+	if(options.target && options.target.startsWith('https')) {
+		console.log('HTTPS PROXY');
+		return proxy2.web(req, res, options);
+	}
+	console.log('HTTP PROXY');
+	return old_proxy_web.call(proxy, req, res, options);
+}
+
+proxy2.on('proxyRes', function (proxyRes) {
+	console.log('PROXY RES', proxyRes.headers);
+	var key = 'www-authenticate';
+	proxyRes.headers[key] = proxyRes.headers[key] && proxyRes.headers[key].split(',');
+});
+
+// KEEP ALIVE - END
+
+
 
 const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 
@@ -42,7 +88,20 @@ const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 
 // TODO: Check that websockets work (apparently wss:// fails when using socket.io)
 //       Look if this can help: https://github.com/senchalabs/connect
-
+proxy.on('error', (err, req, res) => {
+	logger.error(err);
+	if(res){
+		res.writeHead && res.writeHead(502, {'Content-Type': 'text/plain'});
+		res.end && res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
+	}
+});
+proxy2.on('error', (err, req, res) => {
+	logger.error(err);
+	if(res){
+		res.writeHead && res.writeHead(502, {'Content-Type': 'text/plain'});
+		res.end && res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
+	}
+});
 // https://github.com/nodejitsu/node-http-proxy/blob/d8fb34471594f8899013718e77d99c2acbf2c6c9/examples/http/custom-proxy-error.js
 proxy.on('error', (err, req, res) => {
 	logger.error('--- Proxy error - start ---');
@@ -52,8 +111,8 @@ proxy.on('error', (err, req, res) => {
 	logger.error(err);
 	logger.error(err.stack);
 	logger.error('--- Proxy error - end ---');
-	res.writeHead(502, {'Content-Type': 'text/plain'});
-	res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
+	//res.writeHead(502, {'Content-Type': 'text/plain'});
+	//res.end(`Hi.\nThis is beame-insta-server gateway proxy.\n\nProxying failed. Error follows:\n\n===8<===\n${err.stack}\n===8<===\n`);
 });
 
 // 301 responses are cached by browser so we can no longer proxy,
@@ -100,18 +159,84 @@ function sendError(req, res, code, err, extra_headers = {}) {
 	logger.error(`Sending error: ${err}`);
 	res.writeHead(code, Object.assign({}, {'Content-Type': 'text/plain'}, extra_headers));
 	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
+
+}
+function is_unauth_app_url(url) {
+	return(
+	url.startsWith(Constants.LogoutPath)    ||
+	url.startsWith(Constants.LoginPath)     ||
+	url.startsWith(Constants.SigninPath)    ||
+	url.startsWith(Constants.AppSwitchPath) ||
+	url.startsWith(`${Constants.GatewayControllerPath}/css`) ||
+	url.startsWith(`${Constants.GatewayControllerPath}/img`) ||
+	url.startsWith(`${Constants.GatewayControllerPath}/js`))
 }
 
-function handleRequest(req, res) {
+function handleRequest(type, p1, p2, p3) {
+
+	const req = p1;
+	let res, socket, head, proxy_func;
+
+	function proxy_web(url) {
+		try{
+			proxy.web(req, res, {target: url});
+		}
+		catch (e){
+			logger.error(e);
+		}
+
+	}
+
+	function proxy_ws(url) {
+		try{
+			proxy.ws(req, socket, head, {target: url});
+		}
+		catch(e){
+			logger.error(e);
+		}
+	}
+
+	switch(type) {
+		case 'request':
+			res = p2;
+			proxy_func = proxy_web;
+			break;
+		case 'upgrade':
+			socket = p2;
+			head = p3;
+			proxy_func = proxy_ws;
+			break;
+		default:
+			throw new Error(`Programming error. handleRequest() first parameter must be 'request' or 'upgrade', not ${type}`)
+	}
+
+
+	logger.debug('[GW] handleRequest', type, req.url);
+
+	function upgrade_not_supported() {
+
+		(function closure(url, stack) {
+			setTimeout(function() {
+				if (socket.writable && socket.bytesWritten <= 0) {
+					logger.error(stack);
+					socket.end();
+				} else {
+					logger.error(`Ugrade not supported by proxy, done by someone else for url ${url}`);
+				}
+			}, 1000);
+		})(req.url, new Error(`Ugrade not supported by proxy at this place ${req.url} closing socket`).stack);
+	}
 
 	logger.debug('[GW] handleRequest', req.url);
 
 	const authToken = extractAuthToken(req);
 
 	logger.debug('gateway handleRequest URL', req.url);
-	if (!authToken || req.url.startsWith(Constants.LogoutPath) || req.url.startsWith(Constants.LoginPath) || req.url.startsWith(Constants.SigninPath) || req.url.startsWith(Constants.AppSwitchPath) ||
-		req.url.startsWith(`${Constants.GatewayControllerPath}/css`) || req.url.startsWith(`${Constants.GatewayControllerPath}/img`) || req.url.startsWith(`${Constants.GatewayControllerPath}/js`)
-		) {
+	if (!authToken || is_unauth_app_url(req.url)) {
+		if(type == 'upgrade') {
+			console.log('handleRequest: upgrade_not_supported');
+			return upgrade_not_supported();
+		}
 		unauthenticatedApp(req, res);
 		return;
 	}
@@ -130,7 +255,7 @@ function handleRequest(req, res) {
 
 	if (authToken.url) {
 		logger.debug(`Proxying to authToken.url ${authToken.url}`);
-		proxy.web(req, res, {target: authToken.url});
+		proxy_func(authToken.url);
 		// proxy.web(req, res, {target: 'http://google.com'});
 		return;
 	}
@@ -138,11 +263,17 @@ function handleRequest(req, res) {
 	let appCode = serviceManager.getAppCodeById(authToken.app_id);
 
 	if (!appCode) {
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		return;
 	}
 
 	if (serviceManager.isAdminService(authToken.app_id) && authToken.isAdmin) {
+		if(type == 'upgrade') {
+			return upgrade_not_supported();
+		}
 		logger.debug(`Proxying to Admin server`);
 		adminApp(req, res);
 		return;
@@ -151,8 +282,20 @@ function handleRequest(req, res) {
 	if (authToken.app_id) {
 		logger.debug(`Proxying to app_id ${authToken.app_id}`);
 		serviceManager.appUrlById(authToken.app_id).then(url => {
+			const u = url.split('***');
+			url = u[0];
+			if(req.url == '/' && u[1]) {
+				logger.info(`home page redirect to ${u[1]}`);
+				res.writeHead(302, {
+					'Location': u[1]
+				});
+				res.end();
+				return;
+
+			}
+			logger.info(`redirecting req ${req.url}`);
 			logger.info(`redirecting to ${url}`);
-			proxy.web(req, res, {target: url});
+			proxy_func(url);
 		}).catch(e => {
 			logger.error(`Error handling authToken.app_id: ${e}`);
 			sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
@@ -263,7 +406,9 @@ class GatewayServer {
 
 			let serverCerts = cert.getHttpsServerOptions();
 
-			this._server = https.createServer(serverCerts, handleRequest);
+			this._server = https.createServer(serverCerts);
+			this._server.on('request', handleRequest.bind(null, 'request'));
+			this._server.on('upgrade', handleRequest.bind(null, 'upgrade'));
 
 
 			this._startBrowserControllerServer()
@@ -305,7 +450,7 @@ class GatewayServer {
 					DeleteSession: BeameAuthServices.deleteSession
 				};
 
-				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`};
+				let options = {path: `${Constants.GatewayControllerPath}-insta-socket`, destroyUpgradeTimeout: 10*1000};
 
 				let beameInstaSocketServer = new BeameInstaSocketServer(this._server, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.SESSION, callbacks, options);
 
