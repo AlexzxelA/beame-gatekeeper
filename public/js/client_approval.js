@@ -11,7 +11,9 @@ var auth_mode              = 'Provision',
 	apRelayEndpoint,
 	UID,
 	originSock,
-	reg_data;
+	reg_data,
+	delegatedUserId = null,
+	setQRStatus = null;
 
 function _logout() {
 	deleteCookie('beame_reg_data');
