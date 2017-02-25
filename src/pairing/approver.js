@@ -133,6 +133,7 @@ class Approver {
 			this._jsonQrData['service']   = this._serviceName;
 			this._jsonQrData['matching']  = this._matchingServerFqdn;
 			this._jsonQrData['appId']     = bootstrapper.appId;
+			this._jsonQrData['gwFqdn']    = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		});
 
 		this.initMatchingServerSocketClient().then(() => {
