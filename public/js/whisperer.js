@@ -124,56 +124,126 @@ app.controller("MainCtrl", function ($scope) {
 
 
 	$scope.playPIN = false;
+	if(!delegatedUserId){
+		$scope.socket = io.connect("/whisperer", socketio_options);
 
-	$scope.socket = io.connect("/whisperer", socketio_options);
+		$scope.socket.on('connect',function () {
+			setOriginSocket('WH',$scope.socket);
+		});
 
-	$scope.socket.on('connect',function () {
-		setOriginSocket('WH',$scope.socket);
-	});
+		$scope.socket.on('wh_timeout', function (timeout) {
+			console.log('on whisperer timeout', timeout);
+			whispererTimeout = timeout * 2;
+		});
 
-	$scope.socket.on('wh_timeout', function (timeout) {
-		console.log('on whisperer timeout', timeout);
-		whispererTimeout = timeout * 2;
-	});
-
-	$scope.socket.on('restartWhisperer', function () {
-		console.log("restarting whisperer");
-		location.reload();
-	});
+		$scope.socket.on('restartWhisperer', function () {
+			console.log("restarting whisperer");
+			location.reload();
+		});
 
 
-	$scope.socket.on('connect_ok', function (data) {
-		console.log('Terminating audio with: ' + JSON.stringify(data));//XXX
-		$scope.stopPlaying();
-		$scope.showPopup('Code matched');
-	});
+		$scope.socket.on('connect_ok', function (data) {
+			console.log('Terminating audio with: ' + JSON.stringify(data));//XXX
+			$scope.stopPlaying();
+			$scope.showPopup('Code matched');
+		});
 
-	$scope.socket.on('init_mobile_session', function (data) {
-		WhPIN = data.pin;
-		getKeyPairs(function (error, keydata) {
-			if (error) {
-				console.log(error);
-				return;
-			}
-			if(data && !sessionServiceData){/*do not factor out: AZ*/
-				sessionServiceData = JSON.stringify({'matching':data.matching || matchingFqdn, 'service':data.service || serviceName, 'appId': data.appId});
-				signArbitraryData(sessionServiceData, function (err, sign) {
-					if(!err){
-						sessionServiceDataSign = arrayBufferToBase64String(sign);
-					}
-					else{
-						sessionServiceDataSign = err;
-					}
-				});
-			}
-			if(isAudioSession()) {
-				WhUID = getVUID();
-				console.log('Received init_mobile_session:', Date.now());
-				$scope.socket.emit('virtSrvConfig', {'UID': vUID});
+		$scope.socket.on('init_mobile_session', function (data) {
+			WhPIN = data.pin;
+			getKeyPairs(function (error, keydata) {
+				if (error) {
+					console.log(error);
+					return;
+				}
+				if(data && !sessionServiceData){/*do not factor out: AZ*/
+					sessionServiceData = JSON.stringify({'matching':data.matching || matchingFqdn, 'service':data.service || serviceName, 'appId': data.appId});
+					signArbitraryData(sessionServiceData, function (err, sign) {
+						if(!err){
+							sessionServiceDataSign = arrayBufferToBase64String(sign);
+						}
+						else{
+							sessionServiceDataSign = err;
+						}
+					});
+				}
+				if(isAudioSession()) {
+					WhUID = getVUID();
+					console.log('Received init_mobile_session:', Date.now());
+					$scope.socket.emit('virtSrvConfig', {'UID': vUID});
+				}
+			});
+
+		});
+
+		$scope.socket.on('mobileProv1', function (data) {
+			if (data.data && getRelaySocket() && getRelaySocketID()) {
+				console.log('Whisperer mobileProv1:', data);
+				if(!userImageRequired)
+					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+				sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
 			}
 		});
 
-	});
+		$scope.socket.on('mobile_network_error', function () {
+			console.log('Mobile connection failed');
+			//alert('Mobile connection failed');
+		});
+
+		$scope.socket.on('match_not_found', function () {
+			$scope.stopPlaying();
+			$scope.showPopup('Matching server not found');
+
+		});
+
+		$scope.socket.on('disconnect', function () {
+			console.log('WHISPERER DISCONNECTED');
+			//$scope.socketAlive = false;
+			//$scope.stopPlaying();
+			//    document.getElementById("player").innerHTML = "-- Server disconnected --";
+		});
+
+		$scope.socket.on('requestQrData',function () {
+			sendQrDataToWhisperer(getRelayFqdn(), getVUID($scope.socket),$scope.socket);
+		});
+
+		$scope.socket.on('userImageSign',function (data) {
+			window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+			sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
+		});
+
+		$scope.socket.on('startPairingSession',function (data) {
+			console.log('Starting pairing session with data:', data);
+
+			if (!pairingSession) {
+				var parsed = JSON.parse(data);
+
+				pinRefreshRate = parsed.refresh_rate || 10000;
+				pairingSession = setInterval(function () {
+					if(stopAllRunningSessions){
+						destroyTmpHosts();
+					}
+					else{
+						console.log('Tmp Host requesting data');
+						$scope.socket.emit('pinRequest');
+					}
+
+				}, pinRefreshRate);
+				$scope.showConn = false;
+				tryDigest($scope);
+				initTmpHost(parsed);
+			}
+		});
+
+		$scope.socket.on('pindata', function (dataRaw) {
+			var data = JSON.parse(dataRaw);
+			if (!$scope.soundOn) return;
+
+			initTmpHost(data);
+
+		});
+
+	}
+
 
 
 	// function initRelay() {
@@ -212,14 +282,6 @@ app.controller("MainCtrl", function ($scope) {
 	// 	});
 	// }
 
-	$scope.socket.on('mobileProv1', function (data) {
-		if (data.data && getRelaySocket() && getRelaySocketID()) {
-			console.log('Whisperer mobileProv1:', data);
-			if(!userImageRequired)
-				window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-			sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
-		}
-	});
 
 	// $scope.socket.on('relayEndpoint', function (data) {
 	// 	if(isAudioSession()) {
@@ -258,32 +320,7 @@ app.controller("MainCtrl", function ($scope) {
 	// 	}
 	// });
 
-	$scope.socket.on('mobile_network_error', function () {
-		console.log('Mobile connection failed');
-		//alert('Mobile connection failed');
-	});
 
-	$scope.socket.on('match_not_found', function () {
-		$scope.stopPlaying();
-		$scope.showPopup('Matching server not found');
-
-	});
-
-	$scope.socket.on('disconnect', function () {
-		console.log('WHISPERER DISCONNECTED');
-		//$scope.socketAlive = false;
-		//$scope.stopPlaying();
-		//    document.getElementById("player").innerHTML = "-- Server disconnected --";
-	});
-
-	$scope.socket.on('requestQrData',function () {
-		sendQrDataToWhisperer(getRelayFqdn(), getVUID($scope.socket),$scope.socket);
-	});
-
-	$scope.socket.on('userImageSign',function (data) {
-		window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify(data)));
-	});
 
 	function processTmpHost(tmpHost, srcData) {
 		var sockId = tmpHost.sock.id;
@@ -436,36 +473,7 @@ app.controller("MainCtrl", function ($scope) {
 		}
 	}
 
-	$scope.socket.on('startPairingSession',function (data) {
-		console.log('Starting pairing session with data:', data);
 
-		if (!pairingSession) {
-			var parsed = JSON.parse(data);
-
-			pinRefreshRate = parsed.refresh_rate || 10000;
-			pairingSession = setInterval(function () {
-				if(stopAllRunningSessions){
-					destroyTmpHosts();
-				}
-				else{
-					console.log('Tmp Host requesting data');
-					$scope.socket.emit('pinRequest');
-				}
-
-			}, pinRefreshRate);
-			$scope.showConn = false;
-			tryDigest($scope);
-			initTmpHost(parsed);
-		}
-	});
-
-	$scope.socket.on('pindata', function (dataRaw) {
-		var data = JSON.parse(dataRaw);
-		if (!$scope.soundOn) return;
-
-		initTmpHost(data);
-
-	});
 
 	//$scope.socket.on('data', function (data) {
 	$scope.gotData = function (data) {

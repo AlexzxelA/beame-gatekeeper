@@ -10,7 +10,7 @@ var BIT_N    = 500;
 
 
 const SHRT_MAX = 32767;
-const SOUND_ATT = 8;
+const SOUND_ATT = 72;
 
 var bpf = [
 	0.0054710543943477024,

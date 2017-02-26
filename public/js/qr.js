@@ -6,12 +6,17 @@
 var QrTMPsocketRelay;
 var QrTMPsocketOrigin;
 var qrTmpSocketID;
-var qrRelayEndpoint = "";
+var qrRelayEndpoint = null;
 var qrContainer     = null;
 var qrSession       = null;
+var login_session   = false;
 
 $(document).ready(function () {
-	delegatedUserId && console.log('*** Delegated ID: <', delegatedUserId, '> ***');
+	if(delegatedUserId){
+		login_session = true;
+		console.log('*** Delegated ID: <', delegatedUserId, '> ***');
+	}
+
 	generateKeys();
 	setQRStatus('QR initializing session');
 	var resetQR = function () {
@@ -82,17 +87,21 @@ $(document).ready(function () {
 				}
 			});
 		}
-		setTimeout(function () {
-			socket.emit('pinRequest');
-		},200);
 
-		if (!qrSession) {
-			qrRefreshRate = data.refresh_rate;
-			qrSession = setInterval(function () {
-				console.log('QR requesting data');
+		if(!login_session){
+			setTimeout(function () {
 				socket.emit('pinRequest');
-			}, qrRefreshRate);
+			},200);
+
+			if (!qrSession) {
+				qrRefreshRate = data.refresh_rate;
+				qrSession = setInterval(function () {
+					console.log('QR requesting data');
+					socket.emit('pinRequest');
+				}, qrRefreshRate);
+			}
 		}
+
 	});
 
 	socket.on('pinRenew', function (data) {
@@ -103,7 +112,7 @@ $(document).ready(function () {
 			console.log('QR session stopped from server');
 			resetQR();
 		}
-		else if(!waitingForMobileConnection && !delegatedUserId){
+		else if(!waitingForMobileConnection && !delegatedUserId && !login_session){
 			try {
 				console.log('QR! RENEW QR');
 				var parsed = JSON.parse(data);
