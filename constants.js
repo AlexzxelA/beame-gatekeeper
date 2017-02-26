@@ -115,7 +115,8 @@ const CookieNames = {
 	"Service":  "beame_service",
 	"RegData":  "beame_reg_data",
 	"Proxy":    "proxy_enabling_token",
-	"UserInfo": "beame_userinfo"
+	"UserInfo": "beame_userinfo",
+	"LoginData":"usrInData"
 };
 
 module.exports = {

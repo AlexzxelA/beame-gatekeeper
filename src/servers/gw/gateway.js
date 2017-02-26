@@ -25,7 +25,7 @@ const configApp          = require('./configApp');
 const COOKIE_NAME = 'X-Beame-GW-Service-Token';
 
 let adminApp             = null;
-
+let expectsAuthToken     = false;
 let serviceManager = null;
 
 
@@ -200,7 +200,7 @@ function handleRequest(type, p1, p2, p3) {
 
 	logger.debug('[GW] handleRequest', req.url);
 
-	const authToken = extractAuthToken(req);
+	const authToken = (expectsAuthToken)?extractAuthToken(req):null;
 
 	logger.debug('gateway handleRequest URL', req.url);
 	if (!authToken || is_unauth_app_url(req.url)) {
@@ -209,6 +209,7 @@ function handleRequest(type, p1, p2, p3) {
 			return upgrade_not_supported();
 		}
 		unauthenticatedApp(req, res);
+		expectsAuthToken = true;
 		return;
 	}
 	logger.debug(`unauthenticatedApp did not handle ${req.url} ${CommonUtils.stringify(authToken, true)}`);
@@ -236,7 +237,9 @@ function handleRequest(type, p1, p2, p3) {
 		if (type == 'upgrade') {
 			return upgrade_not_supported();
 		}
-		sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
+		expectsAuthToken = false;
+		handleRequest(type, p1, p2, p3);
+		//sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);
 		return;
 	}
 

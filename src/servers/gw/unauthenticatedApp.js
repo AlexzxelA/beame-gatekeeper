@@ -31,7 +31,7 @@ const clearSessionCookie = res =>{
 	res.clearCookie(cookieNames.Proxy);
 	res.clearCookie(cookieNames.RegData);
 	res.clearCookie(cookieNames.UserInfo);
-
+	res.clearCookie(cookieNames.LoginData);
 };
 
 unauthenticatedApp.use('/beame-gw', express.static(public_dir));

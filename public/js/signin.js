@@ -9,6 +9,7 @@ var auth_mode = 'Session',
     reg_data = null,
     socketio_options = {path: '/beame-gw-insta-socket', 'force new connection': true},
 	delegatedUserId = getParameterByName('usrInData');
+
 	if(delegatedUserId){
 		delegatedUserId = window.atob(decodeURIComponent(delegatedUserId));
 		setCookie("usrInData",delegatedUserId,0.24);
