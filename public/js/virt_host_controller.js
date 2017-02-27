@@ -6,7 +6,7 @@
 const audioOnlySession = false;
 const activateVirtHostRecovery = false;
 const virtHostTimeout = 5;
-const wait4MobileTimeout = 17000;
+const wait4MobileTimeout = 30000;
 var vUID = null,
 	virtRelaySocket = null,
 	virtHostConnected = false,
