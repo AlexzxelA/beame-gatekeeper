@@ -260,7 +260,8 @@ function handleRequest(type, p1, p2, p3) {
 			if (req.url == '/' && u[1]) {
 				logger.info(`home page redirect to ${u[1]}`);
 				res.writeHead(302, {
-					'Location': u[1]
+					'Location': u[1],
+					'Set-Cookie': '.NOVARIS_AUTH=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT',
 				});
 				res.end();
 				return;
