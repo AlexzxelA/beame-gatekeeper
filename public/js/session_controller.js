@@ -203,6 +203,8 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 						window.top.location = l;
 						break;
 					case 'mediaRequest':
+						sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
+							str2ab(JSON.stringify({type:'redirect', payload:{'success':true}})));
 						var segment = '/' + (decryptedData.payload.url).split('/').pop();
 						console.log('Media request, signing:', segment);
 						signArbitraryData(segment, function (error, signature) {
