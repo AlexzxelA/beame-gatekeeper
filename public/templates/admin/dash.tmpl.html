@@ -102,6 +102,11 @@
                         </li>
 
                         <li>
+                            <label>External login server URL</label>
+                            <textarea  data-bind="value:data.AppConfig.ExternalLoginServer"  class='k-textbox' id="ExternalLoginServer" cols="30" rows="2"></textarea>
+                        </li>
+
+                        <li>
                             <label>Customer Invitation Ttl (sec)</label>
                             <input data-role="numerictextbox" data-bind="value:data.AppConfig.CustomerInvitationTtl"
                                    id="CustomerInvitationTtl" type="text" data-spinners="false" data-format="{0:D}"/>

@@ -134,7 +134,36 @@ class ServersManager {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
-							resolve(null);
+							const externalLoginUrl = bootstrapper.externalLoginUrl;
+							if(externalLoginUrl){
+								console.log('externalLoginUrl::: ',externalLoginUrl);
+								bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
+								const ProvisionApi      = beameSDK.ProvApi,
+									BeameAuthServices = require('./authServices'),
+									authServices      = BeameAuthServices.getInstance();
+
+
+								let sign         = authServices.signData(this._settings.GatewayServer.fqdn),
+									provisionApi = new ProvisionApi(),
+									data         = {
+										fqdn:       this._settings.GatewayServer.fqdn,
+										id:         bootstrapper.appId
+									};
+
+									let loginReg = externalLoginUrl + apiConfig.Actions.Login.RegisterServer.endpoint;
+if(0)
+								provisionApi.postRequest(loginReg, data, (error) => {
+									if (error) {
+										reject(error);
+									}
+									else {
+										resolve(null);
+									}
+								}, sign);
+								else resolve(null);
+							}
+							else
+								resolve(null);
 						}
 						else {
 							reject(error);

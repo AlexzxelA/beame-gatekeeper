@@ -88,7 +88,7 @@ $(document).ready(function () {
 			});
 		}
 
-		if(!login_session){
+		if(!login_session && !delegatedUserId){
 			setTimeout(function () {
 				socket.emit('pinRequest');
 			},200);

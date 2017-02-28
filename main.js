@@ -117,6 +117,7 @@ if (args._[0] == 'create') {
 		console.log(getHelpMessage('no-command.txt'));
 		process.exit(1);
 	}
+	let extlogin = Bootstrapper.getCredFqdn(Constants.CredentialType.ExternalLoginServer)
 }
 
 if (args._[0] == 'list') {

@@ -66,6 +66,7 @@ const ConfigProps = {
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		PostSmsUrl:                    "PostSmsUrl",
+		ExternalLoginServer:           "ExternalLoginServer",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
 		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
@@ -112,6 +113,11 @@ const CredsConfigTemplate = {
 		fqdn:     "",
 		server:   true,
 		internal: false
+	},
+	[Servers.ExternalLoginServer]:   {
+		fqdn:     "",
+		server:   true,
+		internal: false
 	}
 };
 
@@ -136,7 +142,7 @@ module.exports = {
 	ExternalMatchingFqdn: "",
 	PostEmailUrl:         "",
 	PostSmsUrl:           "",
-
+	ExternalLoginServer:  "",
 	RegistrationMethod,
 	UseBeameAuthOnLocal,
 	PublicRegistration,

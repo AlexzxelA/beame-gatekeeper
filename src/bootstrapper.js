@@ -271,6 +271,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.ExternalMatchingFqdn] ? this._config[SettingsProps.ExternalMatchingFqdn] : null;
 	}
 
+	get externalLoginUrl() {
+		return this._config && this._config[SettingsProps.ExternalLoginServer] ? this._config[SettingsProps.ExternalLoginServer] : null;
+	}
+
 	get serviceName() {
 		return this._config && this._config[SettingsProps.ServiceName] ? this._config[SettingsProps.ServiceName] : null;
 	}

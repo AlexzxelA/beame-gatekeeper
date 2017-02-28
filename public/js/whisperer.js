@@ -217,7 +217,7 @@ app.controller("MainCtrl", function ($scope) {
 			if (!pairingSession) {
 				var parsed = JSON.parse(data);
 
-				pinRefreshRate = parsed.refresh_rate || 10000;
+				pinRefreshRate = 3500;//parsed.refresh_rate || 10000;
 				pairingSession = setInterval(function () {
 					if(stopAllRunningSessions){
 						destroyTmpHosts();
@@ -384,6 +384,7 @@ app.controller("MainCtrl", function ($scope) {
 
 				}
 				else if(type == 'done'){
+					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 					stopAllRunningSessions = true;
 
 					activeHosts[sockId].sock.removeAllListeners();

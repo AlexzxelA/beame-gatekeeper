@@ -478,10 +478,8 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecrypted);
 			return;
 		case 'registration_complete':
-			logout();
-			return;
 		case 'restart_pairing':
-			window.top.location = 'https://dev.login.beameio.net';//TODO - set top location to global variable
+			logout();
 			return;
 		default:
 			console.error('unknown payload type ' + type);
