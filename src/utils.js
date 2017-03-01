@@ -129,10 +129,44 @@ function createAuthTokenByFqdn(fqdn, data, ttl) {
 	});
 }
 
+function setExternalLoginOption(externalLoginUrl, data) {
+	return new Promise((resolve, reject) => {
+		const enableMe = true;
+		if(externalLoginUrl){
+			let strData = JSON.stringify(data);
+			console.log(`setExternalLoginOption ${strData} for externalLoginUrl: `,externalLoginUrl);
+			//bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
+			const ProvisionApi      = beameSDK.ProvApi,
+				BeameAuthServices = require('./authServices'),
+				authServices      = BeameAuthServices.getInstance(),
+				apiConfig   = require('../config/api_config.json');
+
+			let sign         = authServices.signData(data),
+				provisionApi = new ProvisionApi();
+
+
+			let loginReg = externalLoginUrl + apiConfig.Actions.Login.RegisterServer.endpoint;
+			if(enableMe)
+				provisionApi.postRequest(loginReg, data, (error) => {
+					if (error) {
+						reject(error);
+					}
+					else {
+						resolve(externalLoginUrl);
+					}
+				}, sign);
+			else resolve(externalLoginUrl);
+		}
+		else
+			resolve(null);
+	});
+}
+
 module.exports = {
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,
 	getRelayFqdn,
-	getLocalRelayFqdn
+	getLocalRelayFqdn,
+	setExternalLoginOption
 };

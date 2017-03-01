@@ -21,6 +21,7 @@ const AuthToken    = beameSDK.AuthToken;
 const BeameAuthServices = require('../../authServices');
 const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
+const apiConfig   = require('../../../config/api_config.json');
 
 const utils         = require('../../utils');
 const cust_auth_app = require('../../routers/customer_auth');
@@ -63,6 +64,43 @@ utils.setExpressAppCommonRoutes(unauthenticatedApp);
 unauthenticatedApp.use(bodyParser.json());
 
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
+
+let registeredSigninServers = [];
+
+unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
+	let token = req.header('x-beameauthtoken');
+	let responseSent = false;
+	AuthToken.validate(token).then(()=>{
+		let parsed = req.body;
+		let strData = JSON.stringify(parsed);
+		if(parsed && parsed.id && parsed.fqdn){
+			res.status(200).send();
+			responseSent = true;
+			let tmpNdx = -1;
+			registeredSigninServers && registeredSigninServers.forEach(function (item, index) {
+				if(item.id === parsed.id){
+					tmpNdx = index;
+				}
+			});
+			if(parsed.set){
+				if(tmpNdx < 0)registeredSigninServers.push.apply(parsed);
+				logger.info(`Registered server with data : ${strData}`);
+			}
+			else{
+				if(tmpNdx >= 0)registeredSigninServers.splice(tmpNdx, 1);
+				logger.info(`Un-Registered server with data : ${strData}`);
+			}
+		}
+		else{
+			logger.info(`Invalid data on server registration : ${strData}`);
+			res.status(400).send();
+		}
+
+	}).catch(e=>{
+		if(!responseSent)res.status(401).send();
+		logger.error(e);
+	});
+});
 
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);

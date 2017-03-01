@@ -451,6 +451,7 @@ class Bootstrapper {
 							config[prop] = uuid.v4();
 						}
 					}
+					let externalLoginState = this.externalLoginUrl;
 
 					this._config = config;
 
@@ -459,11 +460,37 @@ class Bootstrapper {
 						resolve();
 						return;
 					}
-
+					const utils = require('./utils');
 					this.saveAppConfigFile().then(() => {
 						logger.debug(`${AppConfigFileName} updated...`);
-						resolve();
-					}).catch(error => {
+						resolve()
+					}).then(()=>{
+						if(externalLoginState != this.externalLoginUrl){
+
+							utils.setExternalLoginOption(
+								this.externalLoginUrl,
+								{
+									fqdn:       this._settings.GatewayServer.fqdn,
+									id:         this.appId,
+									set:        true}
+							).then(()=>{
+								logger.info(`Registered on external login server: ${this.externalLoginUrl}`);
+								resolve();
+							});
+						}
+					}).then(()=>{
+						utils.setExternalLoginOption(
+							externalLoginState,
+							{
+								fqdn:       this._settings.GatewayServer.fqdn,
+								id:         this.appId,
+								set:        false}
+						).then(()=>{
+							logger.info(`Un-Registered on external login server: ${externalLoginState}`);
+							resolve();
+						});
+					}).
+					catch(error => {
 						this._config = null;
 						reject(error);
 					});

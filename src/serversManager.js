@@ -4,7 +4,6 @@
 "use strict";
 const async = require('async');
 
-const apiConfig   = require('../config/api_config.json');
 const beameSDK    = require('beame-sdk');
 const module_name = "ServersManager";
 const BeameLogger = beameSDK.Logger;
@@ -15,6 +14,7 @@ const Bootstrapper      = require('./bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const Constants         = require('../constants');
 const BeameAuthServices = require('./authServices');
+const utils             = require('./utils');
 
 class ServersManager {
 
@@ -134,36 +134,16 @@ class ServersManager {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
-							const externalLoginUrl = bootstrapper.externalLoginUrl;
-							if(externalLoginUrl){
-								console.log('externalLoginUrl::: ',externalLoginUrl);
-								bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
-								const ProvisionApi      = beameSDK.ProvApi,
-									BeameAuthServices = require('./authServices'),
-									authServices      = BeameAuthServices.getInstance();
-
-
-								let sign         = authServices.signData(this._settings.GatewayServer.fqdn),
-									provisionApi = new ProvisionApi(),
-									data         = {
-										fqdn:       this._settings.GatewayServer.fqdn,
-										id:         bootstrapper.appId
-									};
-
-									let loginReg = externalLoginUrl + apiConfig.Actions.Login.RegisterServer.endpoint;
-if(0)
-								provisionApi.postRequest(loginReg, data, (error) => {
-									if (error) {
-										reject(error);
-									}
-									else {
-										resolve(null);
-									}
-								}, sign);
-								else resolve(null);
-							}
-							else
-								resolve(null);
+							utils.setExternalLoginOption(
+								bootstrapper.externalLoginUrl,
+								{
+								fqdn:       this._settings.GatewayServer.fqdn,
+								id:         bootstrapper.appId,
+								set:        true}
+							).then((externalLoginUrl)=>{
+								externalLoginUrl && bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
+								resolve(null)
+							}).catch((e)=>{reject(e);});
 						}
 						else {
 							reject(error);
