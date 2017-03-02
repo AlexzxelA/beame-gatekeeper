@@ -65,9 +65,31 @@ unauthenticatedApp.use(bodyParser.json());
 
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
-let registeredSigninServers = [];
+let registeredSigninServers = [{'id':'none'}];
+
+unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
+	let token = req.header('x-beameauthtoken');
+	console.log('Received delegated login recovery post:',token);
+
+	let responseSent = false;
+	AuthToken.validate(token).then(()=>{
+		res.status(200).send();
+		responseSent = true;
+		let loginUrl = JSON.parse(token).signedBy;
+		console.log('loginUrl:', loginUrl,'..extLogUrl:',bootstrapper.externalLoginUrl);
+		if(loginUrl && bootstrapper.externalLoginUrl && (bootstrapper.externalLoginUrl.indexOf(loginUrl) >= 0)){
+			let tmpConfig = Object.assign({},bootstrapper._config || {});
+			bootstrapper.externalLoginUrl = "";
+			bootstrapper.setAppConfig(tmpConfig);
+		}
+	}).catch(e=>{
+		if(!responseSent)res.status(401).send();
+		logger.error(e);
+	});
+});
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
+	console.log('registeredSigninServers:',registeredSigninServers);
 	let token = req.header('x-beameauthtoken');
 	let responseSent = false;
 	AuthToken.validate(token).then(()=>{
@@ -82,13 +104,17 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 					tmpNdx = index;
 				}
 			});
-			if(parsed.set){
-				if(tmpNdx < 0)registeredSigninServers.push.apply(parsed);
+			if(parsed.order == 'register'){
+				if(tmpNdx < 0)registeredSigninServers.push(parsed);
 				logger.info(`Registered server with data : ${strData}`);
+				console.log('registeredSigninServers(1):',registeredSigninServers);
+				bootstrapper.setDelegatedLoginServers(registeredSigninServers);
 			}
 			else{
 				if(tmpNdx >= 0)registeredSigninServers.splice(tmpNdx, 1);
 				logger.info(`Un-Registered server with data : ${strData}`);
+				console.log('registeredSigninServers(2):',registeredSigninServers);
+				bootstrapper.setDelegatedLoginServers(registeredSigninServers);
 			}
 		}
 		else{

@@ -139,10 +139,11 @@ class ServersManager {
 								{
 								fqdn:       this._settings.GatewayServer.fqdn,
 								id:         bootstrapper.appId,
-								set:        true}
+									order:      'register'}
 							).then((externalLoginUrl)=>{
 								externalLoginUrl && bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
-								resolve(null)
+								utils.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
+									Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e)=>{reject(e)});
 							}).catch((e)=>{reject(e);});
 						}
 						else {

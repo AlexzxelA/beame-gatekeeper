@@ -10,7 +10,7 @@ const packageJson   = require('../package.json');
 const defaults      = require('../defaults');
 const SqliteProps   = defaults.ConfigProps.Sqlite;
 const SettingsProps = defaults.ConfigProps.Settings;
-
+const utils = require('./utils');
 const beameSDK    = require('beame-sdk');
 const module_name = "Bootstrapper";
 const BeameLogger = beameSDK.Logger;
@@ -218,6 +218,18 @@ class Bootstrapper {
 		);
 	}
 
+	setDelegatedLoginServers(data){
+		this._config.delegatedLoginServers = (data && (data.length>0))?'['+data.map(JSON.stringify).join()+']':"";
+		let old = this._config;
+		this.setAppConfig(this._config);
+		this.saveAppConfigFile().then(console.log('delegatedLoginServers: updated appConfig file')).catch(error => {
+			logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+			this.setAppConfig(old);
+			this.saveAppConfigFile();
+		});
+		//this._updateAppConfigJson().then(console.log('delegatedLoginServers: updated appConfig file')).catch(_onConfigError);
+	}
+
 	//region getters
 	get dbProvider() {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
@@ -273,6 +285,10 @@ class Bootstrapper {
 
 	get externalLoginUrl() {
 		return this._config && this._config[SettingsProps.ExternalLoginServer] ? this._config[SettingsProps.ExternalLoginServer] : null;
+	}
+
+	set externalLoginUrl(data) {
+		this._config[SettingsProps.ExternalLoginServer] = data;
 	}
 
 	get serviceName() {
@@ -348,8 +364,40 @@ class Bootstrapper {
 		return packageJson.version;
 	}
 
-	set setAppConfig(config) {
-		this._config = config;
+	 setAppConfig(config) {
+
+		 let externalLoginState = this.externalLoginUrl;
+		 if(!config)
+		 	config = this._config;
+		 else
+			config.delegatedLoginServers = this._config.delegatedLoginServers;
+		 this._config = config;
+		logger.info(`BOOTSRTPR: {${this.externalLoginUrl}}`);
+		if(externalLoginState != this.externalLoginUrl){
+			let gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+			utils.setExternalLoginOption(
+				this.externalLoginUrl,
+				{
+					fqdn:       gwFqdn,
+					id:         this.appId,
+					order:      'register'}
+			).then((setUrl)=>{
+
+				if(setUrl){
+					logger.info(`Registered on external login server: ${setUrl}`);
+					this._config[SettingsProps.ExternalLoginServer] = setUrl;
+				}
+				utils.setExternalLoginOption(
+					externalLoginState,
+					{
+						fqdn:       gwFqdn,
+						id:         this.appId,
+						order:      'unregister'}
+				).then(()=>{
+					externalLoginState && logger.info(`Un-Registered on external login server: ${externalLoginState}`);
+				});
+			});
+		}
 	}
 
 	//endregion
@@ -430,7 +478,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				try {
 					let config     = DirectoryServices.readJSON(AppConfigJsonPath),
-					    updateFile = false;
+						updateFile = false;
 
 					if (CommonUtils.isObjectEmpty(config)) {
 						return this._createAppConfigJson();
@@ -451,7 +499,6 @@ class Bootstrapper {
 							config[prop] = uuid.v4();
 						}
 					}
-					let externalLoginState = this.externalLoginUrl;
 
 					this._config = config;
 
@@ -460,37 +507,11 @@ class Bootstrapper {
 						resolve();
 						return;
 					}
-					const utils = require('./utils');
+
 					this.saveAppConfigFile().then(() => {
 						logger.debug(`${AppConfigFileName} updated...`);
-						resolve()
-					}).then(()=>{
-						if(externalLoginState != this.externalLoginUrl){
-
-							utils.setExternalLoginOption(
-								this.externalLoginUrl,
-								{
-									fqdn:       this._settings.GatewayServer.fqdn,
-									id:         this.appId,
-									set:        true}
-							).then(()=>{
-								logger.info(`Registered on external login server: ${this.externalLoginUrl}`);
-								resolve();
-							});
-						}
-					}).then(()=>{
-						utils.setExternalLoginOption(
-							externalLoginState,
-							{
-								fqdn:       this._settings.GatewayServer.fqdn,
-								id:         this.appId,
-								set:        false}
-						).then(()=>{
-							logger.info(`Un-Registered on external login server: ${externalLoginState}`);
-							resolve();
-						});
-					}).
-					catch(error => {
+						resolve();
+					}).catch(error => {
 						this._config = null;
 						reject(error);
 					});

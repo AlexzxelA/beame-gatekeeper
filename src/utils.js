@@ -7,7 +7,6 @@ const bodyParser = require('body-parser');
 const https      = require('https');
 const express    = require('express');
 const path       = require('path');
-const Bootstrapper = require('./bootstrapper');
 
 const beameSDK   = require('beame-sdk');
 const BeameStore = new beameSDK.BeameStore();
@@ -46,16 +45,7 @@ function setExpressAppCommonRoutes(app) {
 var localSigninRelayFqdn = null;
 function getLocalRelayFqdn() {
 	console.log('getLocalRelayFqdn');
-	// const apiConfig    = require('../config/api_config.json');
-	// const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
-	// return new Promise((resolve, reject) => {
-	// 	getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
-	// 		Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then((relay)=> {
-	// 		resolve(relay);
-	// 	}).catch((e)=> {
-	// 		reject(e);
-	// 	});
-	// });
+
 	return new Promise((resolve, reject) => {
 		if(localSigninRelayFqdn)
 			resolve(localSigninRelayFqdn);
@@ -95,7 +85,6 @@ function getRelayFqdn(target, lclFqdn){
 				cred     = fqdn && store.getCredential(fqdn),
 				token    = cred && authToken.create(fqdn, cred, 10),
 				provisionApi = new ProvisionApi();
-			    //matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
 
 			//provisionApi.makeGetRequest(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`, null, (error, payload) => {
 			provisionApi.makeGetRequest(target, null, (error, payload) => {
@@ -129,13 +118,50 @@ function createAuthTokenByFqdn(fqdn, data, ttl) {
 	});
 }
 
+function notifyRegisteredLoginServers(data, selfFqdn) {
+	return new Promise((resolve,reject)=>{
+		if(data){
+			try{
+				console.log(data);
+				let savedRegisteredServers = JSON.parse(data);
+				const ProvisionApi      = beameSDK.ProvApi,
+					BeameAuthServices = require('./authServices'),
+					authServices      = new BeameAuthServices(selfFqdn, ""),
+					apiConfig   = require('../config/api_config.json');
+
+				let sign         = authServices.signData(selfFqdn),
+					provisionApi = new ProvisionApi();
+				Promise.all(savedRegisteredServers.map(function (srv) {
+					if(srv.fqdn && srv.id){
+						let srvPath = 'https://' + srv.fqdn + apiConfig.Actions.Login.RecoverServer.endpoint;
+						provisionApi.postRequest(srvPath, selfFqdn, (error) => {
+							if (error) {
+								reject(error);
+							}
+							else {
+								resolve();
+							}
+						}, sign, 3);
+					}
+				})).then(resolve()).catch((e)=>{reject(e)});
+
+			}
+			catch(e){
+				reject(e);
+			}
+		}
+		else resolve();
+	});
+
+}
+
 function setExternalLoginOption(externalLoginUrl, data) {
 	return new Promise((resolve, reject) => {
 		const enableMe = true;
 		if(externalLoginUrl){
 			let strData = JSON.stringify(data);
 			console.log(`setExternalLoginOption ${strData} for externalLoginUrl: `,externalLoginUrl);
-			//bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
+
 			const ProvisionApi      = beameSDK.ProvApi,
 				BeameAuthServices = require('./authServices'),
 				authServices      = BeameAuthServices.getInstance(),
@@ -168,5 +194,6 @@ module.exports = {
 	createAuthTokenByFqdn,
 	getRelayFqdn,
 	getLocalRelayFqdn,
-	setExternalLoginOption
+	setExternalLoginOption,
+	notifyRegisteredLoginServers
 };

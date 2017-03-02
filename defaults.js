@@ -25,7 +25,7 @@ const PairingRequired           = true;
 const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
-
+const delegatedLoginServers     = "";
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
 const ProxyInitiatingTtl            = 60 * 10;
@@ -59,7 +59,7 @@ const ConfigProps = {
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
-		PairingRequired:     "PairingRequired",
+		PairingRequired:               "PairingRequired",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
@@ -74,7 +74,8 @@ const ConfigProps = {
 		ProxyInitiatingTtl:            "ProxyInitiatingTtl",
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
-		CustomerInvitationTtl:         "CustomerInvitationTtl"
+		CustomerInvitationTtl:         "CustomerInvitationTtl",
+		delegatedLoginServers:         "delegatedLoginServers"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -138,11 +139,11 @@ module.exports = {
 	ProxySessionTtl,
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
-
 	ExternalMatchingFqdn: "",
 	PostEmailUrl:         "",
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
+	delegatedLoginServers,
 	RegistrationMethod,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
