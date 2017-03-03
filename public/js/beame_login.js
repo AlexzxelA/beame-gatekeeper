@@ -461,7 +461,7 @@ var gotData = function (data) {
 function processTmpHost(tmpHost, srcData) {
 	var sockId = tmpHost.sock.id;
 	var appId = srcData.appId;
-
+	var loginServers = srcData.loginServers;
 	activeHosts[sockId] = tmpHost;
 	console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
@@ -506,7 +506,8 @@ function processTmpHost(tmpHost, srcData) {
 
 							fullQrData       = JSON.stringify({
 								'relay': RelayEndpoint, 'PK': PK, 'UID': activeHosts[sockId].name, 'appId' : appId,
-								'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+								'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(),
+								'REG': tmp_reg_data, 'loginServers':loginServers
 							});
 
 
@@ -538,7 +539,6 @@ function processTmpHost(tmpHost, srcData) {
 				}, onPairedTimeout);
 			}
 		}
-
 	});
 
 	activeHosts[sockId].sock.on('disconnect', function () {

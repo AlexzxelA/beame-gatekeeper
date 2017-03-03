@@ -10,6 +10,8 @@ const Constants    = require('../../constants');
 const CommonUtils  = beameSDK.CommonUtils;
 const authToken    = beameSDK.AuthToken;
 const store        = new (beameSDK.BeameStore)();
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = Bootstrapper.getInstance();
 
 const PIN_refresh_rate = 1000 * 60;
 /**
@@ -86,6 +88,22 @@ class BeameLogin {
 
 	_buildDataPack(pin){
 
+		//bootstrapper._config.delegatedLoginServers
+		let loginServers = [];
+		let serversArr = [];
+		try {
+			serversArr = JSON.parse(bootstrapper._config.delegatedLoginServers);
+		}
+		catch (e){
+			serversArr = [];
+		}
+		for(let i = 0 ; i < serversArr.length; i++){
+			if(serversArr[i].id)
+				loginServers.push(serversArr[i].id);
+		}
+		console.log(
+			'serversArr:',serversArr
+		);
 		let fqdn     = this._fqdn,
 			cred     = store.getCredential(fqdn),
 			name     = pin.toString().replace(/,/g,'-') + '.pin.virt.beameio.net',
@@ -99,7 +117,8 @@ class BeameLogin {
 				'service':this._serviceName,
 				'matching': this._matchingServerFqdn,
 				'refresh_rate': PIN_refresh_rate,
-				'appId':'beame-login'
+				'appId':'beame-login',
+				'loginServers': loginServers.toString()
 			});
 		return tokenStr;
 	}
