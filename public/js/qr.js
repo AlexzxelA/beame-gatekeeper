@@ -253,6 +253,10 @@ $(document).ready(function () {
 		//resetQR();
 	});
 
+	socket.on('forceRedirect', function (target) {
+		window.location.href = target;
+	});
+
 	socket.on('resetQR', function () {
 		socket.emit('ack', 'resetQR');
 		console.log('QR resetQR');

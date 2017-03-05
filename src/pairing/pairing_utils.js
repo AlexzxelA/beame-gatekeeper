@@ -7,6 +7,7 @@ const BeameLogger  = beameSDK.Logger;
 const store        = new beameSDK.BeameStore();
 const crypto       = require('crypto');
 var module_name    = 'PairingUtils';
+const authToken        = beameSDK.AuthToken;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
@@ -36,20 +37,32 @@ class PairingUtils {
 		this._socket.on('notifyMobile', (data) => {
 			const ProvisionApi     = beameSDK.ProvApi;
 			const provisionApi     = new ProvisionApi();
+			const onLoginError = () => {
+				this._socket.emit('forceRedirect',bootstrapper.externalLoginUrl);
+			};
 			try{
 				let parsedData = JSON.parse(data);
-				let parsedToken = JSON.parse(parsedData.token);
-				let target = JSON.parse(parsedToken.signedData.data).signedBy;
-				logger.info(`notifyMobile with: ${data}`);
-				//TODO: sign qrData in notification to verify on mobile
-				provisionApi.postRequest('https://'+target+'/login/pairing',
-					JSON.stringify({'uid':parsedData.uid, 'qrData':parsedData.qrData, 'token':parsedToken.signedData.data}),
-					(error) => {
-					error && console.log('Failed to notify Mobile:', error);
-				},null, 10, {rejectUnauthorized: false});
+				authToken.validate(parsedData.token).then(()=>{
+					let parsedToken = JSON.parse(parsedData.token);
+
+					if(bootstrapper.externalLoginUrl && bootstrapper.externalLoginUrl.includes(parsedToken.signedBy)){
+						let target = JSON.parse(parsedToken.signedData.data).signedBy;
+						logger.info(`notifyMobile with: ${data}`);
+						//TODO: sign qrData in notification to verify on mobile
+						provisionApi.postRequest('https://'+target+'/login/pairing',
+							JSON.stringify({'uid':parsedData.uid, 'qrData':parsedData.qrData,
+								'token':parsedToken.signedData.data}),
+							(error) => {
+								error && console.log('Failed to notify Mobile:', error);
+							},null, 10, {rejectUnauthorized: false});
+					}
+					else onLoginError();
+				}).catch((e)=>{onLoginError();});
+
 			}
 			catch(e){
 				console.error(e);
+				onLoginError();
 				//inform browser of failure
 			}
 
