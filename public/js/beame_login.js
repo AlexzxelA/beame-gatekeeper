@@ -665,22 +665,28 @@ originSocket.on('mobileIsOnline',function (status) {
 
 originSocket.on('startPairingSession',function (data) {
 	console.log('Starting pairing session with data:', data);
+
 	if (!pairingSession) {
 		var parsed = JSON.parse(data);
 
-		pinRefreshRate = parsed.refresh_rate || 10000;
-		pairingSession = setInterval(function () {
-			if(stopAllRunningSessions){
-				//destroyTmpHosts();
-			}
-			else{
-				console.log('Tmp Host requesting data');
-				originSocket.emit('pinRequest');
-			}
+		if(parsed.delegatedLogin){
+			window.location.href = parsed.delegatedLogin;
+		}
+		else{
+			pinRefreshRate = parsed.refresh_rate || 10000;
+			pairingSession = setInterval(function () {
+				if(stopAllRunningSessions){
+					//destroyTmpHosts();
+				}
+				else{
+					console.log('Tmp Host requesting data');
+					originSocket.emit('pinRequest');
+				}
 
-		}, pinRefreshRate);
-		showConn = false;
-		initTmpHost(parsed);
+			}, pinRefreshRate);
+			showConn = false;
+			initTmpHost(parsed);
+		}
 	}
 });
 

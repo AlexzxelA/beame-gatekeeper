@@ -59,7 +59,15 @@ class BeameLogin {
 			authToken.validate(token).then(()=>{
 				let parsed = JSON.parse(token);
 				var targetFqdn = (!(parsed.signedBy == parsed.signedData.data))?(parsed.signedData.data+'/beame-gw/signin'):'none';
-				this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, token:token}));
+
+				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+					fqdn && store.find(fqdn, true).then((cred)=>{
+						let newToken    = cred && authToken.create(token, cred, 10);
+						this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, token:newToken}));
+					}).catch(e=>{
+						this._socket.emit('tokenVerified', JSON.stringify({success:false, error: e}));
+					});
+
 			}).catch(e=>{
 				this._socket.emit('tokenVerified', JSON.stringify({success:false, error: e}));
 			});
@@ -118,7 +126,8 @@ class BeameLogin {
 				'matching': this._matchingServerFqdn,
 				'refresh_rate': PIN_refresh_rate,
 				'appId':'beame-login',
-				'loginServers': loginServers.toString()
+				'loginServers': loginServers.toString(),
+				'delegatedLogin': bootstrapper.externalLoginUrl
 			});
 		return tokenStr;
 	}
