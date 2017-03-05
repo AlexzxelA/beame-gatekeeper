@@ -123,6 +123,15 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				return;
 			}
 
+			if (type == 'redirectTopWindow' && payload.url){
+				var target = payload.url;
+				sendEncryptedData(getRelaySocket(), getRelaySocketID(),
+					str2ab(JSON.stringify({'type': 'redirect', 'payload':{'forceLogout':true}})),
+				function () {
+					window.top.location = target;
+				});
+			}
+
 			if (type == 'redirect' && payload.url.indexOf('beame-gw/logout') > 0) {
 				// gw_socket.emit('data', {
 				// 	type:    'logout',

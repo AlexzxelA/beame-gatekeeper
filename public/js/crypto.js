@@ -487,7 +487,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	}
 }
 
-function sendEncryptedData(target, socketId, data) {
+function sendEncryptedData(target, socketId, data, cb) {
 	encryptWithPK(data, function (error, cipheredData) {
 		if (!error) {
 			target.emit('data', {
@@ -502,6 +502,7 @@ function sendEncryptedData(target, socketId, data) {
 				'payload':  'Data encryption failed'
 			});
 		}
+		cb && cb();
 	});
 }
 
