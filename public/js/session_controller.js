@@ -208,7 +208,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 						console.log('Requested new session with:',decryptedData.payload);
 						var parsed = decryptedData.payload;
 						var parsedToken = JSON.parse(parsed.token);
-						var l = 'https://' + parsedToken.signedData.data + "/beame-gw/signin?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:parsed.uid, renew:true})));
+						var l = 'https://' + parsedToken.signedData.data + "/beame-gw/xprs-signin?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:parsed.uid, renew:true})));
 						window.top.location = l;
 						break;
 					case 'mediaRequest':

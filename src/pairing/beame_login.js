@@ -58,7 +58,7 @@ class BeameLogin {
 		this._socket.on('verifyToken', (token) => {
 			authToken.validate(token).then(()=>{
 				let parsed = JSON.parse(token);
-				var targetFqdn = (!(parsed.signedBy == parsed.signedData.data))?(parsed.signedData.data+'/beame-gw/signin'):'none';
+				var targetFqdn = (!(parsed.signedBy == parsed.signedData.data))?(parsed.signedData.data+'/beame-gw/xprs-signin'):'none';
 
 				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 					fqdn && store.find(fqdn, true).then((cred)=>{

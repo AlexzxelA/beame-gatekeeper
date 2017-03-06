@@ -45,6 +45,13 @@ unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
+unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
+	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
+	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	clearSessionCookie(res);
+	res.sendFile(path.join(base_path, 'xprs_signin.html'));
+});
 
 unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
