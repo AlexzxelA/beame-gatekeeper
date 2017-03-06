@@ -7,11 +7,16 @@ var BITS_PER_WORD = 21;
 var twoPi    = 6.28318530718;
 var M_PI     = 3.14159265359;
 var SR       = 44100;
-var BIT0     = 17915;
-var BIT1     = 18088;
-var SYNC     = 17743;
+const CARRF  = 17723;
+var BIT0     = CARRF+310;
+var BIT1     = CARRF+465;
+var SYNC     = CARRF+172;
 var BIT_N    = 500;
-var SHRT_MAX = 32767;
+var SYNC_N   = 1050;
+const NGAP   = 50;
+const SHRT_MAX = 32767;
+const SOUND_ATT = 32;
+
 var audio,
 	audioData,
 	UID = null,
@@ -111,7 +116,7 @@ var getWAV = function (pin) {
 		dig[6] = digIn[4];
 		dig[5] = digIn[5];
 
-		message.push.apply(message, _setBit(SYNC, -M_PI / 2, 1050, 0));
+		message.push.apply(message, _setBit(SYNC, -M_PI / 2, SYNC_N, 0));
 
 		var iWord;
 		var iOdd = 0, iEven = 0, iBit = 0;
@@ -231,7 +236,7 @@ var getWAV = function (pin) {
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
 
-		var scale = SHRT_MAX / 16;
+		var scale = SHRT_MAX / SOUND_ATT;
 		for (i = 0; i < filteredMessage.length; i++) {
 			filteredMessage[i] = message[i] * scale;
 		}
@@ -343,12 +348,14 @@ var _pack = function (fmt) {
 var _setBit = function (freq, phase, samples, padding) {
 	var data = [];
 	var i;
+	var lclPad = padding || NGAP;
 	for (i = 0; i < samples; i++) {
-		if (i < samples - padding)
+		if (i < samples - lclPad)
 			data[i] = (Math.sin(phase + i * twoPi * (freq / SR)) +
 			(Math.sin(phase + i * twoPi * ((freq - 10) / SR))) +
-			(Math.sin(phase + i * twoPi * ((freq + 10) / SR))) +
-			(Math.sin(phase + i * twoPi * ((freq + 20) / SR))));
+			(Math.sin(phase + i * twoPi * ((freq + 10) / SR)))
+				//+ (Math.sin(phase + i * twoPi * ((freq + 20) / SR)))
+			);
 		else
 			data[i] = 0;
 	}
