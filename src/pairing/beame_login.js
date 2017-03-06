@@ -62,6 +62,7 @@ class BeameLogin {
 
 				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 					fqdn && store.find(fqdn, true).then((cred)=>{
+						//let newToken    = (bootstrapper.delegatedLoginServers && bootstrapper.delegatedLoginServers.length > 1)? cred && authToken.create(token, cred, 10):token;
 						let newToken    = cred && authToken.create(token, cred, 10);
 						this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, token:newToken}));
 					}).catch(e=>{
