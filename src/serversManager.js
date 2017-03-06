@@ -4,7 +4,6 @@
 "use strict";
 const async = require('async');
 
-const apiConfig   = require('../config/api_config.json');
 const beameSDK    = require('beame-sdk');
 const module_name = "ServersManager";
 const BeameLogger = beameSDK.Logger;
@@ -15,6 +14,7 @@ const Bootstrapper      = require('./bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const Constants         = require('../constants');
 const BeameAuthServices = require('./authServices');
+const utils             = require('./utils');
 
 class ServersManager {
 
@@ -134,7 +134,17 @@ class ServersManager {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
-							resolve(null);
+							utils.setExternalLoginOption(
+								bootstrapper.externalLoginUrl,
+								{
+								fqdn:       this._settings.GatewayServer.fqdn,
+								id:         bootstrapper.appId,
+									order:      'register'}
+							).then((externalLoginUrl)=>{
+								externalLoginUrl && bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
+								utils.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
+									Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e)=>{reject(e)});
+							}).catch((e)=>{reject(e);});
 						}
 						else {
 							reject(error);

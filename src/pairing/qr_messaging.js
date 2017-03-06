@@ -340,7 +340,8 @@ class QrMessaging {
 					'refresh_rate': OTP_refresh_rate,
 					'matching':     this._matchingServerFqdn,
 					'service':      this._serviceName,
-					'appId':        bootstrapper.appId
+					'appId':        bootstrapper.appId,
+				    'delegatedLogin': bootstrapper.externalLoginUrl
 			    });
 
 			this._sendWithAck(socket, "relayEndpoint", tokenStr);

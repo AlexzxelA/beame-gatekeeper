@@ -10,6 +10,8 @@ const Constants    = require('../../constants');
 const CommonUtils  = beameSDK.CommonUtils;
 const authToken    = beameSDK.AuthToken;
 const store        = new (beameSDK.BeameStore)();
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = Bootstrapper.getInstance();
 
 const PIN_refresh_rate = 1000 * 60;
 /**
@@ -57,7 +59,16 @@ class BeameLogin {
 			authToken.validate(token).then(()=>{
 				let parsed = JSON.parse(token);
 				var targetFqdn = (!(parsed.signedBy == parsed.signedData.data))?(parsed.signedData.data+'/beame-gw/signin'):'none';
-				this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, token:token}));
+
+				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+					fqdn && store.find(fqdn, true).then((cred)=>{
+						//let newToken    = (bootstrapper.delegatedLoginServers && bootstrapper.delegatedLoginServers.length > 1)? cred && authToken.create(token, cred, 10):token;
+						let newToken    = cred && authToken.create(token, cred, 10);
+						this._socket.emit('tokenVerified', JSON.stringify({success:true, target:targetFqdn, token:newToken}));
+					}).catch(e=>{
+						this._socket.emit('tokenVerified', JSON.stringify({success:false, error: e}));
+					});
+
 			}).catch(e=>{
 				this._socket.emit('tokenVerified', JSON.stringify({success:false, error: e}));
 			});
@@ -86,6 +97,22 @@ class BeameLogin {
 
 	_buildDataPack(pin){
 
+		//bootstrapper._config.delegatedLoginServers
+		let loginServers = [];
+		let serversArr = [];
+		try {
+			serversArr = JSON.parse(bootstrapper._config.delegatedLoginServers);
+		}
+		catch (e){
+			serversArr = [];
+		}
+		for(let i = 0 ; i < serversArr.length; i++){
+			if(serversArr[i].id)
+				loginServers.push(serversArr[i].id);
+		}
+		console.log(
+			'serversArr:',serversArr
+		);
 		let fqdn     = this._fqdn,
 			cred     = store.getCredential(fqdn),
 			name     = pin.toString().replace(/,/g,'-') + '.pin.virt.beameio.net',
@@ -99,7 +126,9 @@ class BeameLogin {
 				'service':this._serviceName,
 				'matching': this._matchingServerFqdn,
 				'refresh_rate': PIN_refresh_rate,
-				'appId':'beame-login'
+				'appId':'beame-login',
+				'loginServers': loginServers.toString(),
+				'delegatedLogin': bootstrapper.externalLoginUrl
 			});
 		return tokenStr;
 	}

@@ -21,6 +21,7 @@ const AuthToken    = beameSDK.AuthToken;
 const BeameAuthServices = require('../../authServices');
 const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
+const apiConfig   = require('../../../config/api_config.json');
 
 const utils         = require('../../utils');
 const cust_auth_app = require('../../routers/customer_auth');
@@ -63,6 +64,69 @@ utils.setExpressAppCommonRoutes(unauthenticatedApp);
 unauthenticatedApp.use(bodyParser.json());
 
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
+
+let registeredSigninServers = [{'id':'none'}];
+
+unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
+	let token = req.header('x-beameauthtoken');
+	console.log('Received delegated login recovery post:',token);
+
+	let responseSent = false;
+	AuthToken.validate(token).then(()=>{
+		res.status(200).send();
+		responseSent = true;
+		let loginUrl = JSON.parse(token).signedBy;
+		console.log('loginUrl:', loginUrl,'..extLogUrl:',bootstrapper.externalLoginUrl);
+		if(loginUrl && bootstrapper.externalLoginUrl && (bootstrapper.externalLoginUrl.indexOf(loginUrl) >= 0)){
+			let tmpConfig = Object.assign({},bootstrapper._config || {});
+			bootstrapper.externalLoginUrl = "";
+			bootstrapper.setAppConfig(tmpConfig);
+		}
+	}).catch(e=>{
+		if(!responseSent)res.status(401).send();
+		logger.error(e);
+	});
+});
+
+unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
+	console.log('registeredSigninServers:',registeredSigninServers);
+	let token = req.header('x-beameauthtoken');
+	let responseSent = false;
+	AuthToken.validate(token).then(()=>{
+		let parsed = req.body;
+		let strData = JSON.stringify(parsed);
+		if(parsed && parsed.id && parsed.fqdn){
+			res.status(200).send();
+			responseSent = true;
+			let tmpNdx = -1;
+			registeredSigninServers && registeredSigninServers.forEach(function (item, index) {
+				if(item.id === parsed.id){
+					tmpNdx = index;
+				}
+			});
+			if(parsed.order == 'register'){
+				if(tmpNdx < 0)registeredSigninServers.push(parsed);
+				logger.info(`Registered server with data : ${strData}`);
+				console.log('registeredSigninServers(1):',registeredSigninServers);
+				bootstrapper.setDelegatedLoginServers(registeredSigninServers);
+			}
+			else{
+				if(tmpNdx >= 0)registeredSigninServers.splice(tmpNdx, 1);
+				logger.info(`Un-Registered server with data : ${strData}`);
+				console.log('registeredSigninServers(2):',registeredSigninServers);
+				bootstrapper.setDelegatedLoginServers(registeredSigninServers);
+			}
+		}
+		else{
+			logger.info(`Invalid data on server registration : ${strData}`);
+			res.status(400).send();
+		}
+
+	}).catch(e=>{
+		if(!responseSent)res.status(401).send();
+		logger.error(e);
+	});
+});
 
 unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);

@@ -7,9 +7,11 @@ const BeameLogger  = beameSDK.Logger;
 const store        = new beameSDK.BeameStore();
 const crypto       = require('crypto');
 var module_name    = 'PairingUtils';
+const authToken        = beameSDK.AuthToken;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
+const Constants = require('../../constants');
 
 class PairingUtils {
 	constructor(fqdn, inSocket, name) {
@@ -36,12 +38,47 @@ class PairingUtils {
 		this._socket.on('notifyMobile', (data) => {
 			const ProvisionApi     = beameSDK.ProvApi;
 			const provisionApi     = new ProvisionApi();
-			let parsed = JSON.parse(data);
-			let target = JSON.parse(parsed.token).signedBy;
-			logger.info(`notifyMobile with: ${data}`);
-			provisionApi.postRequest('https://'+target+'/login/pairing', data, (error) => {
-				error && console.log('Failed to notify Mobile:', error);
-			},null, 10, {rejectUnauthorized: false});
+			const onLoginError = () => {
+				this._socket.emit('forceRedirect',bootstrapper.externalLoginUrl || Constants.BeameLoginURL);
+			};
+			try{
+				let parsedData = JSON.parse(data);
+				if(bootstrapper.externalLoginUrl)
+					authToken.validate(parsedData.token).then(()=>{
+						let parsedToken = JSON.parse(parsedData.token);
+
+						let embeddedToken = parsedToken.signedData.data.includes('signedBy');//backward compatibility
+						if(!bootstrapper.externalLoginUrl || bootstrapper.externalLoginUrl && bootstrapper.externalLoginUrl.includes(parsedToken.signedBy)){
+							let target = (parsedData.renew || !embeddedToken)?parsedToken.signedBy: JSON.parse(parsedToken.signedData.data).signedBy;
+							let token2mobile = (parsedData.renew || !embeddedToken)?parsedData.token:parsedToken.signedData.data;
+							logger.info(`notifyMobile with: ${data}`);
+							//TODO: sign qrData in notification to verify on mobile
+							provisionApi.postRequest('https://'+target+'/login/pairing',
+								JSON.stringify({'uid':parsedData.uid, 'qrData':parsedData.qrData,
+									'token':token2mobile}),
+								(error) => {
+									error && console.log('Failed to notify Mobile:', error);
+								},null, 10, {rejectUnauthorized: false});
+						}
+						else onLoginError();
+					}).catch((e)=>{
+						console.error(e);
+						onLoginError();
+					});
+				else{
+					let target = JSON.parse(parsedData.token).signedBy;
+					provisionApi.postRequest('https://'+target+'/login/pairing', data, (error) => {
+						error && console.log('Failed to notify Mobile:', error);
+					},null, 10, {rejectUnauthorized: false});
+				}
+
+			}
+			catch(e){
+				console.error(e);
+				onLoginError();
+				//inform browser of failure
+			}
+
 		});
 
 		this._socket.on('userImageVerify', (data) => {

@@ -57,32 +57,6 @@ function validateSession(imageRequired) {
 }
 
 function registerVirtualHost(signature, socket) {
-	if(delegatedUserId){
-		var qrData = 'none';
-		waitingForMobileConnection = setTimeout(function () {
-			window.alert('Timed out waiting for mobile connection');
-			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
-		},wait4MobileTimeout);
-		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
-		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
-		then(function (keydata) {
-			var PK = arrayBufferToBase64String(keydata);
-			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
-			qrData       = JSON.stringify({
-				'relay': RelayPath, 'PK': PK, 'UID': getVUID(),
-				'PIN':   getParameterByName('pin') || 'none', 'TYPE': 'LOGIN',
-				'TIME': Date.now(), 'REG': 'LOGIN',
-				'imageRequired': imgReq, 'appId':JSON.parse(sessionServiceData).appId
-			});
-			console.log('* notifyMobile:',qrData);
-			sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:qrData})));
-			delegatedUserId = undefined;
-		}).catch(function (e) {
-			sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
-			delegatedUserId = undefined;
-			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
-		});
-	}
 	sendConnectRequest(signature, socket);
 	connectToRelayRetry = setInterval(function () {
 		if(--connectToRelayTimeout){

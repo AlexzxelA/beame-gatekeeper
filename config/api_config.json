@@ -33,6 +33,14 @@
             "GetRelay":{
                 "endpoint":"/v1/relay/get"
             }
+        },
+        "Login": {
+            "RegisterServer":{
+                "endpoint":"/login/server/register"
+            },
+            "RecoverServer":{
+                "endpoint":"/login/server/recover"
+            }
         }
     }
 }

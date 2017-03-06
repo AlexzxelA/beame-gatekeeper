@@ -30,12 +30,12 @@ class AdminServices {
 
 				let old = bootstrapper.appConfig;
 
-				bootstrapper.setAppConfig = CommonUtils.parse(req.data).AppConfig;
+				bootstrapper.setAppConfig(CommonUtils.parse(req.data).AppConfig);
 
 				bootstrapper.saveAppConfigFile().then(resolve).catch(error => {
 					logger.error(`update app config error ${BeameLogger.formatError(error)}`);
 
-					bootstrapper.setAppConfig = old;
+					bootstrapper.setAppConfig(old);
 
 					return bootstrapper.saveAppConfigFile();
 				});

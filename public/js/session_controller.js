@@ -123,6 +123,15 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				return;
 			}
 
+			if (type == 'redirectTopWindow' && payload.url){
+				var target = payload.url;
+				sendEncryptedData(getRelaySocket(), getRelaySocketID(),
+					str2ab(JSON.stringify({'type': 'redirect', 'payload':{'forceLogout':true}})),
+				function () {
+					window.top.location = target;
+				});
+			}
+
 			if (type == 'redirect' && payload.url.indexOf('beame-gw/logout') > 0) {
 				// gw_socket.emit('data', {
 				// 	type:    'logout',
@@ -199,7 +208,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 						console.log('Requested new session with:',decryptedData.payload);
 						var parsed = decryptedData.payload;
 						var parsedToken = JSON.parse(parsed.token);
-						var l = 'https://' + parsedToken.signedData.data + "/beame-gw/signin?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:parsed.uid})));
+						var l = 'https://' + parsedToken.signedData.data + "/beame-gw/signin?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:parsed.uid, renew:true})));
 						window.top.location = l;
 						break;
 					case 'mediaRequest':
