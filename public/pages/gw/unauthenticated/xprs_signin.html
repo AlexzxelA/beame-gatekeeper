@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in</title>
+
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800" rel="stylesheet" type="text/css"/>
+
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+
+    <!-- Scripts -->
+    <!-- build:signin-js-head -->
+    <script src="js/utils.js"></script>
+    <script src="js/signin.js"></script>
+    <!-- endbuild -->
+
+</head>
+<body ng-controller="MainCtrl">
+
+<!-- IFRAME IS HIDDEN - add 'show' class to iframe to show it -->
+<iframe id="ifrm-content" class="iframe-wide"></iframe>
+
+<div class="main-wrapper">
+
+    <div class="row">
+        <div class="column large-6 large-offset-1 end">
+            <div class="logo"><a href="//www.beame.io/">
+                <!-- build:logo -->
+                <img src="img/logo.svg">
+                <!-- endbuild -->
+            </a></div>
+        </div>
+    </div>
+
+    <div id="login_form" class="row">
+
+
+        <div class="column large-6 large-offset-1">
+            <div class="left-column__wrapper wider-2">
+                <h1 class="text-center">Signin in</h1>
+                <p class="text-center nomar">Please wait...</p>
+
+                <div class="box-signin form-main" id="user-img-box" style="display: none;position: relative">
+                    <div class="overlay overlay-white" id="lbl-req-img" style="position: absolute;height: 100%;width: 100%">
+                            <h4 id="lbl-req-img-msg" style="top:30%;position: relative;font-style: italic">Requesting User Image</h4>
+                            <svg class="spinner" viewBox="0 0 50 50" style="top: 50%">
+                                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                            </svg>
+                    </div>
+
+                    <div>
+                        <img src="#" id="img-user-pict" style="width :220px;height:220px;visibility: hidden;display: block;margin: 0 auto" />
+                    </div>
+                    <div class="button-group expanded">
+                        <button class="button button-inline" onclick="onUserAction(0)">Reject</button>
+                        <button class="button button-inline" onclick="onUserAction(1)">Accept</button>
+                    </div>
+                </div>
+
+                <form id="" action="" method="">
+
+                    <div id="error-message" class="error-message-signin">Oops. Something went wrong. Try again
+                        please
+                    </div>
+
+
+                    <!--div class="bo x-signin" id="pairing-box">
+                        <div class="signin-qr">
+                            <div id="qr" style="margin: 0 auto;width: 200px;height: 200px;" class="qr-spinner"></div>
+                            <label class="qr-status"></label>
+                        </div>
+                        <p class="signin-divider small">Or use ultrasound</p>
+                        <welcome-template></welcome-template>
+                    </div-->
+
+                </form>
+
+            </div>
+        </div>
+
+
+        <div class="column large-4 end">
+            <div class="right-column__wrapper">
+                <h3>How this works</h3>
+                <p class="star-icon relative small">When you registered, a <i>cryptographic credential</i> was bound to
+                                                                                          your iPhone.</p>
+                <p class="star-icon relative small">This website recognizes your credential.</p>
+                <p class="star-icon relative small">Then, your credential gives you access priviliges.</p>
+                <!--p class="star-icon relative small">Just choose how you want to pair to begin!</p-->
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+
+<div id="overlay" class="overlay overlay-white">
+    <div>
+        <h2>Signing in</h2>
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+    </div>
+</div>
+
+
+<script>
+	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
+</script>
+
+<!-- Scripts -->
+<!-- build:lib -->
+<script src="lib/socket.io-1.4.5.min.js"></script>
+<!--script src="lib/angular-1.5.7.min.js"></script-->
+<script src="lib/jquery-2.2.4.min.js"></script>
+<script src="lib/kendo-2016.3.1118.qr.min.js"></script>
+
+<!-- endbuild -->
+
+<script type="text/javascript">
+    if(/MSIE \d|Trident.*rv:/.test(navigator.userAgent))
+	    document.write('<script src="lib/bluebird.min.js"><\/script>');
+</script>
+
+
+<!-- Scripts -->
+<!-- build:cef -->
+<script src="js/cef_manager.js"></script>
+<!-- endbuild -->
+<script>
+	var cefManager = getCefManagerInstance();
+</script>
+
+<!-- Scripts -->
+<!-- build:js -->
+<script src="js/crypto.js"></script>
+<script src="js/virt_host_controller.js"></script>
+<script src="js/notification_manager.js"></script>
+<script src="js/user_image.js"></script>
+<script src="js/session_controller.js"></script>
+<script src="js/xprs_signin.js"></script>
+<!--script src="js/qr.js"></script>
+<script src="js/whisper_generator.js"></script>
+<script src="js/whisperer.js"></script-->
+<!-- endbuild -->
+
+</body>
+</html>
