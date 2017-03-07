@@ -24,6 +24,9 @@
             "SaveInvitation": {
                 "endpoint": "/v1/invitation/save"
             },
+            "CompleteInvitation": {
+                "endpoint": "/v1/invitation/complete"
+            },
             "DeleteInvitation": {
                 "endpoint": "/v1/invitation/delete/"
             },

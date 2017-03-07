@@ -49,7 +49,7 @@ class SnsServices {
 						case 'Notification':
 							//noinspection JSUnresolvedVariable
 							/** @type {SnsNotificationToken} */
-							var token = beameSDK.CommonUtils.parse(message.Message);
+							let token = beameSDK.CommonUtils.parse(message.Message);
 							if (token) {
 
 								try {

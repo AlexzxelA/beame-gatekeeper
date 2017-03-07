@@ -40,7 +40,8 @@ class ServersManager {
 
 					if (!externalMatchingFqdn) {
 
-						if(!CommonUtils.isObjectEmpty(this._settings.ExternalMatchingServer)){
+						if (!CommonUtils.isObjectEmpty(this._settings.ExternalMatchingServer)) {
+							//noinspection JSPrimitiveTypeWrapperUsage
 							this._settings.ExternalMatchingServer.fqdn = null;
 						}
 
@@ -154,13 +155,13 @@ class ServersManager {
 			);
 		};
 
-		const _registerCustomerAuthServer = () =>{
+		const _registerCustomerAuthServer = () => {
 			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
 		};
 
 		async.parallel([
 				callback => {
-						_startMatching()
+					_startMatching()
 						.then(_startBeameAuth.bind(this))
 						.then(_startGateway.bind(this))
 						.then(_registerCustomerAuthServer.bind(this))
@@ -169,7 +170,7 @@ class ServersManager {
 							callback(error)
 						});
 
-				}  ,
+				},
 				callback => {
 					let chatApp = new (require('../apps/chat'))();
 					chatApp.start();
