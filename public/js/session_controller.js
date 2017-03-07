@@ -186,13 +186,14 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 		relaySocket.on('data', function (data) {
 
-			processMobileData(WhTMPSocketRelay, {
+			processMobileData(relaySocket, {
 				'QR': null,
 				'WH': null,
 				'GW': gw_socket
 			}, data, function (rawData) {
-				var decryptedData = JSON.parse(rawData);
-				console.log('relaySocket data', decryptedData);
+				console.log('processMobileData: relaySocket data', rawData);
+				var decryptedData = (typeof rawData === 'object')?rawData:JSON.parse(rawData);
+
 				//TODO temp hack for testing, to be removed
 				var type = decryptedData.type;
 
