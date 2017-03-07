@@ -40,6 +40,8 @@ const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
+const IsCentralLoginMode = "false";
+
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
 		"username":             "",
@@ -66,6 +68,7 @@ const ConfigProps = {
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
+		IsCentralLoginMode:            "IsCentralLoginMode",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		PostSmsUrl:                    "PostSmsUrl",
@@ -118,7 +121,7 @@ const CredsConfigTemplate = {
 		server:   true,
 		internal: false
 	},
-	[Servers.ExternalLoginServer]:   {
+	[Servers.ExternalLoginServer]:      {
 		fqdn:     "",
 		server:   true,
 		internal: false
@@ -155,6 +158,7 @@ module.exports = {
 	RegistrationImageRequired,
 	EncryptUserData,
 	StartRaspberryApp,
+	IsCentralLoginMode,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,
