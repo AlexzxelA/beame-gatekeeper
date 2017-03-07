@@ -192,6 +192,54 @@ class AdminRouter {
 		});
 		//endregion
 
+
+		//region gk logins
+		this._router.get('/gk-login/list', (req, res) => {
+			this._beameAdminServices.getServices().then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				logger.error(error);
+				res.json([]);
+			});
+		});
+
+		this._router.post('/gk-login/create', (req, res) => {
+			let service = req.body;
+			this._beameAdminServices.saveService(service).then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				res.status(400).send(error);
+			});
+		});
+
+		this._router.post('/gk-login/update', (req, res) => {
+			let service = req.body;
+			this._beameAdminServices.updateService(service).then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				res.status(400).send(error);
+			});
+		});
+
+		this._router.post('/gk-login/destroy', (req, res) => {
+			let data = req.body,
+			    id   = parseInt(data.id);
+
+			this._beameAdminServices.deleteService(id).then(() => {
+				res.status(200).json({});
+			}).catch(error => {
+				res.status(400).send(error);
+			});
+
+		});
+		//endregion
+
 		//region invitations
 		this._router.get('/invitation/list', (req, res) => {
 			beameAuthServices.getInvitations().then(
