@@ -39,9 +39,8 @@ function verifyInputData(relay, cb) {
 			setTimeout(function () {
 				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
 				delegatedUserId = undefined;
-				window.alert('huj');
 				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
-			}, 1000000);
+			}, 30000);
 		});
 	}
 	else cb(false);

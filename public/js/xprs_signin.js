@@ -41,7 +41,7 @@ $(document).ready(function () {
 
 	socket.on('startQrSession',function (data) {
 		socket.emit('ack', 'startQrSession');
-		setQRStatus('Requesting QR data');
+		setQRStatus('Requesting data');
 		console.log('Starting QR session with data:', data);
 		if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
 			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
