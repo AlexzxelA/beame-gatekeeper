@@ -83,18 +83,22 @@ var bpf = [
 ];
 
 var startingSession = setInterval(function () {
+	generateKeys();
 	if(keyGenerated){
 		clearInterval(startingSession);
 	}
-	else if(!keyGenBusy){
+	else{
 		try {
-			generateKeys();
+			if(!keyGenerated && !keyGenBusy)
+				generateKeys();
+			else
+				clearInterval(startingSession);
 		}
 		catch (e){
-			//nop
+			console.error('startingSession: ',e);
 		}
 	}
-}, 100);
+}, 200);
 
 var getWAV = function (pin) {
 
