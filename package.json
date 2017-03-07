@@ -32,7 +32,7 @@
   "dependencies": {
     "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git#prod",
     "async": "^2.1.2",
-    "beame-sdk": "2.0.25",
+    "beame-sdk": "git+https://github.com/beameio/beame-sdk.git",
     "body-parser": "^1.15.2",
     "cookie": "0.3.1",
     "csv-parse": "^1.2.0",
