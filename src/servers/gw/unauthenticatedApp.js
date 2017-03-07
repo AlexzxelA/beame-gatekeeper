@@ -35,34 +35,55 @@ const clearSessionCookie = res =>{
 	res.clearCookie(cookieNames.LoginData);
 };
 
+const setBeameCookie = (type,res) => {
+	switch (type) {
+		case cookieNames.Service:
+			res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+			break;
+		case cookieNames.Logout:
+			res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+			break;
+		case cookieNames.Logout2Login:
+			res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
+			break;
+	}
+
+};
+
 unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
-	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
-	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
-	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	setBeameCookie(cookieNames.Logout,res);
+	setBeameCookie(cookieNames.Logout2Login,res);
+	setBeameCookie(cookieNames.Service,res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
 unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
-	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
-	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
-	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	setBeameCookie(cookieNames.Logout,res);
+	setBeameCookie(cookieNames.Logout2Login,res);
+	setBeameCookie(cookieNames.Service,res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 
 unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
-	res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
-	res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
-	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	setBeameCookie(cookieNames.Logout,res);
+	setBeameCookie(cookieNames.Logout2Login,res);
+	setBeameCookie(cookieNames.Service,res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'login.html'));
 });
 
 unauthenticatedApp.get('/', (req, res) => {
-	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+
+	if(bootstrapper.isCentralLoginMode){
+		res.redirect(Constants.LoginPath);
+		return;
+	}
+
+	setBeameCookie(cookieNames.Service,res);
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
 

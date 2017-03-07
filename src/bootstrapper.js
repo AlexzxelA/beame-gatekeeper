@@ -42,7 +42,7 @@ const _onConfigError = error => {
 	process.exit(1);
 };
 
-var bootstrapperInstance;
+let bootstrapperInstance;
 
 class Bootstrapper {
 
@@ -334,6 +334,10 @@ class Bootstrapper {
 
 	get pairingRequired() {
 		return this._config[SettingsProps.PairingRequired];
+	}
+
+	get isCentralLoginMode() {
+		return this._config[SettingsProps.IsCentralLoginMode];
 	}
 
 	get encryptUserData() {
