@@ -37,6 +37,7 @@ class BeameLoginManager {
 		this._callbacks = callbacks;
 
 		this._serviceName = serviceName;
+
 	}
 
 
@@ -48,7 +49,7 @@ class BeameLoginManager {
 	onBrowserConnection(socket,relayFqdn) {
 
 		let beameLogin = new BeameLogin(socket, this._fqdn, this._matchingServerFqdn, relayFqdn,
-			this._callbacks,  this._options,this._serviceName);
+			this._options, this._serviceName, this._loginServers);
 
 		this.logins[beameLogin.sessionId] = beameLogin;
 

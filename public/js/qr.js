@@ -78,6 +78,7 @@ $(document).ready(function () {
 		console.log('Starting QR session with data:', data);
 		if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
 			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
+
 			signArbitraryData(sessionServiceData, function (err, sign) {
 				if(!err){
 					sessionServiceDataSign = arrayBufferToBase64String(sign);
@@ -88,7 +89,7 @@ $(document).ready(function () {
 			});
 		}
 
-		if(!login_session){
+		if(!login_session && !delegatedUserId){
 			setTimeout(function () {
 				socket.emit('pinRequest');
 			},200);
@@ -218,29 +219,42 @@ $(document).ready(function () {
 		socket.emit('ack', 'relayEndpoint');
 		console.log('QR relayEndpoint', data);
 
-		setQRStatus('Got virtual host registration token');
-		getKeyPairs(function (error, keydata) {
-			if (error) {
-				console.log(error);
-				return;
-			}
-			try {
-				var parsedData  = JSON.parse(data);
-				sessionServiceData = JSON.stringify({'matching':parsedData.matching, 'service':parsedData.service, 'appId': parsedData.appId});
-				userImageRequired = parsedData['imageRequired'];
-				qrRelayEndpoint = parsedData['data'];
-				connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
-			}
-			catch (e) {
-				socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
-				console.error('failed to parse data:', e);
-			}
-		});
+			setQRStatus('Got virtual host registration token');
+			getKeyPairs(function (error, keydata) {
+				if (error) {
+					console.log(error);
+					return;
+				}
+				try {
+					var parsedData = JSON.parse(data);
+					sessionServiceData = JSON.stringify({'matching':parsedData.matching, 'service':parsedData.service, 'appId': parsedData.appId});
+					userImageRequired = parsedData['imageRequired'];
+					qrRelayEndpoint = parsedData['data'];
+
+					verifyInputData('https://'+qrRelayEndpoint, function (isLoginSession) {
+						login_session = isLoginSession;
+						if (parsedData.delegatedLogin && !login_session && auth_mode != 'Provision') {
+							window.location.href = parsedData.delegatedLogin;
+						}
+						connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
+					});
+				}
+				catch (e) {
+					socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});
+					console.error('failed to parse data:', e);
+				}
+			});
+
+
 	});
 
 	socket.on('disconnect', function () {
 		console.log('QR DISCONNECTED');
 		//resetQR();
+	});
+
+	socket.on('forceRedirect', function (target) {
+		window.location.href = target;
 	});
 
 	socket.on('resetQR', function () {

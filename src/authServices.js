@@ -333,11 +333,24 @@ class BeameAuthServices {
 					return isCompleted ? dataService.markRegistrationAsCompleted(token.fqdn) : Promise.resolve(registration);
 				};
 
+				const _sendCompleteEvent = () =>{
+					return new Promise((resolve) => {
+							let $this = BeameAuthServices.getInstance();
+
+							$this.sendCustomerInvitationCompleteEvent(token.fqdn).then(resolve).catch(err=>{
+								logger.error(err);
+								resolve();
+							})
+						}
+					);
+				};
+
 				dataService.findRegistrationRecordByFqdn(token.fqdn)
 					.then(_assertRegistrationStatus)
 					.then(dataService.updateRegistrationCertFlag.bind(dataService))
 					.then(_updateRegistrationStatus)
 					.then(_onStatusUpdated)
+					.then(_sendCompleteEvent)
 					.then(resolve)
 					.catch(reject);
 			}
@@ -751,7 +764,7 @@ class BeameAuthServices {
 				    serviceId:     bootstrapper.appId,
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
-					gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)
+				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)
 			    },
 			    postEmailUrl = null,
 			    postSmsUrl   = null;
@@ -790,7 +803,7 @@ class BeameAuthServices {
 								else {
 									resolve(payload.data);
 								}
-							}, sign,10);
+							}, sign, 10);
 						} catch (e) {
 							reject(e);
 						}
@@ -939,6 +952,37 @@ class BeameAuthServices {
 
 	}
 
+	sendCustomerInvitationCompleteEvent(fqdn) {
+		return new Promise((resolve, reject) => {
+				const method = bootstrapper.registrationMethod;
+
+				switch (method) {
+					case Constants.RegistrationMethod.Email:
+						try {
+							let sign         = this.signData(fqdn),
+							    provisionApi = new ProvisionApi(),
+							    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.CompleteInvitation.endpoint}/${fqdn}`;
+
+							provisionApi.postRequest(`https://${url}`, {}, (error) => {
+								if (error) {
+									reject(error);
+								}
+								else {
+									resolve();
+								}
+							}, sign, 10);
+						} catch (e) {
+							reject(e);
+						}
+						return;
+					default:
+						resolve();
+						return;
+				}
+			}
+		);
+	}
+
 	//endregion
 
 	getRequestAuthToken(req) {
@@ -980,41 +1024,45 @@ class BeameAuthServices {
 	}
 
 
-
 	//region Registration token
-	findCreds(fqdnPart){
+	findCreds(fqdnPart) {
 		return new Promise((resolve) => {
-				let list = store.list(null,{hasPrivateKey:true});
+				let list = store.list(null, {hasPrivateKey: true});
 
-				const _isContains = (cred) =>{
+				const _isContains = (cred) => {
 					return cred.getKey("FQDN").indexOf(fqdnPart) >= 0;
 				};
 
-				resolve(list.filter(_isContains).map(item=>{return {fqdn:item.fqdn}}));
+				resolve(list.filter(_isContains).map(item => {
+					return {fqdn: item.fqdn}
+				}));
 			}
 		);
 	}
 
 	createRegToken(data) {
 		return new Promise((resolve, reject) => {
-			const Credential = beameSDK.Credential;
-			let cred = new Credential(store),ttl = 60*60*24;
+				const Credential                      = beameSDK.Credential;
+				let cred = new Credential(store), ttl = 60 * 60 * 24;
 
-			try {
-				ttl = parseInt(data.ttl);
-			} catch (e) {
+				try {
+					ttl = parseInt(data.ttl);
+				} catch (e) {
 
-			}
+				}
 
-			cred.createRegistrationToken({fqdn: data.fqdn, name: data.name, email:data.email,
-				userId:data.user_id, ttl:ttl, serviceName:bootstrapper.serviceName,
-				serviceId:bootstrapper.appId, matchingFqdn:this._matchingServerFqdn,
-				gwFqdn:Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)})
-				.then(resolve)
-				.catch(reject);
+				cred.createRegistrationToken({
+						fqdn:      data.fqdn, name: data.name, email: data.email,
+						userId:    data.user_id, ttl: ttl, serviceName: bootstrapper.serviceName,
+						serviceId: bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
+						gwFqdn:    Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)
+					})
+					.then(resolve)
+					.catch(reject);
 			}
 		);
 	}
+
 	//endregion
 
 	/** @type {BeameAuthServices} */

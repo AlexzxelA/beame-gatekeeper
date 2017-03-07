@@ -42,11 +42,11 @@ const credentialManager = new (require('./src/credentialManager'))();
 const utils             = require('./src/utils');
 
 /** @type {DataServices} */
-var dataService = null;
+let dataService = null;
 
 const serviceManager = new (require('./src/servers/gw/serviceManager'))();
 
-var commandHandled = false;
+let commandHandled = false;
 
 function startDataService() {
 	dataService = require('./src/dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
@@ -106,7 +106,7 @@ if (args._[0] == 'create') {
 
 } else {
 
-	var credsCount = list().length;
+	let credsCount = list().length;
 
 	if (!credsCount) {
 		console.log(getHelpMessage('no-certificates.txt'));
@@ -117,6 +117,7 @@ if (args._[0] == 'create') {
 		console.log(getHelpMessage('no-command.txt'));
 		process.exit(1);
 	}
+	let extlogin = Bootstrapper.getCredFqdn(Constants.CredentialType.ExternalLoginServer)
 }
 
 if (args._[0] == 'list') {

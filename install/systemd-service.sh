@@ -46,7 +46,7 @@ Type=simple
 Environment=NODE_ENV=production
 User=$BEAME_INSTA_SERVER_USER
 WorkingDirectory=$BEAME_INSTA_SERVER_DIR
-ExecStart=$BEAME_INSTA_SERVER_NODEJS_BIN main.js serve"
+ExecStart=$BEAME_INSTA_SERVER_NODEJS_BIN main.js serve
 Restart=always
 RestartSec=10
 

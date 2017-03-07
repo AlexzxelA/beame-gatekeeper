@@ -210,14 +210,19 @@ const messageHandlers = {
 			return new Promise(() => {
 				console.log('*************** Logout with data:', payload);
 				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
-				if(payload.logout2login){//} && (payload.logout2login.indexOf('https') >= 0)){
+				let type = 'redirect';
+				if(bootstrapper.externalLoginUrl){
+					url = bootstrapper.externalLoginUrl;
+					type = 'redirectTopWindow';
+				}
+				else if(payload.logout2login){//} && (payload.logout2login.indexOf('https') >= 0)){
 					url = `https://${gwServerFqdn}/beame-gw/login-reinit?token=${encodeURIComponent(token)}`;
 					//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
 				}
 
 				logger.debug('respond() URL', url);
 				reply({
-					type:    'redirect',
+					type:    type,
 					payload: {
 						success: true,
 						logout:  true,

@@ -10,7 +10,7 @@ const packageJson   = require('../package.json');
 const defaults      = require('../defaults');
 const SqliteProps   = defaults.ConfigProps.Sqlite;
 const SettingsProps = defaults.ConfigProps.Settings;
-
+const utils = require('./utils');
 const beameSDK    = require('beame-sdk');
 const module_name = "Bootstrapper";
 const BeameLogger = beameSDK.Logger;
@@ -42,7 +42,7 @@ const _onConfigError = error => {
 	process.exit(1);
 };
 
-var bootstrapperInstance;
+let bootstrapperInstance;
 
 class Bootstrapper {
 
@@ -218,6 +218,18 @@ class Bootstrapper {
 		);
 	}
 
+	setDelegatedLoginServers(data){
+		this._config.delegatedLoginServers = (data && (data.length>0))?'['+data.map(JSON.stringify).join()+']':"";
+		let old = this._config;
+		this.setAppConfig(this._config);
+		this.saveAppConfigFile().then(console.log('delegatedLoginServers: updated appConfig file')).catch(error => {
+			logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+			this.setAppConfig(old);
+			this.saveAppConfigFile();
+		});
+		//this._updateAppConfigJson().then(console.log('delegatedLoginServers: updated appConfig file')).catch(_onConfigError);
+	}
+
 	//region getters
 	get dbProvider() {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
@@ -271,6 +283,14 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.ExternalMatchingFqdn] ? this._config[SettingsProps.ExternalMatchingFqdn] : null;
 	}
 
+	get externalLoginUrl() {
+		return this._config && this._config[SettingsProps.ExternalLoginServer] ? this._config[SettingsProps.ExternalLoginServer] : null;
+	}
+
+	set externalLoginUrl(data) {
+		this._config[SettingsProps.ExternalLoginServer] = data;
+	}
+
 	get serviceName() {
 		return this._config && this._config[SettingsProps.ServiceName] ? this._config[SettingsProps.ServiceName] : null;
 	}
@@ -316,6 +336,10 @@ class Bootstrapper {
 		return this._config[SettingsProps.PairingRequired];
 	}
 
+	get isCentralLoginMode() {
+		return this._config[SettingsProps.IsCentralLoginMode];
+	}
+
 	get encryptUserData() {
 		return this._config[SettingsProps.EncryptUserData];
 	}
@@ -344,8 +368,40 @@ class Bootstrapper {
 		return packageJson.version;
 	}
 
-	set setAppConfig(config) {
-		this._config = config;
+	 setAppConfig(config) {
+
+		 let externalLoginState = this.externalLoginUrl;
+		 if(!config)
+		 	config = this._config;
+		 else
+			config.delegatedLoginServers = this._config.delegatedLoginServers;
+		 this._config = config;
+		logger.info(`BOOTSRTPR: {${this.externalLoginUrl}}`);
+		if(externalLoginState != this.externalLoginUrl){
+			let gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+			utils.setExternalLoginOption(
+				this.externalLoginUrl,
+				{
+					fqdn:       gwFqdn,
+					id:         this.appId,
+					order:      'register'}
+			).then((setUrl)=>{
+
+				if(setUrl){
+					logger.info(`Registered on external login server: ${setUrl}`);
+					this._config[SettingsProps.ExternalLoginServer] = setUrl;
+				}
+				utils.setExternalLoginOption(
+					externalLoginState,
+					{
+						fqdn:       gwFqdn,
+						id:         this.appId,
+						order:      'unregister'}
+				).then(()=>{
+					externalLoginState && logger.info(`Un-Registered on external login server: ${externalLoginState}`);
+				});
+			});
+		}
 	}
 
 	//endregion
@@ -426,7 +482,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				try {
 					let config     = DirectoryServices.readJSON(AppConfigJsonPath),
-					    updateFile = false;
+						updateFile = false;
 
 					if (CommonUtils.isObjectEmpty(config)) {
 						return this._createAppConfigJson();

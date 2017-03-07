@@ -10,6 +10,7 @@ const home = os.homedir();
 const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 
 const GatewayControllerPath    = '/beame-gw';
+const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
 const SigninPath               = `${GatewayControllerPath}/signin`;
 const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
@@ -29,12 +30,14 @@ const CredsConfigFolder = "creds";
 const AppConfigFileName           = "app_config.json";
 const CredsFileName               = "creds.json";
 const CustomerAuthServersFileName = "auth_servers.json";
+const GkLoginsFileName            = "gk_logins.json";
 const SqliteDbConfigFileName      = "sqlite_config.json";
 
 
 const CredsFolderPath             = path.join(BeameRootPath, CredsConfigFolder);
 const CredsJsonPath               = path.join(BeameRootPath, CredsConfigFolder, CredsFileName);
 const CustomerAuthServersJsonPath = path.join(BeameRootPath, CredsConfigFolder, CustomerAuthServersFileName);
+const GkLoginsJsonPath            = path.join(BeameRootPath, CredsConfigFolder, GkLoginsFileName);
 const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
 const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
 const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
@@ -89,6 +92,7 @@ const CredentialType = {
 	BeameAuthorizationServer: "BeameAuthorizationServer",
 	MatchingServer:           "MatchingServer",
 	ExternalMatchingServer:   "ExternalMatchingServer",
+	ExternalLoginServer:      "ExternalLoginServer",
 	CustomerAuthServer:       "CustomerAuthServer"
 };
 
@@ -139,6 +143,7 @@ module.exports = {
 	GatewayControllerPath,
 	GwAuthenticatedPath,
 	SigninPath,
+	XprsSigninPath,
 	LoginPath,
 	LogoutPath,
 	ConfigData,
@@ -150,11 +155,13 @@ module.exports = {
 	AppConfigFileName,
 	CredsFileName,
 	CustomerAuthServersFileName,
+	GkLoginsFileName,
 	SqliteDbConfigFileName,
 
 	CredsFolderPath,
 	CredsJsonPath,
 	CustomerAuthServersJsonPath,
+	GkLoginsJsonPath,
 	ConfigFolderPath,
 	AppConfigJsonPath,
 	SqliteConfigJsonPath

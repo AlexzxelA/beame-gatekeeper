@@ -19,13 +19,16 @@ const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const PublicRegistration        = true;
-const RegistrationImageRequired = true;
+const RegistrationImageRequired = false;
 const EncryptUserData           = true;
 const PairingRequired           = true;
 const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 
+const EmailPostUrl = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
+const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
+const delegatedLoginServers     = "";
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
 const ProxyInitiatingTtl            = 60 * 10;
@@ -36,6 +39,8 @@ const CustomerInvitationTtl         = 60 * 60 * 24 * 2;
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
+
+const IsCentralLoginMode = "false";
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -59,13 +64,15 @@ const ConfigProps = {
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
-		PairingRequired:     "PairingRequired",
+		PairingRequired:               "PairingRequired",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
+		IsCentralLoginMode:            "IsCentralLoginMode",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		PostSmsUrl:                    "PostSmsUrl",
+		ExternalLoginServer:           "ExternalLoginServer",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
 		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
@@ -73,7 +80,8 @@ const ConfigProps = {
 		ProxyInitiatingTtl:            "ProxyInitiatingTtl",
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
-		CustomerInvitationTtl:         "CustomerInvitationTtl"
+		CustomerInvitationTtl:         "CustomerInvitationTtl",
+		delegatedLoginServers:         "delegatedLoginServers"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -109,6 +117,11 @@ const CredsConfigTemplate = {
 		internal: true
 	},
 	[Servers.ExternalMatchingServer]:   {
+		fqdn:     ExternalMatchingFqdn,
+		server:   true,
+		internal: false
+	},
+	[Servers.ExternalLoginServer]:      {
 		fqdn:     "",
 		server:   true,
 		internal: false
@@ -133,10 +146,11 @@ module.exports = {
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
 
-	ExternalMatchingFqdn: "",
-	PostEmailUrl:         "",
+	ExternalMatchingFqdn: ExternalMatchingFqdn,
+	PostEmailUrl:         EmailPostUrl,
 	PostSmsUrl:           "",
-
+	ExternalLoginServer:  "",
+	delegatedLoginServers,
 	RegistrationMethod,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
@@ -144,6 +158,7 @@ module.exports = {
 	RegistrationImageRequired,
 	EncryptUserData,
 	StartRaspberryApp,
+	IsCentralLoginMode,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,
