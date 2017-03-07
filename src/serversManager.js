@@ -4,11 +4,11 @@
 "use strict";
 const async = require('async');
 
-const beameSDK    = require('beame-sdk');
-const module_name = "ServersManager";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-
+const beameSDK          = require('beame-sdk');
+const module_name       = "ServersManager";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const apiConfig         = require('../config/api_config.json');
 const CommonUtils       = beameSDK.CommonUtils;
 const Bootstrapper      = require('./bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
@@ -138,14 +138,19 @@ class ServersManager {
 							utils.setExternalLoginOption(
 								bootstrapper.externalLoginUrl,
 								{
-								fqdn:       this._settings.GatewayServer.fqdn,
-								id:         bootstrapper.appId,
-									order:      'register'}
-							).then((externalLoginUrl)=>{
+									fqdn:  this._settings.GatewayServer.fqdn,
+									id:    bootstrapper.appId,
+									order: 'register'
+								}
+							).then((externalLoginUrl) => {
 								externalLoginUrl && bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
 								utils.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
-									Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e)=>{reject(e)});
-							}).catch((e)=>{reject(e);});
+									Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e) => {
+									reject(e)
+								});
+							}).catch((e) => {
+								reject(e);
+							});
 						}
 						else {
 							reject(error);
