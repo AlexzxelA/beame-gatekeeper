@@ -8,8 +8,8 @@ const path    = require('path');
 const express = require('express');
 
 const Constants  = require('../../constants');
-const public_dir            = path.join(__dirname, '..', '..', Constants.WebRootFolder);
-const base_path           = path.join(public_dir, 'pages', 'admin');
+const public_dir           = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const base_path            = path.join(public_dir, 'pages', 'admin');
 
 const beameSDK          = require('beame-sdk');
 const CommonUtils       = beameSDK.CommonUtils;
@@ -19,6 +19,8 @@ const logger            = new BeameLogger(module_name);
 const Bootstrapper      = require('../bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const beameAuthServices = require('../authServices').getInstance();
+
+const centralLoginServices = require('../centralLoginServices').getInstance();
 
 const RESPONSE_SUCCESS_CODE = 1;
 const RESPONSE_ERROR_CODE = 0;
@@ -195,7 +197,7 @@ class AdminRouter {
 
 		//region gk logins
 		this._router.get('/gk-login/list', (req, res) => {
-			this._beameAdminServices.getServices().then(
+			centralLoginServices.getGkLogins().then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -206,8 +208,8 @@ class AdminRouter {
 		});
 
 		this._router.post('/gk-login/create', (req, res) => {
-			let service = req.body;
-			this._beameAdminServices.saveService(service).then(
+			let login = req.body;
+			centralLoginServices.saveGkLogin(login).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -217,8 +219,8 @@ class AdminRouter {
 		});
 
 		this._router.post('/gk-login/update', (req, res) => {
-			let service = req.body;
-			this._beameAdminServices.updateService(service).then(
+			let login = req.body;
+			centralLoginServices.updateGkLogin(login).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -231,7 +233,7 @@ class AdminRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._beameAdminServices.deleteService(id).then(() => {
+			centralLoginServices.deleteGkLogin(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);
@@ -297,7 +299,7 @@ class AdminRouter {
 			const formidable = require('formidable');
 
 
-			var form = new formidable.IncomingForm();
+			let form = new formidable.IncomingForm();
 
 			form.parse(req, (err, fields, files) => {
 

@@ -7,7 +7,7 @@
     "node": ">= 6.9.1"
   },
   "bin": {
-    "beame-insta-server": "main.js"
+    "beame-gatekeeper": "main.js"
   },
   "repository": {
     "type": "git",
@@ -30,9 +30,10 @@
   },
   "homepage": "https://github.com/beameio/beame-gatekeeper#readme",
   "dependencies": {
-    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git#prod",
+    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git",
     "async": "^2.1.2",
-    "beame-sdk": "git+https://github.com/beameio/beame-sdk.git",
+    "beame-sdk": "https://github.com/beameio/beame-sdk.git",
+    "beame-cli": "0.0.3",
     "body-parser": "^1.15.2",
     "cookie": "0.3.1",
     "csv-parse": "^1.2.0",
@@ -48,8 +49,8 @@
     "sequelize-cli": "^2.4.0",
     "serve-index": "^1.8.0",
     "sns-validator": "^0.2.1",
-    "socket.io": "1.5.1",
-    "socket.io-client": "1.5.1",
+    "socket.io": "1.7.3",
+    "socket.io-client": "1.7.3",
     "sqlite3": "^3.1.8",
     "uuid": "^3.0.1"
   },

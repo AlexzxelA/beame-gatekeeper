@@ -3,6 +3,10 @@
  */
 "use strict";
 
+const beameSDK    = require('beame-sdk');
+const module_name = "BeameLoginManager";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
 
 /**
  * @typedef {Object} MessagingCallbacks
@@ -53,7 +57,7 @@ class BeameLoginManager {
 
 		this.logins[beameLogin.sessionId] = beameLogin;
 
-		console.log(`[${beameLogin.sessionId}] Session START on ${socket.id}`);
+		logger.debug(`[${beameLogin.sessionId}] Session START on ${socket.id}`);
 
 		beameLogin.start();
 

@@ -1,20 +1,19 @@
-Usage:
 
-	beame-insta-server create BIG_TOKEN_FROM_EMAIL
-	beame-insta-server list
-	beame-insta-server server
+Commands details:
 
-
-	beame-insta-server create BIG_TOKEN_FROM_EMAIL
+	beame-gatekeeper creds getCreds --regToken regToken
 
 		Creates 'SOMETHING.beameio.net' certificate.
 
 
-	beame-insta-server list
+	beame-gatekeeper creds list
 
 		Lists certificates
 
-	beame-insta-server serve
-	beame-insta-server server
+	beame-gatekeeper server start
 
-		Start beame-insta-server so it will be available for browsing to
+		Start beame-gatekeeper so it will be available for browsing to
+
+For more information about commands see readme:
+
+	https://github.com/beameio/beame-gatekeeper#readme

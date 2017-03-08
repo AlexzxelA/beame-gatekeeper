@@ -30,14 +30,12 @@ const CredsConfigFolder = "creds";
 const AppConfigFileName           = "app_config.json";
 const CredsFileName               = "creds.json";
 const CustomerAuthServersFileName = "auth_servers.json";
-const GkLoginsFileName            = "gk_logins.json";
 const SqliteDbConfigFileName      = "sqlite_config.json";
 
 
 const CredsFolderPath             = path.join(BeameRootPath, CredsConfigFolder);
 const CredsJsonPath               = path.join(BeameRootPath, CredsConfigFolder, CredsFileName);
 const CustomerAuthServersJsonPath = path.join(BeameRootPath, CredsConfigFolder, CustomerAuthServersFileName);
-const GkLoginsJsonPath            = path.join(BeameRootPath, CredsConfigFolder, GkLoginsFileName);
 const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
 const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
 const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
@@ -155,13 +153,11 @@ module.exports = {
 	AppConfigFileName,
 	CredsFileName,
 	CustomerAuthServersFileName,
-	GkLoginsFileName,
 	SqliteDbConfigFileName,
 
 	CredsFolderPath,
 	CredsJsonPath,
 	CustomerAuthServersJsonPath,
-	GkLoginsJsonPath,
 	ConfigFolderPath,
 	AppConfigJsonPath,
 	SqliteConfigJsonPath

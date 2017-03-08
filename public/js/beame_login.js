@@ -16,6 +16,7 @@ var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
 const SOUND_ATT = 32;
+var retryCounter    = 0;
 
 var audio,
 	audioData,
@@ -27,6 +28,10 @@ var audio,
 	pinRefreshRate,
 	pairingSession,
 	fullQrData;
+
+var resetPageStatus = function(){
+	retryCounter = 0;
+};
 
 var bpf = [
 	0.0054710543943477024,
@@ -83,18 +88,22 @@ var bpf = [
 ];
 
 var startingSession = setInterval(function () {
+	generateKeys();
 	if(keyGenerated){
 		clearInterval(startingSession);
 	}
-	else if(!keyGenBusy){
+	else{
 		try {
-			generateKeys();
+			if(!keyGenerated && !keyGenBusy)
+				generateKeys();
+			else
+				clearInterval(startingSession);
 		}
 		catch (e){
-			//nop
+			console.error('startingSession: ',e);
 		}
 	}
-}, 100);
+}, 200);
 
 var getWAV = function (pin) {
 
@@ -383,7 +392,7 @@ var _convolve = function (x, x_length, h, h_length) {
 	return output;
 };
 
-var originSocket = io.connect("/beame_login", socketio_options);
+var originSocket = io.connect("/beame_login", socketio_options || {transports: ['websocket']});
 
 if (!window.btoa) {
 	var btoa = function (input) {
@@ -623,7 +632,7 @@ function initTmpHost(data) {
 	tmpHostArr[lclNdx] = {};
 	tmpHostArr[lclNdx].pin = data.pin;
 	tmpHostArr[lclNdx].name = data.name;
-	tmpHostArr[lclNdx].sock = io.connect(data.relay);
+	tmpHostArr[lclNdx].sock = io.connect(data.relay, {transports: ['websocket']});
 	tmpHostArr[lclNdx].sock.on('connect',function () {
 		processTmpHost(tmpHostArr[lclNdx], data);
 	});
@@ -683,11 +692,16 @@ originSocket.on('startPairingSession',function (data) {
 			pinRefreshRate = parsed.refresh_rate || 10000;
 			pairingSession = setInterval(function () {
 				if(stopAllRunningSessions){
+					clearInterval(pairingSession);
 					//destroyTmpHosts();
 				}
 				else{
 					console.log('Tmp Host requesting data');
 					originSocket.emit('pinRequest');
+					if(++retryCounter > 2){
+						pairingSession = null;
+						window.location.href = window.location.origin;
+					}
 				}
 
 			}, pinRefreshRate);
@@ -699,7 +713,7 @@ originSocket.on('startPairingSession',function (data) {
 
 originSocket.on('pindata', function (dataRaw) {
 	var data = JSON.parse(dataRaw);
-
+	resetPageStatus();
 	initTmpHost(data);
 
 });

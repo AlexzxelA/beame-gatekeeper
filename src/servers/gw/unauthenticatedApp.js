@@ -35,6 +35,14 @@ const clearSessionCookie = res =>{
 	res.clearCookie(cookieNames.LoginData);
 };
 
+const loadLoginPage = (res)=>{
+	setBeameCookie(cookieNames.Logout,res);
+	setBeameCookie(cookieNames.Logout2Login,res);
+	setBeameCookie(cookieNames.Service,res);
+	clearSessionCookie(res);
+	res.sendFile(path.join(base_path, 'login.html'));
+};
+
 const setBeameCookie = (type,res) => {
 	switch (type) {
 		case cookieNames.Service:
@@ -69,17 +77,13 @@ unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
 });
 
 unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
-	setBeameCookie(cookieNames.Logout,res);
-	setBeameCookie(cookieNames.Logout2Login,res);
-	setBeameCookie(cookieNames.Service,res);
-	clearSessionCookie(res);
-	res.sendFile(path.join(base_path, 'login.html'));
+	loadLoginPage(res);
 });
 
 unauthenticatedApp.get('/', (req, res) => {
 
 	if(bootstrapper.isCentralLoginMode){
-		res.redirect(Constants.LoginPath);
+		loadLoginPage(res);
 		return;
 	}
 
