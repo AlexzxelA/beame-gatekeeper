@@ -38,7 +38,7 @@ class CredentialManager {
 
 					logger.info(`Zero level credential created successfully on ${metadata.fqdn}`);
 
-					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this)).then(()=> {
+					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this,metadata.email)).then(()=> {
 
 						this._bootstrapper.registerCustomerAuthServer(Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(()=> {
 							resolve(metadata);
@@ -54,7 +54,7 @@ class CredentialManager {
 	}
 
 
-	createServersCredentials() {
+	createServersCredentials(email) {
 		return new Promise((resolve, reject) => {
 				let zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
 
@@ -75,11 +75,9 @@ class CredentialManager {
 				async.each(Object.keys(servers), (serverType, callback) => {
 
 
-					let name = bootstrapper.serviceName && bootstrapper.serviceName != defaults.ServiceName ? bootstrapper.serviceName : bootstrapper.appId;
+					logger.info(`Creating credentials for ${serverType} ${email}`);
 
-					logger.info(`Creating credentials for ${serverType} ${name}`);
-
-					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType} (${name})`, null).then(metadata=> {
+					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, email).then(metadata=> {
 
 						logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
 
