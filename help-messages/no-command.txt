@@ -1,4 +1,5 @@
-Command details:
+
+Commands details:
 
 	beame-gatekeeper creds getCreds --regToken regToken
 
