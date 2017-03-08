@@ -12,7 +12,7 @@ const CommonUtils  = beameSDK.CommonUtils;
 const Constants = require('../../../constants');
 const Bootstrapper = require('../../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
-var dataService    = null;
+let dataService    = null;
 
 class AdminServices {
 
@@ -171,6 +171,5 @@ class AdminServices {
 
 	//endregion
 }
-
 
 module.exports = AdminServices;

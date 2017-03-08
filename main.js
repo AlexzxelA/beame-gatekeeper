@@ -30,12 +30,7 @@ const path = require('path');
 const beameSDK    = require('beame-sdk');
 const BeameStore = new beameSDK.BeameStore();
 
-/** @type {DataServices} */
-var dataService = null;
-
 const serviceManager = new (require('./src/servers/gw/serviceManager'))();
-
-var commandHandled = false;
 
 function getHelpMessage(fileName) {
 	return fs.readFileSync(path.join(__dirname, 'help-messages', fileName), {'encoding': 'utf-8'});
@@ -64,7 +59,7 @@ cli.approveCommand = (cmdName, subCmdName) => {
 	if((cmdName == 'creds') && (subCmdName == 'getCreds')) {
 		return true;
 	}
-	var credsCount = list().length;
+	let credsCount = list().length;
 
 	if (!credsCount) {
 		console.log(getHelpMessage('no-certificates.txt'));

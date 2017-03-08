@@ -132,6 +132,7 @@ const CustomerAuthServersTemplate = {
 	"Servers": []
 };
 
+
 module.exports = {
 	ConfigProps,
 	AppId,

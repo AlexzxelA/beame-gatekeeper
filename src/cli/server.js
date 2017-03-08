@@ -3,19 +3,13 @@
 const fs   = require('fs');
 const path = require('path');
 
-const Constants         = require('../../constants');
 const Bootstrapper      = require('../bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
-const credentialManager = new (require('../credentialManager'))();
 const serviceManager    = new (require('../servers/gw/serviceManager'))();
-const utils             = require('../utils');
 
-const beameSDK    = require('beame-sdk');
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger('CLI-server');
 
 /** @type {DataServices} */
-var dataService = null;
+let dataService = null;
 
 function getHelpMessage(fileName) {
 	return fs.readFileSync(path.join(__dirname, '..', '..', 'help-messages', fileName), {'encoding': 'utf-8'});
@@ -47,15 +41,12 @@ function start(callback) {
 		.then(getServersSettings)
 		.then(assertServersSettings)
 		.then(ServersManager.go.bind(null, serviceManager))
-		.catch(error=> {
-			logger.fatal(`Start severs error ${BeameLogger.formatError(error)}`);
-		});
+		.catch(callback);
 }
 
 start.params = {};
 
-const list = beameSDK.creds.list;
 
 module.exports = {
-	start,
-}
+	start
+};

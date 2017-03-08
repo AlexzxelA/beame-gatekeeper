@@ -19,7 +19,7 @@ function getHelpMessage(fileName) {
 }
 
 /** @type {DataServices} */
-var dataService = null;
+let dataService = null;
 
 function startDataService() {
 	dataService = require('../dataServices').getInstance({session_timeout: bootstrapper.sessionRecordDeleteTimeout});
@@ -48,7 +48,7 @@ function getCreds(regToken, callback) {
 		}).catch(callback);
 }
 
-getCreds.params = { 'regToken': {required: true, base64: true, json: true} }
+getCreds.params = { 'regToken': {required: true, base64: true, json: true} };
 
 function list(regex, callback) {
 	callback(null, beameSDK.creds.list(regex));
@@ -66,7 +66,7 @@ function webToken(type, appId, callback) {
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
 	const createToken = () => {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			serviceManager.getAdminAppId().then(app_id => {
 
 				logger.info(`Admin service found with app_id ${app_id}`);
@@ -104,7 +104,7 @@ function webToken(type, appId, callback) {
 webToken.params = {
 	'type':  { required: true, options: ['config', 'admin', 'app'] },
 	'appId': { required: false }
-}
+};
 webToken.toText = (url) => {
 	return "\n" +
 	"--------------------------------------------------\n" +
@@ -113,11 +113,11 @@ webToken.toText = (url) => {
 	`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
 	url + '\n'  +
 	"--------------------------------------------------\n"
-}
+};
 
 module.exports = {
 	getCreds,
 	list,
 	createServersCredentials,
 	webToken,
-}
+};

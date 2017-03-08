@@ -239,6 +239,29 @@ class DataServices {
 
 	//endregion
 
+	//region GK Logins
+	getGkLogins() {
+		return this._dbService.getGkLogins();
+	}
+
+	getActiveGkLogins() {
+		return this._dbService.getActiveGkLogins();
+	}
+
+	saveGkLogin(login) {
+		return this._dbService.saveGkLogin(login);
+	}
+
+	updateGkLogin(login) {
+		return this._dbService.updateGkLogin(login);
+	}
+
+	deleteGkLogin(id) {
+		return this._dbService.deleteGkLogin(id);
+	}
+
+	//endregion
+
 	/**
 	 *
 	 * @param {DataServicesSettings|null|undefined} [options]
