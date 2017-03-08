@@ -7,7 +7,7 @@
     "node": ">= 6.9.1"
   },
   "bin": {
-    "beame-insta-server": "main.js"
+    "beame-gatekeeper": "main.js"
   },
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/beameio/beame-gatekeeper#readme",
   "dependencies": {
-    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git#prod",
+    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git",
     "async": "^2.1.2",
     "beame-sdk": "https://github.com/beameio/beame-sdk.git",
     "beame-cli": "0.0.2",
