@@ -192,7 +192,7 @@ function handleRequest(type, p1, p2, p3) {
 					logger.error(stack);
 					socket.end();
 				} else {
-					logger.error(`Upgrade not supported by proxy, done by someone else for url ${url}`);
+					logger.debug(`Upgrade not supported by proxy, done by someone else for url ${url}`);
 				}
 			}, 1000);
 		})(req.url, new Error(`Upgrade not supported by proxy at this place ${req.url} closing socket`).stack);
@@ -205,7 +205,7 @@ function handleRequest(type, p1, p2, p3) {
 	logger.debug('gateway handleRequest URL', req.url);
 	if (!authToken || is_unauth_app_url(req.url)) {
 		if (type == 'upgrade') {
-			console.log('handleRequest: upgrade_not_supported');
+			logger.debug(`handleRequest: upgrade_not_supported for unathenticated app at ${req.url}`);
 			return upgrade_not_supported();
 		}
 		unauthenticatedApp(req, res);

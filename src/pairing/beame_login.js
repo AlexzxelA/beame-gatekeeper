@@ -106,13 +106,11 @@ class BeameLogin {
 		catch (e){
 			serversArr = [];
 		}
+		// TODO: loginServers = serversArr.map(x => x.id) // instead of for
 		for(let i = 0 ; i < serversArr.length; i++){
 			if(serversArr[i].id)
 				loginServers.push(serversArr[i].id);
 		}
-		console.log(
-			'serversArr:',serversArr
-		);
 		let fqdn     = this._fqdn,
 			cred     = store.getCredential(fqdn),
 			name     = pin.toString().replace(/,/g,'-') + '.pin.virt.beameio.net',

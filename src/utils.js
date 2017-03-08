@@ -44,8 +44,6 @@ function setExpressAppCommonRoutes(app) {
 
 var localSigninRelayFqdn = null;
 function getLocalRelayFqdn() {
-	console.log('getLocalRelayFqdn');
-
 	return new Promise((resolve, reject) => {
 		if(localSigninRelayFqdn)
 			resolve(localSigninRelayFqdn);
@@ -122,7 +120,6 @@ function notifyRegisteredLoginServers(data, selfFqdn) {
 	return new Promise((resolve,reject)=>{
 		if(data){
 			try{
-				console.log(data);
 				let savedRegisteredServers = JSON.parse(data);
 				const ProvisionApi      = beameSDK.ProvApi,
 					BeameAuthServices = require('./authServices'),
@@ -143,7 +140,7 @@ function notifyRegisteredLoginServers(data, selfFqdn) {
 							}
 						}, sign, 3);
 					}
-				})).then(resolve()).catch((e)=>{reject(e)});
+				})).then(resolve).catch((e)=>{reject(e)});
 
 			}
 			catch(e){
@@ -160,8 +157,6 @@ function setExternalLoginOption(externalLoginUrl, data) {
 		const enableMe = true;
 		if(externalLoginUrl){
 			let strData = JSON.stringify(data);
-			console.log(`setExternalLoginOption ${strData} for externalLoginUrl: `,externalLoginUrl);
-
 			const ProvisionApi      = beameSDK.ProvApi,
 				BeameAuthServices = require('./authServices'),
 				authServices      = BeameAuthServices.getInstance(),

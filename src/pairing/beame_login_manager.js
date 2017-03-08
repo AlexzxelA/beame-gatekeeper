@@ -53,7 +53,7 @@ class BeameLoginManager {
 
 		this.logins[beameLogin.sessionId] = beameLogin;
 
-		console.log(`[${beameLogin.sessionId}] Session START on ${socket.id}`);
+		logger.debug(`[${beameLogin.sessionId}] Session START on ${socket.id}`);
 
 		beameLogin.start();
 
