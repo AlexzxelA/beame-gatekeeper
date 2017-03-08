@@ -82,6 +82,8 @@ unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 
 unauthenticatedApp.get('/', (req, res) => {
 
+	logger.debug(`Root set as ${bootstrapper.isCentralLoginMode}`);
+
 	if(bootstrapper.isCentralLoginMode){
 		loadLoginPage(res);
 		return;
