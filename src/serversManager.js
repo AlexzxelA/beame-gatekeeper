@@ -4,17 +4,17 @@
 "use strict";
 const async = require('async');
 
-const apiConfig   = require('../config/api_config.json');
-const beameSDK    = require('beame-sdk');
-const module_name = "ServersManager";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-
+const beameSDK          = require('beame-sdk');
+const module_name       = "ServersManager";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const apiConfig         = require('../config/api_config.json');
 const CommonUtils       = beameSDK.CommonUtils;
 const Bootstrapper      = require('./bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const Constants         = require('../constants');
 const BeameAuthServices = require('./authServices');
+const utils             = require('./utils');
 
 class ServersManager {
 
@@ -40,7 +40,8 @@ class ServersManager {
 
 					if (!externalMatchingFqdn) {
 
-						if(!CommonUtils.isObjectEmpty(this._settings.ExternalMatchingServer)){
+						if (!CommonUtils.isObjectEmpty(this._settings.ExternalMatchingServer)) {
+							//noinspection JSPrimitiveTypeWrapperUsage
 							this._settings.ExternalMatchingServer.fqdn = null;
 						}
 
@@ -134,7 +135,22 @@ class ServersManager {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
-							resolve(null);
+							utils.setExternalLoginOption(
+								bootstrapper.externalLoginUrl,
+								{
+									fqdn:  this._settings.GatewayServer.fqdn,
+									id:    bootstrapper.appId,
+									order: 'register'
+								}
+							).then((externalLoginUrl) => {
+								externalLoginUrl && bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
+								utils.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
+									Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e) => {
+									reject(e)
+								});
+							}).catch((e) => {
+								reject(e);
+							});
 						}
 						else {
 							reject(error);
@@ -144,13 +160,13 @@ class ServersManager {
 			);
 		};
 
-		const _registerCustomerAuthServer = () =>{
+		const _registerCustomerAuthServer = () => {
 			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
 		};
 
 		async.parallel([
 				callback => {
-						_startMatching()
+					_startMatching()
 						.then(_startBeameAuth.bind(this))
 						.then(_startGateway.bind(this))
 						.then(_registerCustomerAuthServer.bind(this))
@@ -159,7 +175,7 @@ class ServersManager {
 							callback(error)
 						});
 
-				}  ,
+				},
 				callback => {
 					let chatApp = new (require('../apps/chat'))();
 					chatApp.start();

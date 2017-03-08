@@ -478,10 +478,8 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecrypted);
 			return;
 		case 'registration_complete':
-			logout();
-			return;
 		case 'restart_pairing':
-			window.top.location = 'https://dev.login.beameio.net';//TODO - set top location to global variable
+			logout();
 			return;
 		default:
 			console.error('unknown payload type ' + type);
@@ -489,7 +487,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	}
 }
 
-function sendEncryptedData(target, socketId, data) {
+function sendEncryptedData(target, socketId, data, cb) {
 	encryptWithPK(data, function (error, cipheredData) {
 		if (!error) {
 			target.emit('data', {
@@ -504,6 +502,7 @@ function sendEncryptedData(target, socketId, data) {
 				'payload':  'Data encryption failed'
 			});
 		}
+		cb && cb();
 	});
 }
 

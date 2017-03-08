@@ -13,6 +13,39 @@ function deleteCookie( name ) {
 	document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
+function verifyInputData(relay, cb) {
+	if(delegatedUserId){
+		var qrData = 'none';
+		waitingForMobileConnection = setTimeout(function () {
+			window.alert('Timed out waiting for mobile connection');
+			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+		},wait4MobileTimeout);
+		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
+		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
+		then(function (keydata) {
+			var PK = arrayBufferToBase64String(keydata);
+			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
+			qrData       = JSON.stringify({
+				'relay': relay, 'PK': PK, 'UID': getVUID(),
+				'PIN':   getParameterByName('pin') || 'none', 'TYPE': 'LOGIN',
+				'TIME': Date.now(), 'REG': 'LOGIN',
+				'imageRequired': imgReq, 'appId':JSON.parse(sessionServiceData).appId
+			});
+			console.log('* notifyMobile:',qrData);
+			sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:qrData})));
+			delegatedUserId = undefined;
+			cb(true);
+		}).catch(function (e) {
+			setTimeout(function () {
+				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
+				delegatedUserId = undefined;
+				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+			}, 30000);
+		});
+	}
+	else cb(false);
+}
+
 function onStaticPageLoaded() {
 	deleteCookie('beame_userinfo');
 
@@ -58,7 +91,7 @@ function getCookie(cname) {
 function logout(){
 	try {
 		var usrData = getCookie('usrInData');
-		var target = (usrData)?'beame_logout_to_login_url':'beame_logout_url';
+		var target = (usrData && (usrData.length > 0))?'beame_logout_to_login_url':'beame_logout_url';
 		window.location.href = decodeURIComponent(getCookie(target));
 	} catch (e) {
 	}

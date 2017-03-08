@@ -1,5 +1,5 @@
 {
-    "BaseUrl": "https://prov-staging.beameio.net",
+    "BaseUrl": "https://ieoateielwkqnbuw.tl5h1ipgobrdqsj6.v1.p.beameio.net",
     "Actions": {
         "Edge": {
             "Register": {
@@ -24,6 +24,9 @@
             "SaveInvitation": {
                 "endpoint": "/v1/invitation/save"
             },
+            "CompleteInvitation": {
+                "endpoint": "/v1/invitation/complete"
+            },
             "DeleteInvitation": {
                 "endpoint": "/v1/invitation/delete/"
             },
@@ -32,6 +35,14 @@
             },
             "GetRelay":{
                 "endpoint":"/v1/relay/get"
+            }
+        },
+        "Login": {
+            "RegisterServer":{
+                "endpoint":"/login/server/register"
+            },
+            "RecoverServer":{
+                "endpoint":"/login/server/recover"
             }
         }
     }

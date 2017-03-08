@@ -32,7 +32,6 @@ function onRequestError(res, error, code) {
 class BeameAuthRouter {
 	constructor(authServices) {
 
-
 		this._beameAdminServices = authServices;
 
 		this._router = express.Router();

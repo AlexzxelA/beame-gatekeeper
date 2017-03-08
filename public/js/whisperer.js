@@ -384,6 +384,7 @@ app.controller("MainCtrl", function ($scope) {
 
 				}
 				else if(type == 'done'){
+					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 					stopAllRunningSessions = true;
 
 					activeHosts[sockId].sock.removeAllListeners();

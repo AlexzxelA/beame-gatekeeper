@@ -26,7 +26,7 @@ var CefManager = kendo.Class.extend({
     },
 
     reload:function() {
-       this.cefObj && this.cefObj.relaod();
+       this.cefObj && this.cefObj.reload();
     }
 });
 
