@@ -45,7 +45,8 @@ class SqliteServices {
 						sessions:      this._sequelize.models["Session"],
 						registrations: this._sequelize.models["Registration"],
 						users:         this._sequelize.models["User"],
-						services:      this._sequelize.models["Service"]
+						services:      this._sequelize.models["Service"],
+						gklogins:      this._sequelize.models["GkLogin"]
 					};
 
 					logger.info(`Sqlite services started`);
@@ -829,6 +830,114 @@ class SqliteServices {
 	}
 
 	//endregion
+
+	//region gkLogins
+	getGkLogins() {
+		return new Promise((resolve) => {
+				let model = this._models.gklogins;
+
+				//noinspection JSUnresolvedFunction
+				try {
+					model.findAll({order: 'id DESC'}).then(models => {
+							let records = models.map(item => {
+								return item.dataValues
+							});
+							resolve(records);
+						}
+					).catch(
+						error => {
+							logger.error(error);
+							resolve([]);
+						}
+					);
+				} catch (e) {
+					logger.error(e);
+					resolve([]);
+				}
+			}
+		);
+	}
+
+	getActiveGkLogins() {
+		return new Promise((resolve) => {
+				let model = this._models.gklogins;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({where: {isActive: true}}).then(models => {
+						let records = models.map(item => {
+							return item.dataValues
+						});
+						resolve(records);
+					}
+				).catch(
+					error => {
+						logger.error(error);
+						resolve([]);
+					}
+				);
+			}
+		);
+	}
+
+	saveGkLogin(login) {
+		return new Promise((resolve, reject) => {
+
+				let model     = this._models.gklogins;
+
+				try {
+					//noinspection JSUnresolvedFunction
+					model.create(login).then(entity => {
+						resolve(entity.dataValues);
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					onError(reject, error)
+				}
+			}
+		);
+	}
+
+	updateGkLogin(login) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.gklogins;
+					//noinspection JSUnresolvedFunction
+					model.findById(login.id).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`Gk Login record not found`));
+							return;
+						}
+						record.update({
+							name:     login.name,
+							isActive: login.isActive
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
+	deleteGkLogin(id) {
+		return new Promise((resolve, reject) => {
+				logger.debug(`try delete gk login ${id}`);
+				let model = this._models.gklogins;
+				model.destroy({where: {id: id}}).then(resolve).catch(reject);
+			}
+		);
+	}
+
+	//endregion
+
+
 }
 
 module.exports = SqliteServices;
