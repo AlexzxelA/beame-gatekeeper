@@ -10,6 +10,7 @@ var qrRelayEndpoint = null;
 var qrContainer     = null;
 var qrSession       = null;
 var login_session   = false;
+var retryCounter    = 0;
 
 $(document).ready(function () {
 	if(delegatedUserId){
@@ -18,6 +19,12 @@ $(document).ready(function () {
 	}
 
 	generateKeys();
+
+	var resetPageStatus = function(msg){
+		socket.emit('ack', msg);
+		retryCounter = 0;
+	};
+
 	setQRStatus('QR initializing session');
 	var resetQR = function () {
 		if (!qrContainer)return;
@@ -68,15 +75,18 @@ $(document).ready(function () {
 	// 	}
 	// });
 	socket.on('edgeError', function (data) {
-		socket.emit('ack', 'edgeError');
+		resetPageStatus('edgeError');
 		console.log('Session failed from server. Network issue.');
 	});
 
 	socket.on('startQrSession',function (data) {
-		socket.emit('ack', 'startQrSession');
+		resetPageStatus('startQrSession');
 		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
 		if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
+
+
+
 			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
 
 			signArbitraryData(sessionServiceData, function (err, sign) {
@@ -99,6 +109,10 @@ $(document).ready(function () {
 				qrSession = setInterval(function () {
 					console.log('QR requesting data');
 					socket.emit('pinRequest');
+					if(++retryCounter > 2){
+						qrSession = null;
+						window.location.href = window.location.origin;
+					}
 				}, qrRefreshRate);
 			}
 		}
@@ -106,7 +120,8 @@ $(document).ready(function () {
 	});
 
 	socket.on('pinRenew', function (data) {
-		socket.emit('ack', 'pinRenew');
+
+		resetPageStatus('pinRenew');
 		setQRStatus('');
 		console.log('pinRenew:', data);
 		if (stopAllRunningSessions) {
@@ -188,7 +203,7 @@ $(document).ready(function () {
 
 	socket.on('mobileProv1', function (data) {
 		setQRStatus('Mobile session complete');
-		socket.emit('ack', 'mobileProv1');
+		resetPageStatus('mobileProv1');
 		stopAllRunningSessions = true;
 		console.log('QR mobileProv1:', data);
 		if (data.data && getRelaySocket()) {
@@ -201,7 +216,7 @@ $(document).ready(function () {
 
 	socket.on('mobilePinInvalid', function (data) {
 		setQRStatus('Session ID invalid, please retry');
-		socket.emit('ack', 'mobilePinInvalid');
+		resetPageStatus('mobilePinInvalid');
 		console.log('QR ***mobilePinInvalid***** Sedning:: ', msg);
 		if (data.data && getRelaySocket()) {
 			var msg = {'socketId': getRelaySocketID(), 'payload': JSON.stringify(data)};
@@ -216,7 +231,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('relayEndpoint', function (data) {
-		socket.emit('ack', 'relayEndpoint');
+		resetPageStatus('relayEndpoint');
 		console.log('QR relayEndpoint', data);
 
 			setQRStatus('Got virtual host registration token');
@@ -258,7 +273,7 @@ $(document).ready(function () {
 	});
 
 	socket.on('resetQR', function () {
-		socket.emit('ack', 'resetQR');
+		resetPageStatus('resetQR');
 		console.log('QR resetQR');
 		resetQR();
 	});
