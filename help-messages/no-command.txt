@@ -12,3 +12,7 @@ Command details:
 	beame-gatekeeper server start
 
 		Start beame-gatekeeper so it will be available for browsing to
+
+For more information about commands see readme:
+
+	https://github.com/beameio/beame-gatekeeper#readme
