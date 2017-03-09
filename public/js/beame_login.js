@@ -483,11 +483,14 @@ function processTmpHost(tmpHost, srcData) {
 
 	activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
 		processVirtualHostRegistrationError(msg, function (status) {
-			activeHosts[sockId].sock.removeAllListeners();
-			activeHosts[sockId] = undefined;
-			tmpHost = undefined;
+
 			if(status === 'retry'){
 				originSocket.emit('pinRequest');
+			}
+			else {
+				activeHosts[sockId].sock.removeAllListeners();
+				activeHosts[sockId] = undefined;
+				tmpHost = undefined;
 			}
 		});
 	});
@@ -1143,6 +1146,10 @@ function initComRelay(virtRelaySocket) {
 		processVirtualHostRegistrationError(msg, function (status) {
 			if(status === 'retry'){
 				originSocket.emit('browser_connected');
+			}
+			else{
+				virtRelaySocket.removeAllListeners();
+				virtRelaySocket = undefined;
 			}
 		});
 	});

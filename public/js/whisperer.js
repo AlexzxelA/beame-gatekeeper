@@ -330,12 +330,15 @@ app.controller("MainCtrl", function ($scope) {
 		console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
 		activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
+
 			processVirtualHostRegistrationError(msg, function (status) {
 				if(status === 'retry'){
+					$scope.socket.emit('pinRequest');
+				}
+				else{
 					activeHosts[sockId].sock.removeAllListeners();
 					activeHosts[sockId] = undefined;
 					tmpHost = undefined;
-					$scope.socket.emit('pinRequest');
 				}
 			});
 		});

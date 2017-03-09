@@ -73,6 +73,7 @@ function processVirtualHostRegistrationError(data, cb) {
 					console.error('fatal :', parsed.code);
 					setQRStatus('Unable to proceed with provided credentials');
 					stopAllRunningSessions = true;
+					cb('fatal');
 					break;
 
 				case 'hostname':
@@ -83,11 +84,13 @@ function processVirtualHostRegistrationError(data, cb) {
 					break;
 				default:
 					console.error('fatal default:',parsed.code);
+					cb('fatal');
 			}
 		}
 	}
 	catch(e){
 		console.error('fatal :', e);
+		cb('fatal');
 	}
 }
 

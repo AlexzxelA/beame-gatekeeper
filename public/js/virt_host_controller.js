@@ -59,8 +59,12 @@ function validateSession(imageRequired) {
 function registerVirtualHost(signature, socket) {
 	sendConnectRequest(signature, socket);
 	connectToRelayRetry = setInterval(function () {
-		if(--connectToRelayTimeout){
+		if(--connectToRelayTimeout && !stopAllRunningSessions){
 			sendConnectRequest(signature, socket);
+		}
+		else{
+			clearInterval(connectToRelayRetry);
+			pingVirtHost && clearInterval(pingVirtHost);
 		}
 	},3000);
 }
@@ -199,9 +203,14 @@ function initComRelay() {
 	});
 
 	virtRelaySocket.on('hostRegisterFailed',function (msg) {
+
 		processVirtualHostRegistrationError(msg, function (status) {
 			if(status === 'retry'){
 				TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
+			}
+			else{
+				virtRelaySocket.removeAllListeners();
+				virtRelaySocket = undefined;
 			}
 		});
 	});
