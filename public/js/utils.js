@@ -71,6 +71,8 @@ function processVirtualHostRegistrationError(data, cb) {
 				case 'subdomain':
 				case 'panic':
 					console.error('fatal :', parsed.code);
+					setQRStatus('Unable to proceed with provided credentials');
+					stopAllRunningSessions = true;
 					break;
 
 				case 'hostname':
