@@ -69,9 +69,10 @@ function processVirtualHostRegistrationError(data, cb) {
 			switch (parsed.code){
 				case 'signature':
 				case 'subdomain':
+				case 'panic':
 					console.error('fatal :', parsed.code);
 					break;
-				case 'panic':
+
 				case 'hostname':
 					cb('retry');
 					break;
