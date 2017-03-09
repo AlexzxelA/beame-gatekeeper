@@ -815,7 +815,7 @@ class Bootstrapper {
 				//TODO implement https://github.com/sequelize/umzug
 				let args = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
-				CommonUtils.runSequilizeCmd(args).then(()=>{
+				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args).then(()=>{
 					logger.debug(`sqlite migration completed successfully...`);
 					resolve();
 				}).catch(reject);
@@ -831,7 +831,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				let args = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
-				CommonUtils.runSequilizeCmd(args).then(()=>{
+				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args).then(()=>{
 					logger.debug(`sqlite seeders applied successfully...`);
 					resolve();
 				}).catch(reject);
