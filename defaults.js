@@ -40,7 +40,7 @@ const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
-const IsCentralLoginMode = "false";
+const IsCentralLoginMode = false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {

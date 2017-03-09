@@ -61,6 +61,49 @@ function onStaticPageLoaded() {
 
 }
 
+function onFatalError(message){
+	setQRStatus(message);
+	setTimeout(function(){
+		$('#qr').hide();
+		$('.qr-status').css({'font-size':'22px'});
+	},500);
+}
+
+function processVirtualHostRegistrationError(data, cb) {
+	try{
+		var parsed = (typeof data === 'object')?data:JSON.parse(data);
+		parsed.message && console.warn('VirtualHostRegistrationError:',parsed.message);
+		if(parsed.code){
+			switch (parsed.code){
+				case 'signature':
+				case 'subdomain':
+				case 'panic':
+					console.error('fatal :', parsed.code);
+					onFatalError('Unable to proceed with provided credentials');
+					window.stopAllRunningSessions = true;
+					cb('fatal');
+					break;
+
+				case 'hostname':
+					cb('retry');
+					break;
+				case 'payload':
+					console.log('VirtualHostRegistration failed: payload');
+					break;
+				default:
+					console.error('fatal default:',parsed.code);
+					onFatalError('Unexpected error');
+					cb('fatal');
+					break;
+			}
+		}
+	}
+	catch(e){
+		console.error('fatal :', e);
+		cb('fatal');
+	}
+}
+
 function getParameterByName(name, url) {
 	if (!url) {
 		url = window.location.href;
