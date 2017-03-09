@@ -102,7 +102,7 @@ function connectRelaySocket(relay, sign) {
 		RelayFqdn   = "https://" + relay + "/control";
 		RelayPath   = "https://" + relay;
 	}
-	virtRelaySocket = io.connect(RelayFqdn);
+	virtRelaySocket = io.connect(RelayFqdn, {transports: ['websocket']});
 	virtRelaySocket.on('connect',function () {
 		virtHostConnected = true;
 		registerVirtualHost(sign, virtRelaySocket);
@@ -198,11 +198,12 @@ function initComRelay() {
 		// }
 	});
 
-	virtRelaySocket.on('hostRegisterFailed',function (data) {
-		if(data && data.Hostname){
-			console.log('Requesting virtual host signature renewal');
-			TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
-		}
+	virtRelaySocket.on('hostRegisterFailed',function (msg) {
+		processVirtualHostRegistrationError(msg, function (status) {
+			if(status === 'retry'){
+				TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
+			}
+		});
 	});
 
 	virtRelaySocket.on('error', function () {

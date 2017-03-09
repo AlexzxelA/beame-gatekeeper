@@ -85,8 +85,6 @@ $(document).ready(function () {
 		console.log('Starting QR session with data:', data);
 		if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
 
-
-
 			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
 
 			signArbitraryData(sessionServiceData, function (err, sign) {
@@ -116,7 +114,6 @@ $(document).ready(function () {
 				}, qrRefreshRate);
 			}
 		}
-
 	});
 
 	socket.on('pinRenew', function (data) {

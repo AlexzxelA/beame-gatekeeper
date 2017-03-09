@@ -61,6 +61,30 @@ function onStaticPageLoaded() {
 
 }
 
+function processVirtualHostRegistrationError(data, cb) {
+	try{
+		var parsed = (typeof data === 'object')?data:JSON.parse(data);
+		parsed.message && console.warn('VirtualHostRegistrationError:',parsed.message);
+		if(parsed.code){
+			switch (parsed.code){
+				case 'signature':
+				case 'subdomain':
+					console.error('fatal :', parsed.code);
+					break;
+				case 'panic':
+				case 'hostname':
+					cb('retry');
+					break;
+				default:
+					console.error('fatal default:',parsed.code);
+			}
+		}
+	}
+	catch(e){
+		console.error('fatal :', e);
+	}
+}
+
 function getParameterByName(name, url) {
 	if (!url) {
 		url = window.location.href;

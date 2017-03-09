@@ -482,13 +482,14 @@ function processTmpHost(tmpHost, srcData) {
 	console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
 	activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
-		if(msg.error && (msg.error != 'Invalid payload type')){
-			console.log('hostRegisterFailed: ', msg);
+		processVirtualHostRegistrationError(msg, function (status) {
 			activeHosts[sockId].sock.removeAllListeners();
 			activeHosts[sockId] = undefined;
 			tmpHost = undefined;
-			originSocket.emit('pinRequest');
-		}
+			if(status === 'retry'){
+				originSocket.emit('pinRequest');
+			}
+		});
 	});
 
 	activeHosts[sockId].sock.on('hostRegistered', function (data) {
@@ -1138,11 +1139,12 @@ function initComRelay(virtRelaySocket) {
 		controlWindowStatus();
 	});
 
-	virtRelaySocket.on('hostRegisterFailed',function (data) {
-		if(data && data.Hostname){
-			console.log('Requesting virtual host signature renewal');
-			originSocket.emit('browser_connected');
-		}
+	virtRelaySocket.on('hostRegisterFailed',function (msg) {
+		processVirtualHostRegistrationError(msg, function (status) {
+			if(status === 'retry'){
+				originSocket.emit('browser_connected');
+			}
+		});
 	});
 
 	virtRelaySocket.on('error', function () {

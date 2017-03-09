@@ -217,7 +217,7 @@ app.controller("MainCtrl", function ($scope) {
 			if (!pairingSession) {
 				var parsed = JSON.parse(data);
 
-				pinRefreshRate = parsed.refresh_rate || 10000;
+				pinRefreshRate = 5000 || parsed.refresh_rate || 10000;
 				pairingSession = setInterval(function () {
 					if(stopAllRunningSessions){
 						destroyTmpHosts();
@@ -330,13 +330,14 @@ app.controller("MainCtrl", function ($scope) {
 		console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
 		activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
-			if(msg.error && (msg.error != 'Invalid payload type')){
-				console.log('hostRegisterFailed: ', msg);
-				activeHosts[sockId].sock.removeAllListeners();
-				activeHosts[sockId] = undefined;
-				tmpHost = undefined;
-				$scope.socket.emit('pinRequest');
-			}
+			processVirtualHostRegistrationError(msg, function (status) {
+				if(status === 'retry'){
+					activeHosts[sockId].sock.removeAllListeners();
+					activeHosts[sockId] = undefined;
+					tmpHost = undefined;
+					$scope.socket.emit('pinRequest');
+				}
+			});
 		});
 
 		activeHosts[sockId].sock.on('hostRegistered', function (data) {
