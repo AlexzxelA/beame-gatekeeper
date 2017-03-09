@@ -61,6 +61,14 @@ function onStaticPageLoaded() {
 
 }
 
+function onFatalError(message){
+	setQRStatus(message);
+	setTimeout(function(){
+		$('#qr').hide();
+		$('.qr-status').css({'font-size':'22px'});
+	},500);
+}
+
 function processVirtualHostRegistrationError(data, cb) {
 	try{
 		var parsed = (typeof data === 'object')?data:JSON.parse(data);
@@ -71,8 +79,8 @@ function processVirtualHostRegistrationError(data, cb) {
 				case 'subdomain':
 				case 'panic':
 					console.error('fatal :', parsed.code);
-					setQRStatus('Unable to proceed with provided credentials');
-					stopAllRunningSessions = true;
+					onFatalError('Unable to proceed with provided credentials');
+					window.stopAllRunningSessions = true;
 					cb('fatal');
 					break;
 
@@ -84,7 +92,9 @@ function processVirtualHostRegistrationError(data, cb) {
 					break;
 				default:
 					console.error('fatal default:',parsed.code);
+					onFatalError('Unexpected error');
 					cb('fatal');
+					break;
 			}
 		}
 	}

@@ -59,7 +59,7 @@ function getBestRelay() {
 	return new Promise((resolve, reject) => {
 
 			const beameUtils = beameSDK.BeameUtils;
-			beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
+			beameUtils.selectBestProxy(null, 10, 1000, (error, payload) => {
 				if (!error) {
 					resolve(payload.endpoint);
 				}
@@ -95,7 +95,7 @@ function getRelayFqdn(target, lclFqdn){
 					else
 						resolve(payload.relay);
 				}
-			}, token);
+			}, token, 5);
 		} catch (e) {
 			reject(e);
 		}

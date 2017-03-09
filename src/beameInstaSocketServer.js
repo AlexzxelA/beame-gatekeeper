@@ -12,12 +12,12 @@
  * @property {Function|null} [Login]
  */
 
-const beameSDK    = require('beame-sdk');
-const module_name = "BeameInstaSocketServer";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-const utils       = require('./utils');
-const Constants   = require('../constants');
+const beameSDK     = require('beame-sdk');
+const module_name  = "BeameInstaSocketServer";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const utils        = require('./utils');
+const Constants    = require('../constants');
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 
@@ -43,7 +43,7 @@ class BeameInstaSocketServer {
 
 		this._options = socket_options || {};
 
-		this._optionsApprover = Object.assign({},socket_options || {});
+		this._optionsApprover = Object.assign({}, socket_options || {});
 
 		/** @type {Socket|null} */
 		this._socketioServer = null;
@@ -78,58 +78,42 @@ class BeameInstaSocketServer {
 					.then(this._startSocketioServer.bind(this))
 					.then(() => {
 						logger.info(`Socket Server started on ${this._fqdn}`);
-						resolve({srv1:this._socketioServer, srv2:this._socketioServerAtPath});
+						resolve({srv1: this._socketioServer, srv2: this._socketioServerAtPath});
 					}).catch(reject);
 			}
 		);
 	}
 
-	_getLoginRelay(){
-		return new Promise((resolve, reject) => {
+	_getLoginRelay() {
+		return new Promise((resolve) => {
 			let tmp = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-			if(Constants.BeameLoginURL.indexOf(tmp) >= 0){
-				this._loginRelayFqdn = this._relayFqdn;resolve(this._loginRelayFqdn);
+			if (Constants.BeameLoginURL.indexOf(tmp) >= 0) {
+				this._loginRelayFqdn = this._relayFqdn;
+				resolve(this._loginRelayFqdn);
 			}
 			else
-			utils.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn)=> {
-				this._loginRelayFqdn = relayFqdn;// || this._relayFqdn;
-				resolve(relayFqdn);
-			}).catch((e)=>{this._loginRelayFqdn = this._relayFqdn; resolve(this._loginRelayFqdn);});
+				utils.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn) => {
+					this._loginRelayFqdn = relayFqdn;
+					resolve(relayFqdn);
+				}).catch((error) => {
+					logger.error(`get Login Relay`, error);
+					this._loginRelayFqdn = this._relayFqdn;
+					resolve(this._loginRelayFqdn);
+				});
 		});
 	}
 
-	_getLocalRelay(){
-		return new Promise((resolve, reject) => {
-			utils.getLocalRelayFqdn().then((relay)=>{this._relayFqdn = relay; resolve();}).catch((e)=>{reject(e);});
-		});
-	}
-
-	/*_getLocalRelay(){
-		const apiConfig   = require('../config/api_config.json');
-		const ProvisionApi     = beameSDK.ProvApi;
-		const authToken    = beameSDK.AuthToken;
-		const store        = new (beameSDK.BeameStore)();
-		return new Promise((resolve, reject) => {
-			try {
-				let fqdn     = this._fqdn,
-				    cred     = store.getCredential(fqdn),
-				    token    = authToken.create(fqdn, cred, 10),
-				    provisionApi = new ProvisionApi();
-
-				provisionApi.makeGetRequest(`https://${this._matchingServerFqdn}${apiConfig.Actions.Matching.GetRelay.endpoint}`, null, (error, payload) => {
-					if (error) {
-						reject(error);
-					}
-					else {
-						this._relayFqdn = payload.relay;
-						resolve();
-					}
-				}, token);
-			} catch (e) {
+	_getLocalRelay() {
+		return new Promise((resolve) => {
+			utils.getLocalRelayFqdn().then((relay) => {
+				this._relayFqdn = relay;
+				resolve();
+			}).catch((e) => {
+				logger.error(`get Local Relay`, e);
 				reject(e);
-			}
+			});
 		});
-	};*/
+	}
 
 	/**
 	 * @param {Socket} socket
@@ -137,7 +121,7 @@ class BeameInstaSocketServer {
 	 */
 	_onWhispererBrowserConnection(socket) {
 
-		this._whispererManager.onBrowserConnection(socket,this._relayFqdn);
+		this._whispererManager.onBrowserConnection(socket, this._relayFqdn);
 	}
 
 	/**
@@ -180,10 +164,12 @@ class BeameInstaSocketServer {
 		this._socketioServer.of('mobile').on('connection', this._onMobileConnection.bind(this));
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
+		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('beame_login').on('connection', this._onLoginBrowserConnection.bind(this));
 
 		this._socketioServerAtPath = require('socket.io')(this._server,
-			Object.assign(this._optionsApprover, {'path':'/customer-approve/socket.io'}));
+			Object.assign(this._optionsApprover, {'path': '/customer-approve/socket.io'}));
+		//noinspection JSUnresolvedFunction
 		this._socketioServerAtPath.of('approver').on('connection', this._onApproverBrowserConnection.bind(this));
 
 		return Promise.resolve();
@@ -247,10 +233,13 @@ class BeameInstaSocketServer {
 
 		return Promise.resolve();
 	}
+
 	_onLoginBrowserConnection(socket) {
-		this._getLoginRelay().then((relay)=>{
+		this._getLoginRelay().then((relay) => {
 			this._loginManager.onBrowserConnection(socket, relay);
-		}).catch(()=>{this._loginManager.onBrowserConnection(socket,this._loginRelayFqdn);});
+		}).catch(() => {
+			this._loginManager.onBrowserConnection(socket, this._loginRelayFqdn);
+		});
 
 	}
 
