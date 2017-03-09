@@ -17,7 +17,7 @@ $(document).ready(function () {
 
 
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = io.connect("/qr", socketio_options);
+	var socket = io.connect("/qr", socketio_options || { transports: ['websocket']});
 
 	socket.on('connect', function () {
 		setOriginSocket('QR', socket);
@@ -25,7 +25,7 @@ $(document).ready(function () {
 		console.log('QR socket connected, ', qrRelayEndpoint);
 		QrTMPsocketOrigin = socket;//remove towards prod
 
-		var UID = getVUID(socket);//generateUID(24) + VirtualPrefix;
+		var UID = getVUID();//generateUID(24) + VirtualPrefix;
 		console.log('UID:', UID);
 
 		if (!qrRelayEndpoint) {
@@ -55,7 +55,6 @@ $(document).ready(function () {
 				}
 			});
 		}
-
 	});
 
 	socket.on('relayEndpoint', function (data) {
