@@ -217,7 +217,7 @@ app.controller("MainCtrl", function ($scope) {
 			if (!pairingSession) {
 				var parsed = JSON.parse(data);
 
-				pinRefreshRate = 5000 || parsed.refresh_rate || 10000;
+				pinRefreshRate = parsed.refresh_rate || 10000;
 				pairingSession = setInterval(function () {
 					if(stopAllRunningSessions){
 						destroyTmpHosts();

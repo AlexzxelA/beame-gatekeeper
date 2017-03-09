@@ -75,6 +75,9 @@ function processVirtualHostRegistrationError(data, cb) {
 				case 'hostname':
 					cb('retry');
 					break;
+				case 'payload':
+					console.log('VirtualHostRegistration failed: payload');
+					break;
 				default:
 					console.error('fatal default:',parsed.code);
 			}
