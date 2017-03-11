@@ -42,7 +42,7 @@ let beameAuthServices  = null;
 const nop              = function () {
 };
 
-const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
+const UniversalLinkUrl = Constants.UniversalLinkUrl;
 
 class BeameAuthServices {
 
