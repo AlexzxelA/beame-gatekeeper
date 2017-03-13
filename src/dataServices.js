@@ -17,7 +17,7 @@ const bootstrapper = Bootstrapper.getInstance();
 const Constants    = require('../constants');
 const DbProviders  = Constants.DbProviders;
 
-var dataServicesInstance = null;
+let dataServicesInstance = null;
 
 class DataServices {
 
@@ -107,7 +107,7 @@ class DataServices {
 
 	/**
 	 * @param id
-	 * @param {SignatureToken|String} sign
+	 * @param {Object|String} sign
 	 */
 	updateRegistrationHash(id, sign) {
 		return this._dbService.updateRegistrationHash(id, sign);
@@ -244,8 +244,8 @@ class DataServices {
 		return this._dbService.getGkLogins();
 	}
 
-	getActiveGkLogins() {
-		return this._dbService.getActiveGkLogins();
+	findLogin(fqdn) {
+		return this._dbService.findLogin(fqdn);
 	}
 
 	saveGkLogin(login) {

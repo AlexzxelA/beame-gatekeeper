@@ -5,10 +5,10 @@
 
 let centralLoginServiceInstance = null;
 
-class CentralLoginServices{
+class CentralLoginServices {
 
 	constructor() {
-		this._dataService          = require('./dataServices').getInstance();
+		this._dataService = require('./dataServices').getInstance();
 	}
 
 	//region Gatekeeper logins
@@ -17,8 +17,14 @@ class CentralLoginServices{
 		return this._dataService.getGkLogins();
 	}
 
-	getActiveGkLogins() {
-		return this._dataService.getActiveGkLogins();
+	isFqdnRegistered(fqdn) {
+		return new Promise((resolve, reject) => {
+				this._dataService.findLogin(fqdn).then(login => {
+					login && login.isActive ? resolve() : reject(login ? `Login ${fqdn} isInactive` : 'FQDN not registered');
+				}).catch(reject);
+			}
+		);
+
 	}
 
 	saveGkLogin(login) {
@@ -39,7 +45,7 @@ class CentralLoginServices{
 	/** @type {CentralLoginServices} */
 	static getInstance() {
 
-		if(!centralLoginServiceInstance){
+		if (!centralLoginServiceInstance) {
 			centralLoginServiceInstance = new CentralLoginServices();
 		}
 

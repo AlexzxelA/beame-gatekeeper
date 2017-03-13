@@ -1,58 +1,58 @@
 "use strict";
 
-const path = require('path');
+const path        = require('path');
 const querystring = require('querystring');
 const url         = require('url');
 
 const express    = require('express');
 const bodyParser = require('body-parser');
 
-const Bootstrapper = require('../../bootstrapper');
-const bootstrapper = Bootstrapper.getInstance();
-const Constants    = require('../../../constants');
-const cookieNames = Constants.CookieNames;
-const beameSDK     = require('beame-sdk');
-const CommonUtils  = beameSDK.CommonUtils;
-const module_name = "GwUnauthenticatedApp";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-const BeameStore   = new beameSDK.BeameStore();
-const AuthToken    = beameSDK.AuthToken;
+const Bootstrapper      = require('../../bootstrapper');
+const bootstrapper      = Bootstrapper.getInstance();
+const Constants         = require('../../../constants');
+const cookieNames       = Constants.CookieNames;
+const beameSDK          = require('beame-sdk');
+const CommonUtils       = beameSDK.CommonUtils;
+const module_name       = "GwUnauthenticatedApp";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const BeameStore        = new beameSDK.BeameStore();
+const AuthToken         = beameSDK.AuthToken;
 const BeameAuthServices = require('../../authServices');
-const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
-const base_path  = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
-const apiConfig   = require('../../../config/api_config.json');
+const public_dir        = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
+const base_path         = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
+const apiConfig         = require('../../../config/api_config.json');
 
 const utils         = require('../../utils');
 const cust_auth_app = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
 
-const clearSessionCookie = res =>{
+const clearSessionCookie = res => {
 	res.clearCookie(cookieNames.Proxy);
 	res.clearCookie(cookieNames.RegData);
 	res.clearCookie(cookieNames.UserInfo);
 	res.clearCookie(cookieNames.LoginData);
 };
 
-const loadLoginPage = (res)=>{
-	setBeameCookie(cookieNames.Logout,res);
-	setBeameCookie(cookieNames.Logout2Login,res);
-	setBeameCookie(cookieNames.Service,res);
+const loadLoginPage = (res) => {
+	setBeameCookie(cookieNames.Logout, res);
+	setBeameCookie(cookieNames.Logout2Login, res);
+	setBeameCookie(cookieNames.Service, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'login.html'));
 };
 
-const setBeameCookie = (type,res) => {
+const setBeameCookie = (type, res) => {
 	switch (type) {
 		case cookieNames.Service:
-			res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+			res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 			break;
 		case cookieNames.Logout:
-			res.cookie(cookieNames.Logout,Bootstrapper.getLogoutUrl());
+			res.cookie(cookieNames.Logout, Bootstrapper.getLogoutUrl());
 			break;
 		case cookieNames.Logout2Login:
-			res.cookie(cookieNames.Logout2Login,Bootstrapper.getLogout2LoginUrl());
+			res.cookie(cookieNames.Logout2Login, Bootstrapper.getLogout2LoginUrl());
 			break;
 	}
 
@@ -61,17 +61,17 @@ const setBeameCookie = (type,res) => {
 unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
-	setBeameCookie(cookieNames.Logout,res);
-	setBeameCookie(cookieNames.Logout2Login,res);
-	setBeameCookie(cookieNames.Service,res);
+	setBeameCookie(cookieNames.Logout, res);
+	setBeameCookie(cookieNames.Logout2Login, res);
+	setBeameCookie(cookieNames.Service, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
 
 unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
-	setBeameCookie(cookieNames.Logout,res);
-	setBeameCookie(cookieNames.Logout2Login,res);
-	setBeameCookie(cookieNames.Service,res);
+	setBeameCookie(cookieNames.Logout, res);
+	setBeameCookie(cookieNames.Logout2Login, res);
+	setBeameCookie(cookieNames.Service, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
@@ -84,12 +84,12 @@ unauthenticatedApp.get('/', (req, res) => {
 
 	logger.debug(`Root set as ${bootstrapper.isCentralLoginMode}`);
 
-	if(bootstrapper.isCentralLoginMode){
+	if (bootstrapper.isCentralLoginMode) {
 		loadLoginPage(res);
 		return;
 	}
 
-	setBeameCookie(cookieNames.Service,res);
+	setBeameCookie(cookieNames.Service, res);
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
 
@@ -99,65 +99,78 @@ unauthenticatedApp.use(bodyParser.json());
 
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
-let registeredSigninServers = [{'id':'none'}];
+let registeredSigninServers = [{'id': 'none'}];
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
 	let token = req.header('x-beameauthtoken');
-	console.log('Received delegated login recovery post:',token);
+	console.log('Received delegated login recovery post:', token);
 
 	let responseSent = false;
-	AuthToken.validate(token).then(()=>{
+	AuthToken.validate(token).then(() => {
 		res.status(200).send();
 		responseSent = true;
 		let loginUrl = JSON.parse(token).signedBy;
-		console.log('loginUrl:', loginUrl,'..extLogUrl:',bootstrapper.externalLoginUrl);
-		if(loginUrl && bootstrapper.externalLoginUrl && (bootstrapper.externalLoginUrl.indexOf(loginUrl) >= 0)){
-			let tmpConfig = Object.assign({},bootstrapper._config || {});
+		console.log('loginUrl:', loginUrl, '..extLogUrl:', bootstrapper.externalLoginUrl);
+		if (loginUrl && bootstrapper.externalLoginUrl && (bootstrapper.externalLoginUrl.indexOf(loginUrl) >= 0)) {
+			let tmpConfig                 = Object.assign({}, bootstrapper._config || {});
 			bootstrapper.externalLoginUrl = "";
 			bootstrapper.setAppConfig(tmpConfig);
 		}
-	}).catch(e=>{
-		if(!responseSent)res.status(401).send();
+	}).catch(e => {
+		if (!responseSent) res.status(401).send();
 		logger.error(e);
 	});
 });
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
-	console.log('registeredSigninServers:',registeredSigninServers);
-	let token = req.header('x-beameauthtoken');
+	console.log('registeredSigninServers:', registeredSigninServers);
+	let token        = req.header('x-beameauthtoken');
 	let responseSent = false;
-	AuthToken.validate(token).then(()=>{
-		let parsed = req.body;
+	AuthToken.validate(token).then(() => {
+		let parsed  = req.body;
 		let strData = JSON.stringify(parsed);
-		if(parsed && parsed.id && parsed.fqdn){
-			res.status(200).send();
-			responseSent = true;
-			let tmpNdx = -1;
-			registeredSigninServers && registeredSigninServers.forEach(function (item, index) {
-				if(item.id === parsed.id){
-					tmpNdx = index;
+		if (parsed && parsed.id && parsed.fqdn) {
+
+			const loginServices = require('../../centralLoginServices').getInstance();
+
+			const _onLoginValidated = () => {
+
+				res.status(200).send();
+				responseSent = true;
+				let tmpNdx   = -1;
+				registeredSigninServers && registeredSigninServers.forEach(function (item, index) {
+					if (item.id === parsed.id) {
+						tmpNdx = index;
+					}
+				});
+				if (parsed.order == 'register') {
+					if (tmpNdx < 0) registeredSigninServers.push(parsed);
+					logger.info(`Registered server with data : ${strData}`);
+					console.log('registeredSigninServers(1):', registeredSigninServers);
+					bootstrapper.setDelegatedLoginServers(registeredSigninServers);
 				}
-			});
-			if(parsed.order == 'register'){
-				if(tmpNdx < 0)registeredSigninServers.push(parsed);
-				logger.info(`Registered server with data : ${strData}`);
-				console.log('registeredSigninServers(1):',registeredSigninServers);
-				bootstrapper.setDelegatedLoginServers(registeredSigninServers);
-			}
-			else{
-				if(tmpNdx >= 0)registeredSigninServers.splice(tmpNdx, 1);
-				logger.info(`Un-Registered server with data : ${strData}`);
-				console.log('registeredSigninServers(2):',registeredSigninServers);
-				bootstrapper.setDelegatedLoginServers(registeredSigninServers);
-			}
+				else {
+					if (tmpNdx >= 0) registeredSigninServers.splice(tmpNdx, 1);
+					logger.info(`Un-Registered server with data : ${strData}`);
+					console.log('registeredSigninServers(2):', registeredSigninServers);
+					bootstrapper.setDelegatedLoginServers(registeredSigninServers);
+				}
+			};
+
+			const _onLoginValidateionFailed = (error) => {
+				logger.warn(error);
+				res.status(401).send();
+			};
+
+			loginServices.isFqdnRegistered(parsed.fqdn).then(_onLoginValidated).catch(_onLoginValidateionFailed);
 		}
-		else{
+		else {
 			logger.info(`Invalid data on server registration : ${strData}`);
 			res.status(400).send();
 		}
 
-	}).catch(e=>{
-		if(!responseSent)res.status(401).send();
+	}).catch(e => {
+		if (!responseSent) res.status(401).send();
 		logger.error(e);
 	});
 });
@@ -170,7 +183,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	function assertGoodSignedBy(customerAuthServersFqdns) {
 		return new Promise((resolve, reject) => {
-			if(customerAuthServersFqdns.indexOf(req.body.encryptedUserData.signedBy) != -1) {
+			if (customerAuthServersFqdns.indexOf(req.body.encryptedUserData.signedBy) != -1) {
 				resolve();
 			} else {
 				reject(`Signed by unauthorized fqdn: ${req.body.encryptedUserData.signedBy}. Should be one of ${customerAuthServersFqdns.join(',')}`);
@@ -204,7 +217,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		return new Promise((resolve, reject) => {
 			try {
 				resolve(JSON.parse(json));
-			} catch(e) {
+			} catch (e) {
 				reject(`Failed to parse JSON: ${e}`);
 			}
 		});
@@ -223,10 +236,10 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 	function replyWithUrl([decryptedData, encryptToCred]) {
 		// console.log('replyWithUrl decryptedData', decryptedData);
 		let registrationTtl = bootstrapper.registrationAuthTokenTtl,
-		    proxyInitTtl = bootstrapper.proxyInitiatingTtl;
+		    proxyInitTtl    = bootstrapper.proxyInitiatingTtl;
 
-		const tokenWithUserData = AuthToken.create(decryptedData.signedData.data, gwServerCredentials, registrationTtl);
-		const encryptedData = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, tokenWithUserData, gwServerFqdn));
+		const tokenWithUserData  = AuthToken.create(decryptedData.signedData.data, gwServerCredentials, registrationTtl);
+		const encryptedData      = JSON.stringify(encryptToCred.encrypt(beameAuthServerFqdn, tokenWithUserData, gwServerFqdn));
 		const proxyEnablingToken = AuthToken.create(JSON.stringify('Does not matter'), gwServerCredentials, proxyInitTtl);
 
 		let url = `https://${gwServerFqdn}/customer-auth-done-2?data=${encodeURIComponent(encryptedData)}&proxy_enable=${encodeURIComponent(proxyEnablingToken)}`;
@@ -271,13 +284,13 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 	// XXX: validate proxy_enable
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const qs = querystring.parse(url.parse(req.url).query);
+	const qs           = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
 	const beameAuthServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
-	let proxyingDestination = null;
-	const method = bootstrapper.registrationMethod;
+	let proxyingDestination   = null;
+	const method              = bootstrapper.registrationMethod;
 
-	const _redirectToBeameAuth = (addQs)=>{
+	const _redirectToBeameAuth = (addQs) => {
 
 		utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({url: proxyingDestination}), bootstrapper.proxySessionTtl).then(token => {
 			console.log('token', token);
@@ -289,17 +302,17 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 
 	switch (method) {
 		case Constants.RegistrationMethod.Pairing:
-		    proxyingDestination =	bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}` : `https://${beameAuthServerFqdn}`;
+			proxyingDestination = bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}` : `https://${beameAuthServerFqdn}`;
 			_redirectToBeameAuth('');
 			return;
 		case Constants.RegistrationMethod.Email:
 		case Constants.RegistrationMethod.SMS:
 
-			if(BeameAuthServices.isCustomerApproveRequired()){
-				proxyingDestination =	bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}/customer-approve` : `https://${beameAuthServerFqdn}/customer-approve`;
+			if (BeameAuthServices.isCustomerApproveRequired()) {
+				proxyingDestination = bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}/customer-approve` : `https://${beameAuthServerFqdn}/customer-approve`;
 				_redirectToBeameAuth(`&pin=${qs.pin}`);
 			}
-			else{
+			else {
 				res.redirect(`https://${gwServerFqdn}/register-success?method=${method}`);
 			}
 
@@ -313,7 +326,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const qs = querystring.parse(url.parse(req.url).query);
+	const qs           = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
 
 
@@ -343,7 +356,7 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const qs = querystring.parse(url.parse(req.url).query);
+	const qs           = querystring.parse(url.parse(req.url).query);
 	console.log('QS', qs);
 
 
@@ -395,10 +408,10 @@ unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
 	// const apiConfig    = require('../../../config/api_config.json');
 	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
 
-	utils.getLocalRelayFqdn().then((relay)=>{
-		res.send(JSON.stringify({'beame_login_config': {relay:(relay || 'none'), matching:matching}}));
-	}).catch((e)=>{
-		res.send(JSON.stringify({'beame_login_config': {error:e}}));
+	utils.getLocalRelayFqdn().then((relay) => {
+		res.send(JSON.stringify({'beame_login_config': {relay: (relay || 'none'), matching: matching}}));
+	}).catch((e) => {
+		res.send(JSON.stringify({'beame_login_config': {error: e}}));
 	});
 
 	// utils.getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
@@ -409,7 +422,6 @@ unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
 	// });
 
 });
-
 
 
 unauthenticatedApp.use(cust_auth_app);

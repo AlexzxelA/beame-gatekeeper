@@ -115,9 +115,23 @@ webToken.toText = (url) => {
 	"--------------------------------------------------\n"
 };
 
+function admin(callback){
+	return webToken('admin',null,callback);
+}
+admin.toText = (url) => {
+	return "\n" +
+		"--------------------------------------------------\n" +
+		"Please use the URL below to configure/admininister beame-insta-server\n" +
+		`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
+		`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
+		url + '\n'  +
+		"--------------------------------------------------\n"
+};
+
 module.exports = {
 	getCreds,
 	list,
 	createServersCredentials,
 	webToken,
+	admin
 };

@@ -196,7 +196,7 @@ class AdminRouter {
 
 
 		//region gk logins
-		this._router.get('/gk-login/list', (req, res) => {
+		this._router.get('/login/list', (req, res) => {
 			centralLoginServices.getGkLogins().then(
 				array => {
 					res.status(200).json(array);
@@ -207,7 +207,7 @@ class AdminRouter {
 			});
 		});
 
-		this._router.post('/gk-login/create', (req, res) => {
+		this._router.post('/login/create', (req, res) => {
 			let login = req.body;
 			centralLoginServices.saveGkLogin(login).then(
 				array => {
@@ -218,7 +218,7 @@ class AdminRouter {
 			});
 		});
 
-		this._router.post('/gk-login/update', (req, res) => {
+		this._router.post('/login/update', (req, res) => {
 			let login = req.body;
 			centralLoginServices.updateGkLogin(login).then(
 				array => {
@@ -229,7 +229,7 @@ class AdminRouter {
 			});
 		});
 
-		this._router.post('/gk-login/destroy', (req, res) => {
+		this._router.post('/login/destroy', (req, res) => {
 			let data = req.body,
 			    id   = parseInt(data.id);
 

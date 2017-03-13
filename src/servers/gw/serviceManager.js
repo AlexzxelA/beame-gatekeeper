@@ -61,6 +61,7 @@ class ServiceManager {
 				if (apps.length) {
 					for (let app of apps) {
 
+						if(!app || !app.code) continue;
 
 						if (!startRaspberryApps && app.code.startsWith('RASPBERRY_')) continue;
 

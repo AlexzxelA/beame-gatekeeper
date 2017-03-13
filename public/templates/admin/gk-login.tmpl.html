@@ -1,79 +1,75 @@
 <script type="text/x-kendo-template" id="gk-login">
-    <h4>Gatekeeper Logins Report</h4>
-    <div id="gk-login-grid"></div>
+    <h4>Delegated Logins</h4>
+    <div id="login-grid"></div>
 </script>
-
-
 <script>
-    function loadGkLogins(){
-	    $("#gk-login-grid").kendoGrid({
-		    toolbar:    ["create"],
-		    dataSource: {
-			    transport: {
-				    read:    {
-					    url: "/gk-login/list"
-				    },
-				    create:  {
-					    url:      "/gk-login/create",
-					    method:   "POST",
-					    dataType: "json"
-				    },
-				    update:  {
-					    url:      "/gk-login/update",
-					    method:   "POST",
-					    dataType: "json"
-				    },
-				    destroy: {
-					    url:      "/gk-login/destroy",
-					    method:   "POST",
-					    dataType: "json"
-				    }
-//					,parameterMap: function(options, operation) {
-//						if (operation !== "read" && options.models) {
-//							return {models: kendo.stringify(options.models)};
-//						}
-//					}
-			    },
-			    schema:    {
-				    model: {
-					    id:     "id",
-					    fields: {
-						    id:       {type: "number", "editable": false},
-						    name:     {type: "string"},
-						    fqdn:     {type: "string"},
-						    isActive: {type: "boolean", defaultValue: true}
-					    }
-				    }
-			    },
-			    pageSize:  20
-		    },
-		    height:     550,
-		    filterable: true,
-		    sortable:   true,
-		    editable:   {
-			    mode:         "inline",
-			    confirmation: true
-		    },
-		    pageable:   {
-			    pageSize: 20,
-			    refresh:  true
-		    },
-		    columns:    [{
-			    field:      "fqdn",
-			    width:400
-		    },
-			    {
-				    field: "name",
-				    title: "Name",
-				    width:200
-			    },
-                {
-				    field: "isActive",
-				    title: "Active",
-	                width:60
-			    },
-			    {command: ["edit", "destroy"], title: "&nbsp;", width: 200}
-		    ]
-	    });
-    }
+	function loadGkLogins() {
+		$("#login-grid").kendoGrid({
+			toolbar:    ["create"],
+			dataSource: {
+				transport: {
+					read:    {
+						url: "/login/list"
+					},
+					create:  {
+						url:      "/login/create",
+						method:   "POST",
+						dataType: "json"
+					},
+					update:  {
+						url:      "/login/update",
+						method:   "POST",
+						dataType: "json"
+					},
+					destroy: {
+						url:      "/login/destroy",
+						method:   "POST",
+						dataType: "json"
+					}
+				},
+				schema:    {
+					model: {
+						id:     "id",
+						fields: {
+							id:       {type: "number", "editable": false},
+							name:     {type: "string"},
+							fqdn:     {type: "string",unique:true},
+							isActive: {type: "boolean", defaultValue: true}
+						}
+					}
+				},
+				pageSize:  20
+			},
+			height:     550,
+			filterable: true,
+			sortable:   true,
+			editable:   {
+				mode:         "inline",
+				confirmation: true
+			},
+			pageable:   {
+				pageSize: 20,
+				refresh:  true
+			},
+			columns:    [{
+                    field:      "id",
+                    filterable: false
+                },
+				{
+					field: "fqdn",
+					title: "Fqdn"
+				},
+				{
+					field: "name",
+					title: "Name"
+				},
+
+				{
+					field: "isActive",
+					title: "Active"
+				},
+				{command: ["edit", "destroy"], title: "&nbsp;", width: 200}
+			]
+		});
+	}
 </script>

@@ -497,8 +497,8 @@ class SqliteServices {
 				let model = this._models.users;
 
 				//noinspection JSUnresolvedFunction
-				model.findOne({where: {fqdn: fqdn}}).then(user => {
-					user ? resolve(user.dataValues) : resolve(null);
+				model.findOne({where: {fqdn: fqdn}}).then(item => {
+					item ? resolve(item.dataValues) : resolve(null);
 				}).catch(reject);
 			}
 		);
@@ -757,7 +757,7 @@ class SqliteServices {
 
 	saveService(service) {
 		return new Promise((resolve, reject) => {
-				var condition = {
+				let condition = {
 					where: Sequelize.and(
 						{code: service.code},
 						Sequelize.or(
@@ -858,16 +858,13 @@ class SqliteServices {
 		);
 	}
 
-	getActiveGkLogins() {
+	findLogin(fqdn) {
 		return new Promise((resolve) => {
 				let model = this._models.gklogins;
 
 				//noinspection JSUnresolvedFunction
-				model.findAll({where: {isActive: true}}).then(models => {
-						let records = models.map(item => {
-							return item.dataValues
-						});
-						resolve(records);
+				model.findOne({where: {fqdn: fqdn}}).then(item => {
+						item ? resolve(item.dataValues) : resolve(null);
 					}
 				).catch(
 					error => {
@@ -885,6 +882,9 @@ class SqliteServices {
 				let model     = this._models.gklogins;
 
 				try {
+
+					delete login.id;
+
 					//noinspection JSUnresolvedFunction
 					model.create(login).then(entity => {
 						resolve(entity.dataValues);
