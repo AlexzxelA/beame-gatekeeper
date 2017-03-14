@@ -164,6 +164,10 @@ class ServersManager {
 			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
 		};
 
+		const isCentralLogin = bootstrapper.isCentralLoginMode;
+
+		//TODO check app-state too
+
 		async.parallel([
 				callback => {
 					_startMatching()
@@ -177,27 +181,46 @@ class ServersManager {
 
 				},
 				callback => {
+					if(isCentralLogin){
+						callback();
+						return;
+					}
 					let chatApp = new (require('../apps/chat'))();
 					chatApp.start();
 					callback();
 				},
 				callback => {
+					if(isCentralLogin){
+						callback();
+						return;
+					}
 					let fileApp = new (require('../apps/files'))();
 					fileApp.start();
 					callback();
 				},
 				callback => {
+					if(isCentralLogin){
+						callback();
+						return;
+					}
 					let mobilePhotoApp = new (require('../apps/photo'))();
 					mobilePhotoApp.start();
 					callback();
 				},
 				callback => {
+					if(isCentralLogin){
+						callback();
+						return;
+					}
 					let mobileStreamApp = new (require('../apps/stream'))();
 					mobileStreamApp.start();
 					callback();
 				},
 				callback => {
-
+					if(isCentralLogin){
+						callback();
+						return;
+					}
 					let raspberryApp = new (require('../apps/rasp'))();
 					raspberryApp.start();
 					callback();
