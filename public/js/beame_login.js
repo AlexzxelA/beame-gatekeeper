@@ -125,7 +125,7 @@ var getWAV = function (pin) {
 		dig[6] = digIn[4];
 		dig[5] = digIn[5];
 
-		message.push.apply(message, _setBit(SYNC, -M_PI / 2, SYNC_N, 0));
+		message.push.apply(message, _setBit(SYNC, -M_PI / 2, SYNC_N, NGAP * 2));
 
 		var iWord;
 		var iOdd = 0, iEven = 0, iBit = 0;

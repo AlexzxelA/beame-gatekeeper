@@ -74,7 +74,7 @@ class BeameAuthServices {
 			});
 		}
 
-		beameAuthServices = this;
+		if(!beameAuthServices)beameAuthServices = this;
 	}
 
 	//region Entity registration
