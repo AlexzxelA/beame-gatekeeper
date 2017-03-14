@@ -10,6 +10,10 @@ module.exports = function (sequelize, DataTypes) {
 				type:   DataTypes.STRING,
 				unique: true
 			},
+			serviceId:  {
+				type:   DataTypes.UUIDV4,
+				unique: true
+			},
 			name: {
 				type: DataTypes.STRING
 			},

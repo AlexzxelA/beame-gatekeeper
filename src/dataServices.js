@@ -252,6 +252,10 @@ class DataServices {
 		return this._dbService.saveGkLogin(login);
 	}
 
+	updateGkLoginServiceId(fqdn,serviceId){
+		return this._dbService.updateGkLoginServiceId(fqdn,serviceId);
+	}
+
 	updateGkLogin(login) {
 		return this._dbService.updateGkLogin(login);
 	}

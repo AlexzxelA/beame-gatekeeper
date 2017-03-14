@@ -32,8 +32,9 @@
 						id:     "id",
 						fields: {
 							id:       {type: "number", "editable": false},
-							name:     {type: "string"},
 							fqdn:     {type: "string",unique:true},
+                            name:     {type: "string"},
+                            serviceId:     {type: "string"},
 							isActive: {type: "boolean", defaultValue: true}
 						}
 					}
@@ -62,6 +63,10 @@
 				{
 					field: "name",
 					title: "Name"
+				},
+                {
+					field: "serviceId",
+					title: "Id"
 				},
 
 				{

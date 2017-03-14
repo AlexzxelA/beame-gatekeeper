@@ -926,6 +926,37 @@ class SqliteServices {
 		);
 	}
 
+	updateGkLoginServiceId(fqdn,serviceId) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.gklogins;
+					//noinspection JSUnresolvedFunction
+					model.findOne({
+						where: {
+							fqdn: fqdn
+						}
+					}).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`Gk Login record not found`));
+							return;
+						}
+						record.update({
+							serviceId: serviceId
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
 	deleteGkLogin(id) {
 		return new Promise((resolve, reject) => {
 				logger.debug(`try delete gk login ${id}`);

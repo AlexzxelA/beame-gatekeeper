@@ -4,6 +4,7 @@
 "use strict";
 const apiConfig   = require('../config/api_config.json');
 const beameSDK    = require('beame-sdk');
+const ProvisionApi      = beameSDK.ProvApi;
 
 let centralLoginServiceInstance = null;
 
@@ -18,10 +19,9 @@ class CentralLoginServices {
 		return new Promise((resolve, reject) => {
 
 			if(externalLoginUrl){
-				const ProvisionApi      = beameSDK.ProvApi,
+				const
 				      BeameAuthServices = require('./authServices'),
-				      authServices      = BeameAuthServices.getInstance()
-				      ;
+				      authServices      = BeameAuthServices.getInstance();
 
 				let sign         = authServices.signData(data),
 				    provisionApi = new ProvisionApi();
@@ -76,6 +76,23 @@ class CentralLoginServices {
 		});
 
 	}
+
+	_sendACKToSlave(fqdn){
+		return new Promise((resolve, reject) => {
+				let provisionApi = new ProvisionApi();
+				let srvPath = 'https://' + fqdn + apiConfig.Actions.Login.RecoverServer.endpoint;
+				provisionApi.postRequest(srvPath, selfFqdn, (error) => {
+					if (error) {
+						reject(error);
+					}
+					else {
+						resolve();
+					}
+				}, sign, 3);
+			}
+		);
+	}
+
 	//endregion
 
 
@@ -95,6 +112,13 @@ class CentralLoginServices {
 
 	}
 
+	_notifySlaveStatus(login){
+		return new Promise((resolve, reject) => {
+
+			}
+		);
+	}
+
 	saveGkLogin(login) {
 		return this._dataService.saveGkLogin(login);
 	}
@@ -102,6 +126,11 @@ class CentralLoginServices {
 	updateGkLogin(login) {
 
 		return this._dataService.updateGkLogin(login);
+	}
+
+	updateGkLoginServiceId(fqdn,serviceId) {
+
+		return this._dataService.updateGkLoginServiceId(fqdn,serviceId);
 	}
 
 	deleteGkLogin(id) {

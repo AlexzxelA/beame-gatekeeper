@@ -152,23 +152,21 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 				if (parsed.action == 'register') {
 					if (tmpNdx < 0) registeredSigninServers.push(parsed);
 					logger.info(`Registered server with data : ${strData}`);
-					console.log('registeredSigninServers(1):', registeredSigninServers);
-					bootstrapper.setDelegatedLoginServers(registeredSigninServers);
+					if(parsed.fqdn && parsed.id) loginServices.updateGkLoginServiceId(parsed.fqdn,parsed.id);
 				}
 				else {
 					if (tmpNdx >= 0) registeredSigninServers.splice(tmpNdx, 1);
 					logger.info(`Un-Registered server with data : ${strData}`);
-					console.log('registeredSigninServers(2):', registeredSigninServers);
 					bootstrapper.setDelegatedLoginServers(registeredSigninServers);
 				}
 			};
 
-			const _onLoginValidateionFailed = (error) => {
+			const _onLoginValidationFailed = (error) => {
 				logger.warn(error);
 				res.status(401).send();
 			};
 
-			loginServices.isFqdnRegistered(parsed.fqdn).then(_onLoginValidated).catch(_onLoginValidateionFailed);
+			loginServices.isFqdnRegistered(parsed.fqdn).then(_onLoginValidated).catch(_onLoginValidationFailed);
 		}
 		else {
 			logger.info(`Invalid data on server registration : ${strData}`);
