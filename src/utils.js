@@ -42,7 +42,7 @@ function setExpressAppCommonRoutes(app) {
 	app.use(express.static(path.join(__dirname, '..', Constants.WebRootFolder)));
 }
 
-var localSigninRelayFqdn = null;
+let localSigninRelayFqdn = null;
 function getLocalRelayFqdn() {
 	return new Promise((resolve, reject) => {
 		if(localSigninRelayFqdn)
@@ -116,79 +116,11 @@ function createAuthTokenByFqdn(fqdn, data, ttl) {
 	});
 }
 
-function notifyRegisteredLoginServers(data, selfFqdn) {
-	return new Promise((resolve,reject)=>{
-		if(data){
-			try{
-				let savedRegisteredServers = JSON.parse(data);
-				const ProvisionApi      = beameSDK.ProvApi,
-					BeameAuthServices = require('./authServices'),
-					authServices      = new BeameAuthServices(selfFqdn, ""),
-					apiConfig   = require('../config/api_config.json');
-
-				let sign         = authServices.signData(selfFqdn),
-					provisionApi = new ProvisionApi();
-				Promise.all(savedRegisteredServers.map(function (srv) {
-					if(srv.fqdn && srv.id){
-						let srvPath = 'https://' + srv.fqdn + apiConfig.Actions.Login.RecoverServer.endpoint;
-						provisionApi.postRequest(srvPath, selfFqdn, (error) => {
-							if (error) {
-								reject(error);
-							}
-							else {
-								resolve();
-							}
-						}, sign, 3);
-					}
-				})).then(resolve).catch((e)=>{reject(e)});
-
-			}
-			catch(e){
-				reject(e);
-			}
-		}
-		else resolve();
-	});
-
-}
-
-function setExternalLoginOption(externalLoginUrl, data) {
-	return new Promise((resolve, reject) => {
-		const enableMe = true;
-		if(externalLoginUrl){
-			let strData = JSON.stringify(data);
-			const ProvisionApi      = beameSDK.ProvApi,
-				BeameAuthServices = require('./authServices'),
-				authServices      = BeameAuthServices.getInstance(),
-				apiConfig   = require('../config/api_config.json');
-
-			let sign         = authServices.signData(data),
-				provisionApi = new ProvisionApi();
-
-
-			let loginReg = externalLoginUrl + apiConfig.Actions.Login.RegisterServer.endpoint;
-			if(enableMe)
-				provisionApi.postRequest(loginReg, data, (error) => {
-					if (error) {
-						reject(error);
-					}
-					else {
-						resolve(externalLoginUrl);
-					}
-				}, sign);
-			else resolve(externalLoginUrl);
-		}
-		else
-			resolve(null);
-	});
-}
 
 module.exports = {
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,
 	getRelayFqdn,
-	getLocalRelayFqdn,
-	setExternalLoginOption,
-	notifyRegisteredLoginServers
+	getLocalRelayFqdn
 };

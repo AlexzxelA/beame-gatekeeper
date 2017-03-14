@@ -12,6 +12,7 @@ const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
 const SigninPath               = `${GatewayControllerPath}/signin`;
+const DCLSOfflinePath          = `${GatewayControllerPath}/offline`;
 const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
 const ConfigData               = `${GatewayControllerPath}/config-data`;
@@ -149,6 +150,7 @@ module.exports = {
 	ConfigData,
 	LogoutToLoginPath,
 	AppSwitchPath,
+	DCLSOfflinePath,
 	UniversalLinkUrl,
 	BeameRootPath,
 
