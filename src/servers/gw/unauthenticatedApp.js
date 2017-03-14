@@ -76,6 +76,12 @@ unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 
+unauthenticatedApp.get(Constants.DCLSOfflinePath, (req, res) => {
+	setBeameCookie(cookieNames.Service, res);
+	clearSessionCookie(res);
+	res.sendFile(path.join(base_path, 'offline.html'));
+});
+
 unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 	loadLoginPage(res);
 });
@@ -143,7 +149,7 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 						tmpNdx = index;
 					}
 				});
-				if (parsed.order == 'register') {
+				if (parsed.action == 'register') {
 					if (tmpNdx < 0) registeredSigninServers.push(parsed);
 					logger.info(`Registered server with data : ${strData}`);
 					console.log('registeredSigninServers(1):', registeredSigninServers);

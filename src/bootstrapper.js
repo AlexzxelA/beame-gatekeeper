@@ -6,16 +6,16 @@
 const uuid = require('uuid');
 const path = require('path');
 
-const packageJson   = require('../package.json');
-const defaults      = require('../defaults');
-const SqliteProps   = defaults.ConfigProps.Sqlite;
-const SettingsProps = defaults.ConfigProps.Settings;
-const utils = require('./utils');
-const beameSDK    = require('beame-sdk');
-const module_name = "Bootstrapper";
-const BeameLogger = beameSDK.Logger;
-const logger      = new BeameLogger(module_name);
-const CommonUtils = beameSDK.CommonUtils;
+const packageJson       = require('../package.json');
+const defaults          = require('../defaults');
+const SqliteProps       = defaults.ConfigProps.Sqlite;
+const SettingsProps     = defaults.ConfigProps.Settings;
+const utils             = require('./utils');
+const beameSDK          = require('beame-sdk');
+const module_name       = "Bootstrapper";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const CommonUtils       = beameSDK.CommonUtils;
 const DirectoryServices = beameSDK.DirectoryServices;
 const dirServices       = new DirectoryServices();
 
@@ -48,10 +48,12 @@ let bootstrapperInstance;
 
 class Bootstrapper {
 
+
 	constructor() {
-		let config            = DirectoryServices.readJSON(AppConfigJsonPath);
-		this._config          = CommonUtils.isObjectEmpty(config) ? null : config;
-	 }
+		let config   = DirectoryServices.readJSON(AppConfigJsonPath);
+		this._config = CommonUtils.isObjectEmpty(config) ? null : config;
+		this._isDelegatedCentralLoginVerified = false;
+	}
 
 	/**
 	 * init config files and then db
@@ -188,6 +190,7 @@ class Bootstrapper {
 		let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		return fqdn ? `https://${fqdn}${Constants.LogoutToLoginPath}` : null;
 	}
+
 	/**
 	 * @param {String} fqdn
 	 * @param {String} credType
@@ -220,9 +223,9 @@ class Bootstrapper {
 		);
 	}
 
-	setDelegatedLoginServers(data){
-		this._config.delegatedLoginServers = (data && (data.length>0))?'['+data.map(JSON.stringify).join()+']':"";
-		let old = this._config;
+	setDelegatedLoginServers(data) {
+		this._config.delegatedLoginServers = (data && (data.length > 0)) ? '[' + data.map(JSON.stringify).join() + ']' : "";
+		let old                            = this._config;
 		this.setAppConfig(this._config);
 		this.saveAppConfigFile().then(console.log('delegatedLoginServers: updated appConfig file')).catch(error => {
 			logger.error(`update app config error ${BeameLogger.formatError(error)}`);
@@ -232,7 +235,19 @@ class Bootstrapper {
 		//this._updateAppConfigJson().then(console.log('delegatedLoginServers: updated appConfig file')).catch(_onConfigError);
 	}
 
+	get delegatedLoginUrl() {
+		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : Constants.DCLSOfflinePath) : null;
+	}
+
 	//region getters
+	get isDelegatedCentralLoginVerified() {
+		return this._isDelegatedCentralLoginVerified;
+	}
+
+	set isDelegatedCentralLoginVerified(value) {
+		this._isDelegatedCentralLoginVerified = value;
+	}
+
 	get dbProvider() {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
 	}
@@ -334,6 +349,7 @@ class Bootstrapper {
 		return this._config[SettingsProps.PublicRegistration];
 	}
 
+	//noinspection JSUnusedGlobalSymbols
 	get pairingRequired() {
 		return this._config[SettingsProps.PairingRequired];
 	}
@@ -370,36 +386,43 @@ class Bootstrapper {
 		return packageJson.version;
 	}
 
-	 setAppConfig(config) {
+	setAppConfig(config) {
 
-		 let externalLoginState = this.externalLoginUrl;
-		 if(!config)
-		 	config = this._config;
-		 else
+		let externalLoginState = this.externalLoginUrl;
+		if (!config)
+			config = this._config;
+		else
 			config.delegatedLoginServers = this._config.delegatedLoginServers;
-		 this._config = config;
+
+		this._config = config;
+
 		logger.info(`BOOTSRTPR: {${this.externalLoginUrl}}`);
-		if(externalLoginState != this.externalLoginUrl){
-			let gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-			utils.setExternalLoginOption(
+		if (externalLoginState != this.externalLoginUrl) {
+			let gwFqdn               = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+			    centralLoginServices = require('../src/centralLoginServices').getInstance();
+
+
+			centralLoginServices.registerServerOnDelegatedCentralLogin(
 				this.externalLoginUrl,
 				{
-					fqdn:       gwFqdn,
-					id:         this.appId,
-					order:      'register'}
-			).then((setUrl)=>{
+					fqdn:   gwFqdn,
+					id:     this.appId,
+					action: 'register'
+				}
+			).then((setUrl) => {
 
-				if(setUrl){
+				if (setUrl) {
 					logger.info(`Registered on external login server: ${setUrl}`);
 					this._config[SettingsProps.ExternalLoginServer] = setUrl;
 				}
-				utils.setExternalLoginOption(
+				centralLoginServices.registerServerOnDelegatedCentralLogin(
 					externalLoginState,
 					{
-						fqdn:       gwFqdn,
-						id:         this.appId,
-						order:      'unregister'}
-				).then(()=>{
+						fqdn:   gwFqdn,
+						id:     this.appId,
+						action: 'unregister'
+					}
+				).then(() => {
 					externalLoginState && logger.info(`Un-Registered on external login server: ${externalLoginState}`);
 				});
 			});
@@ -484,7 +507,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				try {
 					let config     = DirectoryServices.readJSON(AppConfigJsonPath),
-						updateFile = false;
+					    updateFile = false;
 
 					if (CommonUtils.isObjectEmpty(config)) {
 						return this._createAppConfigJson();
@@ -818,7 +841,7 @@ class Bootstrapper {
 				let args = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
 
-				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args,path.dirname(__dirname)).then(()=>{
+				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args, path.dirname(__dirname)).then(() => {
 					logger.debug(`sqlite migration completed successfully...`);
 					resolve();
 				}).catch(reject);
@@ -834,7 +857,7 @@ class Bootstrapper {
 		return new Promise((resolve, reject) => {
 				let args = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
 
-				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args, path.dirname(__dirname)).then(()=>{
+				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args, path.dirname(__dirname)).then(() => {
 					logger.debug(`sqlite seeders applied successfully...`);
 					resolve();
 				}).catch(reject);

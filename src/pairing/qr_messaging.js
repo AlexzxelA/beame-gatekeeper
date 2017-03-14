@@ -341,7 +341,7 @@ class QrMessaging {
 					'matching':     this._matchingServerFqdn,
 					'service':      this._serviceName,
 					'appId':        bootstrapper.appId,
-				    'delegatedLogin': bootstrapper.externalLoginUrl
+				    'delegatedLogin': bootstrapper.delegatedLoginUrl
 			    });
 
 			this._sendWithAck(socket, "relayEndpoint", tokenStr);

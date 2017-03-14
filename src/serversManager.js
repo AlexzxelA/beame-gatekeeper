@@ -4,17 +4,18 @@
 "use strict";
 const async = require('async');
 
-const beameSDK          = require('beame-sdk');
-const module_name       = "ServersManager";
-const BeameLogger       = beameSDK.Logger;
-const logger            = new BeameLogger(module_name);
-const apiConfig         = require('../config/api_config.json');
-const CommonUtils       = beameSDK.CommonUtils;
-const Bootstrapper      = require('./bootstrapper');
-const bootstrapper      = Bootstrapper.getInstance();
-const Constants         = require('../constants');
-const BeameAuthServices = require('./authServices');
-const utils             = require('./utils');
+const beameSDK             = require('beame-sdk');
+const module_name          = "ServersManager";
+const BeameLogger          = beameSDK.Logger;
+const logger               = new BeameLogger(module_name);
+const apiConfig            = require('../config/api_config.json');
+const CommonUtils          = beameSDK.CommonUtils;
+const Bootstrapper         = require('./bootstrapper');
+const bootstrapper         = Bootstrapper.getInstance();
+const Constants            = require('../constants');
+const BeameAuthServices    = require('./authServices');
+const CentralLoginServices = require('../src/centralLoginServices');
+const utils                = require('./utils');
 
 class ServersManager {
 
@@ -135,22 +136,6 @@ class ServersManager {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
-							utils.setExternalLoginOption(
-								bootstrapper.externalLoginUrl,
-								{
-									fqdn:  this._settings.GatewayServer.fqdn,
-									id:    bootstrapper.appId,
-									order: 'register'
-								}
-							).then((externalLoginUrl) => {
-								externalLoginUrl && bootstrapper.updateCredsFqdn(externalLoginUrl, Constants.CredentialType.ExternalLoginServer);
-								utils.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
-									Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e) => {
-									reject(e)
-								});
-							}).catch((e) => {
-								reject(e);
-							});
 						}
 						else {
 							reject(error);
@@ -158,6 +143,46 @@ class ServersManager {
 					});
 				}
 			);
+		};
+
+		const _handleDelegatedLogin = () => {
+
+			return new Promise((resolve, reject) => {
+					let externalLoginUrl     = bootstrapper.externalLoginUrl,
+					    isCentralLogin       = bootstrapper.isCentralLoginMode,
+					    centralLoginServices = new CentralLoginServices();
+
+					if (!externalLoginUrl && !isCentralLogin) {
+						resolve();
+						return;
+					}
+
+					if (externalLoginUrl) {
+
+						centralLoginServices.registerServerOnDelegatedCentralLogin(externalLoginUrl, {
+							fqdn:   this._settings.GatewayServer.fqdn,
+							id:     bootstrapper.appId,
+							action: 'register'
+						}).then(url => {
+							url && bootstrapper.updateCredsFqdn(url, Constants.CredentialType.ExternalLoginServer);
+							bootstrapper.isDelegatedCentralLoginVerified(true);
+							resolve();
+						}).catch(error => {
+							logger.error(`Register on Delegated Login server failed`, error);
+							bootstrapper.isDelegatedCentralLoginVerified(false);
+							resolve();
+						});
+					}
+					else if (isCentralLogin) {
+						centralLoginServices.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
+							Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e) => {
+							reject(e)
+						});
+					}
+				}
+			);
+
+
 		};
 
 		const _registerCustomerAuthServer = () => {
@@ -173,6 +198,7 @@ class ServersManager {
 					_startMatching()
 						.then(_startBeameAuth.bind(this))
 						.then(_startGateway.bind(this))
+						.then(_handleDelegatedLogin.bind(this))
 						.then(_registerCustomerAuthServer.bind(this))
 						.then(callback)
 						.catch(error => {
