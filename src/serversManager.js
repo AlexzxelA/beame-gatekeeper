@@ -136,6 +136,7 @@ class ServersManager {
 						if (!error) {
 							logger.info(`Gateway server started on https://${this._settings.GatewayServer.fqdn}`);
 							this._servers[Constants.CredentialType.GatewayServer] = app;
+							resolve();
 						}
 						else {
 							reject(error);
@@ -146,7 +147,6 @@ class ServersManager {
 		};
 
 		const _handleDelegatedLogin = () => {
-
 			return new Promise((resolve, reject) => {
 					let externalLoginUrl     = bootstrapper.externalLoginUrl,
 					    isCentralLogin       = bootstrapper.isCentralLoginMode,
@@ -165,11 +165,11 @@ class ServersManager {
 							action: 'register'
 						}).then(url => {
 							url && bootstrapper.updateCredsFqdn(url, Constants.CredentialType.ExternalLoginServer);
-							bootstrapper.isDelegatedCentralLoginVerified(true);
+							bootstrapper.isDelegatedCentralLoginVerified = true;
 							resolve();
 						}).catch(error => {
 							logger.error(`Register on Delegated Login server failed`, error);
-							bootstrapper.isDelegatedCentralLoginVerified(false);
+							bootstrapper.isDelegatedCentralLoginVerified = false;
 							resolve();
 						});
 					}
