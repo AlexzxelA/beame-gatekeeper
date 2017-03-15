@@ -185,12 +185,15 @@ function initComRelay(sign) {
 					.then(function (keydata) {
 						notifyOrigin(data);
 						var PK = arrayBufferToBase64String(keydata);
-						virtRelaySocket.emit('data', {
-							'socketId': getRelaySocketID(),
-							'host': vUID,
-							'payload':  JSON.stringify({type:'connectionRequest',token:sign, PK: PK})
-						});
-					});
+						sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({type:'connectionRequest',token:sign, PK: PK})), null, vUID);
+						// virtRelaySocket.emit('data', {
+						// 	'socketId': getRelaySocketID(),
+						// 	'host': vUID,
+						// 	'payload':  JSON.stringify()
+						// });
+					}).catch(function (e) {
+					console.error(e);
+				});
 			}
 
 		}
