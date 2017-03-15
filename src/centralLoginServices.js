@@ -7,6 +7,7 @@ const beameSDK                  = require('beame-sdk');
 const BeameLogger               = beameSDK.Logger;
 const logger                    = new BeameLogger("CentralLoginServices");
 const ProvisionApi              = beameSDK.ProvApi;
+const CommonUtils               = beameSDK.CommonUtils;
 const Constants                 = require('../constants');
 const Bootstrapper              = require('./bootstrapper');
 const bootstrapper              = Bootstrapper.getInstance();
@@ -94,7 +95,7 @@ class CentralLoginServices {
 						else {
 							resolve();
 						}
-					}, sign, 3);
+					}, CommonUtils.stringify(sign), 3);
 				};
 
 				utils.signDataWithFqdn(this._gwFqdn, data)
@@ -179,8 +180,11 @@ class CentralLoginServices {
 						let statusChanged = false,
 						    action        = null;
 
-						if (record.isActive != login.isActive) {
-							action = login.isActive ? Constants.DelegatedLoginNotificationAction.Register : Constants.DelegatedLoginNotificationAction.UnRegister;
+						let isActive = login.isActive == "true";
+
+						if (record.isActive != isActive) {
+							action        = isActive ? Constants.DelegatedLoginNotificationAction.Register : Constants.DelegatedLoginNotificationAction.UnRegister;
+							statusChanged = true;
 						}
 
 						if (statusChanged) {
@@ -209,7 +213,7 @@ class CentralLoginServices {
 		this._onlineServersFetched = false;
 
 		return new Promise((resolve, reject) => {
-				this.sendACKToSlave(login.fqdn, {action:Constants.DelegatedLoginNotificationAction.UnRegister}).then(nop).catch(error => {
+				this.sendACKToSlave(login.fqdn, {action: Constants.DelegatedLoginNotificationAction.UnRegister}).then(nop).catch(error => {
 					logger.error(`Notify to ${login.fqdn} failed`, error);
 				});
 
