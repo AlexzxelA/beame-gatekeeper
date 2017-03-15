@@ -1,7 +1,7 @@
 /**
  * Created by Alexz on 07/02/2017.
  */
-const onPairedTimeout = 60000;//ms
+const onPairedTimeout = 960000;//ms
 var BITS_PER_WORD = 21;
 
 var twoPi    = 6.28318530718;
@@ -15,7 +15,7 @@ var BIT_N    = 500;
 var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
-const SOUND_ATT = 32;
+const SOUND_ATT = 64;
 var retryCounter    = 0;
 
 var audio,
@@ -27,7 +27,9 @@ var audio,
 	tmpHostNdx = 0,
 	pinRefreshRate,
 	pairingSession,
-	fullQrData;
+	fullQrData,
+	loginTarget,
+	loginRelay;
 
 var resetPageStatus = function(){
 	retryCounter = 0;
@@ -511,7 +513,7 @@ function processTmpHost(tmpHost, srcData) {
 			activeHosts[sockId].isConnected = true;
 			activeHosts[sockId].connectTimeout = setTimeout(function () {
 				if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
-			}, 3000);
+			}, 30000);
 			// activeHosts[sockId].ID = data.socketId;
 			var type          = data.payload.data.type;
 			console.log(activeHosts[sockId],':',type);
@@ -730,7 +732,8 @@ originSocket.on('tokenVerified', function (data) {
 			//var target = JSON.parse(parsed.token).signedData;
 			//document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/;domain="+target.data;
 			destroyTmpHosts(function () {
-				var l = 'https://' + parsed.target + "?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:UID})));
+				var l = 'https://' + parsed.target + "?usrInData=" +
+					encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:loginTarget||UID, relay:loginRelay})));
 				window.location.href = l;
 			});
 		}
@@ -931,6 +934,8 @@ function processMobileData(TMPsocketRelay, data, cb) {
 				sessionRSAPK = keydata;
 				console.log('...Got message from mobile:', decryptedData);
 
+				if(decryptedData.relay)loginRelay = decryptedData.relay;
+				if(decryptedData.uid)loginTarget = decryptedData.uid;
 				originSocket.emit('verifyToken',decryptedData.payload.token);
 				//startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
 

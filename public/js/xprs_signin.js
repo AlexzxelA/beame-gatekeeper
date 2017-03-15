@@ -6,6 +6,7 @@ var QrTMPsocketOrigin, WhTMPSocketRelay = null;
 var qrRelayEndpoint = null;
 var qrContainer     = null;
 var qrSession       = null;
+var sessionParams   = {};
 
 $(document).ready(function () {
 	if(delegatedUserId){
@@ -27,10 +28,18 @@ $(document).ready(function () {
 
 		var UID = getVUID();//generateUID(24) + VirtualPrefix;
 		console.log('UID:', UID);
-
-		if (!qrRelayEndpoint) {
-			socket.emit('browser_connected', UID);
+		try{
+			var parsed = JSON.parse(delegatedUserId);
+			sessionParams = {'uid':parsed.uid, 'relay':parsed.relay};
+			var dataX = JSON.parse(parsed.token).signedData;
+			if (!qrRelayEndpoint) {
+				socket.emit('browser_connected', dataX || UID);
+			}
 		}
+		catch(e){
+			window.location.href = window.location.origin;
+		}
+
 	});
 
 
@@ -71,12 +80,13 @@ $(document).ready(function () {
 				var parsedData = JSON.parse(data);
 				sessionServiceData = JSON.stringify({'matching':parsedData.matching, 'service':parsedData.service, 'appId': parsedData.appId});
 				userImageRequired = parsedData['imageRequired'];
-				qrRelayEndpoint = parsedData['data'];
-
-				verifyInputData('https://'+qrRelayEndpoint, function (isLoginSession) {
-
-					connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
-				});
+				qrRelayEndpoint = sessionParams.relay || parsedData['data'];
+				if(!sessionParams || sessionParams && !sessionParams.uid)
+					verifyInputData('https://'+qrRelayEndpoint, function (isLoginSession) {
+						connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
+					});
+				else
+					connectRelaySocket(qrRelayEndpoint, parsedData['signature'], sessionParams.uid);
 			}
 			catch (e) {
 				socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});

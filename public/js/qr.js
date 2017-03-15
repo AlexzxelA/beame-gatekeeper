@@ -80,6 +80,9 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
+		if(!stopAllRunningSessions){
+
+		}
 		resetPageStatus('startQrSession');
 		setQRStatus('Requesting QR data');
 		console.log('Starting QR session with data:', data);
