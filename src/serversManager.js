@@ -171,7 +171,7 @@ class ServersManager {
 					}
 					else if (isCentralLogin) {
 							centralLoginServices.setAllGkLoginOffline()
-							.then(centralLoginServices.notifyRegisteredLoginServers.bind(centralLoginServices,this._settings.GatewayServer.fqdn))
+							.then(centralLoginServices.notifyRegisteredLoginServers.bind(centralLoginServices))
 							.then(resolve(null))
 							.catch(error => {
 								logger.error(`Notify slaves login servers error`, error);

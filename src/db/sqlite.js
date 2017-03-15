@@ -902,7 +902,7 @@ class SqliteServices {
 
 	setAllGkLoginOffline() {
 		try {
-			this._sequelize.query('UPDATE GkLogins SET isOnline = false');
+			this._sequelize.query('UPDATE GkLogins SET isOnline = 0');
 			return Promise.resolve();
 		} catch (e) {
 			return Promise.reject(e);

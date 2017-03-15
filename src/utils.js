@@ -9,6 +9,7 @@ const express    = require('express');
 const path       = require('path');
 
 const beameSDK   = require('beame-sdk');
+const CommonUtils          = beameSDK.CommonUtils;
 const BeameStore = new beameSDK.BeameStore();
 const AuthToken  = beameSDK.AuthToken;
 const Constants = require('../constants');
@@ -116,11 +117,28 @@ function createAuthTokenByFqdn(fqdn, data, ttl) {
 	});
 }
 
+function signDataWithFqdn(fqdn, data) {
+	if (arguments.length < 2) {
+		return Promise.reject('signDataWithFqdn() requires 2 arguments');
+	}
+	return new Promise((resolve, reject) => {
+		BeameStore.find(fqdn, false).then(cred => {
+
+			let signature = cred.sign(CommonUtils.stringify(data));
+			resolve(signature);
+			
+		}).catch(() => {
+			reject(`signDataWithFqdn() failed getting credential ${fqdn}`);
+		});
+	});
+}
+
 
 module.exports = {
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,
+	signDataWithFqdn,
 	getRelayFqdn,
 	getLocalRelayFqdn
 };

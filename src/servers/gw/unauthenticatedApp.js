@@ -110,7 +110,7 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, re
 	AuthToken.getRequestAuthToken(req)
 		.then(token => {
 			res.status(200).send();
-			let loginMasterFqdn = JSON.parse(token).signedBy;
+			let loginMasterFqdn = token.signedBy;
 			const loginServices = require('../../centralLoginServices').getInstance();
 
 			if (bootstrapper.externalLoginUrl) {
