@@ -86,8 +86,8 @@ class DataServices {
 	 * @param {String} fqdn
 	 * @param {Boolean} isActive
 	 */
-	updateUserActiveStatus(fqdn,isActive) {
-		return this._dbService.updateUserActiveStatus(fqdn,isActive);
+	updateUserActiveStatus(fqdn, isActive) {
+		return this._dbService.updateUserActiveStatus(fqdn, isActive);
 	}
 
 	/**
@@ -101,7 +101,7 @@ class DataServices {
 	 * @param {RegistrationData} data
 	 * @returns {Promise.<Registration|null>}
 	 */
-	isRegistrationExists(data){
+	isRegistrationExists(data) {
 		return this._dbService.isRegistrationExists(data);
 	}
 
@@ -121,7 +121,7 @@ class DataServices {
 		return this._dbService.updateRegistrationCertFlag(id);
 	}
 
-	updateRegistrationUserDataFlag(id){
+	updateRegistrationUserDataFlag(id) {
 		return this._dbService.updateRegistrationUserDataFlag(id);
 	}
 
@@ -244,6 +244,14 @@ class DataServices {
 		return this._dbService.getGkLogins();
 	}
 
+	getActiveGkLogins() {
+		return this._dbService.getActiveGkLogins();
+	}
+
+	getOnlineGkLogins() {
+		return this._dbService.getOnlineGkLogins();
+	}
+
 	findLogin(fqdn) {
 		return this._dbService.findLogin(fqdn);
 	}
@@ -252,8 +260,12 @@ class DataServices {
 		return this._dbService.saveGkLogin(login);
 	}
 
-	updateGkLoginServiceId(fqdn,serviceId){
-		return this._dbService.updateGkLoginServiceId(fqdn,serviceId);
+	setAllGkLoginOffline() {
+		return this._dbService.setAllGkLoginOffline();
+	}
+
+	updateGkLoginState(fqdn, serviceId, isOnline) {
+		return this._dbService.updateGkLoginState(fqdn, serviceId, isOnline);
 	}
 
 	updateGkLogin(login) {
@@ -271,8 +283,8 @@ class DataServices {
 	 * @param {DataServicesSettings|null|undefined} [options]
 	 * @returns {DataServices}
 	 */
-	static getInstance(options){
-		if(!dataServicesInstance){
+	static getInstance(options) {
+		if (!dataServicesInstance) {
 			dataServicesInstance = new DataServices(options);
 		}
 

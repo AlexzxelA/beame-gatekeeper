@@ -101,7 +101,8 @@ class BeameLogin {
 		let loginServers = [];
 		let serversArr = [];
 		try {
-			serversArr = JSON.parse(bootstrapper._config.delegatedLoginServers);
+			const loginServices = require('../centralLoginServices').getInstance();
+			serversArr = loginServices.getOnlineGkLogins();
 		}
 		catch (e){
 			serversArr = [];

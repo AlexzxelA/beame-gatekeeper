@@ -75,6 +75,11 @@ const RegistrationMethod = {
 	"Email":   "Email",
 	"SMS":     "SMS",
 };
+
+const DelegatedLoginNotificationAction = {
+	"Register": "register",
+	"UnRegister": "unregister"
+};
 /**
  * Sns Message Types
  * DON'T TOUCH, should by synchronized with backend services
@@ -133,6 +138,7 @@ module.exports = {
 	BeameLoginURL,
 	CredentialType,
 	SnsMessageType,
+	DelegatedLoginNotificationAction,
 	SetupServices,
 	DbProviders,
 	CookieNames,

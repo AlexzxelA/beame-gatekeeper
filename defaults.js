@@ -29,7 +29,7 @@ const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 const EmailPostUrl = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
 const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
 
-const delegatedLoginServers     = "";
+//const delegatedLoginServers     = "";
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
 const ProxyInitiatingTtl            = 60 * 10;
@@ -152,7 +152,7 @@ module.exports = {
 	PostEmailUrl:         EmailPostUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
-	delegatedLoginServers,
+	//delegatedLoginServers,
 	RegistrationMethod,
 	UseBeameAuthOnLocal,
 	PublicRegistration,

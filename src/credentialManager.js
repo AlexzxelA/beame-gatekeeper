@@ -12,7 +12,6 @@ const logger       = new BeameLogger(module_name);
 const BeameStore   = new beameSDK.BeameStore();
 const Credential   = beameSDK.Credential;
 const Bootstrapper = require('./bootstrapper');
-const bootstrapper      = Bootstrapper.getInstance();
 const defaults      = require('../defaults');
 const Constants    = require('../constants');
 const CommonUtils  = beameSDK.CommonUtils;

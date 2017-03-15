@@ -602,7 +602,7 @@ class SqliteServices {
 							reject(logger.formatErrorMessage(`User record not found`));
 							return;
 						}
-						record.update({isDeleted: true,isActive:false}).then(resolve).catch(onError.bind(this, reject));
+						record.update({isDeleted: true, isActive: false}).then(resolve).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
 
@@ -858,6 +858,57 @@ class SqliteServices {
 		);
 	}
 
+	getActiveGkLogins() {
+		return new Promise((resolve) => {
+				let model = this._models.gklogins;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({where: {isActive: true}}).then(models => {
+						let records = models.map(item => {
+							return item.dataValues
+						});
+						resolve(records);
+					}
+				).catch(
+					error => {
+						logger.error(error);
+						resolve([]);
+					}
+				);
+			}
+		);
+	}
+
+	getOnlineGkLogins() {
+		return new Promise((resolve) => {
+				let model = this._models.gklogins;
+
+				//noinspection JSUnresolvedFunction
+				model.findAll({where: {isActive: true, isOnline: true}}).then(models => {
+						let records = models.map(item => {
+							return item.dataValues
+						});
+						resolve(records);
+					}
+				).catch(
+					error => {
+						logger.error(error);
+						resolve([]);
+					}
+				);
+			}
+		);
+	}
+
+	setAllGkLoginOffline() {
+		try {
+			this._sequelize.query('UPDATE GkLogins SET isOnline = false');
+			return Promise.resolve();
+		} catch (e) {
+			return Promise.reject(e);
+		}
+	}
+
 	findLogin(fqdn) {
 		return new Promise((resolve) => {
 				let model = this._models.gklogins;
@@ -879,7 +930,7 @@ class SqliteServices {
 	saveGkLogin(login) {
 		return new Promise((resolve, reject) => {
 
-				let model     = this._models.gklogins;
+				let model = this._models.gklogins;
 
 				try {
 
@@ -910,7 +961,8 @@ class SqliteServices {
 						}
 						record.update({
 							name:     login.name,
-							isActive: login.isActive
+							isActive: login.isActive,
+							isOnLine: login.isOnline
 						}).then(entity => {
 							resolve(entity.dataValues);
 						}).catch(onError.bind(this, reject));
@@ -926,7 +978,7 @@ class SqliteServices {
 		);
 	}
 
-	updateGkLoginServiceId(fqdn,serviceId) {
+	updateGkLoginState(fqdn, serviceId, isOnline) {
 		return new Promise((resolve, reject) => {
 				try {
 					let model = this._models.gklogins;
@@ -941,7 +993,8 @@ class SqliteServices {
 							return;
 						}
 						record.update({
-							serviceId: serviceId
+							serviceId: serviceId,
+							isOnline:  isOnline
 						}).then(entity => {
 							resolve(entity.dataValues);
 						}).catch(onError.bind(this, reject));
@@ -967,7 +1020,6 @@ class SqliteServices {
 	}
 
 	//endregion
-
 
 }
 

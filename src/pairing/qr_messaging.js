@@ -296,8 +296,8 @@ class QrMessaging {
 
 	_generateOTP(size) {
 		this._otp_prev = this._otp;
-		var OTP        = "";
-		for (var i = 0; i < size; i++) {
+		let OTP        = "";
+		for (let i = 0; i < size; i++) {
 			OTP += Math.floor(Math.random() * 10);
 		}
 		this._otp = OTP;

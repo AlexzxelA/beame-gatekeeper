@@ -147,7 +147,7 @@ class ServersManager {
 		};
 
 		const _handleDelegatedLogin = () => {
-			return new Promise((resolve, reject) => {
+			return new Promise((resolve) => {
 					let externalLoginUrl     = bootstrapper.externalLoginUrl,
 					    isCentralLogin       = bootstrapper.isCentralLoginMode,
 					    centralLoginServices = new CentralLoginServices();
@@ -159,11 +159,7 @@ class ServersManager {
 
 					if (externalLoginUrl) {
 
-						centralLoginServices.registerServerOnDelegatedCentralLogin(externalLoginUrl, {
-							fqdn:   this._settings.GatewayServer.fqdn,
-							id:     bootstrapper.appId,
-							action: 'register'
-						}).then(url => {
+						centralLoginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.Register).then(url => {
 							url && bootstrapper.updateCredsFqdn(url, Constants.CredentialType.ExternalLoginServer);
 							bootstrapper.isDelegatedCentralLoginVerified = true;
 							resolve();
@@ -174,9 +170,12 @@ class ServersManager {
 						});
 					}
 					else if (isCentralLogin) {
-						centralLoginServices.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
-							Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e) => {
-							reject(e)
+							centralLoginServices.setAllGkLoginOffline()
+							.then(centralLoginServices.notifyRegisteredLoginServers.bind(centralLoginServices,this._settings.GatewayServer.fqdn))
+							.then(resolve(null))
+							.catch(error => {
+								logger.error(`Notify slaves login servers error`, error);
+								resolve();
 						});
 					}
 				}
