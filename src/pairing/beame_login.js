@@ -125,11 +125,13 @@ class BeameLogin {
 				};
 
 				const _onLoginsInitiated = serversArr => {
+					//required for mobile phone minimum one record, don't remove
+					loginServers.push("none");
+
 					for (let i = 0; i < serversArr.length; i++) {
 						if (serversArr[i].serviceId)
 							loginServers.push(serversArr[i].serviceId);
 					}
-
 					return Promise.resolve();
 				};
 
