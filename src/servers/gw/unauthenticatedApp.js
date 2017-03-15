@@ -106,6 +106,7 @@ unauthenticatedApp.use(bodyParser.json());
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
+	let data  = req.body;
 
 	AuthToken.getRequestAuthToken(req)
 		.then(token => {
@@ -115,7 +116,15 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, re
 
 			if (bootstrapper.externalLoginUrl) {
 				if (bootstrapper.externalLoginUrl.indexOf(loginMasterFqdn) >= 0) {
-					loginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.Register);
+
+					if(data){
+						if (data.action == Constants.DelegatedLoginNotificationAction.Register) {
+							loginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.Register);
+						}
+						else {
+							bootstrapper.isDelegatedCentralLoginVerified = false;
+						}
+					}
 				}
 			}
 			else {
@@ -132,9 +141,9 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, re
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
 
 	AuthToken.getRequestAuthToken(req).then(() => {
-		let parsed  = req.body;
-		let strData = JSON.stringify(parsed);
-		if (parsed && parsed.id && parsed.fqdn) {
+		let data  = req.body;
+
+		if (data && data.id && data.fqdn) {
 
 			const loginServices = require('../../centralLoginServices').getInstance();
 
@@ -144,7 +153,7 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 
 				let isOnline;
 
-				switch (parsed.action) {
+				switch (data.action) {
 					case Constants.DelegatedLoginNotificationAction.Register:
 						isOnline = true;
 						break;
@@ -154,7 +163,7 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 						break;
 				}
 
-				loginServices.updateGkLoginState(parsed.fqdn, parsed.id, isOnline);
+				loginServices.updateGkLoginState(data.fqdn, data.id, isOnline);
 
 			};
 
@@ -163,12 +172,12 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 				res.status(401).send();
 			};
 
-			loginServices.isFqdnRegistered(parsed.fqdn)
+			loginServices.isFqdnRegistered(data.fqdn)
 				.then(_onLoginValidated)
 				.catch(_onLoginValidationFailed);
 		}
 		else {
-			logger.info(`Invalid data on server registration : ${strData}`);
+			logger.info(`Invalid data on server registration : ${CommonUtils.stringify(data)}`);
 			res.status(400).send();
 		}
 
