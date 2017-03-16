@@ -21,7 +21,7 @@ function verifyInputData(relay, cb) {
 			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
 		},wait4MobileTimeout);
 		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
-		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
+		events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey)).
 		then(function (keydata) {
 			var PK = arrayBufferToBase64String(keydata);
 			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
@@ -54,7 +54,7 @@ function verifyDataX(cb) {
 			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
 		},wait4MobileTimeout);
 		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
-		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
+		events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey)).
 		then(function (keydata) {
 			var PK = arrayBufferToBase64String(keydata);
 			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;

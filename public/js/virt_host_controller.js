@@ -181,7 +181,7 @@ function initComRelay(sign) {
 			var parsed = (typeof  data === 'object')? data : JSON.parse(data);
 			TmpSocketID = parsed.socketId;
 			if(keyPair){
-				events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+				events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
 					.then(function (keydata) {
 						notifyOrigin(data);
 						var PK = arrayBufferToBase64String(keydata);
