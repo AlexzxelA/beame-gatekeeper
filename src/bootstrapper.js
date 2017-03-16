@@ -236,7 +236,7 @@ class Bootstrapper {
 	// }
 
 	get delegatedLoginUrl() {
-		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : Constants.DCLSOfflinePath) : null;
+		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : (this.allowDirectSignin ? null : Constants.DCLSOfflinePath)) : null;
 	}
 
 	get isCentralLogin() {
