@@ -354,8 +354,8 @@ class Bootstrapper {
 		return this._config[SettingsProps.PairingRequired];
 	}
 
-	get isCentralLoginMode() {
-		return this._config[SettingsProps.IsCentralLoginMode];
+	get envMode() {
+		return this._config[SettingsProps.EnvMode] || Constants.EnvMode.Gatekeeper;
 	}
 
 	get encryptUserData() {
@@ -368,6 +368,10 @@ class Bootstrapper {
 
 	get startRaspberryApp() {
 		return this._config[SettingsProps.StartRaspberryApp];
+	}
+
+	get allowDirectSignin() {
+		return this._config[SettingsProps.AllowDirectSignin];
 	}
 
 	//noinspection JSMethodCanBeStatic
@@ -389,49 +393,6 @@ class Bootstrapper {
 	set setAppConfig(config) {
 		this._config = config;
 	}
-
-	// setAppConfig(config) {
-	//
-	// 	let externalLoginState = this.externalLoginUrl;
-	// 	if (!config)
-	// 		config = this._config;
-	// 	else
-	// 		config.delegatedLoginServers = this._config.delegatedLoginServers;
-	//
-	// 	this._config = config;
-	//
-	// 	logger.info(`BOOTSRTPR: {${this.externalLoginUrl}}`);
-	// 	if (externalLoginState != this.externalLoginUrl) {
-	// 		let gwFqdn               = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-	// 		    centralLoginServices = require('../src/centralLoginServices').getInstance();
-	//
-	//
-	// 		centralLoginServices.registerServerOnDelegatedCentralLogin(
-	// 			this.externalLoginUrl,
-	// 			{
-	// 				fqdn:   gwFqdn,
-	// 				id:     this.appId,
-	// 				action: 'register'
-	// 			}
-	// 		).then((setUrl) => {
-	//
-	// 			if (setUrl) {
-	// 				logger.info(`Registered on external login server: ${setUrl}`);
-	// 				this._config[SettingsProps.ExternalLoginServer] = setUrl;
-	// 			}
-	// 			centralLoginServices.registerServerOnDelegatedCentralLogin(
-	// 				externalLoginState,
-	// 				{
-	// 					fqdn:   gwFqdn,
-	// 					id:     this.appId,
-	// 					action: 'unregister'
-	// 				}
-	// 			).then(() => {
-	// 				externalLoginState && logger.info(`Un-Registered on external login server: ${externalLoginState}`);
-	// 			});
-	// 		});
-	// 	}
-	// }
 
 	//endregion
 
