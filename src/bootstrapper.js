@@ -50,8 +50,8 @@ class Bootstrapper {
 
 
 	constructor() {
-		let config   = DirectoryServices.readJSON(AppConfigJsonPath);
-		this._config = CommonUtils.isObjectEmpty(config) ? null : config;
+		let config                            = DirectoryServices.readJSON(AppConfigJsonPath);
+		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._isDelegatedCentralLoginVerified = false;
 	}
 
@@ -237,6 +237,10 @@ class Bootstrapper {
 
 	get delegatedLoginUrl() {
 		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : Constants.DCLSOfflinePath) : null;
+	}
+
+	get isCentralLogin() {
+		return this.envMode == Constants.EnvMode.CentralLogin || this.envMode == Constants.EnvMode.DelegatedLoginMaster
 	}
 
 	//region getters

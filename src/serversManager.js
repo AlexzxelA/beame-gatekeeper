@@ -197,6 +197,8 @@ class ServersManager {
 			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
 		};
 
+		const isCentralLogin = bootstrapper.isCentralLogin;
+
 		//TODO check app-state too
 
 		async.parallel([

@@ -88,11 +88,9 @@ unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 
 unauthenticatedApp.get('/', (req, res) => {
 
-	let mode = bootstrapper.envMode;
+	let isCentralLogin = bootstrapper.isCentralLogin;
 
-	logger.debug(`Root set as ${mode}`);
-
-	if (mode == Constants.EnvMode.CentralLogin || mode == Constants.EnvMode.DelegatedLoginMaster) {
+	if (isCentralLogin) {
 		loadLoginPage(res);
 		return;
 	}
