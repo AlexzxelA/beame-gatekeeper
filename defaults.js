@@ -26,8 +26,8 @@ const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 
-const EmailPostUrl = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
-const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
+const EmailPostUrl = "https://gpymwodu74slo9sg.p1s1ykbqpjqfmw34.v1.s.beameio.net/send/invitation";
+const ExternalMatchingFqdn = "oyr64zl5w1htwudv.mtrc55l896fup0fp.v1.s.beameio.net";
 
 const delegatedLoginServers     = "";
 //in sec
