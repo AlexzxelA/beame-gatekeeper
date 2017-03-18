@@ -240,7 +240,8 @@ var getWAV = function (pin) {
 
 		message.push.apply(message, message);//1 sec
 		message.push.apply(message, message);//2 sec
-		message.push.apply(message, message);//4 sec
+		if(!navigator.userAgent.includes('Safari'))
+			message.push.apply(message, message);//4 sec
 
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
@@ -518,9 +519,13 @@ function processTmpHost(tmpHost, srcData) {
 			UID = activeHosts[sockId].name;
 			if(type == 'direct_mobile'){
 				if(keyPair){
-					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+					events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 						.then(function (keydata) {
-							var PK = arrayBufferToBase64String(keydata);
+							var PK = null;
+							if(engineFlag)
+								PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+							else
+								PK = arrayBufferToBase64String(keydata);
 							var tmp_reg_data = "login";
 							var tmp_type = "BEAME_LOGIN";
 
@@ -740,7 +745,8 @@ originSocket.on('tokenVerified', function (data) {
 	}
 });
 //*********** crypto **********
-var cryptoObj = window.crypto || window.msCrypto;
+var cryptoObj = window.crypto || window.msCrypto,
+	cryptoSubtle = cryptoObj.subtle || cryptoObj.webkitSubtle;
 
 var PK_RSAOAEP = {//encrypt only
 	name: "RSA-OAEP",
@@ -797,14 +803,16 @@ function events2promise(promise_or_operation) {
 
 function generateKeys() {
 	keyGenBusy = true;
-	events2promise(cryptoObj.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
+	events2promise(cryptoSubtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
 		.then(function (key) {
 			console.log('RSA KeyPair', key);
-			events2promise(cryptoObj.subtle.generateKey(RSAPKCS, true, ["sign"]))
+			events2promise(cryptoSubtle.generateKey(RSAPKCS, true, ["sign"]))
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
 					keyPair      = key;
+					if(!keyPair.privateKey)keyPair.privateKey = keyPair;
 					keyPairSign  = key1;
+					if(!keyPairSign.privateKey)keyPairSign.privateKey = keyPairSign;
 					keyGenerated = true;
 					keyGenBusy = false;
 				})
@@ -831,7 +839,7 @@ function encryptWithPK(data, cb) {
 		inputArray.push(dataToEncrypt);
 	}
 	Promise.all(inputArray.map(function (inData) {
-		return events2promise(cryptoObj.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
+		return events2promise(cryptoSubtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
 	})).then(function (values) {
 		var finalLength = 0;
 
@@ -873,7 +881,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 	if (pemKey.length == 360)
 		pemKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A" + pemKey;
 	return new Promise(function (resolve) {
-		var importer = events2promise(cryptoObj.subtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
+		var importer = events2promise(cryptoSubtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
 		importer.then(function (keydata) {
 			resolve(keydata);
 		})
@@ -1011,7 +1019,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 			}
 
 			Promise.all(inputArray.map(function (inData) {
-				return events2promise(cryptoObj.subtle.decrypt(encryption, SK, inData))
+				return events2promise(cryptoSubtle.decrypt(encryption, SK, inData))
 			})).then(function (values) {
 				var finalLength = 0;
 
@@ -1029,7 +1037,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 
 				if (parsed['key'] && parsed['iv']) {
 					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
-					events2promise(cryptoObj.subtle.importKey(
+					events2promise(cryptoSubtle.importKey(
 						"raw", //can be "jwk" or "raw"
 						rawAESkey.slice(0, AESkeySize),//remove b64 padding
 						{name: "AES-CBC"},
@@ -1038,7 +1046,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 					)).then(function (key) {
 						console.log('imported aes key <ok>');
 						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0, AESkeySize);
-						events2promise(cryptoObj.subtle.decrypt(
+						events2promise(cryptoSubtle.decrypt(
 							{
 								name: 'AES-CBC',
 								iv:   rawIV

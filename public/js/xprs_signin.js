@@ -12,6 +12,25 @@ $(document).ready(function () {
 		console.log('*** Delegated ID: <', delegatedUserId, '> ***');
 	}
 
+	function test() {
+		var algorithm = {
+			name: "RSASSA-PKCS1-v1_5",
+			modulusLength: "2048",
+			publicExponent: new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
+			hash: "SHA-512"
+		};
+		events2promise(cryptoSubtle.generateKey(algorithm, true, ['sign'])).then(function (generated) {
+			console.log('Generated: ', generated);
+			cryptoSubtle.exportKey('jwk', generated.publicKey || generated).then(function (key) {
+				console.log('HUJ:::',key);
+			}).catch(function (e) {
+				console.error('Uebalis',e);
+			});
+		});
+
+	}
+	test();
+
 	generateKeys();
 	setQRStatus('QR initializing session');
 

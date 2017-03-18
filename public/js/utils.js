@@ -1,6 +1,8 @@
 /**
  * Created by zenit1 on 16/11/2016.
  */
+var engineFlag = (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'));
+var exportPKtype = engineFlag? 'jwk' : 'spki';
 
 function setCookie(cname, cvalue, exdays) {
 	var d = new Date();
@@ -21,9 +23,13 @@ function verifyInputData(relay, cb) {
 			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
 		},wait4MobileTimeout);
 		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
-		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
-		then(function (keydata) {
-			var PK = arrayBufferToBase64String(keydata);
+		events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
+			.then(function (keydata) {
+			var PK = null;
+			if(engineFlag)
+				PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+			else
+				PK = arrayBufferToBase64String(PK);
 			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
 			qrData       = JSON.stringify({
 				'relay': relay, 'PK': PK, 'UID': getVUID(),

@@ -366,9 +366,13 @@ app.controller("MainCtrl", function ($scope) {
 
 				if(type == 'direct_mobile'){
 					if(keyPair){
-						events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+						events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 							.then(function (keydata) {
-								var PK = arrayBufferToBase64String(keydata);
+								var PK = null;
+								if(engineFlag)
+									PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+								else
+									PK = arrayBufferToBase64String(PK);
 								var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
 								var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 
@@ -549,9 +553,13 @@ var TmpQrData,
 function sendQrDataToWhisperer(relay, uid, socket) {
 	console.log('sendQrDataToWhisperer - entering');
 	if(keyPair){
-		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+		events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 			.then(function (keydata) {
-				var PK = arrayBufferToBase64String(keydata);
+				var PK = null;
+				if(engineFlag)
+					PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+				else
+					PK = arrayBufferToBase64String(PK);
 				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 
