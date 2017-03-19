@@ -1,7 +1,9 @@
 /**
  * Created by Alexz on 15/11/2016.
  */
-var cryptoObj = window.crypto || window.msCrypto;
+var cryptoObj = window.crypto || window.msCrypto,
+	cryptoSubtle = cryptoObj.subtle || cryptoObj.webkitSubtle;
+
 
 var PK_RSAOAEP = {//encrypt only
 	name: "RSA-OAEP",
@@ -70,10 +72,10 @@ function generateUID(length) {
 }
 
 function generateKeys() {
-	events2promise(cryptoObj.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
+	events2promise(cryptoSubtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
 		.then(function (key) {
 			console.log('RSA KeyPair', key);
-			events2promise(cryptoObj.subtle.generateKey(RSAPKCS, true, ["sign"]))
+			events2promise(cryptoSubtle.generateKey(RSAPKCS, true, ["sign"]))
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
 					keyPair      = key;
@@ -115,7 +117,7 @@ function getKeyPairs(cb) {
 }
 
 function signArbitraryData(data, cb) {
-	events2promise(cryptoObj.subtle.sign(
+	events2promise(cryptoSubtle.sign(
 		{name: "RSASSA-PKCS1-v1_5"},
 		keyPairSign.privateKey,
 		str2ab(data)
@@ -142,7 +144,7 @@ function encryptWithPK(data, cb) {
 		inputArray.push(dataToEncrypt);
 	}
 	Promise.all(inputArray.map(function (inData) {
-		return events2promise(cryptoObj.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
+		return events2promise(cryptoSubtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
 	})).then(function (values) {
 		var finalLength = 0;
 
@@ -184,7 +186,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 			}
 
 			Promise.all(inputArray.map(function (inData) {
-				return events2promise(cryptoObj.subtle.decrypt(encryption, SK, inData))
+				return events2promise(cryptoSubtle.decrypt(encryption, SK, inData))
 			})).then(function (values) {
 				var finalLength = 0;
 
@@ -202,7 +204,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 
 				if (parsed['key'] && parsed['iv']) {
 					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
-					events2promise(cryptoObj.subtle.importKey(
+					events2promise(cryptoSubtle.importKey(
 						"raw", //can be "jwk" or "raw"
 						rawAESkey.slice(0, AESkeySize),//remove b64 padding
 						{name: "AES-CBC"},
@@ -211,7 +213,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 					)).then(function (key) {
 						console.log('imported aes key <ok>');
 						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0, AESkeySize);
-						events2promise(cryptoObj.subtle.decrypt(
+						events2promise(cryptoSubtle.decrypt(
 							{
 								name: 'AES-CBC',
 								iv:   rawIV
@@ -253,7 +255,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 function encryptWithSymK(data, plainData, cb) {
 	if (sessionAESkey) {
 		var abData = str2ab(data);
-		events2promise(cryptoObj.subtle.encrypt(
+		events2promise(cryptoSubtle.encrypt(
 			{name: 'AES-CBC', iv: sessionIV}
 			, sessionAESkey
 			, abData
@@ -261,7 +263,7 @@ function encryptWithSymK(data, plainData, cb) {
 			//plaindata will be signed but not encrypted
 			var cipheredValue = (plainData) ? plainData + arrayBufferToBase64String(encrypted) : arrayBufferToBase64String(encrypted);
 			console.log('Signing data: <', cipheredValue, '>');
-			events2promise(cryptoObj.subtle.sign(
+			events2promise(cryptoSubtle.sign(
 				{name: "RSASSA-PKCS1-v1_5"},
 				keyPairSign.privateKey, //from generateKey or importKey above
 				str2ab(cipheredValue)
@@ -318,7 +320,7 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 	if (pemKey.length == 360)
 		pemKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A" + pemKey;
 	return new Promise(function (resolve) {
-		var importer = events2promise(cryptoObj.subtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
+		var importer = events2promise(cryptoSubtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
 		importer.then(function (keydata) {
 				resolve(keydata);
 			})
@@ -335,6 +337,23 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	var tmpSocketID   = data.socketId;
 	var encryptedData = data.payload.data;
 	var decryptedData;
+
+	function onMessageDecryptedToken(err, decryptedDataB64) {
+		if (!err) {
+			decryptedData = JSON.parse(atob(decryptedDataB64));
+			initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+
+			cb && cb(decryptedData);
+		}
+		else {
+			console.log('failed to decrypt login token');
+			TMPsocketRelay.emit('data', {
+				'socketId': tmpSocketID,
+				'payload':  'failed to decrypt mobile PK'
+			});
+		}
+
+	}
 
 	function onMessageDecryptedKey(err, decryptedDataB64) {
 		if (!err) {
@@ -374,6 +393,20 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	}
 
 	switch (type) {
+		case 'login_token':
+			console.log('Got login token');
+			cb = function () {
+				console.log('Registration validation requesting image');
+				validateSession(userImageRequired).then(function () {
+					userImageRequested = false;
+
+				}).catch(function () {
+					userImageRequested = false;
+
+				});
+			};
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedToken);
+			return;
 		case 'approval_request':
 			console.log('Registration approval started');
 			cb = function () {
@@ -394,7 +427,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			// var onPublicKeyImported = function (keydata) {
 			// 	console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
 			// 	sessionRSAPK = keydata;
-			// 	initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+			// 	initCrypto Session(TMPsocketRelay, originSocketArray, data, decryptedData);
 			// };
 
 
@@ -487,19 +520,27 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	}
 }
 
-function sendEncryptedData(target, socketId, data, cb) {
+function sendEncryptedData(target, socketId, data, cb, uid) {
 	encryptWithPK(data, function (error, cipheredData) {
 		if (!error) {
-			target.emit('data', {
-				'socketId': socketId,
-				'payload':  cipheredData
-			});
+			if(uid)
+				target.emit('data', {
+					'socketId': socketId,
+					'data':  cipheredData,
+					'host': uid
+				});
+			else
+				target.emit('data', {
+					'socketId': socketId,
+					'payload':  cipheredData
+				});
 		}
 		else {
 			console.error('Data encryption failed: ', error);
 			target.emit('data', {
 				'socketId': socketId,
-				'payload':  'Data encryption failed'
+				'payload':  'Data encryption failed',
+				'host': uid
 			});
 		}
 		cb && cb();
@@ -513,7 +554,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 	if (decryptedData.source) {
 		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound') ? originSocketArray.WH : originSocketArray.AP;
 	}
-	events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+	events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
 		.then(function (mobPK) {
 			if (!userImageRequested) {
 				userImageRequested = true;
@@ -581,7 +622,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 			console.log('<*********< error >*********>:', error);
 		});
 
-	events2promise(cryptoObj.subtle.exportKey('spki', keyPairSign.publicKey))
+	events2promise(cryptoSubtle.exportKey('spki', keyPairSign.publicKey))
 		.then(function (keydata1) {
 			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
 			sendEncryptedData(relaySocket, data.socketId,
@@ -601,7 +642,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 }
 
 function sha256(data) {
-	return events2promise(cryptoObj.subtle.digest("SHA-256", str2ab(data))).then(function (hash) {
+	return events2promise(cryptoSubtle.digest("SHA-256", str2ab(data))).then(function (hash) {
 		return arrayBufferToBase64String(hash);
 	});
 }

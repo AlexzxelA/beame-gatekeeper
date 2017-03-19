@@ -56,17 +56,35 @@ function validateSession(imageRequired) {
 	);
 }
 
-function registerVirtualHost(signature, socket) {
-	sendConnectRequest(signature, socket);
+function registerVirtualHost(signature, socket, hostname) {
+	var connectReq = function () {
+		if(hostname)
+			sendClientRequest(hostname, socket);
+		else
+			sendConnectRequest(signature, socket);
+	};
+	connectReq();
 	connectToRelayRetry = setInterval(function () {
 		if(--connectToRelayTimeout && !stopAllRunningSessions){
-			sendConnectRequest(signature, socket);
+			connectReq();
 		}
 		else{
 			clearInterval(connectToRelayRetry);
 			pingVirtHost && clearInterval(pingVirtHost);
 		}
 	},3000);
+}
+
+function sendClientRequest(hostname, socket) {
+	socket.emit('register_server',
+		{
+			'payload': {
+				'socketId':      null,
+				'host':          hostname,
+				'type':          'HTTPS',
+				'toVirtualHost': true
+			}
+		});
 }
 
 function setOriginSocket(type, socket) {
@@ -96,7 +114,8 @@ function sendConnectRequest(signature, socket) {
 		});
 }
 
-function connectRelaySocket(relay, sign) {
+
+function connectRelaySocket(relay, sign, extUid) {
 	if(virtRelaySocket && virtRelaySocket.connected){
 		virtRelaySocket.emit('cut_client',{'socketId':TmpSocketID});
 		virtRelaySocket.removeAllListeners();
@@ -109,8 +128,13 @@ function connectRelaySocket(relay, sign) {
 	virtRelaySocket = io.connect(RelayFqdn, {transports: ['websocket']});
 	virtRelaySocket.on('connect',function () {
 		virtHostConnected = true;
-		registerVirtualHost(sign, virtRelaySocket);
-		initComRelay();
+		if(!extUid)
+			registerVirtualHost(sign, virtRelaySocket);
+		else{
+			vUID = extUid;
+			registerVirtualHost(sign, virtRelaySocket, extUid);
+		}
+		initComRelay(sign);
 	});
 
 	return 0;
@@ -146,10 +170,36 @@ function getRelaySocketID() {
 	return TmpSocketID;
 }
 
-function initComRelay() {
+function initComRelay(sign) {
 	virtRelaySocket.on('disconnect', function () {
 		setQRStatus && setQRStatus('Virtual host disconnected');
 		console.log('relay disconnected, ID = ', virtRelaySocket.id);
+	});
+
+	virtRelaySocket.on('connectedToBrowser', function (data) {
+		try{
+			var parsed = (typeof  data === 'object')? data : JSON.parse(data);
+			TmpSocketID = parsed.socketId;
+			if(keyPair){
+				events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
+					.then(function (keydata) {
+						notifyOrigin(data);
+						var PK = arrayBufferToBase64String(keydata);
+						sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({type:'connectionRequest',token:sign, PK: PK})), null, vUID);
+						// virtRelaySocket.emit('data', {
+						// 	'socketId': getRelaySocketID(),
+						// 	'host': vUID,
+						// 	'payload':  JSON.stringify()
+						// });
+					}).catch(function (e) {
+					console.error(e);
+				});
+			}
+
+		}
+		catch (e){
+			console.error(e);
+		}
 	});
 
 	virtRelaySocket.on('data', function (data) {
@@ -163,10 +213,10 @@ function initComRelay() {
 		console.log('create_connection, ID = ', virtRelaySocket.id);
 	});
 
-	virtRelaySocket.on('hostRegistered', function (data) {
+	function notifyOrigin(data) {
 		clearInterval(connectToRelayRetry);
 		virtHostAlive = virtHostTimeout;
-		vUID = data.Hostname;
+		vUID = data.Hostname || vUID;
 		//TMPsocketOriginWh && sendQrDataToWhisperer(RelayPath, vUID, TMPsocketOriginWh);
 		TMPsocketOriginAp && sendQrDataToApprover(RelayPath, vUID, TMPsocketOriginAp);
 		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
@@ -174,32 +224,10 @@ function initComRelay() {
 		TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
 		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
-		// if(delegatedUserId){
-		// 	var qrData = 'none';
-		// 	waitingForMobileConnection = setTimeout(function () {
-		// 		window.alert('Timed out waiting for mobile connection:'+qrData);
-		// 		window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
-		// 	},wait4MobileTimeout);
-		// 	var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
-		// 	events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
-		// 	then(function (keydata) {
-		// 		var PK = arrayBufferToBase64String(keydata);
-		// 		var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
-		// 		qrData       = JSON.stringify({
-		// 			'relay': RelayPath, 'PK': PK, 'UID': getVUID(),
-		// 			'PIN':   getParameterByName('pin') || 'none', 'TYPE': 'LOGIN',
-		// 			'TIME': Date.now(), 'REG': 'LOGIN',
-		// 			'imageRequired': imgReq, 'appId':JSON.parse(sessionServiceData).appId
-		// 		});
-		//
-		// 		sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:qrData})));
-		// 		delegatedUserId = undefined;
-		// 	}).catch(function (e) {
-		// 		sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
-		// 		delegatedUserId = undefined;
-		// 		window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
-		// 	});
-		// }
+	}
+
+	virtRelaySocket.on('hostRegistered', function (data) {
+		notifyOrigin(data);
 	});
 
 	virtRelaySocket.on('hostRegisterFailed',function (msg) {
