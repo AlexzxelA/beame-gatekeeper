@@ -208,7 +208,8 @@ var getWAV = function (pin) {
 
 		message.push.apply(message, message);//1 sec
 		message.push.apply(message, message);//2 sec
-		message.push.apply(message, message);//4 sec
+		if(!navigator.userAgent.includes('Safari'))
+			message.push.apply(message, message);//4 sec
 		//message.push.apply(message, message);//4 sec for 1/2 bit length of 250
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);

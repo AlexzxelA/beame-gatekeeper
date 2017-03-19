@@ -2,7 +2,7 @@
  * Created by Alexz on 08/12/2016.
  */
 
-"use strict";
+//"use strict";
 const audioOnlySession = false;
 const activateVirtHostRecovery = false;
 const virtHostTimeout = 5;

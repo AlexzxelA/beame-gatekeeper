@@ -96,9 +96,14 @@ function initSocketInterface(socket) {
 function sendQrDataToApprover(relay, uid, socket) {
 	console.log('sendQrDataToApprover - entering');
 	if(keyPair){
-		events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
+		events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 			.then(function (keydata) {
-				var PK = arrayBufferToBase64String(keydata);
+				var PK = null;
+				if(engineFlag)
+					PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+				else
+					PK = arrayBufferToBase64String(PK);
+
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 console.log('data:',reg_data);
 				var imgReq = (reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;

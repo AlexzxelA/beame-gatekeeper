@@ -1,7 +1,7 @@
 /**
  * Created by Alexz on 07/02/2017.
  */
-const onPairedTimeout = 960000;//ms
+const onPairedTimeout = 60000;//ms
 var BITS_PER_WORD = 21;
 
 var twoPi    = 6.28318530718;
@@ -15,7 +15,7 @@ var BIT_N    = 500;
 var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
-const SOUND_ATT = 64;
+const SOUND_ATT = 32;
 var retryCounter    = 0;
 
 var audio,
@@ -242,7 +242,8 @@ var getWAV = function (pin) {
 
 		message.push.apply(message, message);//1 sec
 		message.push.apply(message, message);//2 sec
-		message.push.apply(message, message);//4 sec
+		if(!engineFlag)
+			message.push.apply(message, message);//4 sec
 
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
@@ -520,9 +521,13 @@ function processTmpHost(tmpHost, srcData) {
 			UID = activeHosts[sockId].name;
 			if(type == 'direct_mobile'){
 				if(keyPair){
-					events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
+					events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 						.then(function (keydata) {
-							var PK = arrayBufferToBase64String(keydata);
+							var PK = null;
+							if(engineFlag)
+								PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+							else
+								PK = arrayBufferToBase64String(keydata);
 							var tmp_reg_data = "login";
 							var tmp_type = "BEAME_LOGIN";
 
@@ -743,7 +748,8 @@ originSocket.on('tokenVerified', function (data) {
 	}
 });
 //*********** crypto **********
-var cryptoObj = window.crypto || window.msCrypto;
+var cryptoObj = window.crypto || window.msCrypto,
+	cryptoSubtle = cryptoObj.subtle || cryptoObj.webkitSubtle;
 
 var PK_RSAOAEP = {//encrypt only
 	name: "RSA-OAEP",
@@ -807,7 +813,9 @@ function generateKeys() {
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
 					keyPair      = key;
+					if(!keyPair.privateKey)keyPair.privateKey = keyPair;
 					keyPairSign  = key1;
+					if(!keyPairSign.privateKey)keyPairSign.privateKey = keyPairSign;
 					keyGenerated = true;
 					keyGenBusy = false;
 				})

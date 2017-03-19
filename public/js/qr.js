@@ -139,9 +139,13 @@ $(document).ready(function () {
 				if (parsed['data'] && keyGenerated) {
 					if(reg_data && reg_data.hash){delete reg_data.hash;}
 					console.log('QR Generating information packet');
-					events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
+					events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 						.then(function (keydata) {
-							var PK = arrayBufferToBase64String(keydata);
+							var PK = null;
+							if(engineFlag)
+								PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+							else
+								PK = arrayBufferToBase64String(PK);
 							//console.log('Public Key Is Ready:', PK, '==>', PK);
 							if (qrRelayEndpoint.indexOf(getRelaySocket().io.engine.hostname) < 0) {
 								console.log('Crap(q)::',
