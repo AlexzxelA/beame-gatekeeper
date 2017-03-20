@@ -1,6 +1,6 @@
 {
   "name": "beame-gatekeeper",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "description": "Gateway TLS (SSL) server for authenticated access to your services",
   "main": "index.js",
   "engines": {
@@ -30,9 +30,9 @@
   },
   "homepage": "https://github.com/beameio/beame-gatekeeper#readme",
   "dependencies": {
-    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git",
+    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git#prod",
     "async": "^2.1.2",
-    "beame-sdk": "https://github.com/beameio/beame-sdk.git",
+    "beame-sdk": "2.0.32",
     "beame-cli": "0.0.3",
     "body-parser": "^1.15.2",
     "cookie": "0.3.1",
