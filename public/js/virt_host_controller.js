@@ -181,11 +181,16 @@ function initComRelay(sign) {
 			var parsed = (typeof  data === 'object')? data : JSON.parse(data);
 			TmpSocketID = parsed.socketId;
 			if(keyPair){
-				events2promise(cryptoSubtle.exportKey('spki', keyPair.publicKey))
+				events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 					.then(function (keydata) {
+						var PK = null;
+						if(engineFlag)
+							PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+						else
+							PK = arrayBufferToBase64String(keydata);
 						notifyOrigin(data);
-						var PK = arrayBufferToBase64String(keydata);
-						sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({type:'connectionRequest',token:sign, PK: PK})), null, vUID);
+						console.log('Sending connectionRequest to mobile');
+						sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({type:'connectionRequest',token:sign, PK: PK, socketId: TmpSocketID})), null, vUID);
 						// virtRelaySocket.emit('data', {
 						// 	'socketId': getRelaySocketID(),
 						// 	'host': vUID,

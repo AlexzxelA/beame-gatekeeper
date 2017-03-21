@@ -29,7 +29,7 @@ function verifyInputData(relay, cb) {
 			if(engineFlag)
 				PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 			else
-				PK = arrayBufferToBase64String(PK);
+				PK = arrayBufferToBase64String(keydata);
 			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
 			qrData       = JSON.stringify({
 				'relay': relay, 'PK': PK, 'UID': getVUID(),

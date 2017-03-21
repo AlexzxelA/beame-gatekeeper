@@ -945,7 +945,7 @@ function processMobileData(TMPsocketRelay, data, cb) {
 				if(decryptedData.relay)loginRelay = decryptedData.relay;
 				if(decryptedData.uid)loginTarget = decryptedData.uid;
 				originSocket.emit('verifyToken',decryptedData.payload.token);
-				//startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
+				//startGatewaySessio n(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
 
 				// importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
 				// 	console.log("Successfully imported RSAPKCS PK from external source");

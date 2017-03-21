@@ -357,10 +357,10 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 
 
 function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
-
-	var type          = data.payload.data.type;
+	var payloadX = data.payload?data.payload:data;
+	var type          = payloadX.data.type;
 	var tmpSocketID   = data.socketId;
-	var encryptedData = data.payload.data;
+	var encryptedData = payloadX.data;
 	var decryptedData;
 
 	function onMessageDecryptedToken(err, decryptedDataB64) {
@@ -447,7 +447,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
 		case 'info_packet_response':
-			console.log('info_packet_response data = ', data.payload.data);
+			console.log('info_packet_response data = ', payloadX.data);
 			waitingForMobileConnection && clearTimeout(waitingForMobileConnection);
 			// var onPublicKeyImported = function (keydata) {
 			// 	console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
@@ -661,7 +661,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 			if(engineFlag)
 				PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 			else
-				PK = arrayBufferToBase64String(PK);
+				PK = arrayBufferToBase64String(keydata);
 
 			sendEncryptedData(relaySocket, data.socketId,
 				str2ab(JSON.stringify({

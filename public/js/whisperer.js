@@ -372,7 +372,7 @@ app.controller("MainCtrl", function ($scope) {
 								if(engineFlag)
 									PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 								else
-									PK = arrayBufferToBase64String(PK);
+									PK = arrayBufferToBase64String(keydata);
 								var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
 								var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 
@@ -559,7 +559,7 @@ function sendQrDataToWhisperer(relay, uid, socket) {
 				if(engineFlag)
 					PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 				else
-					PK = arrayBufferToBase64String(PK);
+					PK = arrayBufferToBase64String(keydata);
 				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
 				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
 

@@ -145,7 +145,7 @@ $(document).ready(function () {
 							if(engineFlag)
 								PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 							else
-								PK = arrayBufferToBase64String(PK);
+								PK = arrayBufferToBase64String(keydata);
 							//console.log('Public Key Is Ready:', PK, '==>', PK);
 							if (qrRelayEndpoint.indexOf(getRelaySocket().io.engine.hostname) < 0) {
 								console.log('Crap(q)::',
