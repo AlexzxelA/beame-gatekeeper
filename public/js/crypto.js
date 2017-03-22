@@ -368,7 +368,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			decryptedData = JSON.parse(atob(decryptedDataB64));
 			initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
 
-			cb && cb(decryptedData);
+			//cb && cb(decryptedData);
 		}
 		else {
 			console.log('failed to decrypt login token');
@@ -420,16 +420,6 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	switch (type) {
 		case 'login_token':
 			console.log('Got login token');
-			cb = function () {
-				console.log('Registration validation requesting image');
-				validateSession(userImageRequired).then(function () {
-					userImageRequested = false;
-
-				}).catch(function () {
-					userImageRequested = false;
-
-				});
-			};
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedToken);
 			return;
 		case 'approval_request':
