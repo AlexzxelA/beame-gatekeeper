@@ -1,0 +1,44 @@
+THIS APPLIES ONLY TO BETA TESTERS 
+
+Setup 
+
+To test out the beame-gatekeeper:
+        a. git clone git@github.com:beameio/beame-gatekeeper.git
+        b. npm install
+
+In order to try it during the beta phase 
+        Goto and register:
+                https://p2payp4q8f5ruo22.q6ujqecc83gg6fod.v1.d.beameio.net/
+
+The next stop will be to activate the gatekeeper:
+        cd beame-gatekeeper
+        node main.js creds getCreds --regToken 'long token from email'
+        beame-gatekeeper server start
+
+You need to find Gateway server started on: https://ltebanqnnxr9tobx.mjd2mf0frvlhmkbe.v1.d.beameio.net
+message in the output.
+
+Open this url, in your web browser and you should see a QR code. 
+        a. Download the mobile app from your tesflight inventation.
+        b. Setup your mobile pincode. 
+        c. scan the qr off your computer sceen.
+        d. You see see X509 recivied on the mobile.
+
+To login you need to go to 
+        1. https://dev.login.beameio.net 
+        2. Open your mobile app, scan the QR or listen to the sound (in the pairing menu) 
+        
+If you lost your phone and u need to reset admin user, the first one is set up as an admin by default use
+        node main.js creds admin -- copy the URL
+        node main.js server start
+        paste the url in a browser 
+
+To add additonal services:
+        The mobile app pulls the list of services from the gatekeeper after authentication.
+        To add another service to the gatekeeper, and achive mobile access:
+                Login (either with admin url or mobile device)
+                select Insta Server Admin App 
+                Go to the Services Tab 
+                Add a service on ur local network
+                Enjoy.
+        
