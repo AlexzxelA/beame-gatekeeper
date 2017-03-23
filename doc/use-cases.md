@@ -28,7 +28,7 @@ You have your corporate web application in your office and it's available for yo
 
 ### Problems
 
-* Your LAN is not really secure. Google don't assume their network is secure and neither should you. "Google sees little distinction between board rooms and bars, cubicles and coffee shops; all are untrusted under its perimeter-less security model detailed in a paper published this week." -- The Register, April 2016. (The paper)[https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44860.pdf]
+* Your LAN is not really secure. Google don't assume their network is secure and neither should you. "Google sees little distinction between board rooms and bars, cubicles and coffee shops; all are untrusted under its perimeter-less security model detailed in a paper published this week." -- The Register, April 2016. [The paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44860.pdf)
 * VPN is not convenient for the users
 * VPN has high TCO
 
@@ -36,5 +36,9 @@ You have your corporate web application in your office and it's available for yo
 
 * Authenticate your employees using X.509 certificates on their mobile devices.
 * Securely route traffic to your corporate web using Beame infrastructure. No firewall configuration is needed on your side.
+
+## Use case: Remote access for your devices
+
+You've sold electronic devices to be installed on home networks. Now you get a support call. Do you have an infrastructure for your technicians to securely communicate with your devices? We observe that it's rarely the case.
 
 ## Use case: Crypto-ID for your clients
