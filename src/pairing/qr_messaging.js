@@ -139,6 +139,7 @@ class QrMessaging {
 
 			}
 			catch (e){
+				console.error(e);
 				this._sendWithAck(socket, "edgeError", "Invalid data, please retry");
 			}
 		});
@@ -327,8 +328,8 @@ class QrMessaging {
 
 	_generateOTP(size) {
 		this._otp_prev = this._otp;
-		var OTP        = "";
-		for (var i = 0; i < size; i++) {
+		let OTP        = "";
+		for (let i = 0; i < size; i++) {
 			OTP += Math.floor(Math.random() * 10);
 		}
 		this._otp = OTP;
@@ -363,7 +364,7 @@ class QrMessaging {
 		if (this._edge) {
 			let fqdn     = this._fqdn,
 			    cred     = store.getCredential(fqdn),
-			    token    = authToken.create(this._browserHost, cred, 10),
+			    token    = authToken.create(this._browserHost, cred, 60),
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
 				    'data':          this._edge.endpoint,

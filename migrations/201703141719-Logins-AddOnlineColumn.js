@@ -9,10 +9,11 @@ module.exports = {
 		return [
 			queryInterface.addColumn(
 				'GkLogins',
-				'serviceId',
+				'isOnline',
 				{
-					type: Sequelize.UUIDV4,
-					allowNull: true
+					type: Sequelize.BOOLEAN,
+					allowNull: false,
+					defaultValue:false
 				}
 			)
 		];
@@ -20,7 +21,7 @@ module.exports = {
 
 	down: function (queryInterface) {
 		return [
-			queryInterface.removeColumn('Users', 'serviceId')
+			queryInterface.removeColumn('Users', 'isOnline')
 		];
 	}
 };

@@ -2,26 +2,43 @@
  * Created by zenit1 on 08/03/2017.
  */
 "use strict";
-const apiConfig   = require('../config/api_config.json');
-const beameSDK    = require('beame-sdk');
-const ProvisionApi      = beameSDK.ProvApi;
-
+const apiConfig                 = require('../config/api_config.json');
+const beameSDK                  = require('beame-sdk');
+const BeameLogger               = beameSDK.Logger;
+const logger                    = new BeameLogger("CentralLoginServices");
+const ProvisionApi              = beameSDK.ProvApi;
+const CommonUtils               = beameSDK.CommonUtils;
+const Constants                 = require('../constants');
+const Bootstrapper              = require('./bootstrapper');
+const bootstrapper              = Bootstrapper.getInstance();
+const utils                     = require('./utils');
+const nop                       = function () {
+};
 let centralLoginServiceInstance = null;
 
 class CentralLoginServices {
 
+
 	constructor() {
-		this._dataService = require('./dataServices').getInstance();
+		this._dataService          = require('./dataServices').getInstance();
+		this._onlineServers        = [];
+		this._onlineServersFetched = false;
+		this._gwFqdn               = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	}
 
 	//region server manager helpers
-	registerServerOnDelegatedCentralLogin(externalLoginUrl, data) {
+	sendACKToDelegatedCentralLogin(action) {
 		return new Promise((resolve, reject) => {
-
-			if(externalLoginUrl){
+			let externalLoginUrl = bootstrapper.externalLoginUrl,
+			    data             = {
+				    fqdn:   this._gwFqdn,
+				    id:     bootstrapper.appId,
+				    action: action
+			    };
+			if (externalLoginUrl) {
 				const
-				      BeameAuthServices = require('./authServices'),
-				      authServices      = BeameAuthServices.getInstance();
+					BeameAuthServices = require('./authServices'),
+					authServices      = BeameAuthServices.getInstance();
 
 				let sign         = authServices.signData(data),
 				    provisionApi = new ProvisionApi();
@@ -42,53 +59,47 @@ class CentralLoginServices {
 		});
 	}
 
-	notifyRegisteredLoginServers(data, selfFqdn) {
-		return new Promise((resolve,reject)=>{
-			if(data){
-				try{
-					let savedRegisteredServers = JSON.parse(data);
-					const ProvisionApi      = beameSDK.ProvApi,
-					    BeameAuthServices = require('./authServices'),
-					    authServices      = new BeameAuthServices(selfFqdn, "");
+	notifyRegisteredLoginServers() {
+		return new Promise((resolve, reject) => {
 
-					let sign         = authServices.signData(selfFqdn),
-					    provisionApi = new ProvisionApi();
-					Promise.all(savedRegisteredServers.map(function (srv) {
-						if(srv.fqdn && srv.id){
-							let srvPath = 'https://' + srv.fqdn + apiConfig.Actions.Login.RecoverServer.endpoint;
-							provisionApi.postRequest(srvPath, selfFqdn, (error) => {
-								if (error) {
-									reject(error);
-								}
-								else {
-									resolve();
-								}
-							}, sign, 3);
-						}
-					})).then(resolve).catch((e)=>{reject(e)});
+			let data = {
+				action: Constants.DelegatedLoginNotificationAction.Register
+			};
 
-				}
-				catch(e){
-					reject(e);
-				}
-			}
-			else resolve();
+			this.getActiveGkLogins()
+				.then(logins => {
+					Promise.all(logins.map(login => {
+							return this.sendACKToSlave(login.fqdn, data);
+						}))
+						.then(resolve)
+						.catch(error => {
+							logger.error(`Notify to slaves error ${BeameLogger.formatError(error)}`);
+							resolve();
+						});
+				})
+				.catch(reject);
 		});
 
 	}
 
-	_sendACKToSlave(fqdn){
+	sendACKToSlave(fqdn, data) {
 		return new Promise((resolve, reject) => {
-				let provisionApi = new ProvisionApi();
-				let srvPath = 'https://' + fqdn + apiConfig.Actions.Login.RecoverServer.endpoint;
-				provisionApi.postRequest(srvPath, selfFqdn, (error) => {
-					if (error) {
-						reject(error);
-					}
-					else {
-						resolve();
-					}
-				}, sign, 3);
+
+				const _postToSlave = sign => {
+					let provisionApi = new ProvisionApi();
+					let srvPath      = 'https://' + fqdn + apiConfig.Actions.Login.RecoverServer.endpoint;
+					provisionApi.postRequest(srvPath, data, (error) => {
+						if (error) {
+							reject(error);
+						}
+						else {
+							resolve();
+						}
+					}, CommonUtils.stringify(sign), 3);
+				};
+
+				utils.signDataWithFqdn(this._gwFqdn, data)
+					.then(_postToSlave)
 			}
 		);
 	}
@@ -102,6 +113,40 @@ class CentralLoginServices {
 		return this._dataService.getGkLogins();
 	}
 
+	getActiveGkLogins() {
+		return this._dataService.getActiveGkLogins();
+	}
+
+	onlineServers() {
+
+		return new Promise((resolve) => {
+				if (this._onlineServersFetched) {
+					resolve(this._onlineServers);
+					return;
+				}
+
+				this._getOnlineGkLogins()
+					.then(servers => {
+						this._onlineServersFetched = true;
+						this._onlineServers        = servers;
+						resolve(this._onlineServers);
+					})
+					.catch(error => {
+						logger.error('Get online GK servers', error);
+						this._onlineServers = [];
+						resolve(this._onlineServers);
+					})
+
+			}
+		);
+	}
+
+
+	_getOnlineGkLogins() {
+
+		return this._dataService.getOnlineGkLogins();
+	}
+
 	isFqdnRegistered(fqdn) {
 		return new Promise((resolve, reject) => {
 				this._dataService.findLogin(fqdn).then(login => {
@@ -112,29 +157,71 @@ class CentralLoginServices {
 
 	}
 
-	_notifySlaveStatus(login){
-		return new Promise((resolve, reject) => {
-
-			}
-		);
+	setAllGkLoginOffline() {
+		this._onlineServersFetched = false;
+		return this._dataService.setAllGkLoginOffline();
 	}
 
 	saveGkLogin(login) {
+		this._onlineServersFetched = false;
 		return this._dataService.saveGkLogin(login);
 	}
 
 	updateGkLogin(login) {
+		this._onlineServersFetched = false;
+		return new Promise((resolve, reject) => {
+				this._dataService.findLogin(login.fqdn).then(record => {
+					if (!record) {
+						reject(`record for ${login.fqdn} not found`);
+						return;
+					}
 
-		return this._dataService.updateGkLogin(login);
+					this._dataService.updateGkLogin(login).then(updated => {
+						let statusChanged = false,
+						    action        = null;
+
+						let isActive = login.isActive == "true";
+
+						if (record.isActive != isActive) {
+							action        = isActive ? Constants.DelegatedLoginNotificationAction.Register : Constants.DelegatedLoginNotificationAction.UnRegister;
+							statusChanged = true;
+						}
+
+						if (statusChanged) {
+							this.sendACKToSlave(login.fqdn, {action}).then(nop).catch(error => {
+								logger.error(`Notify to ${login.fqdn} failed`, error);
+							});
+						}
+
+						resolve(updated);
+					});
+
+
+				}).catch(reject);
+			}
+		);
+
+
 	}
 
-	updateGkLoginServiceId(fqdn,serviceId) {
-
-		return this._dataService.updateGkLoginServiceId(fqdn,serviceId);
+	updateGkLoginState(fqdn, serviceId, isOnline) {
+		this._onlineServersFetched = false;
+		return this._dataService.updateGkLoginState(fqdn, serviceId, isOnline);
 	}
 
-	deleteGkLogin(id) {
-		return this._dataService.deleteGkLogin(id);
+	deleteGkLogin(login) {
+		this._onlineServersFetched = false;
+
+		return new Promise((resolve, reject) => {
+				this.sendACKToSlave(login.fqdn, {action: Constants.DelegatedLoginNotificationAction.UnRegister}).then(nop).catch(error => {
+					logger.error(`Notify to ${login.fqdn} failed`, error);
+				});
+
+				this._dataService.deleteGkLogin(id).then(resolve).catch(reject);
+			}
+		);
+
+
 	}
 
 	//endregion

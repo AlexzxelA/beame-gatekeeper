@@ -88,9 +88,9 @@ unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 
 unauthenticatedApp.get('/', (req, res) => {
 
-	logger.debug(`Root set as ${bootstrapper.isCentralLoginMode}`);
+	let isCentralLogin = bootstrapper.isCentralLogin;
 
-	if (bootstrapper.isCentralLoginMode) {
+	if (isCentralLogin) {
 		loadLoginPage(res);
 		return;
 	}
@@ -105,60 +105,66 @@ unauthenticatedApp.use(bodyParser.json());
 
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
-let registeredSigninServers = [{'id': 'none'}];
-
 unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
-	let token = req.header('x-beameauthtoken');
-	console.log('Received delegated login recovery post:', token);
+	let data  = req.body;
 
-	let responseSent = false;
-	AuthToken.validate(token).then(() => {
-		res.status(200).send();
-		responseSent = true;
-		let loginUrl = JSON.parse(token).signedBy;
-		console.log('loginUrl:', loginUrl, '..extLogUrl:', bootstrapper.externalLoginUrl);
-		if (loginUrl && bootstrapper.externalLoginUrl && (bootstrapper.externalLoginUrl.indexOf(loginUrl) >= 0)) {
-			let tmpConfig                 = Object.assign({}, bootstrapper._config || {});
-			bootstrapper.externalLoginUrl = "";
-			bootstrapper.setAppConfig(tmpConfig);
-		}
-	}).catch(e => {
-		if (!responseSent) res.status(401).send();
+	AuthToken.getRequestAuthToken(req)
+		.then(token => {
+			res.status(200).send();
+			let loginMasterFqdn = token.signedBy;
+			const loginServices = require('../../centralLoginServices').getInstance();
+
+			if (bootstrapper.externalLoginUrl) {
+				if (bootstrapper.externalLoginUrl.indexOf(loginMasterFqdn) >= 0) {
+
+					if(data){
+						if (data.action == Constants.DelegatedLoginNotificationAction.Register) {
+							loginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.Register);
+						}
+						else {
+							bootstrapper.isDelegatedCentralLoginVerified = false;
+						}
+					}
+				}
+			}
+			else {
+				loginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.UnRegister);
+			}
+
+
+		}).catch(e => {
+		res.status(401).send();
 		logger.error(e);
 	});
 });
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
-	console.log('registeredSigninServers:', registeredSigninServers);
-	let token        = req.header('x-beameauthtoken');
-	let responseSent = false;
-	AuthToken.validate(token).then(() => {
-		let parsed  = req.body;
-		let strData = JSON.stringify(parsed);
-		if (parsed && parsed.id && parsed.fqdn) {
+
+	AuthToken.getRequestAuthToken(req).then(() => {
+		let data  = req.body;
+
+		if (data && data.id && data.fqdn) {
 
 			const loginServices = require('../../centralLoginServices').getInstance();
 
 			const _onLoginValidated = () => {
 
 				res.status(200).send();
-				responseSent = true;
-				let tmpNdx   = -1;
-				registeredSigninServers && registeredSigninServers.forEach(function (item, index) {
-					if (item.id === parsed.id) {
-						tmpNdx = index;
-					}
-				});
-				if (parsed.action == 'register') {
-					if (tmpNdx < 0) registeredSigninServers.push(parsed);
-					logger.info(`Registered server with data : ${strData}`);
-					if(parsed.fqdn && parsed.id) loginServices.updateGkLoginServiceId(parsed.fqdn,parsed.id);
+
+				let isOnline;
+
+				switch (data.action) {
+					case Constants.DelegatedLoginNotificationAction.Register:
+						isOnline = true;
+						break;
+
+					case Constants.DelegatedLoginNotificationAction.UnRegister:
+						isOnline = false;
+						break;
 				}
-				else {
-					if (tmpNdx >= 0) registeredSigninServers.splice(tmpNdx, 1);
-					logger.info(`Un-Registered server with data : ${strData}`);
-					bootstrapper.setDelegatedLoginServers(registeredSigninServers);
-				}
+
+				loginServices.updateGkLoginState(data.fqdn, data.id, isOnline);
+
 			};
 
 			const _onLoginValidationFailed = (error) => {
@@ -166,15 +172,17 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, r
 				res.status(401).send();
 			};
 
-			loginServices.isFqdnRegistered(parsed.fqdn).then(_onLoginValidated).catch(_onLoginValidationFailed);
+			loginServices.isFqdnRegistered(data.fqdn)
+				.then(_onLoginValidated)
+				.catch(_onLoginValidationFailed);
 		}
 		else {
-			logger.info(`Invalid data on server registration : ${strData}`);
+			logger.info(`Invalid data on server registration : ${CommonUtils.stringify(data)}`);
 			res.status(400).send();
 		}
 
 	}).catch(e => {
-		if (!responseSent) res.status(401).send();
+		res.status(401).send();
 		logger.error(e);
 	});
 });

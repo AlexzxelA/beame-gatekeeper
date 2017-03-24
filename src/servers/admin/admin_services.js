@@ -30,14 +30,16 @@ class AdminServices {
 
 				let old = bootstrapper.appConfig;
 
-				bootstrapper.setAppConfig(CommonUtils.parse(req.data).AppConfig);
+				bootstrapper.setAppConfig = CommonUtils.parse(req.data).AppConfig;
 
-				bootstrapper.saveAppConfigFile().then(resolve).catch(error => {
-					logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+				bootstrapper.saveAppConfigFile()
+					.then(resolve)
+					.catch(error => {
+						logger.error(`update app config error ${BeameLogger.formatError(error)}`);
 
-					bootstrapper.setAppConfig(old);
+						bootstrapper.setAppConfig = old;
 
-					return bootstrapper.saveAppConfigFile();
+						return bootstrapper.saveAppConfigFile();
 				});
 			}
 		);
@@ -49,7 +51,8 @@ class AdminServices {
 					"AppConfig": null,
 					"DbConfig":  null,
 					"Creds":     null,
-					"RegMethods":null
+					"RegMethods":null,
+					"EnvModes"  :null
 				};
 
 				try {
@@ -79,6 +82,20 @@ class AdminServices {
 								});
 
 								data.RegMethods = ds;
+
+								callback();
+							},
+							callback =>{
+
+								const options = Constants.EnvMode;
+
+								let ds = [];
+
+								Object.keys(options).forEach(key=>{
+									ds.push({name:options[key]})
+								});
+
+								data.EnvModes = ds;
 
 								callback();
 							}
