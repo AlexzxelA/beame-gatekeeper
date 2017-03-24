@@ -15,7 +15,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+: ${CURENT_USER:=`whoami`}
 : ${BEAME_GATEKEEPER_USER:=beame-gatekeeper}
 : ${BEAME_GATEKEEPER_SVC:=beame-gatekeeper}
 : ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}

@@ -41,11 +41,11 @@ const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
 const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
 const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
 
-const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
+const DEFAULT_LOAD_BALANCER_URL = "https://ioigl3wzx6lajrx6.tl5h1ipgobrdqsj6.v1.p.beameio.net";
 
-const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
+const BeameLoginURL = "https://login.beameio.net";
 
-const BeameLoginURL = "https://dev.login.beameio.net";
+const UniversalLinkUrl = 'https://jv6stw7z6cmh5xdd.tl5h1ipgobrdqsj6.v1.p.beameio.net';
 
 const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
