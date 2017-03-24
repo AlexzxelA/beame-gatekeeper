@@ -125,7 +125,7 @@ function connectRelaySocket(relay, sign, extUid) {
 		RelayFqdn   = "https://" + relay + "/control";
 		RelayPath   = "https://" + relay;
 	}
-	virtRelaySocket = io.connect(RelayFqdn, {transports: ['websocket']});
+	virtRelaySocket = io.connect(RelayFqdn);//, {transports: ['websocket']});
 	virtRelaySocket.on('connect',function () {
 		virtHostConnected = true;
 		if(!extUid)

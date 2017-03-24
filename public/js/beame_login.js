@@ -395,7 +395,7 @@ var _convolve = function (x, x_length, h, h_length) {
 	return output;
 };
 
-var originSocket = io.connect("/beame_login", socketio_options || {transports: ['websocket']});
+var originSocket = io.connect("/beame_login", socketio_options);// || {transports: ['websocket']});
 
 if (!window.btoa) {
 	var btoa = function (input) {
@@ -519,7 +519,7 @@ function processTmpHost(tmpHost, srcData) {
 			var type          = data.payload.data.type;
 			console.log(activeHosts[sockId],':',type);
 			UID = activeHosts[sockId].name;
-			if(type == 'direct_mobile'){
+			if(type === 'direct_mobile'){
 				if(keyPair){
 					events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 						.then(function (keydata) {
@@ -547,7 +547,7 @@ function processTmpHost(tmpHost, srcData) {
 				}
 
 			}
-			else if(type == 'done'){
+			else if(type === 'done'){
 				stopAllRunningSessions = true;
 				stopPlaying();
 				activeHosts[sockId].sock.removeAllListeners();
@@ -643,7 +643,7 @@ function initTmpHost(data) {
 	tmpHostArr[lclNdx] = {};
 	tmpHostArr[lclNdx].pin = data.pin;
 	tmpHostArr[lclNdx].name = data.name;
-	tmpHostArr[lclNdx].sock = io.connect(data.relay, {transports: ['websocket']});
+	tmpHostArr[lclNdx].sock = io.connect(data.relay);//, {transports: ['websocket']});
 	tmpHostArr[lclNdx].sock.on('connect',function () {
 		processTmpHost(tmpHostArr[lclNdx], data);
 	});
@@ -732,8 +732,9 @@ originSocket.on('pindata', function (dataRaw) {
 originSocket.on('tokenVerified', function (data) {
 	console.log('tokenVerified', data);
 	var parsed = JSON.parse(data);
+	console.log('tokenVerified:',parsed,'..loginTarget:',loginTarget,'..loginRelay:',loginRelay);
 	if(parsed.success){
-		if(parsed.target != 'none'){
+		if(parsed.target !== 'none'){
 			//var target = JSON.parse(parsed.token).signedData;
 			//document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/;domain="+target.data;
 			destroyTmpHosts(function () {
@@ -945,17 +946,6 @@ function processMobileData(TMPsocketRelay, data, cb) {
 				if(decryptedData.relay)loginRelay = decryptedData.relay;
 				if(decryptedData.uid)loginTarget = decryptedData.uid;
 				originSocket.emit('verifyToken',decryptedData.payload.token);
-				//startGatewaySessio n(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
-
-				// importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-				// 	console.log("Successfully imported RSAPKCS PK from external source");
-				// 	sessionRSAPKverify = keydata;
-				// 	if (cb) {
-				// 		cb(decryptedData);
-				// 	}
-				// }).catch(function (err) {
-				// 	console.error('Import *Verify Key* Failed', err);
-				// });
 
 			}).catch(function (err) {
 				console.error('Import *Encrypt Key* Failed', err);
@@ -994,6 +984,10 @@ function processMobileData(TMPsocketRelay, data, cb) {
 			break;
 		case 'restart_pairing':
 			window.location.reload();
+			break;
+		case 'session_data':
+			loginTarget = 'huj';
+
 			break;
 		default:
 			console.error('unknown payload type for Beame-Login' + type);
@@ -1146,12 +1140,7 @@ function initComRelay(virtRelaySocket) {
 		clearInterval(connectToRelayRetry);
 		virtHostAlive = virtHostTimeout;
 		vUID = data.Hostname;
-		//TMPsocketOriginWh && sendQrDataToWhisperer(RelayPath, vUID, TMPsocketOriginWh);
-		//TMPsocketOriginAp && sendQrDataToApprover(RelayPath, vUID, TMPsocketOriginAp);
 		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
-		// TMPsocketOriginQR && setQRStatus && setQRStatus('Virtual host registration complete');
-		// TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
-		// TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
 	});
 

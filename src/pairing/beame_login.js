@@ -47,10 +47,15 @@ class BeameLogin {
 		this._fqdn               = serverFqdn;
 		this._matchingServerFqdn = matchingServerFqdn;
 		this._serviceName        = serviceName;
+		this._pairingUtils       = null;
 	}
 
 
 	start() {
+		const pairingUtils = require('./pairing_utils');
+		this._pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+			this._socket, 'BeameLogin');
+		this._pairingUtils.setCommonHandlers();
 
 		this._socket.on('pinRequest', () => {
 			let lclPin = this._getRandomPin(15, 0);
@@ -64,28 +69,7 @@ class BeameLogin {
 
 		});
 
-		this._socket.on('verifyToken', (token) => {
-			authToken.validate(token).then(() => {
-				let parsed     = JSON.parse(token);
-				let targetFqdn = (!(parsed.signedBy == parsed.signedData.data)) ? (parsed.signedData.data + '/beame-gw/xprs-signin') : 'none';
 
-				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-				fqdn && store.find(fqdn, true).then((cred) => {
-					//let newToken    = (bootstrapper.delegatedLoginServers && bootstrapper.delegatedLoginServers.length > 1)? cred && authToken.create(token, cred, 10):token;
-					let newToken = cred && authToken.create(token, cred, 10);
-					this._socket.emit('tokenVerified', JSON.stringify({
-						success: true,
-						target:  targetFqdn,
-						token:   newToken
-					}));
-				}).catch(e => {
-					this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e}));
-				});
-
-			}).catch(e => {
-				this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e}));
-			});
-		});
 
 		this._socket.on('notifyMobile', (data) => {
 			const ProvisionApi = beameSDK.ProvApi;
@@ -140,7 +124,7 @@ class BeameLogin {
 						let fqdn     = this._fqdn,
 						    cred     = store.getCredential(fqdn),
 						    name     = pin.toString().replace(/,/g, '-') + '.pin.virt.beameio.net',
-						    token    = authToken.create(name, cred, 10),
+						    token    = authToken.create(name, cred, 60),
 						    tokenStr = CommonUtils.stringify({
 							    'relay':          'https://' + this._relay + '/control',//'https://arn5e5bh1s9mkqwr.bqnp2d2beqol13qn.v1.d.beameio.net/control',
 							    'signature':      token,

@@ -12,7 +12,10 @@ var ActionTypes = {
 };
 
 var logoutUrl = null,
-	logoutTimeout = null;
+	logoutTimeout = null,
+	gwloginTarget,
+	gwloginRelay
+;
 
 function startGatewaySession(authToken, userData, relaySocket, uid) {
 
@@ -87,12 +90,28 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 		});
 
+		gw_socket.on('tokenVerified', function (data) {
+			console.log('tokenVerified', data);
+			var parsed = JSON.parse(data);
+			console.log('tokenVerified:',parsed,'..loginTarget:',gwloginTarget,'..loginRelay:',gwloginRelay);
+			if(parsed.success){
+				if(parsed.token && gwloginTarget && gwloginRelay){
+					var l = 'https://' + parsed.target + "?usrInData=" +
+						encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:gwloginTarget, relay:gwloginRelay})));
+					window.top.location = l;
+				}
+			}
+			else{
+				console.log('Token validation failed, or invalid session data:',parsed.error);
+			}
+		});
+
 		gw_socket.on('data', function (data) {
 			data = JSON.parse(data);
 			console.log('GW data type', data);
 			var type = data.type, payload = data.payload, user = payload.user;
 
-			if (type == 'authenticated') {
+			if (type === 'authenticated') {
 				if (payload.success) {
 					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 
@@ -118,12 +137,12 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 			}
 
-			if (type == 'updateProfile') {
+			if (type === 'updateProfile') {
 				saveUserInfoCookie(user);
 				return;
 			}
 
-			if (type == 'redirectTopWindow' && payload.url){
+			if (type === 'redirectTopWindow' && payload.url){
 				var target = payload.url;
 				sendEncryptedData(getRelaySocket(), getRelaySocketID(),
 					str2ab(JSON.stringify({'type': 'redirect', 'payload':{'forceLogout':true}})),
@@ -132,7 +151,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				});
 			}
 
-			if (type == 'redirect' && payload.url.indexOf('beame-gw/logout') > 0) {
+			if (type === 'redirect' && payload.url.indexOf('beame-gw/logout') > 0) {
 				// gw_socket.emit('data', {
 				// 	type:    'logout',
 				// 	payload: {
@@ -207,10 +226,15 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 						break;
 					case 'new_session_init':
 						console.log('Requested new session with:',decryptedData.payload);
+
 						var parsed = decryptedData.payload;
-						var parsedToken = JSON.parse(parsed.token);
-						var l = 'https://' + parsedToken.signedData.data + "/beame-gw/xprs-signin?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:parsed.uid, renew:true})));
-						window.top.location = l;
+						//var parsedToken = JSON.parse(parsed.token);
+						gw_sock.emit('verifyToken', parsed.token);
+						gwloginRelay = parsed.relay;
+						gwloginTarget = parsed.uid;
+						// var l = 'https://' + parsedToken.signedData.data + "/beame-gw/xprs-signin?usrInData=" +
+						// 	encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token, uid:parsed.uid, relay:parsed.relay, renew:true})));
+						// window.top.location = l;
 						break;
 					case 'mediaRequest':
 						sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,

@@ -139,6 +139,7 @@ class QrMessaging {
 
 			}
 			catch (e){
+				console.error(e);
 				this._sendWithAck(socket, "edgeError", "Invalid data, please retry");
 			}
 		});
@@ -363,7 +364,7 @@ class QrMessaging {
 		if (this._edge) {
 			let fqdn     = this._fqdn,
 			    cred     = store.getCredential(fqdn),
-			    token    = authToken.create(this._browserHost, cred, 10),
+			    token    = authToken.create(this._browserHost, cred, 60),
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
 				    'data':          this._edge.endpoint,

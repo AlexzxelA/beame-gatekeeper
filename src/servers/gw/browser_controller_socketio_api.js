@@ -345,6 +345,10 @@ class BrowserControllerSocketioApi {
 			client.emit('virtHostRecovery', tokenStr);
 		});
 
+		const pairingUtils = require('../../pairing/pairing_utils');
+		let _pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+			client, module_name);
+		_pairingUtils.setCommonHandlers();
 
 		client.on('data', data => {
 			try {

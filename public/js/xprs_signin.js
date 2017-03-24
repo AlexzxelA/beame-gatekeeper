@@ -30,14 +30,14 @@ $(document).ready(function () {
 		});
 
 	}
-	test();
+	//test();
 
 	generateKeys();
 	setQRStatus('QR initializing session');
 
 
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = io.connect("/qr", socketio_options || { transports: ['websocket']});
+	var socket = io.connect("/qr", socketio_options);// || { transports: ['websocket']});
 
 	socket.on('connect', function () {
 		setOriginSocket('QR', socket);
