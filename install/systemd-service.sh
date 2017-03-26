@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# first user gets this script using curl and execuites it. we create a new user, with name beame-gatekeepr.
-# then we check if the current system user alrady has credentials, and if not instruct the user to the website, read token from stdin, 
-# recive credentials, (beame.js creds getCreds --regToken), to set up L0, and then execute all the commands under the new user with this token.
-# 
-#
+# This script does:
+# * Creates new user for Beame Gatekeeper service (default: beame-gatekeeper)
+# * Uses either provided token or creates one if there are suitable credentials
+#   in ~/.beame folder of the sudoer or the running user.
+# * Uses the token from the step above to get all credentials for Beame Gatekeeper
+#   and places them in ~/.beame folder of Beame Gatekeeper user
+# * Sets up systemd service (default: beame-gatekeeper)
 
 set -eu
-set -x
 
 err_trap_func() {
 	echo "ERROR: Installation failed"
@@ -16,26 +17,29 @@ err_trap_func() {
 trap err_trap_func ERR
 
 if [[ $EUID -ne 0 ]]; then
-   echo "Installation failed" 
-   echo "Please run this script as root" 
+   echo "Installation can not proceed."
+   echo "Please run this script as root."
    exit 1
 fi
 
-returnCleanFolder() {
-   return "rm -rf .beame_"
-}
-
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )" && pwd )"
 
 : ${BEAME_GATEKEEPER_USER:=beame-gatekeeper}
 : ${BEAME_GATEKEEPER_SVC:=beame-gatekeeper}
-: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}
 : ${BEAME_GATEKEEPER_SYSTEMD_FILE:="/etc/systemd/system/$BEAME_GATEKEEPER_SVC.service"}
 : ${BEAME_GATEKEEPER_SYSTEMD_EXTRA:=''}
 : ${BEAME_GATEKEEPER_DIR:="$(dirname "$SCRIPT_DIR")"}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
-: ${BEAME_GATEKEEPER_MAIN_EXECUTABLE:="$BEAME_GATEKEEPER_DIR/main.js"}
-: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(getent passwd "$BEAME_GATEKEEPER_USER"| cut -d: -f6 )"};
+: ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
+: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(getent passwd "$BEAME_GATEKEEPER_USER"| cut -d: -f6 )"}
+
+if type -t node &>/dev/null;then
+	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which node)}
+else
+	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}
+fi
+
+echo "+ Using NodeJS binary: $BEAME_GATEKEEPER_NODEJS_BIN"
 
 if [[ $BEAME_GATEKEEPER_NODEJS_BIN ]];then
 	echo "+ Will be using NodeJS at $BEAME_GATEKEEPER_NODEJS_BIN"
@@ -44,7 +48,20 @@ else
 	exit 2
 fi
 
-"$SCRIPT_DIR/check-nodejs-version.sh" "$BEAME_GATEKEEPER_NODEJS_BIN"
+echo "+ Checking NodeJS version. Expecting Node 6."
+v="$("$BEAME_GATEKEEPER_NODEJS_BIN" -v)"
+v="${v:1}"
+
+if [[ $v =~ ^[6]\. ]];then
+	echo "+ Node 6 detected - OK"
+else
+	echo "+ ERROR: Node version $v detected but beame-gatekeeper requires node version 6"
+	exit 10
+fi
+
+if ! type -t jq &>/dev/null;then
+	echo "+ jq not found. Please install jq."
+fi
 
 if getent passwd "$BEAME_GATEKEEPER_USER" >/dev/null 2>&1;then
 	echo "+ User $BEAME_GATEKEEPER_USER already exists"
@@ -52,71 +69,48 @@ else
 	echo "+ Adding user for beame-gatekeeper: $BEAME_GATEKEEPER_USER"
 	adduser --system --group --disabled-password --shell /bin/false "$BEAME_GATEKEEPER_USER"
 fi
-#echo "$1";
-if [ "$#" -ne "0" ]; then
-	if [ "$1" = 'wipeConfig' ]; then
-	  echo "current content of the folder is " $(sudo -u "$BEAME_GATEKEEPER_USER" ls "$BEAME_GATEKEEPER_USER_HOMEDIR"/.beame_*)
-	  sudo -u "$BEAME_GATEKEEPER_USER" rm -rf "$BEAME_GATEKEEPER_USER_HOMEDIR"/.beame_*
-	  echo "after delettion" $(sudo -u "$BEAME_GATEKEEPER_USER" ls "$BEAME_GATEKEEPER_USER_HOMEDIR"/.beame_*)
-	  exit 0;
-	fi 
 
-	if [ "$1" = 'wipeCreds' ]; then
-	  echo "deleting credentials folder " $(sudo -u "$BEAME_GATEKEEPER_USER" rm -rf "$BEAME_GATEKEEPER_USER_HOMEDIR"/.beame/*)
-	  echo "hope thats what you wanted (:-"
-	  exit 0;
-	fi
-
-
-	if [ "$1" = 'getAdminToken' ]; then
-	  #  failed to understand the command needed to generare the admin creds. the cli needs alot of help -(;
-	  echo $(sudo -u "$BEAME_GATEKEEPER_USER" "$BEAME_GATEKEEPER_MAIN_EXECUTABLE" creds getCreds ) 
-	  exit 0;
-	fi
-	if [ "$1" = 'getWebApiToken' ]; then
-	  #  failed to understand the command needed to generare the admin creds. the cli needs alot of help -(;
-	  echo $(sudo -u "$BEAME_GATEKEEPER_USER" "$BEAME_GATEKEEPER_MAIN_EXECUTABLE" creds getCreds ) 
-	  exit 0;
-	fi
-	
-fi
-
-
-
-echo "*******************"
-echo "$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK"
-
-setRootFqdn() {
-	ROOT_CREDENENTIALS=$("$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK" creds list --format json | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
-	echo "$ROOT_CREDENENTIALS"
-}
-
-# ROOT_CREDENENTIALS=$("$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK" creds list --format json | jq -r '.[].metadata.fqdn')
-
-setRootFqdn
-
-
-
-if [[ "$ROOT_CREDENENTIALS" = *[!\ ]* ]]; then
-    echo "L0 credentials found " "$ROOT_CREDENENTIALS"
-    l0present=true;
-    
+if su -s /bin/bash -c '[[ -e ~/.beame ]]' "$BEAME_GATEKEEPER_USER";then
+	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER exists. Not getting credentials."
 else
-    echo "root credentials not found"
-    echo "Please got to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/ and complete your registration proccess..."
-    echo "Please enter token from your email"
-    read token
-    "$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK" creds getCreds --token $token
-    setRootFqdn
-    l0present=true 
-fi
+	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER does not exist. Getting credentials."
 
-if "$l0present"; then
-  token=$("$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK" creds getRegToken --fqdn "$ROOT_CREDENENTIALS" --name "Gatekeeper-"$HOSTNAME);
-  sudo -u "$BEAME_GATEKEEPER_USER" "$BEAME_GATEKEEPER_MAIN_EXECUTABLE" creds getCreds --regToken $token
-  echo $token;
-fi
+	if [[ ${1-} ]];then
+		echo "+ Using provided token: $1"
+		token="$1"
+	else
+		echo "+ Token not provided as command line argument. Looking for root (top level) credentials to create token with."
+		if [[ ${SUDO_USER-} ]];then
+			echo "+ Taking root credentials user from SUDO_USER"
+			ROOT_CREDENENTIALS_USER=$SUDO_USER
+		else
+			ROOT_CREDENENTIALS_USER=$(id -un)
+		fi
+		echo "+ Root credentials user: $ROOT_CREDENENTIALS_USER"
+		ROOT_CREDENENTIALS_HOME="$(getent passwd "$ROOT_CREDENENTIALS_USER" | cut -d: -f6 )"
+		echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
 
+		echo "+ Searching for root credentials"
+		ROOT_CREDENENTIALS=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" "$ROOT_CREDENENTIALS_USER" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+		if [[ $ROOT_CREDENENTIALS ]]; then
+			echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
+			echo "+ Getting token as child of $ROOT_CREDENENTIALS"
+			token=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$HOSTNAME'" "$ROOT_CREDENENTIALS_USER")
+			echo "+ Got token: $token"
+		else
+			echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
+			echo "+---------------------------------------------------------------------------------------------------------------------+"
+			echo "| Please got to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/ and complete your registration process    |"
+			echo "| then run this script with the token from email:                                                                     |"
+			echo "| $0 TOKEN_FROM_EMAL                                                                                                  |"
+			echo "+---------------------------------------------------------------------------------------------------------------------+"
+			exit 5
+		fi
+	fi
+
+	echo "+ Getting Beame Gatekeeper credentials"
+	su -s /bin/bash -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'" "$BEAME_GATEKEEPER_USER"
+fi
 
 
 echo "+ Creating $BEAME_GATEKEEPER_SYSTEMD_FILE file for beame-gatekeeper"
@@ -142,7 +136,9 @@ systemctl enable "$BEAME_GATEKEEPER_SVC"
 echo "+ Reloading systemd"
 systemctl daemon-reload
 
-echo "+ SUCCESS. Installation complete."
-echo "+ Starting service "
-service "BEAME_GATEKEEPER_SVC" start
+echo "+ Installation complete."
+echo "+ Starting service $BEAME_GATEKEEPER_SVC"
+service "$BEAME_GATEKEEPER_SVC" start
+
+echo "+ All operations finished successfully"
 
