@@ -15,7 +15,7 @@ var BIT_N    = 500;
 var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
-const SOUND_ATT = 32;
+const SOUND_ATT = 64;
 var retryCounter    = 0;
 
 var audio,
@@ -882,7 +882,7 @@ function convertPemToBinary(pem) {
 }
 
 function importPublicKey(pemKey, encryptAlgorithm, usage) {
-	if (pemKey.length == 360)
+	if (pemKey.length === 360)
 		pemKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A" + pemKey;
 	return new Promise(function (resolve) {
 		var importer = events2promise(cryptoSubtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
@@ -963,31 +963,43 @@ function processMobileData(TMPsocketRelay, data, cb) {
 
 	}
 
+	function onMessageDecryptedData(err, decryptedDataB64) {
+		if (!err) {
+			decryptedData = JSON.parse(atob(decryptedDataB64));
+			switch (decryptedData.type){
+				case 'beamePing':
+					TMPsocketRelay.emit('data', {
+						'socketId': tmpSocketID,
+						'payload':  {'type':'beamePong'}
+					});
+					break;
+				default:
+					console.log('Got unexpected data:', decryptedData);
+			}
+		}
+		else {
+			console.log('failed to decrypt session data');
+			TMPsocketRelay.emit('data', {
+				'socketId': tmpSocketID,
+				'payload':  'failed to decrypt session_data'
+			});
+		}
+
+	}
+
 	switch (type) {
 		case 'info_packet_response':
 			console.log('info_packet_response data = ', data.payload.data);
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
 		case 'direct_mobile':
-			// var xhr = new XMLHttpRequest();
-			// xhr.open('GET', "https://gsvewupg9e8tl75r.kl9gozbgs9nlfxpw.v1.p.beameio.net/", true);
-			// xhr.withCredentials = false;
-			// //xhr.setRequestHeader('Access-Control-Allow-Origin','*');
-			// //xhr.setRequestHeader('Access-Control-Allow-Methods','GET');
-			// xhr.send();
-			// xhr.onreadystatechange = processRequest;
-			// function processRequest(e) {
-			// 	if (xhr.readyState == 4) {
-			// 		window.alert('xhr READY:'+xhr.status)
-			// 	}
-			// }
+			//unexpected here
 			break;
 		case 'restart_pairing':
 			window.location.reload();
 			break;
 		case 'session_data':
-			loginTarget = 'huj';
-
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedData);
 			break;
 		default:
 			console.error('unknown payload type for Beame-Login' + type);

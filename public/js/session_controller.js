@@ -14,13 +14,15 @@ var ActionTypes = {
 var logoutUrl = null,
 	logoutTimeout = null,
 	gwloginTarget,
-	gwloginRelay
-;
+	gwloginRelay,
+	gw_socket = null;
+
 
 function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 
-	var gw_socket = null, relay_socket = relaySocket;
+
+	var relay_socket = relaySocket;
 
 	var session_token = null;
 
@@ -195,16 +197,21 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 		console.error(e);
 	}
 
+	window.getNotifManagerInstance().subscribe('RELAY_CONNECTION_RECOVERED', function (newSocket) {
+		restartMobileRelaySocket(newSocket, gw_socket);
+	});
+	//window.getNotifManagerInstance().subscribe('SHOW_USER_IMAGE', onUserImageReceived);
+
 	function restartMobileRelaySocket(mob_relay_socket, gw_sock, uid) {
 
 		if (!mob_relay_socket) return;
-
+		if(relaySocket)relaySocket.removeAllListeners();
+		relay_socket = mob_relay_socket;
 		relaySocket = mob_relay_socket;
-
 		relaySocket.removeAllListeners();
 
 		relaySocket.on('data', function (data) {
-
+			relaySocket.beame_relay_socket_id = data.socketId;
 			processMobileData(relaySocket, {
 				'QR': null,
 				'WH': null,
@@ -298,8 +305,9 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 			console.log('mobile socket:: end', relaySocket.id);
 		});
 
-		relaySocket.on('disconnect', function () {
-			console.log('mobile socket:: disconnect', relaySocket.id);
+		relaySocket.on('disconnect', function () {//connection dropped by network, trying to reconnect
+			console.log('mobile socket:: disconnected. Reconnecting..', RelayFqdn);
+			connectRelaySocket(null, null, null, 10);//default is 10 retries for 2 seconds. 2 + 10 * 20 seconds
 		});
 
 		virtHostAlive = virtHostTimeout;

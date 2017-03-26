@@ -7,10 +7,12 @@ const audioOnlySession = false;
 const activateVirtHostRecovery = false;
 const virtHostTimeout = 5;
 const wait4MobileTimeout = 30000;
+const connectionRetryDelay = 2000;
 var vUID = null,
 	virtRelaySocket = null,
 	virtHostConnected = false,
 	connectToRelayTimeout = 10,
+	connectToRelayCounter = connectToRelayTimeout,
 	connectToRelayRetry = null,
 	qrRefreshRate = 1000,
 	allSessionsActive = true,
@@ -23,7 +25,10 @@ var vUID = null,
 	controlWindowTimer = null,
 	RelayPath = null,
 	RelayFqdn = null,
-	waitingForMobileConnection = null;
+	waitingForMobileConnection = null,
+	extVirtualHost = null,
+	sessionRecovery = false,
+	sessionXdata = null;
 
 var sessionValidationActive   = null,
 	sessionValidationComplete = false;
@@ -56,33 +61,37 @@ function validateSession(imageRequired) {
 	);
 }
 
-function registerVirtualHost(signature, socket, hostname) {
-	var connectReq = function () {
+function registerVirtualHost(signature, socket) {
+	var hostname = extVirtualHost,
+		connectReq = function () {
 		if(hostname)
 			sendClientRequest(hostname, socket);
 		else
 			sendConnectRequest(signature, socket);
 	};
 	connectReq();
+	if(!connectToRelayRetry)
 	connectToRelayRetry = setInterval(function () {
-		if(--connectToRelayTimeout && !stopAllRunningSessions){
+		if(--connectToRelayCounter > 0){
 			connectReq();
 		}
 		else{
 			clearInterval(connectToRelayRetry);
 			pingVirtHost && clearInterval(pingVirtHost);
 		}
-	},3000);
+	},connectionRetryDelay);
 }
 
 function sendClientRequest(hostname, socket) {
+	console.log('Sending connection request:',hostname);
 	socket.emit('register_server',
 		{
 			'payload': {
-				'socketId':      null,
+				'socketId':      sessionRecovery?TmpSocketID:null,
 				'host':          hostname,
 				'type':          'HTTPS',
-				'toVirtualHost': true
+				'toVirtualHost': true,
+				'recovery': sessionRecovery
 			}
 		});
 }
@@ -115,26 +124,39 @@ function sendConnectRequest(signature, socket) {
 }
 
 
-function connectRelaySocket(relay, sign, extUid) {
-	if(virtRelaySocket && virtRelaySocket.connected){
-		virtRelaySocket.emit('cut_client',{'socketId':TmpSocketID});
+function connectRelaySocket(relay, sign, extUid, retries) {
+	if(retries){
+		if(connectToRelayRetry){//connect in progress
+			console.log('Already reconnecting:', connectToRelayCounter);
+			return;
+		}
+		connectToRelayCounter += retries * connectToRelayTimeout;
+		sessionRecovery = true;
+	}
+	else{
+		sessionRecovery = false;
+		sessionXdata = sign;
+	}
+
+
+
+	if(extUid)extVirtualHost = extUid;
+	if(virtRelaySocket){
+		if(virtRelaySocket.connected)
+			virtRelaySocket.emit('cut_client',{'socketId':TmpSocketID});
 		virtRelaySocket.removeAllListeners();
 		virtRelaySocket = undefined;
 	}
-	if(!RelayFqdn || (RelayFqdn.indexOf(relay) < 0)){
+	if(!RelayFqdn || (relay && RelayFqdn.indexOf(relay) < 0)){
 		RelayFqdn   = "https://" + relay + "/control";
 		RelayPath   = "https://" + relay;
 	}
 	virtRelaySocket = io.connect(RelayFqdn);//, {transports: ['websocket']});
 	virtRelaySocket.on('connect',function () {
 		virtHostConnected = true;
-		if(!extUid)
-			registerVirtualHost(sign, virtRelaySocket);
-		else{
-			vUID = extUid;
-			registerVirtualHost(sign, virtRelaySocket, extUid);
-		}
-		initComRelay(sign);
+		registerVirtualHost(sign || sessionXdata, virtRelaySocket);
+		if(extVirtualHost)vUID = extVirtualHost;
+		initComRelay(sign || sessionXdata);
 	});
 
 	return 0;
@@ -178,6 +200,7 @@ function initComRelay(sign) {
 
 	virtRelaySocket.on('connectedToBrowser', function (data) {
 		try{
+			notifyOrigin(data);
 			var parsed = (typeof  data === 'object')? data : JSON.parse(data);
 			TmpSocketID = parsed.socketId;
 			if(keyPair){
@@ -188,14 +211,10 @@ function initComRelay(sign) {
 							PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 						else
 							PK = arrayBufferToBase64String(keydata);
-						notifyOrigin(data);
+
 						console.log('Sending connectionRequest to mobile');
 						sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({type:'connectionRequest',token:sign, PK: PK, socketId: TmpSocketID})), null, vUID);
-						// virtRelaySocket.emit('data', {
-						// 	'socketId': getRelaySocketID(),
-						// 	'host': vUID,
-						// 	'payload':  JSON.stringify()
-						// });
+
 					}).catch(function (e) {
 					console.error(e);
 				});
@@ -220,15 +239,21 @@ function initComRelay(sign) {
 
 	function notifyOrigin(data) {
 		clearInterval(connectToRelayRetry);
+		connectToRelayRetry = null;
 		virtHostAlive = virtHostTimeout;
-		vUID = data.Hostname || vUID;
-		//TMPsocketOriginWh && sendQrDataToWhisperer(RelayPath, vUID, TMPsocketOriginWh);
-		TMPsocketOriginAp && sendQrDataToApprover(RelayPath, vUID, TMPsocketOriginAp);
-		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
-		TMPsocketOriginQR && setQRStatus && setQRStatus('Virtual host registration complete');
-		TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
-		TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
-		controlWindowStatus();
+		if(!sessionRecovery){
+			vUID = data.Hostname || vUID;
+			//TMPsocketOriginWh && sendQrDataToWhisperer(RelayPath, vUID, TMPsocketOriginWh);
+			TMPsocketOriginAp && sendQrDataToApprover(RelayPath, vUID, TMPsocketOriginAp);
+			console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
+			TMPsocketOriginQR && setQRStatus && setQRStatus('Virtual host registration complete');
+			TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
+			TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
+			controlWindowStatus();
+		}
+		else{
+			window.getNotifManagerInstance().notify('RELAY_CONNECTION_RECOVERED', virtRelaySocket);
+		}
 	}
 
 	virtRelaySocket.on('hostRegistered', function (data) {
@@ -238,12 +263,14 @@ function initComRelay(sign) {
 	virtRelaySocket.on('hostRegisterFailed',function (msg) {
 
 		processVirtualHostRegistrationError(msg, function (status) {
-			if(status === 'retry'){
-				TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
-			}
-			else{
-				virtRelaySocket.removeAllListeners();
-				virtRelaySocket = undefined;
+			if(!sessionRecovery){
+				if(status === 'retry'){
+					TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
+				}
+				else{
+					virtRelaySocket.removeAllListeners();
+					virtRelaySocket = undefined;
+				}
 			}
 		});
 	});

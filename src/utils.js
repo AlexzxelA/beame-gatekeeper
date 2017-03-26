@@ -43,65 +43,6 @@ function setExpressAppCommonRoutes(app) {
 	app.use(express.static(path.join(__dirname, '..', Constants.WebRootFolder)));
 }
 
-let localSigninRelayFqdn = null;
-function getLocalRelayFqdn() {
-	return new Promise((resolve, reject) => {
-		if(localSigninRelayFqdn)
-			resolve(localSigninRelayFqdn);
-		else
-			getBestRelay().then(relay=> {
-				localSigninRelayFqdn = relay;
-				resolve(relay);
-			}).catch(e=>{reject(e);})
-	});
-}
-
-function getBestRelay() {
-	return new Promise((resolve, reject) => {
-
-			const beameUtils = beameSDK.BeameUtils;
-			beameUtils.selectBestProxy(null, 10, 1000, (error, payload) => {
-				if (!error) {
-					resolve(payload.endpoint);
-				}
-				else {
-					reject(error);
-				}
-			});
-		}
-	);
-}
-
-function getRelayFqdn(target, lclFqdn){
-
-	const ProvisionApi = beameSDK.ProvApi;
-	const authToken    = beameSDK.AuthToken;
-	const store        = new (beameSDK.BeameStore)();
-
-	return new Promise((resolve, reject) => {
-		try {
-			let fqdn     = lclFqdn,
-				cred     = fqdn && store.getCredential(fqdn),
-				token    = cred && authToken.create(fqdn, cred, 10),
-				provisionApi = new ProvisionApi();
-
-			//provisionApi.makeGetRequest(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`, null, (error, payload) => {
-			provisionApi.makeGetRequest(target, null, (error, payload) => {
-				if (error) {
-					reject(error);
-				}
-				else {
-					if(payload.beame_login_config)
-						resolve(payload.beame_login_config.relay);
-					else
-						resolve(payload.relay);
-				}
-			}, token, 5);
-		} catch (e) {
-			reject(e);
-		}
-	});
-}
 
 function createAuthTokenByFqdn(fqdn, data, ttl) {
 	if (arguments.length < 3) {
@@ -138,7 +79,5 @@ module.exports = {
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,
-	signDataWithFqdn,
-	getRelayFqdn,
-	getLocalRelayFqdn
+	signDataWithFqdn
 };

@@ -17,7 +17,7 @@ var BIT_N    = 500;
 var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
-const SOUND_ATT = 32;
+const SOUND_ATT = 64;
 
 var bpf = [
 	0.0054710543943477024,

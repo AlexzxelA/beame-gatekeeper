@@ -365,7 +365,7 @@ class BrowserControllerSocketioApi {
 				if(expectedMessages.indexOf(data.type)<0)
 					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
-			messageHandlers[data.type](data.payload || data, reply);
+			messageHandlers[data.type] && messageHandlers[data.type](data.payload || data, reply);
 		});
 	}
 }

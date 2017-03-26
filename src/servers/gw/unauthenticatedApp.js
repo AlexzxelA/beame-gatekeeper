@@ -22,7 +22,7 @@ const BeameAuthServices = require('../../authServices');
 const public_dir        = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 const base_path         = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
 const apiConfig         = require('../../../config/api_config.json');
-
+const relayManagerInstance = require('../../relayManager').getInstance();
 const utils         = require('../../utils');
 const cust_auth_app = require('../../routers/customer_auth');
 
@@ -420,18 +420,11 @@ unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
 	// const apiConfig    = require('../../../config/api_config.json');
 	const matching = Bootstrapper.getCredFqdn(Constants.CredentialType.MatchingServer);
 
-	utils.getLocalRelayFqdn().then((relay) => {
+	relayManagerInstance.getLocalRelayFqdn().then((relay) => {
 		res.send(JSON.stringify({'beame_login_config': {relay: (relay || 'none'), matching: matching}}));
 	}).catch((e) => {
 		res.send(JSON.stringify({'beame_login_config': {error: e}}));
 	});
-
-	// utils.getRelayFqdn(`https://${matching}${apiConfig.Actions.Matching.GetRelay.endpoint}`,
-	// 	Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then((relay)=>{
-	// 	res.send(JSON.stringify({'beame_login_config': {relay:(relay || 'none'), matching:matching}}));
-	// }).catch((e)=>{
-	// 	res.send(JSON.stringify({'beame_login_config': {error:e}}));
-	// });
 
 });
 
