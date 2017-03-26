@@ -31,7 +31,7 @@ SCRIPT_DIR="$( cd "$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )" && pwd )"
 : ${BEAME_GATEKEEPER_DIR:="$(dirname "$SCRIPT_DIR")"}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
-: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(getent passwd "$BEAME_GATEKEEPER_USER"| cut -d: -f6 )"}
+: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(getent passwd "$BEAME_GATEKEEPER_USER" | cut -d: -f6)"}
 
 if type -t node &>/dev/null;then
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which node)}
@@ -39,10 +39,8 @@ else
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}
 fi
 
-echo "+ Using NodeJS binary: $BEAME_GATEKEEPER_NODEJS_BIN"
-
 if [[ $BEAME_GATEKEEPER_NODEJS_BIN ]];then
-	echo "+ Will be using NodeJS at $BEAME_GATEKEEPER_NODEJS_BIN"
+	echo "+ Using NodeJS at $BEAME_GATEKEEPER_NODEJS_BIN"
 else
 	echo "+ NodeJS not found"
 	exit 2
@@ -99,11 +97,11 @@ else
 			echo "+ Got token: $token"
 		else
 			echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
-			echo "+---------------------------------------------------------------------------------------------------------------------+"
-			echo "| Please got to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/ and complete your registration process    |"
-			echo "| then run this script with the token from email:                                                                     |"
-			echo "| $0 TOKEN_FROM_EMAL                                                                                                  |"
-			echo "+---------------------------------------------------------------------------------------------------------------------+"
+			echo "----------------------------------------------------------------------------------------------------"
+			echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/ and complete your registration process"
+			echo "then run this script with the token from email:"
+			echo "$0 TOKEN_FROM_EMAL"
+			echo "----------------------------------------------------------------------------------------------------"
 			exit 5
 		fi
 	fi
@@ -140,5 +138,12 @@ echo "+ Installation complete."
 echo "+ Starting service $BEAME_GATEKEEPER_SVC"
 service "$BEAME_GATEKEEPER_SVC" start
 
-echo "+ All operations finished successfully"
+echo "+ All operations finished successfully."
+echo ""
+echo "You can use convenience script beame-gatekeeper-ctl to manage Beame Gatekeeper service."
+echo "Running it for you with 'info' command and then with 'admin' command."
+echo ""
 
+bash $BEAME_GATEKEEPER_DIR/install/ctl.sh info
+echo ""
+bash $BEAME_GATEKEEPER_DIR/install/ctl.sh admin
