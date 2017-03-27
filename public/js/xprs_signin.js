@@ -51,8 +51,12 @@ $(document).ready(function () {
 			var parsed = JSON.parse(delegatedUserId);
 			sessionParams = {'uid':parsed.uid, 'relay':parsed.relay};
 			var dataX = JSON.parse(parsed.token).signedData;
+
 			if (!qrRelayEndpoint) {
-				socket.emit('xprs_browser_connected', {uid:parsed.uid, token:JSON.parse(parsed.token).signedData.data});
+				if(dataX.data && (dataX.data.indexOf('signedBy')>0))
+					socket.emit('xprs_browser_connected', {uid:parsed.uid, token:JSON.parse(parsed.token).signedData.data});
+				else
+					socket.emit('browser_connected', UID);
 			}
 		}
 		catch(e){
@@ -97,7 +101,7 @@ $(document).ready(function () {
 			}
 			try {
 				var parsedData = (typeof data === 'object')?data : JSON.parse(data);
-				var cleanData = (parsedData.data)?parsedData.data:parsedData;
+				var cleanData = (parsedData.service && parsedData.appId)?parsedData:(parsedData.data)?parsedData.data:parsedData;
 				cleanData = (typeof cleanData === 'object')?cleanData: JSON.parse(cleanData);
 				sessionServiceData = cleanData && JSON.stringify({
 						'matching':cleanData.matching,
@@ -105,8 +109,8 @@ $(document).ready(function () {
 						'appId': cleanData.appId});
 
 				userImageRequired = cleanData['imageRequired'];
-				qrRelayEndpoint = sessionParams.relay || cleanData;
-				if(!sessionParams || sessionParams && !sessionParams.uid) {
+				qrRelayEndpoint = sessionParams.relay || cleanData.data;
+				if(!sessionParams || sessionParams && !sessionParams.relay) {
 					verifyInputData('https://' + qrRelayEndpoint, function () {
 						connectRelaySocket(qrRelayEndpoint, cleanData['signature']);
 					});

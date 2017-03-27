@@ -764,7 +764,8 @@ class BeameAuthServices {
 				    serviceId:     bootstrapper.appId,
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
-				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)
+				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+					version:       bootstrapper.version
 			    },
 			    postEmailUrl = null,
 			    postSmsUrl   = null;
@@ -1055,7 +1056,8 @@ class BeameAuthServices {
 						fqdn:      data.fqdn, name: data.name, email: data.email,
 						userId:    data.user_id, ttl: ttl, serviceName: bootstrapper.serviceName,
 						serviceId: bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
-						gwFqdn:    Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)
+						gwFqdn:    Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+						version:   bootstrapper.version
 					})
 					.then(resolve)
 					.catch(reject);

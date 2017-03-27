@@ -148,8 +148,14 @@ function connectRelaySocket(relay, sign, extUid, retries) {
 		virtRelaySocket = undefined;
 	}
 	if(!RelayFqdn || (relay && RelayFqdn.indexOf(relay) < 0)){
-		RelayFqdn   = "https://" + relay + "/control";
-		RelayPath   = "https://" + relay;
+		if(relay.indexOf('https')<0){
+			RelayFqdn   = "https://" + relay + "/control";
+			RelayPath   = "https://" + relay;
+		}
+		else{
+			RelayFqdn   = relay;
+			RelayPath   = relay;
+		}
 	}
 	virtRelaySocket = io.connect(RelayFqdn);//, {transports: ['websocket']});
 	virtRelaySocket.on('connect',function () {
@@ -264,10 +270,10 @@ function initComRelay(sign) {
 
 		processVirtualHostRegistrationError(msg, function (status) {
 			if(!sessionRecovery){
-				if(status === 'retry'){
-					TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
-				}
-				else{
+				if(status !== 'retry'){
+				// 	TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
+				// }
+				// else{
 					virtRelaySocket.removeAllListeners();
 					virtRelaySocket = undefined;
 				}

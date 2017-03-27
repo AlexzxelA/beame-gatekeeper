@@ -20,7 +20,7 @@ function verifyInputData(relay, cb) {
 		var qrData = 'none';
 		waitingForMobileConnection = setTimeout(function () {
 			window.alert('Timed out waiting for mobile connection');
-			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+			window.location.href = window.location.origin;//TODO restart local login page without parameters?
 		},wait4MobileTimeout);
 		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
 		events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
@@ -45,7 +45,7 @@ function verifyInputData(relay, cb) {
 			setTimeout(function () {
 				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
 				delegatedUserId = undefined;
-				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+				window.location.href =  window.location.origin;//TODO restart local login page without parameters?
 			}, 30000);
 		});
 	}

@@ -210,6 +210,7 @@ class QrMessaging {
 					payload.matching      = this._matchingServerFqdn;
 					payload.service       = this._serviceName;
 					payload.gwFqdn        = this._gwFqdn;
+					payload.version       = bootstrapper.version;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					this._sendWithAck(socket, "mobileProv1", {
@@ -258,6 +259,7 @@ class QrMessaging {
 							payload.matching      = this._matchingServerFqdn;
 							payload.service       = this._serviceName;
 							payload.gwFqdn        = this._gwFqdn;
+							payload.version       = bootstrapper.version;
 							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 							break;
 						case 'cert':
