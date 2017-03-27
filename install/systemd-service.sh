@@ -98,7 +98,7 @@ else
 		else
 			echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
 			echo "----------------------------------------------------------------------------------------------------"
-			echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/ and complete your registration process"
+			echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper and complete your registration process"
 			echo "then run this script with the token from email:"
 			echo "$0 TOKEN_FROM_EMAL"
 			echo "----------------------------------------------------------------------------------------------------"
