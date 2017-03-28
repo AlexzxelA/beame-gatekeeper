@@ -135,6 +135,7 @@ class Approver {
 			this._jsonQrData['appId']     = bootstrapper.appId;
 			this._jsonQrData['gwFqdn']    = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 			this._jsonQrData['version']   = bootstrapper.version;
+			this._jsonQrData['pairing']   = bootstrapper.pairingRequired;
 		});
 
 		this.initMatchingServerSocketClient().then(() => {
@@ -220,7 +221,9 @@ class Approver {
 			matching:       this._matchingServerFqdn,
 			service:        this._serviceName,
 			appId:          bootstrapper.appId,
-			version:        bootstrapper.version
+			version:        bootstrapper.version,
+			pairing:        bootstrapper.pairingRequired
+
 		};
 
 		logger.debug(`[${this._sessionId}] emitting create session with data`, data);

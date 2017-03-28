@@ -238,6 +238,8 @@ class Whisperer {
 						payload.service       = this._serviceName;
 						payload.gwFqdn        = this._gwFqdn;
 						payload.version       = bootstrapper.version;
+						payload.pairing       = bootstrapper.pairingRequired;
+
 						this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 					}).catch(e => {
 						logger.error(`authorizing mobile error ${BeameLogger.formatError(e)}`);
@@ -279,6 +281,7 @@ class Whisperer {
 								payload.service       = this._serviceName;
 								payload.gwFqdn        = this._gwFqdn;
 								payload.version       = bootstrapper.version;
+								payload.pairing       = bootstrapper.pairingRequired;
 								this._socket.emit("mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 								break;
 							case 'cert':

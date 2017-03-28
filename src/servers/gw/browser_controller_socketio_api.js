@@ -76,7 +76,9 @@ const messageHandlers = {
 				reply({
 					type:    'authenticated',
 					payload: {
-						imageRequired: bootstrapper.registrationImageRequired,
+						serviceName:    bootstrapper.serviceName,
+						pairing:        bootstrapper.pairingRequired,
+						imageRequired:  bootstrapper.registrationImageRequired,
 						success:       true,
 						session_token: token,
 						apps:          apps,
