@@ -31,7 +31,6 @@ SCRIPT_DIR="$( cd "$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )" && pwd )"
 : ${BEAME_GATEKEEPER_DIR:="$(dirname "$SCRIPT_DIR")"}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
-: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(getent passwd "$BEAME_GATEKEEPER_USER" | cut -d: -f6)"}
 
 if type -t node &>/dev/null;then
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which node)}
