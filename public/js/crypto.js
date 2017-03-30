@@ -1,30 +1,51 @@
 /**
  * Created by Alexz on 15/11/2016.
  */
-var cryptoObj = window.crypto || window.msCrypto;
+var allowLogout = false;
+var cryptoObj = window.crypto || window.msCrypto,
+	cryptoSubtle = cryptoObj.subtle || cryptoObj.webkitSubtle;
 
-var PK_RSAOAEP = {//encrypt only
+var CryptoAlg = 'RSASSA-PKCS1-v1_5';//(engineFlag)?'HMAC':'RSASSA-PKCS1-v1_5';
+
+var PK_RSAOAEP = engineFlag?{//encrypt only
+	name: "RSA-OAEP",
+	hash: {name: "SHA-1"}
+}:{//encrypt only
 	name: "RSA-OAEP",
 	hash: {name: "SHA-1"}
 };
 
-var PK_PKCS = {//verify signature only
-	name: "RSASSA-PKCS1-v1_5",
+var PK_PKCS = engineFlag?
+{//verify signature only
+	name: CryptoAlg,
+	hash: {name: "SHA-256"}
+}:{//verify signature only
+	name: CryptoAlg,
 	hash: {name: "SHA-256"}
 };
 
-var RSAOAEP = {//encrypt only
+var RSAOAEP = engineFlag?{//encrypt only
 	name:           "RSA-OAEP",
 	modulusLength:  2048,
 	publicExponent: new Uint8Array([1, 0, 1]),
-	hash:           {name: "SHA-1"}
-};
-
-var RSAPKCS         = {//verify signature only
-	name:           "RSASSA-PKCS1-v1_5",
+	hash: {name: "SHA-1"}}:
+{
+	name:           "RSA-OAEP",
 	modulusLength:  2048,
 	publicExponent: new Uint8Array([1, 0, 1]),
-	hash:           {name: "SHA-256"}
+	hash: {name: "SHA-1"}
+};
+
+var RSAPKCS         = engineFlag?{//verify signature only
+	name: "RSASSA-PKCS1-v1_5",
+	modulusLength: "2048",
+	publicExponent: new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
+	hash: { name: "SHA-256" }
+}:{//verify signature only
+	name: "RSASSA-PKCS1-v1_5",
+	modulusLength: "2048",
+	publicExponent: new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
+	hash: { name: "SHA-256" }
 };
 var keyPair;
 var keyPairSign;
@@ -70,14 +91,16 @@ function generateUID(length) {
 }
 
 function generateKeys() {
-	events2promise(cryptoObj.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
+	events2promise(cryptoSubtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
 		.then(function (key) {
 			console.log('RSA KeyPair', key);
-			events2promise(cryptoObj.subtle.generateKey(RSAPKCS, true, ["sign"]))
+			events2promise(cryptoSubtle.generateKey(RSAPKCS, true, ["sign", "verify"]))
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
 					keyPair      = key;
+					if(!keyPair.privateKey) keyPair.privateKey = keyPair;
 					keyPairSign  = key1;
+					if(!keyPairSign.privateKey) keyPairSign.privateKey = keyPairSign;
 					keyGenerated = true;
 				})
 				.catch(function (error) {
@@ -115,8 +138,8 @@ function getKeyPairs(cb) {
 }
 
 function signArbitraryData(data, cb) {
-	events2promise(cryptoObj.subtle.sign(
-		{name: "RSASSA-PKCS1-v1_5"},
+	events2promise(cryptoSubtle.sign(
+		PK_PKCS,
 		keyPairSign.privateKey,
 		str2ab(data)
 		))
@@ -142,7 +165,7 @@ function encryptWithPK(data, cb) {
 		inputArray.push(dataToEncrypt);
 	}
 	Promise.all(inputArray.map(function (inData) {
-		return events2promise(cryptoObj.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
+		return events2promise(cryptoSubtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
 	})).then(function (values) {
 		var finalLength = 0;
 
@@ -184,7 +207,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 			}
 
 			Promise.all(inputArray.map(function (inData) {
-				return events2promise(cryptoObj.subtle.decrypt(encryption, SK, inData))
+				return events2promise(cryptoSubtle.decrypt(encryption, SK, inData))
 			})).then(function (values) {
 				var finalLength = 0;
 
@@ -202,7 +225,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 
 				if (parsed['key'] && parsed['iv']) {
 					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
-					events2promise(cryptoObj.subtle.importKey(
+					events2promise(cryptoSubtle.importKey(
 						"raw", //can be "jwk" or "raw"
 						rawAESkey.slice(0, AESkeySize),//remove b64 padding
 						{name: "AES-CBC"},
@@ -211,7 +234,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 					)).then(function (key) {
 						console.log('imported aes key <ok>');
 						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0, AESkeySize);
-						events2promise(cryptoObj.subtle.decrypt(
+						events2promise(cryptoSubtle.decrypt(
 							{
 								name: 'AES-CBC',
 								iv:   rawIV
@@ -253,7 +276,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 function encryptWithSymK(data, plainData, cb) {
 	if (sessionAESkey) {
 		var abData = str2ab(data);
-		events2promise(cryptoObj.subtle.encrypt(
+		events2promise(cryptoSubtle.encrypt(
 			{name: 'AES-CBC', iv: sessionIV}
 			, sessionAESkey
 			, abData
@@ -261,8 +284,8 @@ function encryptWithSymK(data, plainData, cb) {
 			//plaindata will be signed but not encrypted
 			var cipheredValue = (plainData) ? plainData + arrayBufferToBase64String(encrypted) : arrayBufferToBase64String(encrypted);
 			console.log('Signing data: <', cipheredValue, '>');
-			events2promise(cryptoObj.subtle.sign(
-				{name: "RSASSA-PKCS1-v1_5"},
+			events2promise(cryptoSubtle.sign(
+				PK_PKCS,
 				keyPairSign.privateKey, //from generateKey or importKey above
 				str2ab(cipheredValue)
 				))
@@ -318,7 +341,11 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 	if (pemKey.length == 360)
 		pemKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A" + pemKey;
 	return new Promise(function (resolve) {
-		var importer = events2promise(cryptoObj.subtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
+		if(engineFlag)
+			pemKey = str2ab(JSON.stringify(pkcs2jwk(base64StringToArrayBuffer(pemKey))));
+		else
+			pemKey = convertPemToBinary(pemKey);
+		var importer = events2promise(cryptoSubtle.importKey(exportPKtype, pemKey, encryptAlgorithm, false, usage));
 		importer.then(function (keydata) {
 				resolve(keydata);
 			})
@@ -330,11 +357,28 @@ function importPublicKey(pemKey, encryptAlgorithm, usage) {
 
 
 function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
-
-	var type          = data.payload.data.type;
+	var payloadX = data.payload?data.payload:data;
+	var type          = payloadX.data.type;
 	var tmpSocketID   = data.socketId;
-	var encryptedData = data.payload.data;
+	var encryptedData = payloadX.data;
 	var decryptedData;
+
+	function onMessageDecryptedToken(err, decryptedDataB64) {
+		if (!err) {
+			decryptedData = JSON.parse(atob(decryptedDataB64));
+			initCryptoSession(TMPsocketRelay, originSocketArray, data, decryptedData);
+
+			//cb && cb(decryptedData);
+		}
+		else {
+			console.log('failed to decrypt login token');
+			TMPsocketRelay.emit('data', {
+				'socketId': tmpSocketID,
+				'payload':  'failed to decrypt mobile PK'
+			});
+		}
+
+	}
 
 	function onMessageDecryptedKey(err, decryptedDataB64) {
 		if (!err) {
@@ -374,6 +418,10 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	}
 
 	switch (type) {
+		case 'login_token':
+			console.log('Got login token');
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedToken);
+			return;
 		case 'approval_request':
 			console.log('Registration approval started');
 			cb = function () {
@@ -389,7 +437,7 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
 		case 'info_packet_response':
-			console.log('info_packet_response data = ', data.payload.data);
+			console.log('info_packet_response data = ', payloadX.data);
 			waitingForMobileConnection && clearTimeout(waitingForMobileConnection);
 			// var onPublicKeyImported = function (keydata) {
 			// 	console.log("Successfully imported RSAOAEP PK from external source..", decryptedData);
@@ -487,19 +535,27 @@ function processMobileData(TMPsocketRelay, originSocketArray, data, cb) {
 	}
 }
 
-function sendEncryptedData(target, socketId, data, cb) {
+function sendEncryptedData(target, socketId, data, cb, uid) {
 	encryptWithPK(data, function (error, cipheredData) {
 		if (!error) {
-			target.emit('data', {
-				'socketId': socketId,
-				'payload':  cipheredData
-			});
+			if(uid)
+				target.emit('data', {
+					'socketId': socketId,
+					'data':  cipheredData,
+					'host': uid
+				});
+			else
+				target.emit('data', {
+					'socketId': socketId,
+					'payload':  cipheredData
+				});
 		}
 		else {
 			console.error('Data encryption failed: ', error);
 			target.emit('data', {
 				'socketId': socketId,
-				'payload':  'Data encryption failed'
+				'payload':  'Data encryption failed',
+				'host': uid
 			});
 		}
 		cb && cb();
@@ -513,8 +569,16 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 	if (decryptedData.source) {
 		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound') ? originSocketArray.WH : originSocketArray.AP;
 	}
-	events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+
+
+
+	events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 		.then(function (mobPK) {
+			var PK = null;
+			if(engineFlag)
+				PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(mobPK))));
+			else
+				PK = arrayBufferToBase64String(mobPK);
 			if (!userImageRequested) {
 				userImageRequested = true;
 				switch (auth_mode) {
@@ -531,7 +595,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 								{
 									'pin':       decryptedData.reg_data.pin,
 									'otp':       decryptedData.otp,
-									'pk':        arrayBufferToBase64String(mobPK),
+									'pk':        PK,
 									'edge_fqdn': decryptedData.edge_fqdn,
 									'email':     decryptedData.reg_data.email,
 									'name':      decryptedData.reg_data.name,
@@ -567,8 +631,8 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 						return;
 
 					default:
-						alert('Unknown Auth mode');
-						logout();
+						window.alert('Unknown Auth mode');
+						allowLogout && logout();
 						return;
 				}
 
@@ -581,14 +645,19 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 			console.log('<*********< error >*********>:', error);
 		});
 
-	events2promise(cryptoObj.subtle.exportKey('spki', keyPairSign.publicKey))
-		.then(function (keydata1) {
-			console.log('SignKey: ', arrayBufferToBase64String(keydata1));
+	events2promise(cryptoSubtle.exportKey(exportPKtype, keyPairSign.publicKey || keyPairSign))
+		.then(function (keydata) {
+			var PK = null;
+			if(engineFlag)
+				PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+			else
+				PK = arrayBufferToBase64String(keydata);
+
 			sendEncryptedData(relaySocket, data.socketId,
 				str2ab(JSON.stringify({
 					'type': 'sessionSecData',
 					'data': {
-						'pk':          arrayBufferToBase64String(keydata1),
+						'pk':          PK,
 						'sign':        sessionServiceDataSign,
 						'sessionData': sessionServiceData
 					}
@@ -601,7 +670,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 }
 
 function sha256(data) {
-	return events2promise(cryptoObj.subtle.digest("SHA-256", str2ab(data))).then(function (hash) {
+	return events2promise(cryptoSubtle.digest("SHA-256", str2ab(data))).then(function (hash) {
 		return arrayBufferToBase64String(hash);
 	});
 }
@@ -633,4 +702,170 @@ function arrayBufferToBase64String(arrayBuffer) {
 		byteString += String.fromCharCode(byteArray[i]);
 	}
 	return btoa(byteString);
+}
+
+//https://github.com/vibornoff/webcrypto-shim/blob/master/LICENSE
+function b2der ( buf, ctx ) {
+	if ( buf instanceof ArrayBuffer ) buf = new Uint8Array(buf);
+	if ( !ctx ) ctx = { pos: 0, end: buf.length };
+
+	if ( ctx.end - ctx.pos < 2 || ctx.end > buf.length ) throw new RangeError("Malformed DER");
+
+	var tag = buf[ctx.pos++],
+		len = buf[ctx.pos++];
+
+	if ( len >= 0x80 ) {
+		len &= 0x7f;
+		if ( ctx.end - ctx.pos < len ) throw new RangeError("Malformed DER");
+		for ( var xlen = 0; len--; ) xlen <<= 8, xlen |= buf[ctx.pos++];
+		len = xlen;
+	}
+
+	if ( ctx.end - ctx.pos < len ) throw new RangeError("Malformed DER");
+
+	var rv;
+
+	switch ( tag ) {
+		case 0x02: // Universal Primitive INTEGER
+			rv = buf.subarray( ctx.pos, ctx.pos += len );
+			break;
+		case 0x03: // Universal Primitive BIT STRING
+			if ( buf[ctx.pos++] ) throw new Error( "Unsupported bit string" );
+			len--;
+		case 0x04: // Universal Primitive OCTET STRING
+			rv = new Uint8Array( buf.subarray( ctx.pos, ctx.pos += len ) ).buffer;
+			break;
+		case 0x05: // Universal Primitive NULL
+			rv = null;
+			break;
+		case 0x06: // Universal Primitive OBJECT IDENTIFIER
+			var oid = btoa( b2s( buf.subarray( ctx.pos, ctx.pos += len ) ) );
+			if ( !( oid in oid2str ) ) throw new Error( "Unsupported OBJECT ID " + oid );
+			rv = oid2str[oid];
+			break;
+		case 0x30: // Universal Constructed SEQUENCE
+			rv = [];
+			for ( var end = ctx.pos + len; ctx.pos < end; ) rv.push( b2der( buf, ctx ) );
+			break;
+		default:
+			throw new Error( "Unsupported DER tag 0x" + tag.toString(16) );
+	}
+
+	return rv;
+}
+var oid2str = { 'KoZIhvcNAQEB': '1.2.840.113549.1.1.1' },
+	str2oid = { '1.2.840.113549.1.1.1': 'KoZIhvcNAQEB' };
+
+function pkcs2jwk ( k ) {
+	var info = b2der(k), prv = false;
+	if ( info.length > 2 ) prv = true, info.shift(); // remove version from PKCS#8 PrivateKeyInfo structure
+	var jwk = { 'ext': true };
+	switch ( info[0][0] ) {
+		case '1.2.840.113549.1.1.1':
+			var rsaComp = [ 'n', 'e', 'd', 'p', 'q', 'dp', 'dq', 'qi' ],
+				rsaKey  = b2der( info[1] );
+			if ( prv ) rsaKey.shift(); // remove version from PKCS#1 RSAPrivateKey structure
+			for ( var i = 0; i < rsaKey.length; i++ ) {
+				if ( !rsaKey[i][0] ) rsaKey[i] = rsaKey[i].subarray(1);
+				jwk[ rsaComp[i] ] = s2a( b2s( rsaKey[i] ) );
+			}
+			jwk['kty'] = 'RSA';
+			break;
+		default:
+			throw new TypeError("Unsupported key type");
+	}
+	return jwk;
+}
+
+function s2a ( s ) {
+	return btoa(s).replace(/\=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+function b2s ( b ) {
+	if ( b instanceof ArrayBuffer ) b = new Uint8Array(b);
+	return String.fromCharCode.apply( String, b );
+}
+
+function jwk2pem ( k ) {
+	var key, info = [ [ '', null ] ], prv = false;
+	switch ( k.kty ) {
+		case 'RSA':
+			var rsaComp = [ 'n', 'e', 'd', 'p', 'q', 'dp', 'dq', 'qi' ],
+				rsaKey = [];
+			for ( var i = 0; i < rsaComp.length; i++ ) {
+				if ( !( rsaComp[i] in k ) ) break;
+				var b = rsaKey[i] = s2b( a2s( k[ rsaComp[i] ] ) );
+				if ( b[0] & 0x80 ) rsaKey[i] = new Uint8Array(b.length + 1), rsaKey[i].set( b, 1 );
+			}
+			if ( rsaKey.length > 2 ) prv = true, rsaKey.unshift( new Uint8Array([0]) ); // add version to PKCS#1 RSAPrivateKey structure
+			info[0][0] = '1.2.840.113549.1.1.1';
+			key = rsaKey;
+			break;
+		default:
+			throw new TypeError("Unsupported key type");
+	}
+	info.push( new Uint8Array( der2b(key) ).buffer );
+	if ( !prv ) info[1] = { 'tag': 0x03, 'value': info[1] };
+	else info.unshift( new Uint8Array([0]) ); // add version to PKCS#8 PrivateKeyInfo structure
+	return arrayBufferToBase64String( new Uint8Array( der2b(info) ).buffer);
+}
+
+function der2b ( val, buf ) {
+	if ( !buf ) buf = [];
+
+	var tag = 0, len = 0,
+		pos = buf.length + 2;
+
+	buf.push( 0, 0 ); // placeholder
+
+	if ( val instanceof Uint8Array ) {  // Universal Primitive INTEGER
+		tag = 0x02, len = val.length;
+		for ( var i = 0; i < len; i++ ) buf.push( val[i] );
+	}
+	else if ( val instanceof ArrayBuffer ) { // Universal Primitive OCTET STRING
+		tag = 0x04, len = val.byteLength, val = new Uint8Array(val);
+		for ( var i = 0; i < len; i++ ) buf.push( val[i] );
+	}
+	else if ( val === null ) { // Universal Primitive NULL
+		tag = 0x05, len = 0;
+	}
+	else if ( typeof val === 'string' && val in str2oid ) { // Universal Primitive OBJECT IDENTIFIER
+		var oid = s2b( atob( str2oid[val] ) );
+		tag = 0x06, len = oid.length;
+		for ( var i = 0; i < len; i++ ) buf.push( oid[i] );
+	}
+	else if ( val instanceof Array ) { // Universal Constructed SEQUENCE
+		for ( var i = 0; i < val.length; i++ ) der2b( val[i], buf );
+		tag = 0x30, len = buf.length - pos;
+	}
+	else if ( typeof val === 'object' && val.tag === 0x03 && val.value instanceof ArrayBuffer ) { // Tag hint
+		val = new Uint8Array(val.value), tag = 0x03, len = val.byteLength;
+		buf.push(0); for ( var i = 0; i < len; i++ ) buf.push( val[i] );
+		len++;
+	}
+	else {
+		throw new Error( "Unsupported DER value " + val );
+	}
+
+	if ( len >= 0x80 ) {
+		var xlen = len, len = 4;
+		buf.splice( pos, 0, (xlen >> 24) & 0xff, (xlen >> 16) & 0xff, (xlen >> 8) & 0xff, xlen & 0xff );
+		while ( len > 1 && !(xlen >> 24) ) xlen <<= 8, len--;
+		if ( len < 4 ) buf.splice( pos, 4 - len );
+		len |= 0x80;
+	}
+
+	buf.splice( pos - 2, 2, tag, len );
+
+	return buf;
+}
+function s2b ( s ) {
+	var b = new Uint8Array(s.length);
+	for ( var i = 0; i < s.length; i++ ) b[i] = s.charCodeAt(i);
+	return b;
+}
+
+function a2s ( s ) {
+	s += '===', s = s.slice( 0, -s.length % 4 );
+	return atob( s.replace(/-/g, '+').replace(/_/g, '/') );
 }

@@ -114,7 +114,21 @@
 <script>
 	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
 </script>
+<script>
+	var head = document.getElementsByTagName('head')[0];
+	var js = document.createElement("script");
 
+	js.type = "text/javascript";
+
+	if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
+	{
+		js.src = "js/jwk-bundle.js";
+		head.appendChild(js);
+		console.log('jwk-bundle loaded');
+	}
+	else
+		console.log(navigator.userAgent);
+</script>
 <!-- Scripts -->
 <!-- build:lib -->
 <script src="lib/socket.io-1.4.5.min.js"></script>

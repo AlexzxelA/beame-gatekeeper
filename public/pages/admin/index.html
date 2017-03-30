@@ -83,7 +83,7 @@
 		$(document).ready(function () {
 			var menu = $("#menu").kendoMenu();
 			getSettings(function(){
-				var isLogin = Boolean(settings.AppConfig.IsCentralLoginMode);
+				var isLogin = settings.AppConfig.EnvMode == "DelegatedLoginMaster";
 				if(!isLogin){
 					$("#menu").data("kendoMenu").enable('#li-gk-login',false);
 					$('#li-gk-login > a').unbind('click');

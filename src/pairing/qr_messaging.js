@@ -108,9 +108,41 @@ class QrMessaging {
 		socket.on('browser_connected', (data) => {
 			logger.debug(`browser socket connected with:${data}`);
 			this._browserHost = data;
-			this._signBrowserHostname(socket);
+			this._signBrowserHostname(socket, (sessionData)=>{
+				if(sessionData)
+					this._sendWithAck(socket, "relayEndpoint", sessionData);
+				else
+					this._sendWithAck(socket, "edgeError", "Network problems, please try again later");
+			});
 		});
 
+		socket.on('xprs_browser_connected', (data) => {
+			logger.debug(`browser socket connected with:${data}`);
+			try {
+				let parsed = (typeof data === 'object')? data: JSON.parse(data);
+				this._browserHost = parsed.uid;
+				let fqdn = (typeof parsed.token === 'object')?parsed.token.signedBy:(JSON.parse(parsed.token)).signedBy;
+				store.find(fqdn).then(cred => {
+					this._signBrowserHostname(socket, (sessionData)=>{
+						if(sessionData) {
+							let hdr = '-----BEGIN PUBLIC KEY-----',
+								ftr = '-----END PUBLIC KEY-----',
+								pk = cred.publicKeyStr.substring(hdr.length, cred.publicKeyStr.length - ftr.length);
+							this._sendWithAck(socket, "relayEndpoint", {data:sessionData, pk: pk});
+						}
+						else
+							this._sendWithAck(socket, "edgeError", "Network problems, please try again later");
+					});
+				}).catch(e => {
+					this._sendWithAck(socket, "edgeError", "Failed to fetch mobile host public key");
+				});
+
+			}
+			catch (e){
+				console.error(e);
+				this._sendWithAck(socket, "edgeError", "Invalid data, please retry");
+			}
+		});
 		// socket.on('userImage', (data) => {
 		// 	logger.info('Got image data:', data);
 		// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
@@ -178,6 +210,8 @@ class QrMessaging {
 					payload.matching      = this._matchingServerFqdn;
 					payload.service       = this._serviceName;
 					payload.gwFqdn        = this._gwFqdn;
+					payload.version       = bootstrapper.version;
+					payload.pairing       = bootstrapper.pairingRequired;
 					this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 				}).catch(e => {
 					this._sendWithAck(socket, "mobileProv1", {
@@ -226,6 +260,8 @@ class QrMessaging {
 							payload.matching      = this._matchingServerFqdn;
 							payload.service       = this._serviceName;
 							payload.gwFqdn        = this._gwFqdn;
+							payload.version       = bootstrapper.version;
+							payload.pairing       = bootstrapper.pairingRequired;
 							this._sendWithAck(socket, "mobileProv1", {'data': payload, 'type': 'mobileProv1'});
 							break;
 						case 'cert':
@@ -296,8 +332,8 @@ class QrMessaging {
 
 	_generateOTP(size) {
 		this._otp_prev = this._otp;
-		var OTP        = "";
-		for (var i = 0; i < size; i++) {
+		let OTP        = "";
+		for (let i = 0; i < size; i++) {
 			OTP += Math.floor(Math.random() * 10);
 		}
 		this._otp = OTP;
@@ -328,14 +364,14 @@ class QrMessaging {
 
 	}
 
-	_signBrowserHostname(socket) {
+	_signBrowserHostname(socket, cb) {
 		if (this._edge) {
 			let fqdn     = this._fqdn,
 			    cred     = store.getCredential(fqdn),
-			    token    = authToken.create(this._browserHost, cred, 10),
+			    token    = authToken.create(this._browserHost, cred, 60),
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
-				    "data":          this._edge.endpoint,
+				    'data':          this._edge.endpoint,
 				    'signature':     token,
 					'refresh_rate': OTP_refresh_rate,
 					'matching':     this._matchingServerFqdn,
@@ -343,10 +379,9 @@ class QrMessaging {
 					'appId':        bootstrapper.appId,
 				    'delegatedLogin': bootstrapper.delegatedLoginUrl
 			    });
-
-			this._sendWithAck(socket, "relayEndpoint", tokenStr);
+				cb(tokenStr);
 		} else {
-			this._sendWithAck(socket, "edgeError", "Network problems, please try again later");
+			cb(null);
 		}
 	}
 

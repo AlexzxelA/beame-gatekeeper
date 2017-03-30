@@ -24,12 +24,14 @@ const EncryptUserData           = true;
 const PairingRequired           = true;
 const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
+const AllowDirectSignin         = true;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
+const EnvMode                   = Constants.EnvMode.Gatekeeper;
 
 const EmailPostUrl = "https://gpymwodu74slo9sg.p1s1ykbqpjqfmw34.v1.s.beameio.net/send/invitation";
 const ExternalMatchingFqdn = "oyr64zl5w1htwudv.mtrc55l896fup0fp.v1.s.beameio.net";
 
-const delegatedLoginServers     = "";
+//const delegatedLoginServers     = "";
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
 const ProxyInitiatingTtl            = 60 * 10;
@@ -41,7 +43,6 @@ const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
-const IsCentralLoginMode = false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -62,6 +63,7 @@ const ConfigProps = {
 		ServiceName:                   "ServiceName",
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
+		EnvMode:                       "EnvMode",
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
@@ -69,7 +71,6 @@ const ConfigProps = {
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
-		IsCentralLoginMode:            "IsCentralLoginMode",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		PostSmsUrl:                    "PostSmsUrl",
@@ -82,7 +83,7 @@ const ConfigProps = {
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
-		delegatedLoginServers:         "delegatedLoginServers"
+		AllowDirectSignin:             "AllowDirectSignin"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -152,15 +153,16 @@ module.exports = {
 	PostEmailUrl:         EmailPostUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
-	delegatedLoginServers,
+	//delegatedLoginServers,
 	RegistrationMethod,
+	EnvMode,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
 	PairingRequired,
 	RegistrationImageRequired,
 	EncryptUserData,
 	StartRaspberryApp,
-	IsCentralLoginMode,
+	AllowDirectSignin,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

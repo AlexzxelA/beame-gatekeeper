@@ -1,6 +1,8 @@
 /**
  * Created by zenit1 on 16/11/2016.
  */
+var engineFlag = (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'));
+var exportPKtype = engineFlag? 'jwk' : 'spki';
 
 function setCookie(cname, cvalue, exdays) {
 	var d = new Date();
@@ -18,12 +20,16 @@ function verifyInputData(relay, cb) {
 		var qrData = 'none';
 		waitingForMobileConnection = setTimeout(function () {
 			window.alert('Timed out waiting for mobile connection');
-			window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+			window.location.href = window.location.origin;//TODO restart local login page without parameters?
 		},wait4MobileTimeout);
 		var sock = TMPsocketOriginQR || TMPsocketOriginWh || TMPsocketOriginAp;
-		events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey)).
-		then(function (keydata) {
-			var PK = arrayBufferToBase64String(keydata);
+		events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
+			.then(function (keydata) {
+			var PK = null;
+			if(engineFlag)
+				PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+			else
+				PK = arrayBufferToBase64String(keydata);
 			var imgReq = (reg_data && reg_data.userImageRequired)?reg_data.userImageRequired: userImageRequired;
 			qrData       = JSON.stringify({
 				'relay': relay, 'PK': PK, 'UID': getVUID(),
@@ -39,7 +45,7 @@ function verifyInputData(relay, cb) {
 			setTimeout(function () {
 				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));
 				delegatedUserId = undefined;
-				window.location.href = 'https://dev.login.beameio.net';//TODO restart local login page without parameters?
+				window.location.href =  window.location.origin;//TODO restart local login page without parameters?
 			}, 30000);
 		});
 	}

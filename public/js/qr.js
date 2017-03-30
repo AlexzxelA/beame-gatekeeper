@@ -80,40 +80,47 @@ $(document).ready(function () {
 	});
 
 	socket.on('startQrSession',function (data) {
-		resetPageStatus('startQrSession');
-		setQRStatus('Requesting QR data');
-		console.log('Starting QR session with data:', data);
-		if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
+		if(!stopAllRunningSessions){
+			resetPageStatus('startQrSession');
+			setQRStatus('Requesting QR data');
+			console.log('Starting QR session with data:', data);
+			if(data && !sessionServiceDataSign){/*do not factor out: AZ*/
 
-			sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
+				sessionServiceData = JSON.stringify({'matching':data.matching, 'service':data.service, 'appId': data.appId});
 
-			signArbitraryData(sessionServiceData, function (err, sign) {
-				if(!err){
-					sessionServiceDataSign = arrayBufferToBase64String(sign);
-				}
-				else{
-					sessionServiceDataSign = err;
-				}
-			});
-		}
-
-		if(!login_session && !delegatedUserId){
-			setTimeout(function () {
-				socket.emit('pinRequest');
-			},200);
-
-			if (!qrSession) {
-				qrRefreshRate = data.refresh_rate;
-				qrSession = setInterval(function () {
-					console.log('QR requesting data');
-					socket.emit('pinRequest');
-					if(++retryCounter > 2){
-						qrSession = null;
-						window.location.href = window.location.origin;
+				signArbitraryData(sessionServiceData, function (err, sign) {
+					if(!err){
+						sessionServiceDataSign = arrayBufferToBase64String(sign);
 					}
-				}, qrRefreshRate);
+					else{
+						sessionServiceDataSign = err;
+					}
+				});
+			}
+
+			if(!login_session && !delegatedUserId){
+				setTimeout(function () {
+					socket.emit('pinRequest');
+				},200);
+
+				if (!qrSession) {
+					qrRefreshRate = data.refresh_rate;
+					qrSession = setInterval(function () {
+						console.log('QR requesting data');
+						socket.emit('pinRequest');
+						if(++retryCounter > 2){
+							qrSession = null;
+							window.location.href = window.location.origin;
+						}
+					}, qrRefreshRate);
+				}
 			}
 		}
+		else{
+			setQRStatus('Page is expired, please reload');
+			//window.location.href = window.location.origin;
+		}
+
 	});
 
 	socket.on('pinRenew', function (data) {
@@ -132,9 +139,13 @@ $(document).ready(function () {
 				if (parsed['data'] && keyGenerated) {
 					if(reg_data && reg_data.hash){delete reg_data.hash;}
 					console.log('QR Generating information packet');
-					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+					events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 						.then(function (keydata) {
-							var PK = arrayBufferToBase64String(keydata);
+							var PK = null;
+							if(engineFlag)
+								PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+							else
+								PK = arrayBufferToBase64String(keydata);
 							//console.log('Public Key Is Ready:', PK, '==>', PK);
 							if (qrRelayEndpoint.indexOf(getRelaySocket().io.engine.hostname) < 0) {
 								console.log('Crap(q)::',

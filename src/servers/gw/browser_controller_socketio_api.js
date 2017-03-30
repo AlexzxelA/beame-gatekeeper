@@ -76,7 +76,9 @@ const messageHandlers = {
 				reply({
 					type:    'authenticated',
 					payload: {
-						imageRequired: bootstrapper.registrationImageRequired,
+						serviceName:    bootstrapper.serviceName,
+						pairing:        bootstrapper.pairingRequired,
+						imageRequired:  bootstrapper.registrationImageRequired,
 						success:       true,
 						session_token: token,
 						apps:          apps,
@@ -345,6 +347,10 @@ class BrowserControllerSocketioApi {
 			client.emit('virtHostRecovery', tokenStr);
 		});
 
+		const pairingUtils = require('../../pairing/pairing_utils');
+		let _pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+			client, module_name);
+		_pairingUtils.setCommonHandlers();
 
 		client.on('data', data => {
 			try {
@@ -361,7 +367,7 @@ class BrowserControllerSocketioApi {
 				if(expectedMessages.indexOf(data.type)<0)
 					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
-			messageHandlers[data.type](data.payload, reply);
+			messageHandlers[data.type] && messageHandlers[data.type](data.payload || data, reply);
 		});
 	}
 }

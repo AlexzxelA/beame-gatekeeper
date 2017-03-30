@@ -53,6 +53,30 @@ class PairingUtils {
 	}
 
 	setCommonHandlers() {
+
+		this._socket.on('verifyToken', (token) => {
+			authToken.validate(token).then(() => {
+				let parsed     = JSON.parse(token);
+				let targetFqdn = (!(parsed.signedBy === parsed.signedData.data)) ? (parsed.signedData.data + '/beame-gw/xprs-signin') : 'none';
+
+				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+				fqdn && store.find(fqdn, true).then((cred) => {
+					//let newToken    = (bootstrapper.delegatedLoginServers && bootstrapper.delegatedLoginServers.length > 1)? cred && authToken.create(token, cred, 10):token;
+					let newToken = cred && authToken.create(token, cred, 10);
+					this._socket.emit('tokenVerified', JSON.stringify({
+						success: true,
+						target:  targetFqdn,
+						token:   newToken
+					}));
+				}).catch(e => {
+					this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e}));
+				});
+
+			}).catch(e => {
+				this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e}));
+			});
+		});
+
 		this._socket.on('notifyMobile', (data) => {
 			const ProvisionApi     = beameSDK.ProvApi;
 			const provisionApi     = new ProvisionApi();

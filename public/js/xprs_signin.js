@@ -6,18 +6,38 @@ var QrTMPsocketOrigin, WhTMPSocketRelay = null;
 var qrRelayEndpoint = null;
 var qrContainer     = null;
 var qrSession       = null;
+var sessionParams   = {};
 
 $(document).ready(function () {
 	if(delegatedUserId){
 		console.log('*** Delegated ID: <', delegatedUserId, '> ***');
 	}
 
+	function test() {
+		var algorithm = {
+			name: "RSASSA-PKCS1-v1_5",
+			modulusLength: "2048",
+			publicExponent: new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
+			hash: "SHA-512"
+		};
+		events2promise(cryptoSubtle.generateKey(algorithm, true, ['sign'])).then(function (generated) {
+			console.log('Generated: ', generated);
+			cryptoSubtle.exportKey('jwk', generated.publicKey || generated).then(function (key) {
+				console.log('HUJ:::',key);
+			}).catch(function (e) {
+				console.error('Uebalis',e);
+			});
+		});
+
+	}
+	//test();
+
 	generateKeys();
 	setQRStatus('QR initializing session');
 
 
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	var socket = io.connect("/qr", socketio_options || { transports: ['websocket']});
+	var socket = io.connect("/qr", socketio_options);// || { transports: ['websocket']});
 
 	socket.on('connect', function () {
 		setOriginSocket('QR', socket);
@@ -27,16 +47,28 @@ $(document).ready(function () {
 
 		var UID = getVUID();//generateUID(24) + VirtualPrefix;
 		console.log('UID:', UID);
+		try{
+			var parsed = JSON.parse(delegatedUserId);
+			sessionParams = {'uid':parsed.uid, 'relay':parsed.relay};
+			var dataX = JSON.parse(parsed.token).signedData;
 
-		if (!qrRelayEndpoint) {
-			socket.emit('browser_connected', UID);
+			if (!qrRelayEndpoint) {
+				if(dataX.data && (dataX.data.indexOf('signedBy')>0))
+					socket.emit('xprs_browser_connected', {uid:parsed.uid, token:JSON.parse(parsed.token).signedData.data});
+				else
+					socket.emit('browser_connected', UID);
+			}
 		}
+		catch(e){
+			window.location.href = window.location.origin;
+		}
+
 	});
 
 
 	socket.on('edgeError', function (data) {
 		socket.emit('ack', 'edgeError');
-		console.log('Session failed from server. Network issue.');
+		console.log('Session failed from server. Network issue:', data);
 	});
 
 	socket.on('startQrSession',function (data) {
@@ -61,22 +93,38 @@ $(document).ready(function () {
 		socket.emit('ack', 'relayEndpoint');
 		console.log('QR relayEndpoint', data);
 
-		setQRStatus('Got virtual host registration token');
+		setQRStatus('Got virtual host data');
 		getKeyPairs(function (error, keydata) {
 			if (error) {
 				console.log(error);
 				return;
 			}
 			try {
-				var parsedData = JSON.parse(data);
-				sessionServiceData = JSON.stringify({'matching':parsedData.matching, 'service':parsedData.service, 'appId': parsedData.appId});
-				userImageRequired = parsedData['imageRequired'];
-				qrRelayEndpoint = parsedData['data'];
+				var parsedData = (typeof data === 'object')?data : JSON.parse(data);
+				var cleanData = (parsedData.service && parsedData.appId)?parsedData:(parsedData.data)?parsedData.data:parsedData;
+				cleanData = (typeof cleanData === 'object')?cleanData: JSON.parse(cleanData);
+				sessionServiceData = cleanData && JSON.stringify({
+						'matching':cleanData.matching,
+						'service':cleanData.service,
+						'appId': cleanData.appId});
 
-				verifyInputData('https://'+qrRelayEndpoint, function (isLoginSession) {
-
-					connectRelaySocket(qrRelayEndpoint, parsedData['signature']);
-				});
+				userImageRequired = cleanData['imageRequired'];
+				qrRelayEndpoint = sessionParams.relay || cleanData.data;
+				if(!sessionParams || sessionParams && !sessionParams.relay) {
+					verifyInputData('https://' + qrRelayEndpoint, function () {
+						connectRelaySocket(qrRelayEndpoint, cleanData['signature']);
+					});
+				}
+				else{
+					importPublicKey(parsedData.pk, PK_RSAOAEP, ["encrypt"]).then(function (keydata) {
+						console.log('Successfully imported mobile PK from origin');
+						sessionRSAPK = keydata;
+						connectRelaySocket(qrRelayEndpoint, cleanData['signature'], sessionParams.uid);
+					}).catch(function (e) {
+						console.error(e);
+						//window.location.href = window.location.origin;
+					});
+				}
 			}
 			catch (e) {
 				socket.emit('browserFailure', {'error': 'relay fqdn get - failed'});

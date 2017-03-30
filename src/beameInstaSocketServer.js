@@ -16,11 +16,11 @@ const beameSDK     = require('beame-sdk');
 const module_name  = "BeameInstaSocketServer";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
-const utils        = require('./utils');
+const relayManager = require('./relayManager');
 const Constants    = require('../constants');
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
-
+let relayManagerInstance = null;
 class BeameInstaSocketServer {
 
 	/**
@@ -67,6 +67,8 @@ class BeameInstaSocketServer {
 
 
 	start() {
+		new relayManager();
+		relayManagerInstance = relayManager.getInstance();
 
 		return new Promise((resolve, reject) => {
 				this._initWhispererManager()
@@ -92,7 +94,7 @@ class BeameInstaSocketServer {
 				resolve(this._loginRelayFqdn);
 			}
 			else
-				utils.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn) => {
+				relayManagerInstance.getRelayFqdn(Constants.BeameLoginURL + '/beame-gw/config-data').then((relayFqdn) => {
 					this._loginRelayFqdn = relayFqdn;
 					resolve(relayFqdn);
 				}).catch((error) => {
@@ -105,7 +107,7 @@ class BeameInstaSocketServer {
 
 	_getLocalRelay() {
 		return new Promise((resolve) => {
-			utils.getLocalRelayFqdn().then((relay) => {
+			relayManagerInstance.getLocalRelayFqdn().then((relay) => {
 				this._relayFqdn = relay;
 				resolve();
 			}).catch((e) => {
