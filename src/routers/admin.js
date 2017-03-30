@@ -230,10 +230,9 @@ class AdminRouter {
 		});
 
 		this._router.post('/login/destroy', (req, res) => {
-			let data = req.body,
-			    id   = parseInt(data.id);
+			let data = req.body;
 
-			centralLoginServices.deleteGkLogin(id).then(() => {
+			centralLoginServices.deleteGkLogin(data).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);

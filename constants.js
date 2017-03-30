@@ -49,6 +49,11 @@ const UniversalLinkUrl = 'https://jv6stw7z6cmh5xdd.tl5h1ipgobrdqsj6.v1.p.beameio
 
 const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
+const EnvMode = {
+	"Gatekeeper" : "Gatekeeper",
+	"CentralLogin" : "CentralLogin",
+	"DelegatedLoginMaster" : "DelegatedLoginMaster",
+};
 
 /**
  * Registration sources
@@ -74,6 +79,11 @@ const RegistrationMethod = {
 	"Pairing": "Pairing",
 	"Email":   "Email",
 	"SMS":     "SMS",
+};
+
+const DelegatedLoginNotificationAction = {
+	"Register": "register",
+	"UnRegister": "unregister"
 };
 /**
  * Sns Message Types
@@ -129,10 +139,12 @@ module.exports = {
 	RequestType,
 	RegistrationMethod,
 	RegistrationSource,
+	EnvMode,
 	LoadBalancerURL,
 	BeameLoginURL,
 	CredentialType,
 	SnsMessageType,
+	DelegatedLoginNotificationAction,
 	SetupServices,
 	DbProviders,
 	CookieNames,

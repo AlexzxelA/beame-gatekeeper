@@ -147,38 +147,46 @@ class ServersManager {
 		};
 
 		const _handleDelegatedLogin = () => {
-			return new Promise((resolve, reject) => {
+			return new Promise((resolve) => {
 					let externalLoginUrl     = bootstrapper.externalLoginUrl,
-					    isCentralLogin       = bootstrapper.isCentralLoginMode,
+					    envMode              = bootstrapper.envMode,
 					    centralLoginServices = new CentralLoginServices();
 
-					if (!externalLoginUrl && !isCentralLogin) {
-						resolve();
-						return;
+					switch (envMode) {
+						case Constants.EnvMode.CentralLogin:
+							resolve();
+							break;
+						case Constants.EnvMode.DelegatedLoginMaster:
+							centralLoginServices.setAllGkLoginOffline()
+								.then(centralLoginServices.notifyRegisteredLoginServers.bind(centralLoginServices))
+								.then(resolve(null))
+								.catch(error => {
+									logger.error(`Notify slaves login servers error`, error);
+									resolve();
+								});
+							break;
+						case Constants.EnvMode.Gatekeeper:
+							if (externalLoginUrl) {
+
+								centralLoginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.Register).then(url => {
+									url && bootstrapper.updateCredsFqdn(url, Constants.CredentialType.ExternalLoginServer);
+									bootstrapper.isDelegatedCentralLoginVerified = true;
+									resolve();
+								}).catch(error => {
+									logger.error(`Register on Delegated Login server failed`, error);
+									bootstrapper.isDelegatedCentralLoginVerified = false;
+									resolve();
+								});
+							}
+							else {
+								resolve()
+							}
+							break;
+						default:
+							resolve();
+							break;
 					}
 
-					if (externalLoginUrl) {
-
-						centralLoginServices.registerServerOnDelegatedCentralLogin(externalLoginUrl, {
-							fqdn:   this._settings.GatewayServer.fqdn,
-							id:     bootstrapper.appId,
-							action: 'register'
-						}).then(url => {
-							url && bootstrapper.updateCredsFqdn(url, Constants.CredentialType.ExternalLoginServer);
-							bootstrapper.isDelegatedCentralLoginVerified = true;
-							resolve();
-						}).catch(error => {
-							logger.error(`Register on Delegated Login server failed`, error);
-							bootstrapper.isDelegatedCentralLoginVerified = false;
-							resolve();
-						});
-					}
-					else if (isCentralLogin) {
-						centralLoginServices.notifyRegisteredLoginServers(bootstrapper._config.delegatedLoginServers,
-							Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(resolve(null)).catch((e) => {
-							reject(e)
-						});
-					}
 				}
 			);
 
@@ -189,7 +197,7 @@ class ServersManager {
 			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
 		};
 
-		const isCentralLogin = bootstrapper.isCentralLoginMode;
+		const isCentralLogin = bootstrapper.isCentralLogin;
 
 		//TODO check app-state too
 
@@ -207,7 +215,7 @@ class ServersManager {
 
 				},
 				callback => {
-					if(isCentralLogin){
+					if (isCentralLogin) {
 						callback();
 						return;
 					}
@@ -216,7 +224,7 @@ class ServersManager {
 					callback();
 				},
 				callback => {
-					if(isCentralLogin){
+					if (isCentralLogin) {
 						callback();
 						return;
 					}
@@ -225,7 +233,7 @@ class ServersManager {
 					callback();
 				},
 				callback => {
-					if(isCentralLogin){
+					if (isCentralLogin) {
 						callback();
 						return;
 					}
@@ -234,7 +242,7 @@ class ServersManager {
 					callback();
 				},
 				callback => {
-					if(isCentralLogin){
+					if (isCentralLogin) {
 						callback();
 						return;
 					}
@@ -243,7 +251,7 @@ class ServersManager {
 					callback();
 				},
 				callback => {
-					if(isCentralLogin){
+					if (isCentralLogin) {
 						callback();
 						return;
 					}

@@ -24,7 +24,9 @@ const EncryptUserData           = true;
 const PairingRequired           = true;
 const UseBeameAuthOnLocal       = true;
 const StartRaspberryApp         = false;
+const AllowDirectSignin         = true;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
+const EnvMode                   = Constants.EnvMode.Gatekeeper;
 
 const EmailPostUrl = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";
 const ExternalMatchingFqdn = "gpqhiai526aemun8.ohkv8odznwh5jpwm.v1.p.beameio.net";
@@ -40,7 +42,6 @@ const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
-const IsCentralLoginMode = false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -61,6 +62,7 @@ const ConfigProps = {
 		ServiceName:                   "ServiceName",
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
+		EnvMode:                       "EnvMode",
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
@@ -68,7 +70,6 @@ const ConfigProps = {
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
 		StartRaspberryApp:             "StartRaspberryApp",
-		IsCentralLoginMode:            "IsCentralLoginMode",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		PostSmsUrl:                    "PostSmsUrl",
@@ -81,7 +82,7 @@ const ConfigProps = {
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
-		delegatedLoginServers:         "delegatedLoginServers"
+		AllowDirectSignin:             "AllowDirectSignin"
 	},
 	Sqlite:   {
 		ConfigTemplate: "SqliteConfigTemplate",
@@ -151,15 +152,16 @@ module.exports = {
 	PostEmailUrl:         EmailPostUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
-	delegatedLoginServers,
+	//delegatedLoginServers,
 	RegistrationMethod,
+	EnvMode,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
 	PairingRequired,
 	RegistrationImageRequired,
 	EncryptUserData,
 	StartRaspberryApp,
-	IsCentralLoginMode,
+	AllowDirectSignin,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

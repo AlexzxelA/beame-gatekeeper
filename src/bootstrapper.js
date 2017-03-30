@@ -50,8 +50,8 @@ class Bootstrapper {
 
 
 	constructor() {
-		let config   = DirectoryServices.readJSON(AppConfigJsonPath);
-		this._config = CommonUtils.isObjectEmpty(config) ? null : config;
+		let config                            = DirectoryServices.readJSON(AppConfigJsonPath);
+		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._isDelegatedCentralLoginVerified = false;
 	}
 
@@ -223,20 +223,24 @@ class Bootstrapper {
 		);
 	}
 
-	setDelegatedLoginServers(data) {
-		this._config.delegatedLoginServers = (data && (data.length > 0)) ? '[' + data.map(JSON.stringify).join() + ']' : "";
-		let old                            = this._config;
-		this.setAppConfig(this._config);
-		this.saveAppConfigFile().then(console.log('delegatedLoginServers: updated appConfig file')).catch(error => {
-			logger.error(`update app config error ${BeameLogger.formatError(error)}`);
-			this.setAppConfig(old);
-			this.saveAppConfigFile();
-		});
-		//this._updateAppConfigJson().then(console.log('delegatedLoginServers: updated appConfig file')).catch(_onConfigError);
-	}
+	// setDelegatedLoginServers(data) {
+	// 	this._config.delegatedLoginServers = (data && (data.length > 0)) ? '[' + data.map(JSON.stringify).join() + ']' : "";
+	// 	let old                            = this._config;
+	// 	this.setAppConfig(this._config);
+	// 	this.saveAppConfigFile().then(console.log('delegatedLoginServers: updated appConfig file')).catch(error => {
+	// 		logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+	// 		this.setAppConfig(old);
+	// 		this.saveAppConfigFile();
+	// 	});
+	// 	//this._updateAppConfigJson().then(console.log('delegatedLoginServers: updated appConfig file')).catch(_onConfigError);
+	// }
 
 	get delegatedLoginUrl() {
-		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : Constants.DCLSOfflinePath) : null;
+		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : (this.allowDirectSignin ? null : Constants.DCLSOfflinePath)) : null;
+	}
+
+	get isCentralLogin() {
+		return this.envMode == Constants.EnvMode.CentralLogin || this.envMode == Constants.EnvMode.DelegatedLoginMaster
 	}
 
 	//region getters
@@ -354,8 +358,8 @@ class Bootstrapper {
 		return this._config[SettingsProps.PairingRequired];
 	}
 
-	get isCentralLoginMode() {
-		return this._config[SettingsProps.IsCentralLoginMode];
+	get envMode() {
+		return this._config[SettingsProps.EnvMode] || Constants.EnvMode.Gatekeeper;
 	}
 
 	get encryptUserData() {
@@ -368,6 +372,10 @@ class Bootstrapper {
 
 	get startRaspberryApp() {
 		return this._config[SettingsProps.StartRaspberryApp];
+	}
+
+	get allowDirectSignin() {
+		return this._config[SettingsProps.AllowDirectSignin];
 	}
 
 	//noinspection JSMethodCanBeStatic
@@ -386,47 +394,8 @@ class Bootstrapper {
 		return packageJson.version;
 	}
 
-	setAppConfig(config) {
-
-		let externalLoginState = this.externalLoginUrl;
-		if (!config)
-			config = this._config;
-		else
-			config.delegatedLoginServers = this._config.delegatedLoginServers;
-
+	set setAppConfig(config) {
 		this._config = config;
-
-		logger.info(`BOOTSRTPR: {${this.externalLoginUrl}}`);
-		if (externalLoginState != this.externalLoginUrl) {
-			let gwFqdn               = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-			    centralLoginServices = require('../src/centralLoginServices').getInstance();
-
-
-			centralLoginServices.registerServerOnDelegatedCentralLogin(
-				this.externalLoginUrl,
-				{
-					fqdn:   gwFqdn,
-					id:     this.appId,
-					action: 'register'
-				}
-			).then((setUrl) => {
-
-				if (setUrl) {
-					logger.info(`Registered on external login server: ${setUrl}`);
-					this._config[SettingsProps.ExternalLoginServer] = setUrl;
-				}
-				centralLoginServices.registerServerOnDelegatedCentralLogin(
-					externalLoginState,
-					{
-						fqdn:   gwFqdn,
-						id:     this.appId,
-						action: 'unregister'
-					}
-				).then(() => {
-					externalLoginState && logger.info(`Un-Registered on external login server: ${externalLoginState}`);
-				});
-			});
-		}
 	}
 
 	//endregion

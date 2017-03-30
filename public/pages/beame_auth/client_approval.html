@@ -95,7 +95,21 @@
         lblReqImg.style.display = 'block';
     });
 </script>
+<script>
+    var head = document.getElementsByTagName('head')[0];
+    var js = document.createElement("script");
 
+    js.type = "text/javascript";
+
+    if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
+    {
+        js.src = "js/jwk-bundle.js";
+        head.appendChild(js);
+        console.log('jwk-bundle loaded');
+    }
+    else
+        console.log(navigator.userAgent);
+</script>
 <!-- Scripts -->
 <!-- build:lib -->
 <script src="lib/jquery-2.2.4.min.js"></script>

@@ -15,7 +15,7 @@ var BIT_N    = 500;
 var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
-const SOUND_ATT = 32;
+const SOUND_ATT = 64;
 var retryCounter    = 0;
 
 var audio,
@@ -27,7 +27,9 @@ var audio,
 	tmpHostNdx = 0,
 	pinRefreshRate,
 	pairingSession,
-	fullQrData;
+	fullQrData,
+	loginTarget,
+	loginRelay;
 
 var resetPageStatus = function(){
 	retryCounter = 0;
@@ -240,7 +242,8 @@ var getWAV = function (pin) {
 
 		message.push.apply(message, message);//1 sec
 		message.push.apply(message, message);//2 sec
-		message.push.apply(message, message);//4 sec
+		if(!engineFlag)
+			message.push.apply(message, message);//4 sec
 
 		filteredMessage = _convolve(message, message.length, bpf, bpf.length);
 		message         = _convolve(filteredMessage, filteredMessage.length, bpf, bpf.length);
@@ -392,7 +395,7 @@ var _convolve = function (x, x_length, h, h_length) {
 	return output;
 };
 
-var originSocket = io.connect("/beame_login", socketio_options || {transports: ['websocket']});
+var originSocket = io.connect("/beame_login", socketio_options);// || {transports: ['websocket']});
 
 if (!window.btoa) {
 	var btoa = function (input) {
@@ -511,16 +514,20 @@ function processTmpHost(tmpHost, srcData) {
 			activeHosts[sockId].isConnected = true;
 			activeHosts[sockId].connectTimeout = setTimeout(function () {
 				if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
-			}, 3000);
+			}, 30000);
 			// activeHosts[sockId].ID = data.socketId;
 			var type          = data.payload.data.type;
 			console.log(activeHosts[sockId],':',type);
 			UID = activeHosts[sockId].name;
-			if(type == 'direct_mobile'){
+			if(type === 'direct_mobile'){
 				if(keyPair){
-					events2promise(cryptoObj.subtle.exportKey('spki', keyPair.publicKey))
+					events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
 						.then(function (keydata) {
-							var PK = arrayBufferToBase64String(keydata);
+							var PK = null;
+							if(engineFlag)
+								PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+							else
+								PK = arrayBufferToBase64String(keydata);
 							var tmp_reg_data = "login";
 							var tmp_type = "BEAME_LOGIN";
 
@@ -540,7 +547,7 @@ function processTmpHost(tmpHost, srcData) {
 				}
 
 			}
-			else if(type == 'done'){
+			else if(type === 'done'){
 				stopAllRunningSessions = true;
 				stopPlaying();
 				activeHosts[sockId].sock.removeAllListeners();
@@ -636,7 +643,7 @@ function initTmpHost(data) {
 	tmpHostArr[lclNdx] = {};
 	tmpHostArr[lclNdx].pin = data.pin;
 	tmpHostArr[lclNdx].name = data.name;
-	tmpHostArr[lclNdx].sock = io.connect(data.relay, {transports: ['websocket']});
+	tmpHostArr[lclNdx].sock = io.connect(data.relay);//, {transports: ['websocket']});
 	tmpHostArr[lclNdx].sock.on('connect',function () {
 		processTmpHost(tmpHostArr[lclNdx], data);
 	});
@@ -725,12 +732,14 @@ originSocket.on('pindata', function (dataRaw) {
 originSocket.on('tokenVerified', function (data) {
 	console.log('tokenVerified', data);
 	var parsed = JSON.parse(data);
+	console.log('tokenVerified:',parsed,'..loginTarget:',loginTarget,'..loginRelay:',loginRelay);
 	if(parsed.success){
-		if(parsed.target != 'none'){
+		if(parsed.target !== 'none'){
 			//var target = JSON.parse(parsed.token).signedData;
 			//document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/;domain="+target.data;
 			destroyTmpHosts(function () {
-				var l = 'https://' + parsed.target + "?usrInData=" + encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:UID})));
+				var l = 'https://' + parsed.target + "?usrInData=" +
+					encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:loginTarget||UID, relay:loginRelay})));
 				window.location.href = l;
 			});
 		}
@@ -740,7 +749,8 @@ originSocket.on('tokenVerified', function (data) {
 	}
 });
 //*********** crypto **********
-var cryptoObj = window.crypto || window.msCrypto;
+var cryptoObj = window.crypto || window.msCrypto,
+	cryptoSubtle = cryptoObj.subtle || cryptoObj.webkitSubtle;
 
 var PK_RSAOAEP = {//encrypt only
 	name: "RSA-OAEP",
@@ -797,14 +807,16 @@ function events2promise(promise_or_operation) {
 
 function generateKeys() {
 	keyGenBusy = true;
-	events2promise(cryptoObj.subtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
+	events2promise(cryptoSubtle.generateKey(RSAOAEP, true, ["encrypt", "decrypt"]))
 		.then(function (key) {
 			console.log('RSA KeyPair', key);
-			events2promise(cryptoObj.subtle.generateKey(RSAPKCS, true, ["sign"]))
+			events2promise(cryptoSubtle.generateKey(RSAPKCS, true, ["sign"]))
 				.then(function (key1) {
 					console.log('RSA Signing KeyPair', key1);
 					keyPair      = key;
+					if(!keyPair.privateKey)keyPair.privateKey = keyPair;
 					keyPairSign  = key1;
+					if(!keyPairSign.privateKey)keyPairSign.privateKey = keyPairSign;
 					keyGenerated = true;
 					keyGenBusy = false;
 				})
@@ -831,7 +843,7 @@ function encryptWithPK(data, cb) {
 		inputArray.push(dataToEncrypt);
 	}
 	Promise.all(inputArray.map(function (inData) {
-		return events2promise(cryptoObj.subtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
+		return events2promise(cryptoSubtle.encrypt(PK_RSAOAEP, sessionRSAPK, inData))
 	})).then(function (values) {
 		var finalLength = 0;
 
@@ -870,10 +882,10 @@ function convertPemToBinary(pem) {
 }
 
 function importPublicKey(pemKey, encryptAlgorithm, usage) {
-	if (pemKey.length == 360)
+	if (pemKey.length === 360)
 		pemKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A" + pemKey;
 	return new Promise(function (resolve) {
-		var importer = events2promise(cryptoObj.subtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
+		var importer = events2promise(cryptoSubtle.importKey("spki", convertPemToBinary(pemKey), encryptAlgorithm, false, usage));
 		importer.then(function (keydata) {
 			resolve(keydata);
 		})
@@ -931,18 +943,9 @@ function processMobileData(TMPsocketRelay, data, cb) {
 				sessionRSAPK = keydata;
 				console.log('...Got message from mobile:', decryptedData);
 
+				if(decryptedData.relay)loginRelay = decryptedData.relay;
+				if(decryptedData.uid)loginTarget = decryptedData.uid;
 				originSocket.emit('verifyToken',decryptedData.payload.token);
-				//startGatewaySession(decryptedData.payload.token, userData, relaySocket, decryptedData.uid);
-
-				// importPublicKey(key2import, PK_PKCS, ["verify"]).then(function (keydata) {
-				// 	console.log("Successfully imported RSAPKCS PK from external source");
-				// 	sessionRSAPKverify = keydata;
-				// 	if (cb) {
-				// 		cb(decryptedData);
-				// 	}
-				// }).catch(function (err) {
-				// 	console.error('Import *Verify Key* Failed', err);
-				// });
 
 			}).catch(function (err) {
 				console.error('Import *Encrypt Key* Failed', err);
@@ -960,27 +963,43 @@ function processMobileData(TMPsocketRelay, data, cb) {
 
 	}
 
+	function onMessageDecryptedData(err, decryptedDataB64) {
+		if (!err) {
+			decryptedData = JSON.parse(atob(decryptedDataB64));
+			switch (decryptedData.type){
+				case 'beamePing':
+					TMPsocketRelay.emit('data', {
+						'socketId': tmpSocketID,
+						'payload':  {'type':'beamePong'}
+					});
+					break;
+				default:
+					console.log('Got unexpected data:', decryptedData);
+			}
+		}
+		else {
+			console.log('failed to decrypt session data');
+			TMPsocketRelay.emit('data', {
+				'socketId': tmpSocketID,
+				'payload':  'failed to decrypt session_data'
+			});
+		}
+
+	}
+
 	switch (type) {
 		case 'info_packet_response':
 			console.log('info_packet_response data = ', data.payload.data);
 			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedKey);
 			return;
 		case 'direct_mobile':
-			// var xhr = new XMLHttpRequest();
-			// xhr.open('GET', "https://gsvewupg9e8tl75r.kl9gozbgs9nlfxpw.v1.p.beameio.net/", true);
-			// xhr.withCredentials = false;
-			// //xhr.setRequestHeader('Access-Control-Allow-Origin','*');
-			// //xhr.setRequestHeader('Access-Control-Allow-Methods','GET');
-			// xhr.send();
-			// xhr.onreadystatechange = processRequest;
-			// function processRequest(e) {
-			// 	if (xhr.readyState == 4) {
-			// 		window.alert('xhr READY:'+xhr.status)
-			// 	}
-			// }
+			//unexpected here
 			break;
 		case 'restart_pairing':
 			window.location.reload();
+			break;
+		case 'session_data':
+			decryptMobileData((encryptedData), RSAOAEP, keyPair.privateKey, onMessageDecryptedData);
 			break;
 		default:
 			console.error('unknown payload type for Beame-Login' + type);
@@ -1011,7 +1030,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 			}
 
 			Promise.all(inputArray.map(function (inData) {
-				return events2promise(cryptoObj.subtle.decrypt(encryption, SK, inData))
+				return events2promise(cryptoSubtle.decrypt(encryption, SK, inData))
 			})).then(function (values) {
 				var finalLength = 0;
 
@@ -1029,7 +1048,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 
 				if (parsed['key'] && parsed['iv']) {
 					var rawAESkey = base64StringToArrayBuffer(parsed['key']);
-					events2promise(cryptoObj.subtle.importKey(
+					events2promise(cryptoSubtle.importKey(
 						"raw", //can be "jwk" or "raw"
 						rawAESkey.slice(0, AESkeySize),//remove b64 padding
 						{name: "AES-CBC"},
@@ -1038,7 +1057,7 @@ function decryptMobileData(msgParsed, encryption, SK, cb) {
 					)).then(function (key) {
 						console.log('imported aes key <ok>');
 						var rawIV = base64StringToArrayBuffer(parsed['iv']).slice(0, AESkeySize);
-						events2promise(cryptoObj.subtle.decrypt(
+						events2promise(cryptoSubtle.decrypt(
 							{
 								name: 'AES-CBC',
 								iv:   rawIV
@@ -1133,12 +1152,7 @@ function initComRelay(virtRelaySocket) {
 		clearInterval(connectToRelayRetry);
 		virtHostAlive = virtHostTimeout;
 		vUID = data.Hostname;
-		//TMPsocketOriginWh && sendQrDataToWhisperer(RelayPath, vUID, TMPsocketOriginWh);
-		//TMPsocketOriginAp && sendQrDataToApprover(RelayPath, vUID, TMPsocketOriginAp);
 		console.log('QR hostRegistered, ID = ', virtRelaySocket.id, '.. hostname: ', data.Hostname);
-		// TMPsocketOriginQR && setQRStatus && setQRStatus('Virtual host registration complete');
-		// TMPsocketOriginQR && TMPsocketOriginQR.emit('virtSrvConfig', vUID);
-		// TMPsocketOriginQR && keepVirtHostAlive(TMPsocketOriginQR);
 		controlWindowStatus();
 	});
 
