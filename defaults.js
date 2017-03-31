@@ -28,9 +28,9 @@ const AllowDirectSignin         = true;
 const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
 const EnvMode                   = Constants.EnvMode.Gatekeeper;
 
-const EmailPostUrl = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";
+const EmailPostUrl         = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";
 const ExternalMatchingFqdn = "gpqhiai526aemun8.ohkv8odznwh5jpwm.v1.p.beameio.net";
-const delegatedLoginServers     = "";
+
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
 const ProxyInitiatingTtl            = 60 * 10;
@@ -152,7 +152,6 @@ module.exports = {
 	PostEmailUrl:         EmailPostUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
-	//delegatedLoginServers,
 	RegistrationMethod,
 	EnvMode,
 	UseBeameAuthOnLocal,
