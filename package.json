@@ -7,7 +7,9 @@
     "node": ">= 6.9.1"
   },
   "bin": {
-    "beame-gatekeeper": "main.js"
+    "beame-gatekeeper": "main.js",
+    "beame-gatekeeper-install-systemd": "install/systemd-service.sh",
+    "beame-gatekeeper-ctl": "install/ctl.sh"
   },
   "repository": {
     "type": "git",

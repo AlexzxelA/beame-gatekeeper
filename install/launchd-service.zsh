@@ -1,38 +1,44 @@
-#!/bin/bash
-
-# This script does:
-# * Creates new user for Beame Gatekeeper service (default: beame-gatekeeper)
-# * Uses either provided token or creates one if there are suitable credentials
-#   in ~/.beame folder of the sudoer or the running user.
-# * Uses the token from the step above to get all credentials for Beame Gatekeeper
-#   and places them in ~/.beame folder of Beame Gatekeeper user
-# * Sets up systemd service (default: beame-gatekeeper)
+#!/usr/bin/env zsh
 
 set -eu
 
 err_trap_func() {
-	echo "ERROR: Installation failed"
+	echo "ERROR: Command failed"
+}
+
+find_unused_id() {
+	typeset -A ids
+	for id in $("$@" | awk '{print $2}');do
+		ids[$id]=1
+	done
+	for ((candidate_id=500; candidate_id>0; candidate_id--));do
+		if [[ ! ${ids[$candidate_id]-} ]];then
+			echo $candidate_id
+			return
+		fi
+	done
+	echo "Could not find free ID in output of command: $@" >&2
+	exit 1
 }
 
 trap err_trap_func ERR
 
 if [[ $EUID -ne 0 ]]; then
-   echo "Installation can not proceed."
    echo "Please run this script as root."
    exit 1
 fi
 
-SCRIPT_DIR="$( cd "$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )" && pwd )"
-
-: ${BEAME_GATEKEEPER_USER:=beame-gatekeeper}
+: ${BEAME_GATEKEEPER_USER:=_beame-gatekeeper}
+: ${BEAME_GATEKEEPER_GROUP:="$BEAME_GATEKEEPER_USER"}
+: ${BEAME_GATEKEEPER_HOME:="/var/${BEAME_GATEKEEPER_USER/_/}"}
 : ${BEAME_GATEKEEPER_SVC:=beame-gatekeeper}
 : ${BEAME_GATEKEEPER_SYSTEMD_FILE:="/etc/systemd/system/$BEAME_GATEKEEPER_SVC.service"}
 : ${BEAME_GATEKEEPER_SYSTEMD_EXTRA:=''}
-: ${BEAME_GATEKEEPER_DIR:="$(dirname "$SCRIPT_DIR")"}
+: ${BEAME_GATEKEEPER_DIR:=${0:A:h:h}}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
 
-if type -t node &>/dev/null;then
+if type node;then
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which node)}
 else
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}
@@ -56,18 +62,52 @@ else
 	exit 10
 fi
 
-if ! type -t jq &>/dev/null;then
+if ! type jq &>/dev/null;then
 	echo "+ jq not found. Please install jq."
 fi
 
-if getent passwd "$BEAME_GATEKEEPER_USER" >/dev/null 2>&1;then
-	echo "+ User $BEAME_GATEKEEPER_USER already exists"
+# http://serverfault.com/questions/182347/add-daemon-account-on-os-x
+
+if dscl . -read "/Groups/$BEAME_GATEKEEPER_GROUP" &>/dev/null;then
+	echo "+ Group $BEAME_GATEKEEPER_GROUP already exists"
 else
-	echo "+ Adding user for beame-gatekeeper: $BEAME_GATEKEEPER_USER"
-	adduser --system --group --disabled-password --shell /bin/false "$BEAME_GATEKEEPER_USER"
+	echo "+ Adding group for Beame Gatekeeper: $BEAME_GATEKEEPER_GROUP"
+	gid=$(find_unused_id dscl . -ls /Groups gid)
+	base_argv=(dscl . -create "/Groups/$BEAME_GATEKEEPER_GROUP")
+	"${base_argv[@]}"
+	"${base_argv[@]}" Password '*'
+	"${base_argv[@]}" PrimaryGroupID "$gid"
+	"${base_argv[@]}" RealName "Beame Gatekeeper"
+	"${base_argv[@]}" RecordName "$BEAME_GATEKEEPER_GROUP" "${BEAME_GATEKEEPER_GROUP/_/}"
 fi
 
-if su -s /bin/bash -c '[[ -e ~/.beame ]]' "$BEAME_GATEKEEPER_USER";then
+if dscl . -read "/Users/$BEAME_GATEKEEPER_USER" &>/dev/null;then
+	echo "+ User $BEAME_GATEKEEPER_USER already exists"
+else
+	echo "+ Adding user for Beame Gatekeeper: $BEAME_GATEKEEPER_USER"
+	uid=$(find_unused_id dscl . -ls /Users uid)
+	base_argv=(dscl . -create "/Users/$BEAME_GATEKEEPER_USER")
+	"${base_argv[@]}"
+	"${base_argv[@]}" NFSHomeDirectory "$BEAME_GATEKEEPER_HOME"
+	"${base_argv[@]}" Password '*'
+	"${base_argv[@]}" PrimaryGroupID "$(dscl . -read /Groups/"$BEAME_GATEKEEPER_GROUP" PrimaryGroupID | awk '{print $2}')"
+	"${base_argv[@]}" RealName "Beame Gatekeeper"
+	"${base_argv[@]}" RecordName "$BEAME_GATEKEEPER_USER" "${BEAME_GATEKEEPER_USER/_/}"
+	"${base_argv[@]}" UniqueID "$uid"
+	"${base_argv[@]}" UserShell /usr/bin/false
+	dscl . -delete "/Users/$BEAME_GATEKEEPER_USER" AuthenticationAuthority
+	dscl . -delete "/Users/$BEAME_GATEKEEPER_USER" PasswordPolicyOptions
+fi
+
+if [[ -d "$BEAME_GATEKEEPER_HOME" ]];then
+	echo "+ Beame Gatekeeper home directory $BEAME_GATEKEEPER_HOME already exists"
+else
+	echo "+ Creating Beame Gatekeeper home directory $BEAME_GATEKEEPER_HOME"
+	mkdir "$BEAME_GATEKEEPER_HOME"
+	chown "$BEAME_GATEKEEPER_USER":"$BEAME_GATEKEEPER_GROUP" "$BEAME_GATEKEEPER_HOME"
+fi
+
+if SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s '[[ -e ~/.beame ]]';then
 	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER exists. Not getting credentials."
 else
 	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER does not exist. Getting credentials."
@@ -84,11 +124,12 @@ else
 			ROOT_CREDENENTIALS_USER=$(id -un)
 		fi
 		echo "+ Root credentials user: $ROOT_CREDENENTIALS_USER"
-		ROOT_CREDENENTIALS_HOME="$(getent passwd "$ROOT_CREDENENTIALS_USER" | cut -d: -f6 )"
+		ROOT_CREDENENTIALS_HOME="$(dscl . -read /Users/"$ROOT_CREDENENTIALS_USER" NFSHomeDirectory | awk '{print $2}')"
 		echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
 
 		echo "+ Searching for root credentials"
-		ROOT_CREDENENTIALS=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" "$ROOT_CREDENENTIALS_USER" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+		ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+		exit 100
 		if [[ $ROOT_CREDENENTIALS ]]; then
 			echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
 			echo "+ Getting token as child of $ROOT_CREDENENTIALS"
@@ -109,40 +150,3 @@ else
 	su -s /bin/bash -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'" "$BEAME_GATEKEEPER_USER"
 fi
 
-
-echo "+ Creating $BEAME_GATEKEEPER_SYSTEMD_FILE file for beame-gatekeeper"
-cat >"$BEAME_GATEKEEPER_SYSTEMD_FILE" <<E
-[Service]
-Type=simple
-Environment=NODE_ENV=production
-User=$BEAME_GATEKEEPER_USER
-WorkingDirectory=$BEAME_GATEKEEPER_DIR
-ExecStart=$BEAME_GATEKEEPER_NODEJS_BIN main.js server start
-Restart=always
-RestartSec=10
-
-$BEAME_GATEKEEPER_SYSTEMD_EXTRA
-
-[Install]
-WantedBy=multi-user.target
-E
-
-echo "+ Enabling the $BEAME_GATEKEEPER_SVC service"
-systemctl enable "$BEAME_GATEKEEPER_SVC"
-
-echo "+ Reloading systemd"
-systemctl daemon-reload
-
-echo "+ Installation complete."
-echo "+ Starting service $BEAME_GATEKEEPER_SVC"
-service "$BEAME_GATEKEEPER_SVC" start
-
-echo "+ All operations finished successfully."
-echo ""
-echo "You can use convenience script beame-gatekeeper-ctl to manage Beame Gatekeeper service."
-echo "Running it for you with 'info' command and then with 'admin' command."
-echo ""
-
-bash $BEAME_GATEKEEPER_DIR/install/ctl.sh info
-echo ""
-bash $BEAME_GATEKEEPER_DIR/install/ctl.sh admin
