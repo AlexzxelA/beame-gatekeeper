@@ -2,8 +2,8 @@
 
 set -eu
 
-err_trap_func() {
-	echo "ERROR: Command failed"
+TRAPZERR () {
+	echo "ERROR: Beame Gatekeeper launchd setup failed"
 }
 
 find_unused_id() {
@@ -20,8 +20,6 @@ find_unused_id() {
 	echo "Could not find free ID in output of command: $@" >&2
 	exit 1
 }
-
-trap err_trap_func ERR
 
 if [[ $EUID -ne 0 ]]; then
    echo "Please run this script as root."
