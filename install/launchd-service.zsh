@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+# sudo systemsetup -setusingnetworktime On
+
 set -eu
 
 TRAPZERR () {
@@ -126,12 +128,17 @@ else
 		echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
 
 		echo "+ Searching for root credentials"
-		ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
-		exit 100
+		if [[ -e "$ROOT_CREDENENTIALS_HOME/.beame" ]];then
+			echo "+ Root credentials directory found ($ROOT_CREDENENTIALS_HOME/.beame), querying credentials store"
+			ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+		else
+			echo "+ Root credentials directory not found ($ROOT_CREDENENTIALS_HOME/.beame), assuming no root credentials"
+			ROOT_CREDENENTIALS=""
+		fi
 		if [[ $ROOT_CREDENENTIALS ]]; then
 			echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
 			echo "+ Getting token as child of $ROOT_CREDENENTIALS"
-			token=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$HOSTNAME'" "$ROOT_CREDENENTIALS_USER")
+			token=$(SHELL=/bin/zsh sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$(hostname)'")
 			echo "+ Got token: $token"
 		else
 			echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
@@ -145,6 +152,27 @@ else
 	fi
 
 	echo "+ Getting Beame Gatekeeper credentials"
-	su -s /bin/bash -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'" "$BEAME_GATEKEEPER_USER"
+	SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'"
 fi
 
+F="/Library/LaunchDaemons/io.beame.gatekeeper.plist"
+echo "+ Setting up Launchd service plist file: $F"
+"$BEAME_GATEKEEPER_DIR/install/make_launchd_plist.py" \
+	"$BEAME_GATEKEEPER_USER" \
+	"$BEAME_GATEKEEPER_GROUP" \
+	"$BEAME_GATEKEEPER_DIR" \
+	"$BEAME_GATEKEEPER_NODEJS_BIN" \
+	>"$F"
+
+echo "+ Enabling Launchd service: system/io.beame.gatekeeper"
+launchctl enable system/io.beame.gatekeeper
+
+echo "+ Installation complete."
+
+if launchctl list | grep -q io.beame.gatekeeper;then
+	echo "+ Unloading Launchd service plist file: $F"
+	launchctl unload "$F"
+fi
+
+echo "+ Starting Beame Gatekeeper: Loading Launchd service plist file: $F"
+launchctl load "$F"

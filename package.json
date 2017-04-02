@@ -10,7 +10,8 @@
     "beame-gatekeeper": "main.js",
     "beame-gatekeeper-install-systemd": "install/systemd-service.sh",
     "beame-gatekeeper-install-launchd": "install/launchd-service.zsh",
-    "beame-gatekeeper-ctl": "install/ctl.sh"
+    "beame-gatekeeper-ctl": "install/ctl.sh",
+    "beame-gatekeeper-sdk": "node_modules/beame-sdk/src/cli/beame.js"
   },
   "repository": {
     "type": "git",
