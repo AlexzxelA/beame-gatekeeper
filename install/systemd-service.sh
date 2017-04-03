@@ -76,26 +76,31 @@ else
 		echo "+ Using provided token: $1"
 		token="$1"
 	else
-		echo "+ Token not provided as command line argument. Looking for root (top level) credentials to create token with."
-		if [[ ${SUDO_USER-} ]];then
-			echo "+ Taking root credentials user from SUDO_USER"
-			ROOT_CREDENENTIALS_USER=$SUDO_USER
-		else
-			ROOT_CREDENENTIALS_USER=$(id -un)
-		fi
-		echo "+ Root credentials user: $ROOT_CREDENENTIALS_USER"
-		ROOT_CREDENENTIALS_HOME="$(getent passwd "$ROOT_CREDENENTIALS_USER" | cut -d: -f6 )"
-		echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
+		token=""
+		if [[ ${BEAME_GATEKEEPER_USE_ROOT_CREDS-} ]];then
+			echo "+ Token not provided as command line argument. Looking for root (top level) credentials to create token with."
+			if [[ ${SUDO_USER-} ]];then
+				echo "+ Taking root credentials user from SUDO_USER"
+				ROOT_CREDENENTIALS_USER=$SUDO_USER
+			else
+				ROOT_CREDENENTIALS_USER=$(id -un)
+			fi
+			echo "+ Root credentials user: $ROOT_CREDENENTIALS_USER"
+			ROOT_CREDENENTIALS_HOME="$(getent passwd "$ROOT_CREDENENTIALS_USER" | cut -d: -f6 )"
+			echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
 
-		echo "+ Searching for root credentials"
-		ROOT_CREDENENTIALS=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" "$ROOT_CREDENENTIALS_USER" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
-		if [[ $ROOT_CREDENENTIALS ]]; then
-			echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
-			echo "+ Getting token as child of $ROOT_CREDENENTIALS"
-			token=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$HOSTNAME'" "$ROOT_CREDENENTIALS_USER")
-			echo "+ Got token: $token"
-		else
-			echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
+			echo "+ Searching for root credentials"
+			ROOT_CREDENENTIALS=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" "$ROOT_CREDENENTIALS_USER" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+			if [[ $ROOT_CREDENENTIALS ]]; then
+				echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
+				echo "+ Getting token as child of $ROOT_CREDENENTIALS"
+				token=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$HOSTNAME'" "$ROOT_CREDENENTIALS_USER")
+				echo "+ Got token: $token"
+			else
+				echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
+			fi
+		fi # BEAME_GATEKEEPER_USE_ROOT_CREDS
+		if [[ ! $token ]];then
 			echo "----------------------------------------------------------------------------------------------------"
 			echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper and complete your registration process"
 			echo "then run this script with the token from email:"
@@ -103,7 +108,7 @@ else
 			echo "----------------------------------------------------------------------------------------------------"
 			exit 5
 		fi
-	fi
+	fi # token provided
 
 	echo "+ Getting Beame Gatekeeper credentials"
 	su -s /bin/bash -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'" "$BEAME_GATEKEEPER_USER"

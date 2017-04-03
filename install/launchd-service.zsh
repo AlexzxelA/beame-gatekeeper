@@ -24,6 +24,7 @@ find_unused_id() {
 }
 
 if [[ $EUID -ne 0 ]]; then
+   echo "Installation can not proceed."
    echo "Please run this script as root."
    exit 1
 fi
@@ -31,14 +32,11 @@ fi
 : ${BEAME_GATEKEEPER_USER:=_beame-gatekeeper}
 : ${BEAME_GATEKEEPER_GROUP:="$BEAME_GATEKEEPER_USER"}
 : ${BEAME_GATEKEEPER_HOME:="/var/${BEAME_GATEKEEPER_USER/_/}"}
-: ${BEAME_GATEKEEPER_SVC:=beame-gatekeeper}
-: ${BEAME_GATEKEEPER_SYSTEMD_FILE:="/etc/systemd/system/$BEAME_GATEKEEPER_SVC.service"}
-: ${BEAME_GATEKEEPER_SYSTEMD_EXTRA:=''}
 : ${BEAME_GATEKEEPER_DIR:=${0:A:h:h}}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
 
-if type node;then
+if type node &>/dev/null;then
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which node)}
 else
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}
@@ -116,6 +114,7 @@ else
 		echo "+ Using provided token: $1"
 		token="$1"
 	else
+		token=""
 		if [[ ${BEAME_GATEKEEPER_USE_ROOT_CREDS-} ]];then
 			echo "+ Token not provided as command line argument. Looking for root (top level) credentials to create token with."
 			if [[ ${SUDO_USER-} ]];then
@@ -143,22 +142,20 @@ else
 				echo "+ Got token: $token"
 			else
 				echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
-				echo "----------------------------------------------------------------------------------------------------"
-				echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper and complete your registration process"
-				echo "then run this script with the token from email:"
-				echo "$0 TOKEN_FROM_EMAL"
-				echo "----------------------------------------------------------------------------------------------------"
-				exit 5
 			fi
-		else
-			echo "+ Please run the script again, with token from email."
-			exit 6
+		fi
+		if [[ ! $token ]];then
+			echo "----------------------------------------------------------------------------------------------------"
+			echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper and complete your registration process"
+			echo "then run this script with the token from email:"
+			echo "$0 TOKEN_FROM_EMAL"
+			echo "----------------------------------------------------------------------------------------------------"
+			exit 5
 		fi
 	fi
 
 	echo "+ Getting Beame Gatekeeper credentials"
 	# cd /tmp to avoid failing cwd() in NodeJS
-	# (cd /tmp && SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'")
 	(cd /tmp && SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- "'$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'")
 fi
 
