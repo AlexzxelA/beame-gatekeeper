@@ -15,7 +15,7 @@ fi
 : ${BEAME_GATEKEEPER_DIR:=${0:A:h:h}}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
-: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(dscl . read "/Users/$BEAME_GATEKEEPER_USER" NFSHomeDirectory 2>/dev/null || true)"}
+: ${BEAME_GATEKEEPER_USER_HOMEDIR:="$(dscl . read "/Users/$BEAME_GATEKEEPER_USER" NFSHomeDirectory 2>/dev/null | awk '{print $2}' || true)"}
 : ${BEAME_GATEKEEPER_LAUNCHD_PLIST:="/Library/LaunchDaemons/io.beame.gatekeeper.plist"}
 
 if type node &>/dev/null;then
@@ -67,10 +67,12 @@ case "$1" in
 	start)
 		echo "+ Starting the service"
 		launchctl load "$BEAME_GATEKEEPER_LAUNCHD_PLIST"
+		echo "OK"
 		;;
 	stop)
 		echo "+ Stopping the service"
 		launchctl unload "$BEAME_GATEKEEPER_LAUNCHD_PLIST"
+		echo "OK"
 		;;
 	restart)
 		$0 stop
@@ -128,6 +130,7 @@ case "$1" in
 			if [[ -e "$BEAME_GATEKEEPER_USER_HOMEDIR" ]];then
 				echo "+ Removing home directory $BEAME_GATEKEEPER_USER_HOMEDIR"
 				rm -rf "$BEAME_GATEKEEPER_USER_HOMEDIR"
+				echo "OK"
 			fi
 		fi
 

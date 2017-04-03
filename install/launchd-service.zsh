@@ -180,3 +180,13 @@ fi
 
 echo "+ Starting Beame Gatekeeper: Loading Launchd service plist file: $F"
 launchctl load "$F"
+
+echo "+ All operations finished successfully."
+echo ""
+echo "You can use convenience script beame-gatekeeper-ctl to manage Beame Gatekeeper service."
+echo "Running it for you with 'info' command and then with 'admin' command."
+echo ""
+
+bash $BEAME_GATEKEEPER_DIR/install/ctl.sh info
+echo ""
+bash $BEAME_GATEKEEPER_DIR/install/ctl.sh admin
