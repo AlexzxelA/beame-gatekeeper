@@ -108,7 +108,7 @@ webToken.params = {
 webToken.toText = (url) => {
 	return "\n" +
 	"--------------------------------------------------\n" +
-	"Please use the URL below to configure/admininister beame-insta-server\n" +
+	"Please use the URL below to configure/administer beame-gatekeeper\n" +
 	`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
 	`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
 	url + '\n'  +
@@ -121,7 +121,7 @@ function admin(callback){
 admin.toText = (url) => {
 	return "\n" +
 		"--------------------------------------------------\n" +
-		"Please use the URL below to configure/admininister beame-insta-server\n" +
+		"Please use the URL below to configure/administer beame-gatekeeper\n" +
 		`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
 		`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
 		url + '\n'  +

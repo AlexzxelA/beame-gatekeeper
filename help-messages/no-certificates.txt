@@ -8,4 +8,4 @@ Here are the steps to obtain SSL certificate from Beame.io:
 * Visit https://p2payp4q8f5ruo22.q6ujqecc83gg6fod.v1.d.beameio.net/insta-server
 * Get email with further instructions
 * Run the command mentioned in the instructions
-* Run "beame-insta-server server"
+* Run "beame-gatekeeper server start"
