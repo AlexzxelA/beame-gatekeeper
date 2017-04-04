@@ -3,9 +3,15 @@
 const fs   = require('fs');
 const path = require('path');
 
-const Bootstrapper      = require('../bootstrapper');
-const bootstrapper      = Bootstrapper.getInstance();
-const serviceManager    = new (require('../servers/gw/serviceManager'))();
+const Bootstrapper   = require('../bootstrapper');
+const bootstrapper   = Bootstrapper.getInstance();
+const serviceManager = new (require('../servers/gw/serviceManager'))();
+
+const beameSDK    = require('beame-sdk');
+const module_name = "ServerCLI";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
+const CommonUtils = beameSDK.CommonUtils;
 
 
 /** @type {DataServices} */
@@ -22,26 +28,33 @@ function startDataService() {
 }
 
 function start(callback) {
-	const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
-	const ServersManager     = require('../serversManager');
 
-	const assertServersSettings = (settings) => {
-		return new Promise((resolve) => {
-			if (!settings) {
-				console.log(getHelpMessage('no-certificates.txt'));
-				process.exit(1);
-			}
-			resolve(settings);
-		});
-	};
+	CommonUtils.validateMachineClock().then(() => {
+		const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
+		const ServersManager     = require('../serversManager');
 
-	bootstrapper.initAll()
-		.then(startDataService)
-		.then(serviceManager.evaluateAppList.bind(serviceManager))
-		.then(getServersSettings)
-		.then(assertServersSettings)
-		.then(ServersManager.go.bind(null, serviceManager))
-		.catch(callback);
+		const assertServersSettings = (settings) => {
+			return new Promise((resolve) => {
+				if (!settings) {
+					console.log(getHelpMessage('no-certificates.txt'));
+					process.exit(1);
+				}
+				resolve(settings);
+			});
+		};
+
+		bootstrapper.initAll()
+			.then(startDataService)
+			.then(serviceManager.evaluateAppList.bind(serviceManager))
+			.then(getServersSettings)
+			.then(assertServersSettings)
+			.then(ServersManager.go.bind(null, serviceManager))
+			.catch(callback);
+	}).catch(error => {
+		logger.fatal(error);
+	})
+
+
 }
 
 start.params = {};
