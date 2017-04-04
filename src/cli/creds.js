@@ -27,16 +27,23 @@ function startDataService() {
 
 }
 
-function getCreds(regToken, callback) {
-	let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
+function getCreds(regToken, fqdn, callback) {
 
-	if (fqdn) {
-		callback(`Zero level credential already registered on ${fqdn}`);
+	if(!regToken && !fqdn){
+		callback(`Registration token or fqdn required`);
 		return;
 	}
+
+	let current_fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
+
+	if (current_fqdn) {
+		callback(`Zero level credential already registered on ${current_fqdn}`);
+		return;
+	}
+
 	bootstrapper.initAll()
 		.then(() => {
-			credentialManager.createInitialCredentials(regToken).then(metadata => {
+			credentialManager.createInitialCredentials(regToken, fqdn).then(metadata => {
 				console.log('');
 				console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
 				console.log('');
@@ -48,7 +55,7 @@ function getCreds(regToken, callback) {
 		}).catch(callback);
 }
 
-getCreds.params = { 'regToken': {required: true, base64: true, json: true} };
+getCreds.params = { 'regToken': {required: false, base64: true, json: true}, 'fqdn': {required: false, base64: false, json: false} };
 
 function list(regex, callback) {
 	callback(null, beameSDK.creds.list(regex));
@@ -108,7 +115,7 @@ webToken.params = {
 webToken.toText = (url) => {
 	return "\n" +
 	"--------------------------------------------------\n" +
-	"Please use the URL below to configure/admininister beame-insta-server\n" +
+	"Please use the URL below to configure/administer beame-gatekeeper\n" +
 	`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
 	`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
 	url + '\n'  +
@@ -121,7 +128,7 @@ function admin(callback){
 admin.toText = (url) => {
 	return "\n" +
 		"--------------------------------------------------\n" +
-		"Please use the URL below to configure/admininister beame-insta-server\n" +
+		"Please use the URL below to configure/administer beame-gatekeeper\n" +
 		`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
 		`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
 		url + '\n'  +

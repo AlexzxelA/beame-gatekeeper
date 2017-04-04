@@ -126,7 +126,7 @@ function extractAuthToken(req) {
 function sendError(req, res, code, err, extra_headers = {}) {
 	logger.error(`Sending error: ${err}`);
 	res.writeHead(code, Object.assign({}, {'Content-Type': 'text/plain'}, extra_headers));
-	res.end(`Hi.\nThis is beame-insta-server gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
+	res.end(`Hi.\nThis is beame-gatekeeper gateway proxy. An error occured.\n\nRequested URL: ${req.url}\n\nError: ${err}\n`);
 
 }
 
@@ -388,7 +388,7 @@ class GatewayServer {
 				.then(() => {
 					this._server.listen(process.env.BEAME_INSTA_SERVER_GW_PORT || 0, () => {
 						const port = this._server.address().port;
-						logger.debug(`beame-insta-server listening port ${port}`);
+						logger.debug(`beame-gatekeeper listening port ${port}`);
 						resolve([cert, port]);
 					});
 				}).catch(reject)
