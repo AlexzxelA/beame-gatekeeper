@@ -22,24 +22,25 @@ const cookieNames        = Constants.CookieNames;
 const unauthenticatedApp = require('./unauthenticatedApp');
 const authenticatedApp   = require('./authenticatedApp');
 const configApp          = require('./configApp');
-const COOKIE_NAME = 'X-Beame-GW-Service-Token';
+const COOKIE_NAME        = 'X-Beame-GW-Service-Token';
+const utils              = require('../../utils');
 
-let adminApp             = null;
-let expectsAuthToken     = false;
-let serviceManager = null;
+let adminApp         = null;
+let expectsAuthToken = false;
+let serviceManager   = null;
 
 
 const agentProxy = (agentModule) => {
 
 	const agentOptions = {
-		maxSockets:       100,
-		keepAlive:        true,
-		maxFreeSockets:   10,
-		keepAliveMsecs:   500,
-		timeout:          60000,
-		keepAliveTimeout: 30000 // free socket keepalive for 30 seconds
-	},
-    agent = agentModule =='https' ? new https.Agent(agentOptions) : new http.Agent(agentOptions);
+		      maxSockets:       100,
+		      keepAlive:        true,
+		      maxFreeSockets:   10,
+		      keepAliveMsecs:   500,
+		      timeout:          60000,
+		      keepAliveTimeout: 30000 // free socket keepalive for 30 seconds
+	      },
+	      agent        = agentModule == 'https' ? new https.Agent(agentOptions) : new http.Agent(agentOptions);
 
 	return httpProxy.createProxyServer({
 		xfwd:         true,
@@ -54,10 +55,10 @@ const agentProxy = (agentModule) => {
 	})
 };
 
-const http_proxy = agentProxy('http');
-const https_proxy =  agentProxy('https');
+const http_proxy  = agentProxy('http');
+const https_proxy = agentProxy('https');
 
-function onProxyRes (proxyRes) {
+function onProxyRes(proxyRes) {
 	if (proxyRes.statusCode == 301) {
 		proxyRes.statusCode    = 302;
 		proxyRes.statusMessage = 'Found';
@@ -80,11 +81,11 @@ function onProxyRes (proxyRes) {
 // 301 responses are cached by browser so we can no longer proxy,
 // browsers hitting gateway will automatically be redirected to
 // another site. Rewriting 301 to 302 responses.
-http_proxy.on('proxyRes',onProxyRes);
+http_proxy.on('proxyRes', onProxyRes);
 https_proxy.on('proxyRes', onProxyRes);
 
 
-function onProxyError (err, req, res) {
+function onProxyError(err, req, res) {
 	logger.error(err);
 	if (res) {
 		res.writeHead && res.writeHead(502, {'Content-Type': 'text/plain'});
@@ -100,7 +101,7 @@ function onProxyError (err, req, res) {
 	logger.error('--- Proxy error - end ---');
 }
 
-http_proxy.on('error', onProxyError );
+http_proxy.on('error', onProxyError);
 https_proxy.on('error', onProxyError);
 
 // Extracts URL token either from URL or from Cookie
@@ -136,6 +137,7 @@ function is_unauth_app_url(url) {
 	url.startsWith(Constants.LoginPath) ||
 	url.startsWith(Constants.SigninPath) ||
 	url.startsWith(Constants.AppSwitchPath) ||
+	url.startsWith(Constants.RegisterPath) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/css`) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/img`) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/js`))
@@ -200,7 +202,7 @@ function handleRequest(type, p1, p2, p3) {
 
 	logger.debug('[GW] handleRequest', req.url);
 
-	const authToken = (expectsAuthToken)?extractAuthToken(req):null;
+	const authToken = (expectsAuthToken) ? extractAuthToken(req) : null;
 
 	logger.debug('gateway handleRequest URL', req.url);
 	if (!authToken || is_unauth_app_url(req.url)) {

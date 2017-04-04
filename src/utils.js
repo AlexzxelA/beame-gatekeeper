@@ -67,15 +67,25 @@ function signDataWithFqdn(fqdn, data) {
 
 			let signature = cred.sign(CommonUtils.stringify(data));
 			resolve(signature);
-			
+
 		}).catch(() => {
 			reject(`signDataWithFqdn() failed getting credential ${fqdn}`);
 		});
 	});
 }
 
+function  clearSessionCookie (res){
+	const Constants         = require('../constants');
+	const cookieNames       = Constants.CookieNames;
+
+	res.clearCookie(cookieNames.Proxy);
+	res.clearCookie(cookieNames.RegData);
+	res.clearCookie(cookieNames.UserInfo);
+	res.clearCookie(cookieNames.LoginData);
+}
 
 module.exports = {
+	clearSessionCookie,
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,

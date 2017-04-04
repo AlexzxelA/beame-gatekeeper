@@ -7,32 +7,29 @@ const url         = require('url');
 const express    = require('express');
 const bodyParser = require('body-parser');
 
-const Bootstrapper      = require('../../bootstrapper');
-const bootstrapper      = Bootstrapper.getInstance();
-const Constants         = require('../../../constants');
-const cookieNames       = Constants.CookieNames;
-const beameSDK          = require('beame-sdk');
-const CommonUtils       = beameSDK.CommonUtils;
-const module_name       = "GwUnauthenticatedApp";
-const BeameLogger       = beameSDK.Logger;
-const logger            = new BeameLogger(module_name);
-const BeameStore        = new beameSDK.BeameStore();
-const AuthToken         = beameSDK.AuthToken;
-const BeameAuthServices = require('../../authServices');
-const public_dir        = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
-const base_path         = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
-const apiConfig         = require('../../../config/api_config.json');
+const Bootstrapper         = require('../../bootstrapper');
+const bootstrapper         = Bootstrapper.getInstance();
+const Constants            = require('../../../constants');
+const cookieNames          = Constants.CookieNames;
+const beameSDK             = require('beame-sdk');
+const CommonUtils          = beameSDK.CommonUtils;
+const module_name          = "GwUnauthenticatedApp";
+const BeameLogger          = beameSDK.Logger;
+const logger               = new BeameLogger(module_name);
+const BeameStore           = new beameSDK.BeameStore();
+const AuthToken            = beameSDK.AuthToken;
+const BeameAuthServices    = require('../../authServices');
+const public_dir           = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
+const base_path            = path.join(public_dir, 'pages', 'gw', 'unauthenticated');
+const apiConfig            = require('../../../config/api_config.json');
 const relayManagerInstance = require('../../relayManager').getInstance();
-const utils         = require('../../utils');
-const cust_auth_app = require('../../routers/customer_auth');
+const utils                = require('../../utils');
+const cust_auth_app        = require('../../routers/customer_auth');
 
 const unauthenticatedApp = express();
 
 const clearSessionCookie = res => {
-	res.clearCookie(cookieNames.Proxy);
-	res.clearCookie(cookieNames.RegData);
-	res.clearCookie(cookieNames.UserInfo);
-	res.clearCookie(cookieNames.LoginData);
+	utils.clearSessionCookie(res);
 };
 
 const loadLoginPage = (res) => {
@@ -106,7 +103,7 @@ unauthenticatedApp.use(bodyParser.json());
 unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
-	let data  = req.body;
+	let data = req.body;
 
 	AuthToken.getRequestAuthToken(req)
 		.then(token => {
@@ -117,7 +114,7 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, re
 			if (bootstrapper.externalLoginUrl) {
 				if (bootstrapper.externalLoginUrl.indexOf(loginMasterFqdn) >= 0) {
 
-					if(data){
+					if (data) {
 						if (data.action == Constants.DelegatedLoginNotificationAction.Register) {
 							loginServices.sendACKToDelegatedCentralLogin(Constants.DelegatedLoginNotificationAction.Register);
 						}
@@ -141,7 +138,7 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, re
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
 
 	AuthToken.getRequestAuthToken(req).then(() => {
-		let data  = req.body;
+		let data = req.body;
 
 		if (data && data.id && data.fqdn) {
 
@@ -325,7 +322,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 				_redirectToBeameAuth(`&pin=${qs.pin}`);
 			}
 			else {
-				res.redirect(`https://${gwServerFqdn}/register-success?method=${method}`);
+				res.redirect(`https://${gwServerFqdn}/${Constants.RegisterSuccessPath}?method=${method}`);
 			}
 
 			return;
