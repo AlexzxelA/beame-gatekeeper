@@ -9,10 +9,10 @@ const beameSDK     = require('beame-sdk');
 const module_name  = "CredentialManager";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
-const BeameStore   = new beameSDK.BeameStore();
+const beameStore   = new beameSDK.BeameStore();
 const Credential   = beameSDK.Credential;
 const Bootstrapper = require('./bootstrapper');
-const defaults      = require('../defaults');
+const defaults     = require('../defaults');
 const Constants    = require('../constants');
 const CommonUtils  = beameSDK.CommonUtils;
 
@@ -23,31 +23,56 @@ class CredentialManager {
 	}
 
 	/**
-	 * @param {EmailRegistrationData} token
+	 * @param {EmailRegistrationData|null} [token]
+	 * @param {String|null} [fqdn]
 	 */
-	createInitialCredentials(token) {
+	createInitialCredentials(token, fqdn) {
 
-		const _onRegistrationError = error=> {
+		const _onRegistrationError = error => {
 			logger.error(BeameLogger.formatError(error));
 			process.exit(1);
 		};
 
 		return new Promise((resolve) => {
-				CredentialManager._createZeroLevelCredential(token).then(metadata => {
 
-					logger.info(`Zero level credential created successfully on ${metadata.fqdn}`);
+				const _onZeroLevelCreated = metadata => {
+					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel)
+						.then(this.createServersCredentials.bind(this, metadata.email))
+						.then(() => {
 
-					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel).then(this.createServersCredentials.bind(this,metadata.email)).then(()=> {
+							this._bootstrapper.registerCustomerAuthServer(Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(() => {
+								resolve(metadata);
+							}).catch(error => {
+								logger.error(BeameLogger.formatError(error));
+								resolve(metadata);
+							});
+						})
+						.catch(_onRegistrationError)
+				};
 
-						this._bootstrapper.registerCustomerAuthServer(Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer)).then(()=> {
-							resolve(metadata);
-						}).catch(error => {
-							logger.error(BeameLogger.formatError(error));
-							resolve(metadata);
-						});
-					}).catch(_onRegistrationError)
+				if (token) {
+					CredentialManager._createZeroLevelCredential(token)
+						.then(metadata => {
 
-				}).catch(_onRegistrationError);
+							logger.info(`Zero level credential created successfully on ${metadata.fqdn}`);
+
+							_onZeroLevelCreated(metadata);
+
+						})
+						.catch(_onRegistrationError);
+				}
+				else {
+					beameStore.find(fqdn,false)
+						.then(cred=>{
+							if(!cred.hasKey('PRIVATE_KEY')){
+								_onRegistrationError(`FQDN ${fqdn} has not Private key and can't be used`);
+								return;
+							}
+
+							_onZeroLevelCreated(cred.metadata);
+						})
+						.catch(_onRegistrationError)
+				}
 			}
 		);
 	}
@@ -76,11 +101,11 @@ class CredentialManager {
 
 					logger.info(`Creating credentials for ${serverType} ${email}`);
 
-					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, email).then(metadata=> {
+					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, email).then(metadata => {
 
 						logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
 
-						this._bootstrapper.updateCredsFqdn(metadata.fqdn, serverType).then(()=> {
+						this._bootstrapper.updateCredsFqdn(metadata.fqdn, serverType).then(() => {
 							callback();
 						}).catch(error => {
 							logger.error(BeameLogger.formatError(error));
@@ -118,7 +143,7 @@ class CredentialManager {
 
 		return new Promise((resolve, reject) => {
 
-				let cred = new Credential(BeameStore, 20);
+				let cred = new Credential(beameStore, 20);
 				cred.createEntityWithLocalCreds(parent_fqdn, name, email).then(resolve).catch(reject);
 			}
 		);
@@ -134,7 +159,7 @@ class CredentialManager {
 	 */
 	static _createZeroLevelCredential(token) {
 
-		let cred = new Credential(BeameStore);
+		let cred = new Credential(beameStore);
 
 		return cred.createEntityWithRegistrationToken(token);
 

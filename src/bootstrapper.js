@@ -63,7 +63,7 @@ class Bootstrapper {
 			this.initConfig(false)
 				.then(this.initDb.bind(this, false))
 				.then(() => {
-					logger.info(`beame-insta-server bootstrapped successfully`);
+					logger.info(`beame-gatekeeper bootstrapped successfully`);
 					resolve();
 				})
 				.catch(_onConfigError);
@@ -84,7 +84,7 @@ class Bootstrapper {
 					.then(this._ensureCustomerAuthServersJson.bind(this))
 					.then(this._ensureDbConfig.bind(this))
 					.then(() => {
-						logger.info(`Beame-insta-server config files ensured`);
+						logger.info(`Beame-gatekeeper config files ensured`);
 						resolve();
 						if (exit) {
 							process.exit(0);
@@ -117,7 +117,7 @@ class Bootstrapper {
 							.then(this._migrateSqliteSchema.bind(this))
 							.then(this._runSqliteSeeders.bind(this))
 							.then(() => {
-								logger.info(`Beame-insta-server ${provider} DB updated successfully`);
+								logger.info(`Beame-gatekeeper ${provider} DB updated successfully`);
 								resolve();
 								if (exit) {
 									process.exit(0);
@@ -222,18 +222,6 @@ class Bootstrapper {
 			}
 		);
 	}
-
-	// setDelegatedLoginServers(data) {
-	// 	this._config.delegatedLoginServers = (data && (data.length > 0)) ? '[' + data.map(JSON.stringify).join() + ']' : "";
-	// 	let old                            = this._config;
-	// 	this.setAppConfig(this._config);
-	// 	this.saveAppConfigFile().then(console.log('delegatedLoginServers: updated appConfig file')).catch(error => {
-	// 		logger.error(`update app config error ${BeameLogger.formatError(error)}`);
-	// 		this.setAppConfig(old);
-	// 		this.saveAppConfigFile();
-	// 	});
-	// 	//this._updateAppConfigJson().then(console.log('delegatedLoginServers: updated appConfig file')).catch(_onConfigError);
-	// }
 
 	get delegatedLoginUrl() {
 		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : (this.allowDirectSignin ? null : Constants.DCLSOfflinePath)) : null;

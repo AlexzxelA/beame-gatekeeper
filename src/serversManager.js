@@ -223,15 +223,15 @@ class ServersManager {
 					chatApp.start();
 					callback();
 				},
-				callback => {
-					if (isCentralLogin) {
-						callback();
-						return;
-					}
-					let fileApp = new (require('../apps/files'))();
-					fileApp.start();
-					callback();
-				},
+				// callback => {
+				// 	if (isCentralLogin) {
+				// 		callback();
+				// 		return;
+				// 	}
+				// 	let fileApp = new (require('../apps/files'))();
+				// 	fileApp.start();
+				// 	callback();
+				// },
 				callback => {
 					if (isCentralLogin) {
 						callback();
@@ -241,15 +241,15 @@ class ServersManager {
 					mobilePhotoApp.start();
 					callback();
 				},
-				callback => {
-					if (isCentralLogin) {
-						callback();
-						return;
-					}
-					let mobileStreamApp = new (require('../apps/stream'))();
-					mobileStreamApp.start();
-					callback();
-				},
+				// callback => {
+				// 	if (isCentralLogin) {
+				// 		callback();
+				// 		return;
+				// 	}
+				// 	let mobileStreamApp = new (require('../apps/stream'))();
+				// 	mobileStreamApp.start();
+				// 	callback();
+				// },
 				callback => {
 					if (isCentralLogin) {
 						callback();
