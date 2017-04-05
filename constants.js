@@ -45,7 +45,7 @@ const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, Sqlit
 
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
-const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
+const UniversalLinkUrl = 'https://zxppnyvi3leaqepc.mpk3nobb568nycf5.v1.d.beameio.net/';
 
 const BeameLoginURL = "https://dev.login.beameio.net";
 

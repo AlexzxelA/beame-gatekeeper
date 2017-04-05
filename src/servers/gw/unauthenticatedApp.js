@@ -322,7 +322,7 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 				_redirectToBeameAuth(`&pin=${qs.pin}`);
 			}
 			else {
-				res.redirect(`https://${gwServerFqdn}/${Constants.RegisterSuccessPath}?method=${method}`);
+				res.redirect(`https://${gwServerFqdn}${Constants.RegisterSuccessPath}?method=${method}`);
 			}
 
 			return;
