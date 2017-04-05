@@ -50,6 +50,8 @@ class ServiceManager {
 
 		return new Promise((resolve, reject) => {
 
+			this._appList = {};
+
 			const dataService = require('../../dataServices').getInstance();
 
 			const bootstrapper = Bootstrapper.getInstance();
