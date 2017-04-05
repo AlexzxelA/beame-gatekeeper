@@ -15,7 +15,7 @@ var BIT_N    = 500;
 var SYNC_N   = 1050;
 const NGAP   = 50;
 const SHRT_MAX = 32767;
-const SOUND_ATT = 64;
+const SOUND_ATT = 25;
 var retryCounter    = 0;
 
 var audio,
