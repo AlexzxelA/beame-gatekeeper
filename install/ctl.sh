@@ -13,12 +13,16 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+if [[ $(uname -s) == Darwin ]];then
+	SCRIPT_DIR=$(zsh -c 'echo ${0:A:h}' "$0")
+	exec "$SCRIPT_DIR/ctl.zsh" "$@"
+fi
+
 SCRIPT_DIR="$( cd "$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )" && pwd )"
 
 : ${BEAME_GATEKEEPER_USER:=beame-gatekeeper}
 : ${BEAME_GATEKEEPER_SVC:=beame-gatekeeper}
 : ${BEAME_GATEKEEPER_SYSTEMD_FILE:="/etc/systemd/system/$BEAME_GATEKEEPER_SVC.service"}
-: ${BEAME_GATEKEEPER_SYSTEMD_EXTRA:=''}
 : ${BEAME_GATEKEEPER_DIR:="$(dirname "$SCRIPT_DIR")"}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}

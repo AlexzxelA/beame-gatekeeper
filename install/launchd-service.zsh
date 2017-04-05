@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+# sudo systemsetup -setusingnetworktime On
+
 set -eu
 
 TRAPZERR () {
@@ -22,6 +24,7 @@ find_unused_id() {
 }
 
 if [[ $EUID -ne 0 ]]; then
+   echo "Installation can not proceed."
    echo "Please run this script as root."
    exit 1
 fi
@@ -29,14 +32,11 @@ fi
 : ${BEAME_GATEKEEPER_USER:=_beame-gatekeeper}
 : ${BEAME_GATEKEEPER_GROUP:="$BEAME_GATEKEEPER_USER"}
 : ${BEAME_GATEKEEPER_HOME:="/var/${BEAME_GATEKEEPER_USER/_/}"}
-: ${BEAME_GATEKEEPER_SVC:=beame-gatekeeper}
-: ${BEAME_GATEKEEPER_SYSTEMD_FILE:="/etc/systemd/system/$BEAME_GATEKEEPER_SVC.service"}
-: ${BEAME_GATEKEEPER_SYSTEMD_EXTRA:=''}
 : ${BEAME_GATEKEEPER_DIR:=${0:A:h:h}}
 : ${BEAME_GATEKEEPER_EMBEDED_SDK:="$BEAME_GATEKEEPER_DIR/node_modules/beame-sdk/src/cli/beame.js"}
 : ${BEAME_GATEKEEPER_BIN:="$BEAME_GATEKEEPER_DIR/main.js"}
 
-if type node;then
+if type node &>/dev/null;then
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which node)}
 else
 	: ${BEAME_GATEKEEPER_NODEJS_BIN:=$(which nodejs)}
@@ -114,27 +114,37 @@ else
 		echo "+ Using provided token: $1"
 		token="$1"
 	else
-		echo "+ Token not provided as command line argument. Looking for root (top level) credentials to create token with."
-		if [[ ${SUDO_USER-} ]];then
-			echo "+ Taking root credentials user from SUDO_USER"
-			ROOT_CREDENENTIALS_USER=$SUDO_USER
-		else
-			ROOT_CREDENENTIALS_USER=$(id -un)
-		fi
-		echo "+ Root credentials user: $ROOT_CREDENENTIALS_USER"
-		ROOT_CREDENENTIALS_HOME="$(dscl . -read /Users/"$ROOT_CREDENENTIALS_USER" NFSHomeDirectory | awk '{print $2}')"
-		echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
+		token=""
+		if [[ ${BEAME_GATEKEEPER_USE_ROOT_CREDS-} ]];then
+			echo "+ Token not provided as command line argument. Looking for root (top level) credentials to create token with."
+			if [[ ${SUDO_USER-} ]];then
+				echo "+ Taking root credentials user from SUDO_USER"
+				ROOT_CREDENENTIALS_USER=$SUDO_USER
+			else
+				ROOT_CREDENENTIALS_USER=$(id -un)
+			fi
+			echo "+ Root credentials user: $ROOT_CREDENENTIALS_USER"
+			ROOT_CREDENENTIALS_HOME="$(dscl . -read /Users/"$ROOT_CREDENENTIALS_USER" NFSHomeDirectory | awk '{print $2}')"
+			echo "+ Root credentials home directory: $ROOT_CREDENENTIALS_HOME"
 
-		echo "+ Searching for root credentials"
-		ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
-		exit 100
-		if [[ $ROOT_CREDENENTIALS ]]; then
-			echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
-			echo "+ Getting token as child of $ROOT_CREDENENTIALS"
-			token=$(su -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$HOSTNAME'" "$ROOT_CREDENENTIALS_USER")
-			echo "+ Got token: $token"
-		else
-			echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
+			echo "+ Searching for root credentials"
+			if [[ -e "$ROOT_CREDENENTIALS_HOME/.beame" ]];then
+				echo "+ Root credentials directory found ($ROOT_CREDENENTIALS_HOME/.beame), querying credentials store"
+				ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+			else
+				echo "+ Root credentials directory not found ($ROOT_CREDENENTIALS_HOME/.beame), assuming no root credentials"
+				ROOT_CREDENENTIALS=""
+			fi
+			if [[ $ROOT_CREDENENTIALS ]]; then
+				echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
+				echo "+ Getting token as child of $ROOT_CREDENENTIALS"
+				token=$(SHELL=/bin/zsh sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$(hostname)'")
+				echo "+ Got token: $token"
+			else
+				echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
+			fi
+		fi
+		if [[ ! $token ]];then
 			echo "----------------------------------------------------------------------------------------------------"
 			echo "Please go to https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper and complete your registration process"
 			echo "then run this script with the token from email:"
@@ -145,6 +155,38 @@ else
 	fi
 
 	echo "+ Getting Beame Gatekeeper credentials"
-	su -s /bin/bash -c "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'" "$BEAME_GATEKEEPER_USER"
+	# cd /tmp to avoid failing cwd() in NodeJS
+	(cd /tmp && SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- "'$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'")
 fi
 
+F="/Library/LaunchDaemons/io.beame.gatekeeper.plist"
+echo "+ Setting up Launchd service plist file: $F"
+"$BEAME_GATEKEEPER_DIR/install/make_launchd_plist.py" \
+	"$BEAME_GATEKEEPER_USER" \
+	"$BEAME_GATEKEEPER_GROUP" \
+	"$BEAME_GATEKEEPER_DIR" \
+	"$BEAME_GATEKEEPER_NODEJS_BIN" \
+	>"$F"
+
+echo "+ Enabling Launchd service: system/io.beame.gatekeeper"
+launchctl enable system/io.beame.gatekeeper
+
+echo "+ Installation complete."
+
+if launchctl list | grep -q io.beame.gatekeeper;then
+	echo "+ Unloading Launchd service plist file: $F"
+	launchctl unload "$F"
+fi
+
+echo "+ Starting Beame Gatekeeper: Loading Launchd service plist file: $F"
+launchctl load "$F"
+
+echo "+ All operations finished successfully."
+echo ""
+echo "You can use convenience script beame-gatekeeper-ctl to manage Beame Gatekeeper service."
+echo "Running it for you with 'info' command and then with 'admin' command."
+echo ""
+
+bash $BEAME_GATEKEEPER_DIR/install/ctl.sh info
+echo ""
+bash $BEAME_GATEKEEPER_DIR/install/ctl.sh admin
