@@ -34,7 +34,7 @@
         <!-- endbuild -->
     </a>
 
-    <div class="row h-100" id="login_form">
+    <div class="row h-100">
 
         <!-- LEFT -->
         <div class="column large-6 card-left p-2 shadow-main">
@@ -46,7 +46,7 @@
         </div>
 
         <!-- RIGHT -->
-        <div class="column large-6 card-right shadow-main py-2 text-center">
+        <div  id="login_form"  class="column large-6 card-right shadow-main py-2 text-center">
 
             <p class="mb-half text-gray-light">Scan QR code</p>
 
@@ -69,22 +69,19 @@
 
             </div>
 
-            <form id="" action="" method="">
-
-                <div class="box-signin" id="pairing-box">
-                    <div class="signin-qr">
-                        <div id="qr" class="qr-spinner"></div>
-                        <label class="qr-status"></label>
-                    </div>
-                    <p class="mt-half text-gray-light">Or use ultrasound</p>
-                    <welcome-template></welcome-template>
+            <div class="box-signin" id="pairing-box">
+                <div class="signin-qr">
+                    <div id="qr" class="qr-spinner"></div>
+                    <label class="qr-status"></label>
                 </div>
+                <p class="mt-half text-gray-light">Or use ultrasound</p>
+                <welcome-template></welcome-template>
+            </div>
 
-                <div id="error-message" class="error-message-signin mt-half">Oops. Something went wrong. Try again
-                    please
-                </div>
+            <div id="error-message" class="error-message-signin mt-half">Oops. Something went wrong. Try again
+                please
+            </div>
 
-            </form>
 
         </div>
 
