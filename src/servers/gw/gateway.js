@@ -136,6 +136,7 @@ function is_unauth_app_url(url) {
 	url.startsWith(Constants.LogoutPath) ||
 	url.startsWith(Constants.LoginPath) ||
 	url.startsWith(Constants.SigninPath) ||
+	url.startsWith(Constants.XprsSigninPath) ||
 	url.startsWith(Constants.AppSwitchPath) ||
 	url.startsWith(Constants.RegisterPath) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/css`) ||
