@@ -23,44 +23,36 @@
 </head>
 <body>
 
-<div class="admin-main-wrapper">
+<div class="card card-center">
 
-    <div class="row">
-        <div class="column large-6 large-offset-1 end">
-            <div class="logo"><a href="//www.beame.io/">
-                <!-- build:logo -->
-                <img src="../../img/logo.svg">
-                <!-- endbuild -->
-            </a>
-            </div>
-        </div>
-    </div>
+    <a class="logo" href="/">
+        <!-- build:logo -->
+        <img src="img/beame-logo-grad.png" width="100" height="16">
+        <!-- endbuild -->
+    </a>
 
-    <div class="row">
+    <div class="row h-100">
 
-
-        <div class="column large-10 large-offset-1">
-            <div class="left-column__wrapper">
-                <h1>Out of service</h1>
-                <p>Central Delegated Login Server is offline</p>
-                <button onclick="goBack()">Go Back</button>
-            </div>
+        <div class="column large-12 card-left p-2 shadow-main">
+            <h1>Out of service</h1>
+            <p>Central Delegated Login Server is offline</p>
+            <button onclick="goBack()">Go Back</button>
         </div>
 
     </div>
-    <script>
-		function goBack() {
-			window.history.back();
-		}
-    </script>
+
 </div>
+
+
 
 
 <script>
 	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
 
+	function goBack() {
+		window.history.back();
+	}
 </script>
-
 </body>
 <head>
     <META HTTP-EQUIV="Pragma" CONTENT="no-cache">

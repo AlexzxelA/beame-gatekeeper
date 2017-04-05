@@ -97,11 +97,17 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 			var parsed = JSON.parse(data);
 			console.log('tokenVerified:',parsed,'..loginTarget:',gwloginTarget,'..loginRelay:',gwloginRelay);
 			if(parsed.success){
+				var l;
 				if(parsed.token && gwloginTarget && gwloginRelay){
-					var l = 'https://' + parsed.target + "?usrInData=" +
+					 l = 'https://' + parsed.target + "?usrInData=" +
 						encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:gwloginTarget, relay:gwloginRelay})));
-					window.top.location = l;
 				}
+				else{
+					 l = 'https://' + parsed.target + "?usrInData=" +
+						encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token})));
+				}
+				window.top.location = l;
+
 			}
 			else{
 				console.log('Token validation failed, or invalid session data:',parsed.error);
