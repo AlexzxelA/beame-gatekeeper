@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+
 @import "foundation";
 @import "normalize";
 @import "mixins";
@@ -5,19 +7,20 @@
 $blue: #2196F3;
 $black: #222;
 $dark: #444;
-$gray: #777;
-$gray-light: #eee;
+$gray: #4A4A4A;
+$gray-light: #9B9B9B;
+$gray-lighter: #F9F9F9;
 $white: #fff;
 
 $purple-bm: #7030a0;
 $blue-dark-bm: #005392;
 $blue-light-bm: #00b0f0;
 
-$m-font: "Source Sans Pro", Helvetica, Arial sans-serif;
+$m-font: 'Nunito', sans-serif;
 
 body, html {
     height: 100%;
-    //background: $blue;
+    background: $gray-lighter;
     font-size: 16px;
     font-family: $m-font;
 }
@@ -38,13 +41,13 @@ body, html {
 }
 
 .main-wrapper {
-    @media screen and (min-width: 1500px) {
-        width: 100%;
-        position: absolute;
-        top: 40%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
+
+    width: 100%;
+    max-width: 640px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .logo {
@@ -596,3 +599,6 @@ p + p {
         color: red;
     }
 }
+
+
+* {border: 1px solid red;}
