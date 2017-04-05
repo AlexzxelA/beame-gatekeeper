@@ -3161,7 +3161,7 @@ p + p {
   line-height: 42px;
   font-size: 1.1rem;
   vertical-align: middle;
-  width: auto;
+  width: 100%;
   white-space: nowrap;
   height: 42px;
   margin: 25px 0 10px;
