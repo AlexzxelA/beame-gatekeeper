@@ -58,7 +58,7 @@
 }
 
 
-// Calculating set of paddings and margins (see spacing map in custom _variables)
+// Calculating set of paddings and margins (see spacing map in variables)
 
 @each $prop, $abbrev in (margin: m, padding: p) {
   @each $size, $lengths in $spacers {
