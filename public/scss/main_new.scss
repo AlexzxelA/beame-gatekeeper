@@ -7,6 +7,7 @@ h1, h2, h3, h4, h5, h6, p, div, span, input, button {
 
 .main-title {
   font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 // Cards
@@ -38,6 +39,7 @@ h1, h2, h3, h4, h5, h6, p, div, span, input, button {
 
     .card-left {
       background-image: $grad-main;
+      color: $white;
       @media screen and (min-width: 595px) {
         border-top-left-radius: $rad-main;
         border-bottom-left-radius: $rad-main;
@@ -56,13 +58,68 @@ h1, h2, h3, h4, h5, h6, p, div, span, input, button {
 
   }
 
-  /*@media screen and (max-width: 595px) {
-    border-radius: 0;
-    .rounded-left {
-      border-radius: 0;
-    }
-  }*/
+}
 
+// QR and speaker box
+
+.box-signin {
+  margin: auto;
+  text-align: center;
+  width: 100%;
+}
+
+.box-signin .signin-qr {
+  width: 100%;
+  display: inline-block;
+  font-size: 0;
+
+  & .qr-status {
+    display: inline-flex;
+    font-size: 13px;
+    margin: 1rem auto 0;
+  }
+}
+
+.box-signin .signin-qr svg {
+  max-width: 100%;
+}
+
+.box-signin .signin-qr #qr {
+  margin: 0 auto;
+  width: 220px;
+  height: 220px;
+}
+
+
+
+.box-signin .signin-divider {
+  margin: 25px auto 15px;
+  color: #777;
+  font-size: 15px;
+}
+
+.box-signin .signin-speaker {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  border-radius: 100%;
+  background: #7030a0;
+  box-shadow: 0 2px 10px 5px #c6a0e3;
+  outline: none;
+  transform: scale(1);
+  transition: transform 0.1s;
+  background: url("/img/speaker-purple-off.svg") no-repeat center;
+  background-size: 105%;
+}
+
+.box-signin .signin-speaker.button-on {
+  background: url("/img/speaker-purple-on.svg") no-repeat center;
+  background-size: 105%;
+}
+
+.box-signin .signin-speaker:hover {
+  transform: scale(1.03);
+  transition: transform 0.1s;
 }
 
 // Colors
@@ -85,6 +142,25 @@ h1, h2, h3, h4, h5, h6, p, div, span, input, button {
   background-image: $grad-secondary;
 }
 
+// Lists
+
+.checked-icon {
+  position: relative;
+  padding-left: 1.6rem;
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: .25rem;
+    display: inline-block;
+    background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDQxICgzNTMyNikgLSBodHRwOi8vd3d3LmJvaGVtaWFuY29kaW5nLmNvbS9za2V0Y2ggLS0+CiAgICA8dGl0bGU+R3JvdXAgMzwvdGl0bGU+CiAgICA8ZGVzYz5DcmVhdGVkIHdpdGggU2tldGNoLjwvZGVzYz4KICAgIDxkZWZzPgogICAgICAgIDxjaXJjbGUgaWQ9InBhdGgtMSIgY3g9IjgiIGN5PSI4IiByPSI4Ij48L2NpcmNsZT4KICAgICAgICA8bWFzayBpZD0ibWFzay0yIiBtYXNrQ29udGVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFza1VuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeD0iMCIgeT0iMCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSJ3aGl0ZSI+CiAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtMSI+PC91c2U+CiAgICAgICAgPC9tYXNrPgogICAgPC9kZWZzPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgaWQ9Ikdyb3VwLTMiPgogICAgICAgICAgICA8dXNlIGlkPSJPdmFsIiBzdHJva2U9IiNGRkZGRkYiIG1hc2s9InVybCgjbWFzay0yKSIgc3Ryb2tlLXdpZHRoPSIyIiB4bGluazpocmVmPSIjcGF0aC0xIj48L3VzZT4KICAgICAgICAgICAgPHBvbHlnb24gaWQ9IkNoZWNrbWFyayIgZmlsbD0iI0ZBRkFGQyIgcG9pbnRzPSI0LjUgNyA3IDkuNSAxNC41IDIgMTYgMy41IDcgMTIuNSAzIDguNSI+PC9wb2x5Z29uPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+");
+    background-repeat: no-repeat;
+    background-size: 100%;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
 // Helpers
 
 .d-block {
@@ -103,7 +179,23 @@ h1, h2, h3, h4, h5, h6, p, div, span, input, button {
   box-shadow: $box-shadow-main;
 }
 
+.absolute-100 {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
 /*
 .rounded {
   border-radius: $rad-lg;
 }*/
+
+// Specials
+
+.image-user {
+  width: 220px;
+  height: 220px;
+  visibility: hidden;
+  display: block;
+  margin: 0 auto;
+}
