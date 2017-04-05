@@ -16,6 +16,7 @@ const bootstrapper = Bootstrapper.getInstance();
 const app          = express();
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger('CustomerAuth');
+const utils                = require('../utils');
 
 const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 
@@ -36,7 +37,10 @@ function authenticate(data) {
 	});
 }
 
-app.get('/register', (req, res) => {
+app.get(Constants.RegisterPath, (req, res) => {
+
+	utils.clearSessionCookie(res);
+
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 
 	let isPublicRegistrationEnabled = bootstrapper.publicRegistration;
@@ -45,7 +49,7 @@ app.get('/register', (req, res) => {
 });
 
 
-app.get('/register-success', (req, res) => {
+app.get(Constants.RegisterSuccessPath, (req, res) => {
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 	res.sendFile(path.join(base_path, 'register_success.html'));
 });

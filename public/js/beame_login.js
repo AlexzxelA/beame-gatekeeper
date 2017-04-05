@@ -738,8 +738,9 @@ originSocket.on('tokenVerified', function (data) {
 			//var target = JSON.parse(parsed.token).signedData;
 			//document.cookie = "beame_userid=" + JSON.stringify({token:parsed.token,uid:UID}) + ";path=/;domain="+target.data;
 			destroyTmpHosts(function () {
-				var l = 'https://' + parsed.target + "?usrInData=" +
+				var params = (loginTarget && (loginTarget === UID))?encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token}))):
 					encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token,uid:loginTarget||UID, relay:loginRelay})));
+				var l = 'https://' + parsed.target + "?usrInData=" + params;
 				window.location.href = l;
 			});
 		}

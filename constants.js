@@ -19,6 +19,8 @@ const ConfigData               = `${GatewayControllerPath}/config-data`;
 const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
+const RegisterPath             = `${GatewayControllerPath}/register`;
+const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
@@ -43,7 +45,7 @@ const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, Sqlit
 
 const DEFAULT_LOAD_BALANCER_URL = "https://yxyrz54y6uchvvbc.z0w0zv388qz2cijm.v1.s.beameio.net";
 
-const UniversalLinkUrl = 'https://vcu962pvbwxqwmvs.v1.p.beameio.net/';
+const UniversalLinkUrl = 'https://zxppnyvi3leaqepc.mpk3nobb568nycf5.v1.d.beameio.net/';
 
 const BeameLoginURL = "https://staging.login.beameio.net";
 
@@ -163,6 +165,8 @@ module.exports = {
 	LogoutToLoginPath,
 	AppSwitchPath,
 	DCLSOfflinePath,
+	RegisterPath,
+	RegisterSuccessPath,
 	UniversalLinkUrl,
 	BeameRootPath,
 

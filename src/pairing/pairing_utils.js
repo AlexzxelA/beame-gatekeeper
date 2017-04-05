@@ -6,12 +6,14 @@ const beameSDK     = require('beame-sdk');
 const BeameLogger  = beameSDK.Logger;
 const store        = new beameSDK.BeameStore();
 const crypto       = require('crypto');
-var module_name    = 'PairingUtils';
-const authToken        = beameSDK.AuthToken;
-const logger       = new BeameLogger(module_name);
+const authToken    = beameSDK.AuthToken;
+
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
-const Constants = require('../../constants');
+const Constants    = require('../../constants');
+
+let module_name  = 'PairingUtils';
+const logger       = new BeameLogger(module_name);
 
 class PairingUtils {
 	constructor(fqdn, inSocket, name) {
@@ -33,20 +35,20 @@ class PairingUtils {
 		});
 	}
 
-	 _extractMobileHost(data){
-		let target = null,
-		 token2mobile = data.token;
+	_extractMobileHost(data) {
+		let target       = null,
+		    token2mobile = data.token;
 		try {
 			let token = JSON.parse(data.token);
 
-			if(token.signedData.data.includes('signedData')){
-				target = JSON.parse(token.signedData.data).signedBy;
+			if (token.signedData.data.includes('signedData')) {
+				target       = JSON.parse(token.signedData.data).signedBy;
 				token2mobile = token.signedData.data;
 			}
 			else
 				target = token.signedBy;
 		}
-		catch(e){
+		catch (e) {
 			console.error(e);
 		}
 		return {target: target, token: token2mobile};
@@ -57,7 +59,7 @@ class PairingUtils {
 		this._socket.on('verifyToken', (token) => {
 			authToken.validate(token).then(() => {
 				let parsed     = JSON.parse(token);
-				let targetFqdn = (!(parsed.signedBy === parsed.signedData.data)) ? (parsed.signedData.data + '/beame-gw/xprs-signin') : 'none';
+				let targetFqdn = (!(parsed.signedBy === parsed.signedData.data)) ? (parsed.signedData.data + Constants.XprsSigninPath) : 'none';
 
 				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 				fqdn && store.find(fqdn, true).then((cred) => {
@@ -78,49 +80,53 @@ class PairingUtils {
 		});
 
 		this._socket.on('notifyMobile', (data) => {
-			const ProvisionApi     = beameSDK.ProvApi;
-			const provisionApi     = new ProvisionApi();
+			const ProvisionApi = beameSDK.ProvApi;
+			const provisionApi = new ProvisionApi();
 			const onLoginError = () => {
-				this._socket.emit('forceRedirect',bootstrapper.externalLoginUrl || Constants.BeameLoginURL);
+				this._socket.emit('forceRedirect', bootstrapper.externalLoginUrl || Constants.BeameLoginURL);
 			};
-			try{
-				let parsedData = JSON.parse(data);
-				let signinData = this._extractMobileHost(parsedData),
-					target = signinData.target,
-					token2mobile = signinData.token;
+			try {
+				let parsedData   = JSON.parse(data);
+				let signinData   = this._extractMobileHost(parsedData),
+				    target       = signinData.target,
+				    token2mobile = signinData.token;
 
-				if(bootstrapper.externalLoginUrl)
-					authToken.validate(parsedData.token).then(()=>{
+				if (bootstrapper.externalLoginUrl)
+					authToken.validate(parsedData.token).then(() => {
 						let parsedToken = JSON.parse(parsedData.token);
 
-						let embeddedToken = parsedToken.signedData.data.includes('signedBy');//backward compatibility
-						if(bootstrapper.externalLoginUrl && bootstrapper.externalLoginUrl.includes(parsedToken.signedBy)){
+						//let embeddedToken = parsedToken.signedData.data.includes('signedBy');//backward compatibility
+						if (bootstrapper.externalLoginUrl && bootstrapper.externalLoginUrl.includes(parsedToken.signedBy)) {
 
 							logger.info(`notifyMobile with: ${data}`);
 							//TODO: sign qrData in notification to verify on mobile
-							provisionApi.postRequest('https://'+target+'/login/pairing',
-								JSON.stringify({'uid':parsedData.uid, 'qrData':parsedData.qrData,
-									'token':token2mobile}),
+							provisionApi.postRequest('https://' + target + '/login/pairing',
+								JSON.stringify({
+									'uid':   parsedData.uid, 'qrData': parsedData.qrData,
+									'token': token2mobile
+								}),
 								(error) => {
 									error && console.log('Failed to notify Mobile:', error);
-								},null, 10, {rejectUnauthorized: false});
+								}, null, 10, {rejectUnauthorized: false});
 						}
 						else onLoginError();
-					}).catch((e)=>{
+					}).catch((e) => {
 						console.error(e);
 						onLoginError();
 					});
-				else{
+				else {
 					//let target = JSON.parse(parsedData.token).signedBy;
-					provisionApi.postRequest('https://'+target+'/login/pairing',
-						JSON.stringify({'uid':parsedData.uid, 'qrData':parsedData.qrData,
-						'token':token2mobile}), (error) => {
-						error && console.log('Failed to notify Mobile:', error);
-					},null, 10, {rejectUnauthorized: false});
+					provisionApi.postRequest('https://' + target + '/login/pairing',
+						JSON.stringify({
+							'uid':   parsedData.uid, 'qrData': parsedData.qrData,
+							'token': token2mobile
+						}), (error) => {
+							error && console.log('Failed to notify Mobile:', error);
+						}, null, 10, {rejectUnauthorized: false});
 				}
 
 			}
-			catch(e){
+			catch (e) {
 				console.error(e);
 				onLoginError();
 				//inform browser of failure
