@@ -29,9 +29,9 @@ function onUserAction(accepted){
 		window.sessionValidationComplete = true;
 	}
 	else{
-		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})));
-		//ensure that no login proposed after image invalidation
-		document.cookie = 'usrInData=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
-		logout();
+		sendEncryptedData(getRelaySocket(), getRelaySocketID(), str2ab(JSON.stringify({'type': 'userImageReject'})),function () {
+			document.cookie = 'usrInData=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
+			logout();
+		});
 	}
 }

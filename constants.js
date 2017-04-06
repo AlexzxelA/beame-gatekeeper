@@ -52,9 +52,9 @@ const BeameLoginURL = "https://staging.login.beameio.net";
 const LoadBalancerURL = process.env.BEAME_LOAD_BALANCER_URL || DEFAULT_LOAD_BALANCER_URL;
 
 const EnvMode = {
-	"Gatekeeper" : "Gatekeeper",
-	"CentralLogin" : "CentralLogin",
-	"DelegatedLoginMaster" : "DelegatedLoginMaster",
+	"Gatekeeper":           "Gatekeeper",
+	"CentralLogin":         "CentralLogin",
+	"DelegatedLoginMaster": "DelegatedLoginMaster",
 };
 
 /**
@@ -72,9 +72,9 @@ const RegistrationSource = {
 };
 
 const RequestType = {
-	"RequestWithFqdn" : "RequestWithFqdn",
-	"RequestWithParentFqdn" : "RequestWithParentFqdn",
-	"RequestWithAuthServer" : "RequestWithAuthServer",
+	"RequestWithFqdn":       "RequestWithFqdn",
+	"RequestWithParentFqdn": "RequestWithParentFqdn",
+	"RequestWithAuthServer": "RequestWithAuthServer",
 };
 
 const RegistrationMethod = {
@@ -84,7 +84,7 @@ const RegistrationMethod = {
 };
 
 const DelegatedLoginNotificationAction = {
-	"Register": "register",
+	"Register":   "register",
 	"UnRegister": "unregister"
 };
 /**
@@ -93,7 +93,7 @@ const DelegatedLoginNotificationAction = {
  * @readonly
  * @enum {Number}
  */
-const SnsMessageType     = {
+const SnsMessageType                   = {
 	Cert:   1,
 	Revoke: 2,
 	Delete: 3
@@ -126,14 +126,15 @@ const SetupServices = {
 };
 
 const CookieNames = {
-	"Logout":   "beame_logout_url",
-	"Logout2Login":   "beame_logout_to_login_url",
-	"Login":    "beame_login_url",
-	"Service":  "beame_service",
-	"RegData":  "beame_reg_data",
-	"Proxy":    "proxy_enabling_token",
-	"UserInfo": "beame_userinfo",
-	"LoginData":"usrInData"
+	"Logout":       "beame_logout_url",
+	"Logout2Login": "beame_logout_to_login_url",
+	"Login":        "beame_login_url",
+	"CentralLogin": "beame_central_login_url",
+	"Service":      "beame_service",
+	"RegData":      "beame_reg_data",
+	"Proxy":        "proxy_enabling_token",
+	"UserInfo":     "beame_userinfo",
+	"LoginData":    "usrInData"
 };
 
 module.exports = {
