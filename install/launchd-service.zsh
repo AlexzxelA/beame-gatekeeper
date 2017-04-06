@@ -105,7 +105,7 @@ else
 	chown "$BEAME_GATEKEEPER_USER":"$BEAME_GATEKEEPER_GROUP" "$BEAME_GATEKEEPER_HOME"
 fi
 
-if SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- [[ -e '~/.beame' ]];then
+if SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- zsh -c '[[' -e '~/.beame' ']]';then
 	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER exists. Not getting credentials."
 else
 	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER does not exist. Getting credentials."
