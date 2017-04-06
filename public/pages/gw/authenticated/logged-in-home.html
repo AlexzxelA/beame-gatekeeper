@@ -23,20 +23,18 @@
 
 <div class="card card-center">
 
-    <a class="logo" href="/">
+    <span class="logo">
         <!-- build:logo -->
         <img src="img/beame-logo-grad.png" width="100" height="16">
         <!-- endbuild -->
-    </a>
+    </span>
 
     <div class="row h-100">
 
-        <div class="column large-12 card-left p-2 shadow-main">
-            <h1>Welcome</h1>
+        <div class="column large-12 card-left card-right card-full-box p-2 shadow-main">
+            <h1>Welcome, <span id="wlcm-user"></span></h1>
 
-            <h4 id="wlcm-user"></h4>
-
-            You are logged into <span id="wlcm-app" style="font-weight: bold"></span> . Please choose an application to use on your mobile device.
+           Please choose an application on your mobile device.
         </div>
 
     </div>
@@ -53,7 +51,7 @@
 		    var service = JSON.parse(decodeURIComponent(appData)),
                 span = document.getElementById('wlcm-app');
 
-		    span.innerHTML = service.name + ', v.' + service.version;
+		    //span.innerHTML = service.name + ', v.' + service.version;
         }
 
 	    var userObj = getCookie('beame_userinfo');

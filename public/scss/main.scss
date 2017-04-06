@@ -26,8 +26,31 @@ p + p {
 .small, .text-small {
   font-size: .85rem;
 }
-
+.ul-with-bullet{
+  li{
+    list-style: circle;
+  }
+}
 // Cards
+.anchor-color{
+  &:visited,&:hover,&:active, &:focus {
+    color: inherit;
+  }
+}
+
+.logo {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.gk-product-link{
+  position: absolute;
+  bottom: 10px;
+  text-decoration: underline;
+
+  @extend .text-white;
+  @extend .anchor-color;
+}
 
 .card {
 
@@ -58,6 +81,11 @@ p + p {
 
     .row {
       height: 100%;
+    }
+
+    .card-full-box{
+      border-radius: $rad-main !important;
+
     }
 
     .card-left {
