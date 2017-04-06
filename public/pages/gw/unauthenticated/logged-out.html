@@ -12,6 +12,11 @@
     <link rel="stylesheet" href="css/app.css">
     <!-- endbuild -->
 
+    <!-- Scripts -->
+    <!-- build:utils-head -->
+    <script src="js/utils.js"></script>
+    <!-- endbuild -->
+
 </head>
 <body>
 
@@ -25,19 +30,32 @@
 
     <div class="row h-100">
 
-        <div class="column large-12 card-left p-2 shadow-main">
+        <div class="column large-12 card-left  card-right p-2 shadow-main">
             <h1>You successfully logged out of current session</h1>
 
             <p>Choose next action on your mobile device</p>
 
             <p>
-                <a href="https://dev.login.beameio.net">Or go to central login page</a>
+            <h2>
+                <button type="button" class="button" onclick="moveTopWindow()" style="cursor: pointer;text-decoration: underline;display: block">Or go to Beame Login Portal</button>
+            </h2>
+
             </p>
         </div>
 
     </div>
 
 </div>
+
+<script>
+	function moveTopWindow() {
+		var url = getCookie('beame_central_login_url');
+		if(url){
+			window.top.location = decodeURIComponent(url);
+        }
+
+	}
+</script>
 
 </body>
 </html>

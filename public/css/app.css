@@ -2929,6 +2929,10 @@ p + p {
 .small, .text-small {
   font-size: .85rem; }
 
+.logo {
+  display: block;
+  margin-bottom: 10px; }
+
 .card.card-center {
   width: 90%;
   max-width: 640px;
