@@ -105,7 +105,7 @@ else
 	chown "$BEAME_GATEKEEPER_USER":"$BEAME_GATEKEEPER_GROUP" "$BEAME_GATEKEEPER_HOME"
 fi
 
-if SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s '[[ -e ~/.beame ]]';then
+if SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- [[ -e '~/.beame' ]];then
 	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER exists. Not getting credentials."
 else
 	echo "+ .beame directory for user $BEAME_GATEKEEPER_USER does not exist. Getting credentials."
@@ -130,7 +130,7 @@ else
 			echo "+ Searching for root credentials"
 			if [[ -e "$ROOT_CREDENENTIALS_HOME/.beame" ]];then
 				echo "+ Root credentials directory found ($ROOT_CREDENENTIALS_HOME/.beame), querying credentials store"
-				ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds list --format json" | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
+				ROOT_CREDENENTIALS=$(sudo -H -u "$ROOT_CREDENENTIALS_USER" -s -- "$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK" creds list --format json | jq -r '.[].metadata.fqdn' | grep -E '^.{16}.v1.p.beameio.net' | grep -v '^$' | head -n 1)
 			else
 				echo "+ Root credentials directory not found ($ROOT_CREDENENTIALS_HOME/.beame), assuming no root credentials"
 				ROOT_CREDENENTIALS=""
@@ -138,7 +138,7 @@ else
 			if [[ $ROOT_CREDENENTIALS ]]; then
 				echo "+ Root FQDN detected: $ROOT_CREDENENTIALS"
 				echo "+ Getting token as child of $ROOT_CREDENENTIALS"
-				token=$(SHELL=/bin/zsh sudo -H -u "$ROOT_CREDENENTIALS_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_EMBEDED_SDK' creds getRegToken --fqdn '$ROOT_CREDENENTIALS' --name 'Gatekeeper-$(hostname)'")
+				token=$(SHELL=/bin/zsh sudo -H -u "$ROOT_CREDENENTIALS_USER" -s -- "$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_EMBEDED_SDK" creds getRegToken --fqdn "$ROOT_CREDENENTIALS" --name "Gatekeeper-$(hostname)")
 				echo "+ Got token: $token"
 			else
 				echo "+ Root credentials were not found (creds list had no matching entries) and no token supplied. Can not create token."
@@ -156,7 +156,7 @@ else
 
 	echo "+ Getting Beame Gatekeeper credentials"
 	# cd /tmp to avoid failing cwd() in NodeJS
-	(cd /tmp && SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- "'$BEAME_GATEKEEPER_BIN' creds getCreds --regToken '$token'")
+	(cd /tmp && SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- "$BEAME_GATEKEEPER_BIN" creds getCreds --regToken "$token")
 fi
 
 F="/Library/LaunchDaemons/io.beame.gatekeeper.plist"

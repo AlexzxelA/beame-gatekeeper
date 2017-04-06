@@ -96,13 +96,13 @@ case "$1" in
 			echo "+ jq not found. Please install jq."
 		fi
 		echo "--- Most important configuration --------------------------------------------------"
-		gw=$(SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s "cat ~/.beame_server/creds/creds.json" | jq .GatewayServer.fqdn -r)
+		gw=$(SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- cat '~/.beame_server/creds/creds.json' | jq .GatewayServer.fqdn -r)
 		echo "Gatekeeper URL: https://$gw"
 		echo "-----------------------------------------------------------------------------------"
 		;;
 	admin)
 		echo "+ Getting admin URL"
-		SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' creds admin"
+		SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- "$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_BIN" creds admin
 		;;
 	name)
 		if [[ ! ${2-} ]];then
@@ -110,7 +110,7 @@ case "$1" in
 			exit 1
 		fi
 		echo "+ Setting service name: $2"
-		SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s "'$BEAME_GATEKEEPER_NODEJS_BIN' '$BEAME_GATEKEEPER_BIN' config setName --name '$2'"
+		SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- "$BEAME_GATEKEEPER_NODEJS_BIN" "$BEAME_GATEKEEPER_BIN" config setName --name "$2"
 		$0 restart
 		;;
 	delete-launchd-service)
