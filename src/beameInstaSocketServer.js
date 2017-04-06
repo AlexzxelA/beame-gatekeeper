@@ -109,7 +109,7 @@ class BeameInstaSocketServer {
 		return new Promise((resolve) => {
 			relayManagerInstance.getLocalRelayFqdn().then((relay) => {
 				this._relayFqdn = relay;
-				resolve();
+				resolve(relay);
 			}).catch((e) => {
 				logger.error(`get Local Relay`, e);
 				reject(e);
@@ -122,8 +122,11 @@ class BeameInstaSocketServer {
 	 * @private
 	 */
 	_onWhispererBrowserConnection(socket) {
-
-		this._whispererManager.onBrowserConnection(socket, this._relayFqdn);
+		this._getLocalRelay().then((relay) => {
+			this._whispererManager.onBrowserConnection(socket, relay);
+		}).catch(() => {
+			this._whispererManager.onBrowserConnection(socket, this._loginRelayFqdn);
+		});
 	}
 
 	/**
@@ -139,7 +142,12 @@ class BeameInstaSocketServer {
 	 * @private
 	 */
 	_onQrBrowserConnection(socket) {
-		this.qrMessaging.onQrBrowserConnection(socket);
+		this._getLocalRelay().then((relay) => {
+			this.qrMessaging.onQrBrowserConnection(socket, relay);
+		}).catch(() => {
+			this.qrMessaging.onQrBrowserConnection(socket, this._loginRelayFqdn);
+		});
+
 	}
 
 	/**
