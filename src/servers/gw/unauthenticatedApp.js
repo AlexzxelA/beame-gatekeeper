@@ -51,6 +51,10 @@ const setBeameCookie = (type, res) => {
 		case cookieNames.Logout2Login:
 			res.cookie(cookieNames.Logout2Login, Bootstrapper.getLogout2LoginUrl());
 			break;
+		case cookieNames.CentralLogin:
+			res.cookie(cookieNames.CentralLogin, Constants.BeameLoginURL);
+			break;
+		default:break;
 	}
 
 };
@@ -404,10 +408,8 @@ unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
 
 unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 	console.log('unauthenticatedApp/get/login-reinit: Logging out');
-	//const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	clearSessionCookie(res);
-	//res.append('X-Beame-Debug', 'Redirecting to GW login after logging out');
-	//res.redirect(`https://${gwServerFqdn}${Constants.LoginPath}`);
+	setBeameCookie(cookieNames.CentralLogin, res);
 	res.sendFile(path.join(base_path, 'logged-out.html'));
 
 });

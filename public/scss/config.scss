@@ -1,0 +1,58 @@
+$blue: #2196F3;
+$black: #222;
+$dark: #444;
+$gray: #4A4A4A;
+$gray-light: #9B9B9B;
+$gray-lighter: #F9F9F9;
+$white: #fff;
+
+$purple-bm: #7030a0;
+$blue-dark-bm: #005392;
+$blue-light-bm: #00b0f0;
+
+$grad-main: linear-gradient(173deg, #56439C, #169CD9 250%);
+$grad-secondary: linear-gradient(147deg, #56439C -10%, #169CD9 200%);
+
+$rad-main: .5rem;
+$rad-lg: 3rem;
+
+$box-shadow-main: 0 0 6px 0 rgba(0, 0, 0, 0.19);
+
+$m-font: 'Nunito', sans-serif;
+
+$spacer: 1rem;
+
+// Spacing map
+$spacer: 1rem;
+$spacer-x: $spacer;
+$spacer-y: $spacer;
+$spacers: (
+        0: (
+                x: 0,
+                y: 0
+        ),
+        half: (
+                x: ($spacer-x / 2),
+                y: ($spacer-x / 2),
+        ),
+        1: (
+                x: $spacer-x,
+                y: $spacer-y
+        ),
+        2: (
+                x: ($spacer-x * 1.5),
+                y: ($spacer-y * 1.5)
+        ),
+        3: (
+                x: ($spacer-x * 3),
+                y: ($spacer-y * 3)
+        ),
+        5: (
+                x: ($spacer-x * 5),
+                y: ($spacer-y * 5)
+        ),
+        7: (
+                x: ($spacer-x * 7),
+                y: ($spacer-y * 7)
+        ),
+);
