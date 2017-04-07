@@ -28,6 +28,17 @@ class QrMessaging {
 	constructor(fqdn, matchingServerFqdn, callbacks, serviceName) {
 
 		this._edge = null;
+<<<<<<< HEAD
+=======
+		// beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
+		// 	if (!error) {
+		// 		this._edge = payload.endpoint;
+		// 	}
+		// 	else {
+		// 		this._edge = null;
+		// 	}
+		// });
+>>>>>>> ee1e348067e8622149f56bbe21a73ee8c980916e
 		this._gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		this._fqdn               = fqdn;
 		this._callbacks          = callbacks;
