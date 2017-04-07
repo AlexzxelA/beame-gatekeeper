@@ -6,5 +6,5 @@ NODEJS_PATH=${1:A:h}
 export PATH="$NODEJS_PATH:$PATH"
 
 T="beame-gatekeeper"
-exec > >(sed -l 's/^/[out] /' | logger -t "$T" -p user.error) 2> >(sed -l 's/^/[err] /' | logger -t "$T" -p user.error)
+exec > >(/usr/bin/sed -l 's/^/[out] /' | logger -t "$T" -p user.error) 2> >(/usr/bin/sed -l 's/^/[err] /' | logger -t "$T" -p user.error)
 exec "$@"
