@@ -70,7 +70,7 @@ if [[ ! ${1-} ]];then
 fi
 
 case "$1" in
-	start|stop|status)
+	start|stop|status|restart)
 		service "$BEAME_GATEKEEPER_SVC" "$1"
 		;;
 	info)
