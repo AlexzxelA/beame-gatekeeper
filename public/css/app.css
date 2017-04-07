@@ -2929,9 +2929,20 @@ p + p {
 .small, .text-small {
   font-size: .85rem; }
 
+.ul-with-bullet li {
+  list-style: circle; }
+
+.anchor-color:visited, .gk-product-link:visited, .anchor-color:hover, .gk-product-link:hover, .anchor-color:active, .gk-product-link:active, .anchor-color:focus, .gk-product-link:focus {
+  color: inherit; }
+
 .logo {
   display: block;
   margin-bottom: 10px; }
+
+.gk-product-link {
+  position: absolute;
+  bottom: 10px;
+  text-decoration: underline; }
 
 .card.card-center {
   width: 90%;
@@ -2955,6 +2966,8 @@ p + p {
         height: 500px; } }
   .card.card-center .row {
     height: 100%; }
+  .card.card-center .card-full-box {
+    border-radius: 0.5rem !important; }
   .card.card-center .card-left {
     height: 100%;
     background-image: linear-gradient(173deg, #56439C, #169CD9 250%);
@@ -2979,7 +2992,7 @@ p + p {
         border-bottom-right-radius: 0.5rem;
         border-bottom-left-radius: 0; } }
 
-.text-white {
+.text-white, .gk-product-link {
   color: #fff; }
 
 .text-gray-light {

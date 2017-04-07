@@ -6,7 +6,6 @@
 const module_name      = "QrMessaging";
 const beameSDK         = require('beame-sdk');
 const CommonUtils      = beameSDK.CommonUtils;
-const beameUtils       = beameSDK.BeameUtils;
 const authToken        = beameSDK.AuthToken;
 const BeameLogger      = beameSDK.Logger;
 const store            = new beameSDK.BeameStore();
@@ -29,14 +28,6 @@ class QrMessaging {
 	constructor(fqdn, matchingServerFqdn, callbacks, serviceName) {
 
 		this._edge = null;
-		beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
-			if (!error) {
-				this._edge = payload;
-			}
-			else {
-				this._edge = null;
-			}
-		});
 		this._gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		this._fqdn               = fqdn;
 		this._callbacks          = callbacks;
@@ -61,9 +52,10 @@ class QrMessaging {
 
 	/**
 	 * @param {Socket} socket
+	 * @param {String} relay
 	 */
-	onQrBrowserConnection(socket) {
-
+	onQrBrowserConnection(socket, relay) {
+		this._edge = relay || this._edge;
 		const pairingUtils = require('./pairing_utils');
 		this._pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
 			socket, module_name);
@@ -134,6 +126,7 @@ class QrMessaging {
 							this._sendWithAck(socket, "edgeError", "Network problems, please try again later");
 					});
 				}).catch(e => {
+					logger.error(`xprs_browser_connected error`, BeameLogger.formatError(e));
 					this._sendWithAck(socket, "edgeError", "Failed to fetch mobile host public key");
 				});
 
@@ -346,12 +339,12 @@ class QrMessaging {
 		let waitEdge = setInterval(() => {
 			counter++;
 
-			if (this._edge && this._edge.endpoint) {
+			if (this._edge) {
 
 				clearInterval(waitEdge);
 
 				this._generateOTP(24);
-				let relay = this._edge.endpoint,
+				let relay = this._edge,
 				    UID   = this._browserHost;
 				this._sendWithAck(socket, "pinRenew", JSON.stringify({'data': this._otp, 'relay': relay, 'UID': UID}));
 			}
@@ -364,6 +357,7 @@ class QrMessaging {
 
 	}
 
+	//noinspection JSUnusedLocalSymbols
 	_signBrowserHostname(socket, cb) {
 		if (this._edge) {
 			let fqdn     = this._fqdn,
@@ -371,7 +365,7 @@ class QrMessaging {
 			    token    = authToken.create(this._browserHost, cred, 60),
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
-				    'data':          this._edge.endpoint,
+				    'data':          this._edge,
 				    'signature':     token,
 					'refresh_rate': OTP_refresh_rate,
 					'matching':     this._matchingServerFqdn,
