@@ -6,7 +6,6 @@
 const module_name      = "QrMessaging";
 const beameSDK         = require('beame-sdk');
 const CommonUtils      = beameSDK.CommonUtils;
-const beameUtils       = beameSDK.BeameUtils;
 const authToken        = beameSDK.AuthToken;
 const BeameLogger      = beameSDK.Logger;
 const store            = new beameSDK.BeameStore();
@@ -29,14 +28,6 @@ class QrMessaging {
 	constructor(fqdn, matchingServerFqdn, callbacks, serviceName) {
 
 		this._edge = null;
-		// beameUtils.selectBestProxy(null, 100, 1000, (error, payload) => {
-		// 	if (!error) {
-		// 		this._edge = payload.endpoint;
-		// 	}
-		// 	else {
-		// 		this._edge = null;
-		// 	}
-		// });
 		this._gwFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 		this._fqdn               = fqdn;
 		this._callbacks          = callbacks;
@@ -61,6 +52,7 @@ class QrMessaging {
 
 	/**
 	 * @param {Socket} socket
+	 * @param {String} relay
 	 */
 	onQrBrowserConnection(socket, relay) {
 		this._edge = relay || this._edge;
@@ -134,6 +126,7 @@ class QrMessaging {
 							this._sendWithAck(socket, "edgeError", "Network problems, please try again later");
 					});
 				}).catch(e => {
+					logger.error(`xprs_browser_connected error`, BeameLogger.formatError(e));
 					this._sendWithAck(socket, "edgeError", "Failed to fetch mobile host public key");
 				});
 
@@ -364,6 +357,7 @@ class QrMessaging {
 
 	}
 
+	//noinspection JSUnusedLocalSymbols
 	_signBrowserHostname(socket, cb) {
 		if (this._edge) {
 			let fqdn     = this._fqdn,
