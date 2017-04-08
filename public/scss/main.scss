@@ -31,6 +31,21 @@ p + p {
     list-style: circle;
   }
 }
+
+.ul-with-num{
+  li{
+      margin: 10px 0;
+        list-style-type: decimal;
+
+      a{
+          text-decoration: underline;
+          color: #fff;
+          @extend  .anchor-color;
+      }
+  }
+}
+
+
 // Cards
 .anchor-color{
   &:visited,&:hover,&:active, &:focus {
