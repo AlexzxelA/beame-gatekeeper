@@ -20,6 +20,7 @@ const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const RegisterPath             = `${GatewayControllerPath}/register`;
+const DirectPath               = `${GatewayControllerPath}/direct-signin`;
 const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
@@ -167,6 +168,7 @@ module.exports = {
 	AppSwitchPath,
 	DCLSOfflinePath,
 	RegisterPath,
+	DirectPath,
 	RegisterSuccessPath,
 	UniversalLinkUrl,
 	BeameRootPath,
