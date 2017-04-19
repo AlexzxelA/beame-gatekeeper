@@ -2932,7 +2932,14 @@ p + p {
 .ul-with-bullet li {
   list-style: circle; }
 
-.anchor-color:visited, .gk-product-link:visited, .anchor-color:hover, .gk-product-link:hover, .anchor-color:active, .gk-product-link:active, .anchor-color:focus, .gk-product-link:focus {
+.ul-with-num li {
+  margin: 10px 0;
+  list-style-type: decimal; }
+  .ul-with-num li a {
+    text-decoration: underline;
+    color: #fff; }
+
+.anchor-color:visited, .ul-with-num li a:visited, .gk-product-link:visited, .anchor-color:hover, .ul-with-num li a:hover, .gk-product-link:hover, .anchor-color:active, .ul-with-num li a:active, .gk-product-link:active, .anchor-color:focus, .ul-with-num li a:focus, .gk-product-link:focus {
   color: inherit; }
 
 .logo {
@@ -3173,6 +3180,32 @@ p + p {
         padding-right: 1.5rem;
         margin-left: .4rem;
         white-space: nowrap; } }
+  .form-main .button[type="submit"] {
+    max-width: 250px; }
+
+.config-list {
+  font-size: 13px; }
+
+.config-list > li {
+  padding: 5px 0; }
+
+.config-list > li > label {
+  width: 210px;
+  display: inline-flex; }
+
+.admin-main-wrapper {
+  width: 100%; }
+
+.admin-form-main {
+  padding: 5px;
+  margin: 0;
+  max-width: 640px; }
+
+.ad-success {
+  color: green; }
+
+.ad-error {
+  color: red; }
 
 .overlay {
   position: fixed;

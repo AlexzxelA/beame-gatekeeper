@@ -1067,6 +1067,18 @@ class BeameAuthServices {
 		);
 	}
 
+	createPfx(data) {
+		return new Promise((resolve, reject) => {
+				const Credential                      = beameSDK.Credential;
+				let cred = new Credential(store);
+
+				cred.createVirtualEntity(data.fqdn, data.name,  data.email, data.password)
+					.then(resolve)
+					.catch(reject);
+			}
+		);
+	}
+
 	//endregion
 
 	/** @type {BeameAuthServices} */

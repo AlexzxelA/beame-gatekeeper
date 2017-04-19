@@ -31,6 +31,21 @@ p + p {
     list-style: circle;
   }
 }
+
+.ul-with-num{
+  li{
+      margin: 10px 0;
+        list-style-type: decimal;
+
+      a{
+          text-decoration: underline;
+          color: #fff;
+          @extend  .anchor-color;
+      }
+  }
+}
+
+
 // Cards
 .anchor-color{
   &:visited,&:hover,&:active, &:focus {
@@ -312,9 +327,11 @@ p + p {
       border: 1px solid lighten($purple-bm, 35%);
       outline: none;
     }
+
   }
 
   .button {
+
     display: block;
     line-height: 42px;
     font-size: 1.1rem;
@@ -334,6 +351,7 @@ p + p {
     transition: all 0.25s ease-out;
     -webkit-box-shadow: 0px 0px 7px 0 rgba(0, 0, 0, 0.25);
     box-shadow: 0px 0px 7px 0 rgba(0, 0, 0, 0.25);
+
     &:hover {
       opacity: 0.9;
     }
@@ -351,9 +369,31 @@ p + p {
         white-space: nowrap;
       }
     }
+
+    &[type="submit"]{
+      max-width: 250px;
+    }
   }
 
 }
+
+//admin form
+.config-list {
+  font-size: 13px
+}
+
+.config-list > li {
+  padding: 5px 0
+}
+
+.config-list > li > label {
+  width: 210px;
+  display: inline-flex
+}
+.admin-main-wrapper{width: 100%}
+.admin-form-main{padding: 5px;margin: 0;max-width: 640px}
+.ad-success{color:green}
+.ad-error{color:red}
 
 // Overlays
 
