@@ -38,6 +38,10 @@
 				path:  "templates/admin/regtoken.tmpl.html",
 				event: "tokenLoaded"
 			},
+            Pfx:    {
+				path:  "templates/admin/create.pfx.tmpl.html",
+				event: "pfxLoaded"
+			},
 			Service: {
 				path:  "templates/admin/services.tmpl.html",
 				event: "serviceLoaded"
@@ -76,6 +80,7 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.RegToken.path, ADMIN_TEMPLATES.RegToken.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Pfx.path, ADMIN_TEMPLATES.Pfx.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.GkLogin.path, ADMIN_TEMPLATES.GkLogin.event);
 
@@ -147,6 +152,7 @@
                     <li><a id="showRegs" href="#/regs">Registrations</a></li>
                     <li><a id="showInvs" href="#/inv">Invitations</a></li>
                     <li><a id="showRegtoken" href="#/tkn">Reg Token</a></li>
+                    <li><a id="showPfx" href="#/pfx">Create Cert</a></li>
                     <li><a id="showSrv" href="#/srvc">Services</a></li>
                     <li id="li-gk-login"><a id="showGkLogins" href="#/gk-login">GK Logins</a></li>
                     <li style="float: right"><a id="btn-logout" href="/beame-gw/logout">Logout</a></li>
@@ -170,7 +176,7 @@
 
 <script>
 
-	var settings = null, viewDash, viewUsers, viewRegs, viewInvs,viewToken, viewService , viewGkLogin,layout;
+	var settings = null, viewDash, viewUsers, viewRegs, viewInvs,viewToken, viewPfx, viewService , viewGkLogin,layout;
 
 	function initAdminRouters() {
 
@@ -181,6 +187,7 @@
 		viewRegs  = new kendo.View("#regs");
 		viewInvs  = new kendo.View("#inv");
 		viewToken  = new kendo.View("#reg-token");
+		viewPfx  = new kendo.View("#tmpl-create-pfx");
 		viewService  = new kendo.View("#services");
 		viewGkLogin  = new kendo.View("#gk-login");
 
@@ -221,6 +228,11 @@
 			loadRegToken();
 		};
 
+		var initPfx = function () {
+			layout.showIn("#content", viewPfx);
+			loadPfx();
+		};
+
 		var initServices = function () {
 			layout.showIn("#content", viewService);
 			loadServices();
@@ -246,6 +258,10 @@
 
 		$("#showRegtoken").on("click", function () {
 			initRegToken();
+		});
+
+		$("#showPfx").on("click", function () {
+			initPfx();
 		});
 		$("#showSrv").on("click", function () {
 			initServices();
@@ -278,6 +294,10 @@
 
 		router.route("/tkn", function () {
 			subscribe(ADMIN_TEMPLATES.RegToken.event, initRegToken);
+		});
+
+		router.route("/pfx", function () {
+			subscribe(ADMIN_TEMPLATES.Pfx.event, initPfx);
 		});
 
 		router.route("/srvc", function () {

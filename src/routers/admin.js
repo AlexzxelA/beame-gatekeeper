@@ -96,6 +96,36 @@ class AdminRouter {
 				.catch(sendError);
 
 		});
+
+		this._router.post('/pfx/create', (req, res) => {
+
+			let data = req.body;
+
+			logger.info(`Create pfx  with ${CommonUtils.data}`);
+
+			function resolve(token) {
+				res.writeHead(200, {
+					'Content-Type': 'application/x-pkcs12',
+					'Content-disposition': 'attachment;filename=' + (token.fqdn + '.pfx'),
+					'Content-Length': token.pfx.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(token.pfx);
+			}
+
+			function sendError(e) {
+				console.error('/regtoken/create error', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			}
+
+			beameAuthServices.createPfx(data)
+				.then(resolve)
+				.catch(sendError);
+
+		});
 		//endregion
 
 		//region grids actions
