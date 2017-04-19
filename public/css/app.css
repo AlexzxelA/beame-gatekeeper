@@ -3180,6 +3180,32 @@ p + p {
         padding-right: 1.5rem;
         margin-left: .4rem;
         white-space: nowrap; } }
+  .form-main .button[type="submit"] {
+    max-width: 250px; }
+
+.config-list {
+  font-size: 13px; }
+
+.config-list > li {
+  padding: 5px 0; }
+
+.config-list > li > label {
+  width: 210px;
+  display: inline-flex; }
+
+.admin-main-wrapper {
+  width: 100%; }
+
+.admin-form-main {
+  padding: 5px;
+  margin: 0;
+  max-width: 640px; }
+
+.ad-success {
+  color: green; }
+
+.ad-error {
+  color: red; }
 
 .overlay {
   position: fixed;

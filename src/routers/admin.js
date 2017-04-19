@@ -63,7 +63,7 @@ class AdminRouter {
 		//region Registration token
 		this._router.get('/creds/filter', (req, res) => {
 
-			let parts = req.query.filter.filters[0].value;
+			let parts = req.query.filter && req.query.filter.filters && req.query.filter.filters.length ? req.query.filter.filters[0].value : '';
 
 			beameAuthServices.findCreds(parts).then(list=>{
 				res.json(list);
