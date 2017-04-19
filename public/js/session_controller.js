@@ -15,13 +15,14 @@ var logoutUrl = null,
 	logoutTimeout = null,
 	gwloginTarget,
 	gwloginRelay,
-	gw_socket = null;
+	gw_socket = null,
+	isDirectSession;
 
 
-function startGatewaySession(authToken, userData, relaySocket, uid) {
+function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 
-
-
+	setQRStatus('starting GatewaySession');
+	isDirectSession = isDirect;
 	var relay_socket = relaySocket;
 
 	var session_token = null;
@@ -46,8 +47,9 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 		console.log('startGatewaySession authToken:', authToken);
 
 		gw_socket = io.connect('/', {
-			path:                   '/beame-gw/socket.io',
-			'force new connection': true
+			path:                   '/beame-gw/socket.io'
+			// ,
+			// 'force new connection': true
 		});
 
 		restartMobileRelaySocket(relaySocket, gw_socket, uid);
@@ -80,7 +82,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 		gw_socket.once('connect', function () {
 
-			console.info('gw_socket connected');
+			console.log('gw_socket connected'+gw_socket.id);
 
 			gw_socket.emit('data', {
 				type:    'auth',
@@ -114,6 +116,14 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 			}
 		});
 
+		gw_socket.on('disconnect', function () {
+			console.log('GW disconnected');
+		});
+
+		gw_socket.on('reconnect', function () {
+			console.log('GW reconnected:'+gw_socket.id);
+		});
+
 		gw_socket.on('data', function (data) {
 			data = JSON.parse(data);
 			console.log('GW data type', data);
@@ -121,6 +131,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 			if (type === 'authenticated') {
 				if (payload.success) {
+					stopAllRunningSessions = true;
 					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
 
 					session_token = payload.session_token;
@@ -128,7 +139,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 
 					saveUserInfoCookie(user);
 					console.log('Pairing completed. Session started.');
-					stopAllRunningSessions = true;
+
 					if (payload.userData) {
 
 						try {
@@ -197,6 +208,9 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				console.log('******** sendEncryptedData ', data);
 				sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id, str2ab(JSON.stringify(data)));
 			}
+			else if(drctSessionId){
+				passData2Mobile(type || 'gw data', str2ab(JSON.stringify(data)))
+			}
 
 		});
 	} catch (e) {
@@ -224,82 +238,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 				'GW': gw_socket
 			}, data, function (rawData) {
 				console.log('processMobileData: relaySocket data', rawData);
-				var decryptedData = (typeof rawData === 'object')?rawData:JSON.parse(rawData);
-
-				//TODO temp hack for testing, to be removed
-				var type = decryptedData.type;
-
-				console.log('MobileW data type', type);
-				switch (type) {
-					case 'appCommand':
-						// window.getNotifManagerInstance().notify('RASP_CMD',
-						// 	{
-						// 		cmd:decryptedData.payload.data.cmd
-						// 	});
-						break;
-					case 'new_session_init':
-						console.log('Requested new session with:',decryptedData.payload);
-
-						var parsed = decryptedData.payload;
-						//var parsedToken = JSON.parse(parsed.token);
-						gw_sock.emit('verifyToken', parsed.token);
-						gwloginRelay = parsed.relay;
-						gwloginTarget = parsed.uid;
-						// var l = 'https://' + parsedToken.signedData.data + "/beame-gw/xprs-signin?usrInData=" +
-						// 	encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token, uid:parsed.uid, relay:parsed.relay, renew:true})));
-						// window.top.location = l;
-						break;
-					case 'mediaRequest':
-						sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
-							str2ab(JSON.stringify({type:'redirect', payload:{'success':true}})));
-						var segment = '/' + (decryptedData.payload.url).split('/').pop();
-						console.log('Media request, signing:', segment);
-						signArbitraryData(segment, function (error, signature) {
-							if (!error) {
-								//window.crypto.subtle.digest("SHA-256", signature).then(function (signHash) {
-								switch (decryptedData.payload.action) {
-									case ActionTypes.Photo:
-										cefManager.changeState(1);
-
-										setTimeout(function () {
-												window.getNotifManagerInstance()
-													.notify('MOBILE_PHOTO_URL',
-														{
-															url:  decryptedData.payload.url,
-															sign: arrayBufferToBase64String(signature)
-														});
-											},
-											300);
-										return;
-									case ActionTypes.Video:
-										window.getNotifManagerInstance().notify('MOBILE_STREAM',
-											{
-												url:  decryptedData.payload.url,
-												sign: arrayBufferToBase64String(signature)
-											});
-										return;
-								}
-								//});
-							}
-						});
-
-						break;
-					case 'loggedOut':
-						logoutTimeout && clearInterval(logoutTimeout);
-						logoutUrl ? window.location.href = logoutUrl : logout();
-						break;
-					case 'logout':
-
-						// setTimeout(function(){
-						// 	logoutUrl ?	window.location.href = logoutUrl  : logout();
-						// },1000*5);
-						gw_socket.emit('data', decryptedData);
-
-						break;
-					default:
-						gw_socket.emit('data', decryptedData);
-						break;
-				}
+				processInSessionDataFromMobile(rawData);
 			});
 		});
 
@@ -320,6 +259,8 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 		keepVirtHostAlive(gw_sock);
 
 	}
+
+
 
 	function chooseApp(id) {
 		console.log('chooseApp', id, session_token);
@@ -345,6 +286,104 @@ function startGatewaySession(authToken, userData, relaySocket, uid) {
 			document.cookie = "beame_userinfo=" + JSON.stringify(info)+ ";path=/";
 		}
 	}
+
+}
+
+function verifyGwSocket(cb) {
+	if(gw_socket && !gw_socket.connected){
+		gw_socket.connect();
+		var safetyCounter = 10;
+		var gwVerification = setInterval(function () {
+			if(safetyCounter--<=0 || gw_socket.connected){
+				clearInterval(gwVerification);
+				cb && cb(safetyCounter);
+			}
+
+		}, 0.25);
+	}
+	else
+		cb && cb(10);
+}
+
+function processInSessionDataFromMobile(rawData) {
+	verifyGwSocket(function (succeeded) {
+		var decryptedData = (typeof rawData === 'object')?rawData:JSON.parse(rawData);
+
+		//TODO temp hack for testing, to be removed
+		var type = decryptedData.type;
+
+		console.log('MobileW data type', type);
+		switch (type) {
+			case 'appCommand':
+				// window.getNotifManagerInstance().notify('RASP_CMD',
+				// 	{
+				// 		cmd:decryptedData.payload.data.cmd
+				// 	});
+				break;
+			case 'new_session_init':
+				console.log('Requested new session with:',decryptedData.payload);
+
+				var parsed = decryptedData.payload;
+				//var parsedToken = JSON.parse(parsed.token);
+				gw_socket.emit('verifyToken', parsed.token);
+				gwloginRelay = parsed.relay;
+				gwloginTarget = parsed.uid;
+				// var l = 'https://' + parsedToken.signedData.data + "/beame-gw/xprs-signin?usrInData=" +
+				// 	encodeURIComponent(window.btoa(JSON.stringify({token:parsed.token, uid:parsed.uid, relay:parsed.relay, renew:true})));
+				// window.top.location = l;
+				break;
+			case 'mediaRequest':
+				sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
+					str2ab(JSON.stringify({type:'redirect', payload:{'success':true}})));
+				var segment = '/' + (decryptedData.payload.url).split('/').pop();
+				console.log('Media request, signing:', segment);
+				signArbitraryData(segment, function (error, signature) {
+					if (!error) {
+						//window.crypto.subtle.digest("SHA-256", signature).then(function (signHash) {
+						switch (decryptedData.payload.action) {
+							case ActionTypes.Photo:
+								cefManager.changeState(1);
+
+								setTimeout(function () {
+										window.getNotifManagerInstance()
+											.notify('MOBILE_PHOTO_URL',
+												{
+													url:  decryptedData.payload.url,
+													sign: arrayBufferToBase64String(signature)
+												});
+									},
+									300);
+								return;
+							case ActionTypes.Video:
+								window.getNotifManagerInstance().notify('MOBILE_STREAM',
+									{
+										url:  decryptedData.payload.url,
+										sign: arrayBufferToBase64String(signature)
+									});
+								return;
+						}
+						//});
+					}
+				});
+
+				break;
+			case 'loggedOut':
+				logoutTimeout && clearInterval(logoutTimeout);
+				logoutUrl ? window.location.href = logoutUrl : logout();
+				break;
+			case 'logout':
+
+				// setTimeout(function(){
+				// 	logoutUrl ?	window.location.href = logoutUrl  : logout();
+				// },1000*5);
+				gw_socket.emit('data', decryptedData);
+
+				break;
+			default:
+				gw_socket.emit('data', decryptedData);
+				break;
+		}
+	});
 
 }
 

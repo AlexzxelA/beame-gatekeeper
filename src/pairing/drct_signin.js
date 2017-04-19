@@ -13,7 +13,7 @@ const logger           = new BeameLogger(module_name);
 const Bootstrapper     = require('../bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
 const Constants        = require('../../constants');
-
+const authToken        = beameSDK.AuthToken;
 
 class DrctSignin {
 
@@ -67,8 +67,9 @@ class DrctSignin {
 			logger.debug(`browser socket connected with:${data}`);
 			try {
 				let parsed = this._cachedSessions && this._cachedSessions[data];
-
-				let fqdn = (typeof parsed.token === 'object')?parsed.token.signedBy:(JSON.parse(parsed.token)).signedBy;
+				let cred     = store.getCredential(this._fqdn),
+					token    = authToken.create(data, cred, 300),
+				    fqdn = (typeof parsed.token === 'object')?parsed.token.signedBy:(JSON.parse(parsed.token)).signedBy;
 				store.find(fqdn).then(cred => {
 					let hdr = '-----BEGIN PUBLIC KEY-----',
 						ftr = '-----END PUBLIC KEY-----',
@@ -77,7 +78,8 @@ class DrctSignin {
 						service:this._serviceName,
 						pk: pk,
 						appId:bootstrapper.appId,
-						imageRequired: bootstrapper.registrationImageRequired
+						imageRequired: bootstrapper.registrationImageRequired,
+						sign: token
 					});
 				}).catch(e => {
 					logger.error(`drct_browser_connected error`, BeameLogger.formatError(e));
