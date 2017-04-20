@@ -37,7 +37,7 @@
     <div class="row h-100">
 
         <div class="column medium-6 card-left p-2 shadow-main">
-            <h4 class="text-white main-title">Express signin</h4>
+            <h4 class="text-white main-title">Direct signin</h4>
         </div>
 
         <div class="column medium-6 card-right shadow-main p-2">
@@ -80,7 +80,7 @@
 
 <div id="overlay" class="overlay overlay-white">
     <div>
-        <h2>Sign in</h2>
+        <h2>Signing in</h2>
         <svg class="spinner" viewBox="0 0 50 50">
             <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
         </svg>
@@ -108,7 +108,7 @@
 <script>
     var head = document.getElementsByTagName('head')[0];
     var js = document.createElement("script");
-
+    setCookie('b3am3-1d','%$1Mpl363am31d3nt1f1k4t0r%',0.01);
     js.type = "text/javascript";
 
     if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
@@ -131,12 +131,13 @@
 
 <!-- Scripts -->
 <!-- build:js -->
-<script src="js/crypto.js"></script>
+<!--script src="js/crypto.js"></script-->
+<script src="js/short_crypto.js"></script>
 <script src="js/virt_host_controller.js"></script>
 <script src="js/notification_manager.js"></script>
 <script src="js/user_image.js"></script>
 <script src="js/session_controller.js"></script>
-<script src="js/xprs_signin.js"></script>
+<script src="js/drct_signin.js"></script>
 <!--script src="js/qr.js"></script>
 <script src="js/whisper_generator.js"></script>
 <script src="js/whisperer.js"></script-->
