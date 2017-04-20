@@ -228,6 +228,6 @@ test("Config token") with {
 }
 
 @exit_hook {
-    echo("Killing insta server")
+    echo("Killing gatekeeper")
     p.kill()
 }

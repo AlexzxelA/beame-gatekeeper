@@ -46,7 +46,8 @@ class SqliteServices {
 						registrations: this._sequelize.models["Registration"],
 						users:         this._sequelize.models["User"],
 						services:      this._sequelize.models["Service"],
-						gklogins:      this._sequelize.models["GkLogin"]
+						gklogins:      this._sequelize.models["GkLogin"],
+						hooks:         this._sequelize.models["Hooks"]
 					};
 
 					logger.info(`Sqlite services started`);
@@ -1021,6 +1022,93 @@ class SqliteServices {
 
 	//endregion
 
+	//region hooks
+	getHooks() {
+		return new Promise((resolve) => {
+				let model = this._models.hooks;
+
+				//noinspection JSUnresolvedFunction
+				try {
+					model.findAll({order: 'id DESC'}).then(models => {
+							let records = models.map(item => {
+								return item.dataValues
+							});
+							resolve(records);
+						}
+					).catch(
+						error => {
+							logger.error(error);
+							resolve([]);
+						}
+					);
+				} catch (e) {
+					logger.error(e);
+					resolve([]);
+				}
+			}
+		);
+	}
+
+	saveHook(hook) {
+		return new Promise((resolve, reject) => {
+
+				let model = this._models.hooks;
+
+				try {
+
+					delete hook.id;
+
+					//noinspection JSUnresolvedFunction
+					model.create(hook).then(entity => {
+						resolve(entity.dataValues);
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					onError(reject, error)
+				}
+			}
+		);
+	}
+
+	updateHook(hook) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.hooks;
+					//noinspection JSUnresolvedFunction
+					model.findById(hook.id).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`Gk Login record not found`));
+							return;
+						}
+						record.update({
+							hook:     hook.hook,
+							isActive: hook.isActive,
+							path: hook.path
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
+	deleteHook(id) {
+		return new Promise((resolve, reject) => {
+				logger.debug(`try delete hook ${id}`);
+				let model = this._models.hooks;
+				model.destroy({where: {id: id}}).then(resolve).catch(reject);
+			}
+		);
+	}
+	//endregion
 }
 
 module.exports = SqliteServices;

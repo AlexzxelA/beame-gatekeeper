@@ -345,7 +345,12 @@ class BeameAuthServices {
 					);
 				};
 
-				dataService.findRegistrationRecordByFqdn(token.fqdn)
+				const _getRemoteCreds = () =>{
+					return store.find(token.fqdn,true)
+				};
+
+				_getRemoteCreds()
+					.then(dataService.findRegistrationRecordByFqdn.bind(null,token.fqdn))
 					.then(_assertRegistrationStatus)
 					.then(dataService.updateRegistrationCertFlag.bind(dataService))
 					.then(_updateRegistrationStatus)
