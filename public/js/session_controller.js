@@ -238,7 +238,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 				'GW': gw_socket
 			}, data, function (rawData) {
 				console.log('processMobileData: relaySocket data', rawData);
-				processInSessionDataFromMobile(rawData);
+				processInSessionDataFromMobile(rawData, relaySocket);
 			});
 		});
 
@@ -305,7 +305,7 @@ function verifyGwSocket(cb) {
 		cb && cb(10);
 }
 
-function processInSessionDataFromMobile(rawData) {
+function processInSessionDataFromMobile(rawData, relay_socket) {
 	verifyGwSocket(function (succeeded) {
 		var decryptedData = (typeof rawData === 'object')?rawData:JSON.parse(rawData);
 

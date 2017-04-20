@@ -6,7 +6,7 @@
 var DrctTMPSocketOrigin, WhTMPSocketRelay = null, drctSessionId, sessionServiceData, userImageRequired;
 
 $(document).ready(function () {
-	window.alert('initializing drct session');
+
 	//if(stopAllRunningSessions)return;
 	var socket = io.connect("/drct", socketio_options);
 		socket.on('connect', function () {
@@ -74,7 +74,7 @@ $(document).ready(function () {
 		});
 
 		socket.on('disconnect', function () {
-			setQRStatus('Socket DISCONNECTED');
+			setQRStatus('Session handled by GW');
 			//resetQR();
 		});
 
@@ -87,7 +87,7 @@ $(document).ready(function () {
 		});
 
 		socket.on('forceRedirect', function (target) {
-			window.alert('forceRedirect:'+target);
+			window.alert('forced Redirect:'+target);
 			window.location.href = target;
 		});
 	});
