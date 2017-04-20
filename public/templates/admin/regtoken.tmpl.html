@@ -8,7 +8,7 @@
     <section id="token-form-container" style="margin-bottom: 50px">
         <form id="token_form" action='/regtoken/create' method="post" class="form-main admin-form-main">
             <div id="token-info">&nbsp;</div>
-            <input id="fqdn" name="fqdn" placeholder="FQDN"  style="width: 80%;" />
+            <input id="fqdn" name="fqdn" placeholder="Signing Credential" required  style="width: 100%;" />
             <input name="name" placeholder="Name" class="form-input"/>
             <input name="email" type="email" placeholder="Email" class="form-input"/>
             <input name="user_id" placeholder="External user ID" class="form-input"/>
@@ -33,7 +33,7 @@
 		new Clipboard('#copy-btn');
 
 		$("#fqdn").kendoComboBox({
-			dataTextField: "fqdn",
+			dataTextField: "name",
             dataValueField: "fqdn",
 			filter: "contains",
 			minLength: 1,

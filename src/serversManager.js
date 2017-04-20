@@ -113,11 +113,13 @@ class ServersManager {
 			return new Promise((resolve, reject) => {
 					const BeameAuthServer = require('../src/servers/beame_auth/server');
 
-					let beame_auth_server = new BeameAuthServer(this._settings.BeameAuthorizationServer.fqdn, this._settings.ExternalMatchingServer.fqdn || this._settings.MatchingServer.fqdn);
+					let authServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);//this._settings.BeameAuthorizationServer.fqdn,
+
+					let beame_auth_server = new BeameAuthServer(authServerFqdn, this._settings.ExternalMatchingServer.fqdn || this._settings.MatchingServer.fqdn);
 
 					beame_auth_server.start((error, app) => {
 						if (!error) {
-							logger.info(`Beame Auth server started on https://${this._settings.BeameAuthorizationServer.fqdn}`);
+							logger.info(`Beame Auth server started on https://${authServerFqdn}`);
 							this._servers[Constants.CredentialType.BeameAuthorizationServer] = app;
 							resolve()
 						}

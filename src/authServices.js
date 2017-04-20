@@ -1032,16 +1032,16 @@ class BeameAuthServices {
 
 
 	//region Registration token
-	findCreds(fqdnPart) {
+	findCreds(pattern) {
 		return new Promise((resolve) => {
 				let list = store.list(null, {hasPrivateKey: true});
 
 				const _isContains = (cred) => {
-					return cred.getKey("FQDN").indexOf(fqdnPart) >= 0;
+					return cred.getKey("FQDN").indexOf(pattern) >= 0 || (cred.metadata.name && cred.metadata.name.toLowerCase().indexOf(pattern.toLowerCase()) >= 0);
 				};
 
 				resolve(list.filter(_isContains).map(item => {
-					return {fqdn: item.fqdn}
+					return {fqdn: item.fqdn,name:item.metadata.name ? `${item.metadata.name} (${item.fqdn})` : item.fqdn}
 				}));
 			}
 		);
