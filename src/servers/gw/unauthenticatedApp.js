@@ -25,6 +25,7 @@ const apiConfig            = require('../../../config/api_config.json');
 const relayManagerInstance = require('../../relayManager').getInstance();
 const utils                = require('../../utils');
 const cust_auth_app        = require('../../routers/customer_auth');
+const DirectoryServices    = beameSDK.DirectoryServices;
 
 const unauthenticatedApp = express();
 
@@ -412,6 +413,28 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 	setBeameCookie(cookieNames.CentralLogin, res);
 	res.sendFile(path.join(base_path, 'logged-out.html'));
 
+});
+
+unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
+	console.log('DirectPath: checking');
+	clearSessionCookie(res);
+	AuthToken.getRequestAuthToken(req).then(() => {
+		let authHead  = req.get('X-BeameAuthToken'),
+		token = JSON.parse(authHead),
+		data = DirectoryServices.readFile(path.join(base_path, 'drct_signin.html'));
+		if(data){
+			let pairingGlobalsRef = utils.pairingGlobals.getInstance();
+			let sessionId = utils.generateUID(24);
+			pairingGlobalsRef.setNewSessionId(sessionId, token);
+			res.send(data.replace('%$1Mpl363am31d3nt1f1k4t0r%',sessionId));
+		}
+		else
+			res.sendFile(path.join(base_path, 'forbidden.html'));
+
+	}).catch((e)=>{
+		console.log(e);
+		res.sendFile(path.join(base_path, 'forbidden.html'));
+	});
 });
 
 unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
