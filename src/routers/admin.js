@@ -98,13 +98,25 @@ class AdminRouter {
 
 		});
 
-		this._router.post('/pfx/create', (req, res) => {
+		this._router.post('/cred/create', (req, res) => {
 
 			let data = req.body;
+				data.save_creds = data.save_creds === "on";
 
 			logger.info(`Create pfx  with ${CommonUtils.data}`);
 
 			function resolve(token) {
+
+				// if(data.save_creds){
+				// 	return res.json({
+				// 		"responseCode": RESPONSE_SUCCESS_CODE,
+				// 		"token":        token
+				// 	});
+				// }
+				// else{
+				//
+				// }
+
 				res.writeHead(200, {
 					'Content-Type':        'application/x-pkcs12',
 					'Content-disposition': 'attachment;filename=' + (token.fqdn + '.pfx'),
@@ -112,6 +124,7 @@ class AdminRouter {
 				});
 				//res.write(new Buffer(token.pfx, 'binary'));
 				res.end(token.pfx);
+
 			}
 
 			function sendError(e) {
@@ -122,7 +135,7 @@ class AdminRouter {
 				});
 			}
 
-			beameAuthServices.createPfx(data)
+			beameAuthServices.createCred(data)
 				.then(resolve)
 				.catch(sendError);
 

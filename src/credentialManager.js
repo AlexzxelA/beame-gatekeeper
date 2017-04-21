@@ -62,9 +62,9 @@ class CredentialManager {
 						.catch(_onRegistrationError);
 				}
 				else {
-					beameStore.find(fqdn,false)
-						.then(cred=>{
-							if(!cred.hasKey('PRIVATE_KEY')){
+					beameStore.find(fqdn, false)
+						.then(cred => {
+							if (!cred.hasKey('PRIVATE_KEY')) {
 								_onRegistrationError(`FQDN ${fqdn} has not Private key and can't be used`);
 								return;
 							}
@@ -96,26 +96,43 @@ class CredentialManager {
 				}
 
 
+
 				async.each(Object.keys(servers), (serverType, callback) => {
 
+					const _updateServerFqdn = (fqdn, type, cb) => {
+						this._bootstrapper.updateCredsFqdn(fqdn, type).then(() => {
+							cb();
+						}).catch(error => {
+							logger.error(BeameLogger.formatError(error));
+							cb(error);
+						});
+					};
 
-					logger.info(`Creating credentials for ${serverType} ${email}`);
+					if (serverType == Constants.CredentialType.BeameAuthorizationServer && defaults.RunAuthServerOnZeroLevelCred) {
+						_updateServerFqdn(zeroLevelFqdn, Constants.CredentialType.BeameAuthorizationServer,callback);
+					}
+					else {
+						logger.info(`Creating credentials for ${serverType} ${email}`);
 
-					CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, email).then(metadata => {
+						CredentialManager._createLocalCredential(zeroLevelFqdn, `${serverType}`, email).then(metadata => {
 
-						logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
+							logger.info(`Credential ${serverType} created on ${metadata.fqdn}`);
 
-						this._bootstrapper.updateCredsFqdn(metadata.fqdn, serverType).then(() => {
-							callback();
+							_updateServerFqdn(metadata.fqdn, serverType,callback);
+
+							// this._bootstrapper.updateCredsFqdn(metadata.fqdn, serverType).then(() => {
+							// 	callback();
+							// }).catch(error => {
+							// 	logger.error(BeameLogger.formatError(error));
+							// 	callback(error);
+							// });
+
 						}).catch(error => {
 							logger.error(BeameLogger.formatError(error));
 							callback(error);
 						});
+					}
 
-					}).catch(error => {
-						logger.error(BeameLogger.formatError(error));
-						callback(error);
-					});
 
 				}, (err) => {
 					if (err) {

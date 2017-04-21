@@ -16,6 +16,7 @@ const Constants            = require('../constants');
 const BeameAuthServices    = require('./authServices');
 const CentralLoginServices = require('../src/centralLoginServices');
 const utils                = require('./utils');
+const defaults          = require('../defaults');
 
 class ServersManager {
 
@@ -113,7 +114,7 @@ class ServersManager {
 			return new Promise((resolve, reject) => {
 					const BeameAuthServer = require('../src/servers/beame_auth/server');
 
-					let authServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);//this._settings.BeameAuthorizationServer.fqdn,
+					let authServerFqdn = this._settings.BeameAuthorizationServer.fqdn;
 
 					let beame_auth_server = new BeameAuthServer(authServerFqdn, this._settings.ExternalMatchingServer.fqdn || this._settings.MatchingServer.fqdn);
 
@@ -199,7 +200,7 @@ class ServersManager {
 			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
 		};
 
-		const isCentralLogin = bootstrapper.isCentralLogin;
+		const isDemoServersDisabled = bootstrapper.isCentralLogin || defaults.DisableDemoServers;
 
 		//TODO check app-state too
 
@@ -217,7 +218,7 @@ class ServersManager {
 
 				},
 				callback => {
-					if (isCentralLogin) {
+					if (isDemoServersDisabled) {
 						callback();
 						return;
 					}
@@ -235,7 +236,7 @@ class ServersManager {
 				// 	callback();
 				// },
 				callback => {
-					if (isCentralLogin) {
+					if (isDemoServersDisabled) {
 						callback();
 						return;
 					}
@@ -253,7 +254,7 @@ class ServersManager {
 				// 	callback();
 				// },
 				callback => {
-					if (isCentralLogin) {
+					if (isDemoServersDisabled) {
 						callback();
 						return;
 					}

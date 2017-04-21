@@ -25,7 +25,8 @@ const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
-const BeameAuthServerLocalPort = 65000;
+const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
+
 
 
 const ConfigFolder      = "config";

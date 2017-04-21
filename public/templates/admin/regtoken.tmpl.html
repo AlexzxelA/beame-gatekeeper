@@ -28,6 +28,7 @@
 
 </script>
 <script>
+	var tokenEventBinded = false;
 	function loadRegToken() {
 
 		new Clipboard('#copy-btn');
@@ -44,6 +45,8 @@
 				}
 			}
 		});
+
+		if(tokenEventBinded) return;
 
 		$('#token_form').submit(function () {
 
@@ -75,5 +78,7 @@
 			//Very important line, it disable the page refresh.
 			return false;
 		});
+
+		tokenEventBinded = true;
 	}
 </script>

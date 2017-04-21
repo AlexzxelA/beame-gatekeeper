@@ -18,15 +18,17 @@ const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
-const PublicRegistration        = true;
-const RegistrationImageRequired = false;
-const EncryptUserData           = true;
-const PairingRequired           = true;
-const UseBeameAuthOnLocal       = true;
-const StartRaspberryApp         = false;
-const AllowDirectSignin         = true;
-const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
-const EnvMode                   = Constants.EnvMode.Gatekeeper;
+const PublicRegistration           = true;
+const RegistrationImageRequired    = false;
+const EncryptUserData              = true;
+const PairingRequired              = true;
+const UseBeameAuthOnLocal          = true;
+const StartRaspberryApp            = false;
+const AllowDirectSignin            = true;
+const RunAuthServerOnZeroLevelCred = true;
+
+const RegistrationMethod = Constants.RegistrationMethod.Pairing;
+const EnvMode            = Constants.EnvMode.Gatekeeper;
 
 const EmailPostUrl         = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
 const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
@@ -43,6 +45,7 @@ const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
+const DisableDemoServers = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -163,6 +166,8 @@ module.exports = {
 	EncryptUserData,
 	StartRaspberryApp,
 	AllowDirectSignin,
+	RunAuthServerOnZeroLevelCred,
+	DisableDemoServers,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

@@ -74,7 +74,7 @@ class BeameAuthServices {
 			});
 		}
 
-		if(!beameAuthServices)beameAuthServices = this;
+		if (!beameAuthServices) beameAuthServices = this;
 	}
 
 	//region Entity registration
@@ -333,11 +333,11 @@ class BeameAuthServices {
 					return isCompleted ? dataService.markRegistrationAsCompleted(token.fqdn) : Promise.resolve(registration);
 				};
 
-				const _sendCompleteEvent = () =>{
+				const _sendCompleteEvent = () => {
 					return new Promise((resolve) => {
 							let $this = BeameAuthServices.getInstance();
 
-							$this.sendCustomerInvitationCompleteEvent(token.fqdn).then(resolve).catch(err=>{
+							$this.sendCustomerInvitationCompleteEvent(token.fqdn).then(resolve).catch(err => {
 								logger.error(err);
 								resolve();
 							})
@@ -345,12 +345,12 @@ class BeameAuthServices {
 					);
 				};
 
-				const _getRemoteCreds = () =>{
-					return store.find(token.fqdn,true)
+				const _getRemoteCreds = () => {
+					return store.find(token.fqdn, true)
 				};
 
 				_getRemoteCreds()
-					.then(dataService.findRegistrationRecordByFqdn.bind(null,token.fqdn))
+					.then(dataService.findRegistrationRecordByFqdn.bind(dataService, token.fqdn))
 					.then(_assertRegistrationStatus)
 					.then(dataService.updateRegistrationCertFlag.bind(dataService))
 					.then(_updateRegistrationStatus)
@@ -770,8 +770,8 @@ class BeameAuthServices {
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
 				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-					version:       bootstrapper.version,
-					pairing:       bootstrapper.pairingRequired
+				    version:       bootstrapper.version,
+				    pairing:       bootstrapper.pairingRequired
 			    },
 			    postEmailUrl = null,
 			    postSmsUrl   = null;
@@ -1034,14 +1034,18 @@ class BeameAuthServices {
 	//region Registration token
 	findCreds(pattern) {
 		return new Promise((resolve) => {
-				let list = store.list(null, {hasPrivateKey: true});
+
+				let list = store.list(null, {
+					hasPrivateKey: true,
+					anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+				});
 
 				const _isContains = (cred) => {
 					return cred.getKey("FQDN").indexOf(pattern) >= 0 || (cred.metadata.name && cred.metadata.name.toLowerCase().indexOf(pattern.toLowerCase()) >= 0);
 				};
 
 				resolve(list.filter(_isContains).map(item => {
-					return {fqdn: item.fqdn,name:item.metadata.name ? `${item.metadata.name} (${item.fqdn})` : item.fqdn}
+					return {fqdn: item.fqdn, name: item.metadata.name ? `${item.metadata.name} (${item.fqdn})` : item.fqdn}
 				}));
 			}
 		);
@@ -1072,14 +1076,34 @@ class BeameAuthServices {
 		);
 	}
 
-	createPfx(data) {
+	createCred(data) {
 		return new Promise((resolve, reject) => {
-				const Credential                      = beameSDK.Credential;
-				let cred = new Credential(store);
+				const Credential = beameSDK.Credential;
+				let cred         = new Credential(store);
 
-				cred.createVirtualEntity(data.fqdn, data.name,  data.email, data.password)
-					.then(resolve)
-					.catch(reject);
+				if (data.save_creds) {
+					logger.debug('************* CREATE LOCAL CREDS');
+					cred.createEntityWithLocalCreds(data.fqdn,data.name, data.email, null, data.password)
+						.then(meta => {
+
+							store.find(meta.fqdn,false).then(newCred =>{
+								resolve({
+									fqdn:meta.fqdn,
+									pfx: newCred.getKey("PKCS12")
+								});
+							}).catch(reject);
+
+
+						})
+						.catch(reject)
+				}
+				else {
+					logger.debug('************* CREATE VIRTUAL CREDS');
+					cred.createVirtualEntity(data.fqdn, data.name, data.email, data.password)
+						.then(resolve)
+						.catch(reject);
+				}
+
 			}
 		);
 	}
