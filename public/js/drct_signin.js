@@ -117,6 +117,11 @@ function test(c) {
 	return c || 'Huuj??';
 }
 
+window.getNotifManagerInstance().subscribe('LOGGED_IN_WINDOW_LOADED', function () {
+	passData2Mobile('authenticatedPageLoaded',str2ab(JSON.stringify(
+		{'type':'authenticatedPageLoaded'}
+	)));
+});
 
 function setQRStatus(status){
 
