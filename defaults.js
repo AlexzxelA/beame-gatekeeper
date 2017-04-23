@@ -31,6 +31,7 @@ const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
 
 const EmailPostUrl         = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
+const EmailSendCertUrl     = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/pfx";
 const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
 
 //const delegatedLoginServers     = "";
@@ -76,6 +77,7 @@ const ConfigProps = {
 		StartRaspberryApp:             "StartRaspberryApp",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
+		EmailSendCertUrl:              "EmailSendCertUrl",
 		PostSmsUrl:                    "PostSmsUrl",
 		ExternalLoginServer:           "ExternalLoginServer",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
@@ -154,6 +156,7 @@ module.exports = {
 
 	ExternalMatchingFqdn: ExternalMatchingFqdn,
 	PostEmailUrl:         EmailPostUrl,
+	EmailSendCertUrl:     EmailSendCertUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
 	//delegatedLoginServers,

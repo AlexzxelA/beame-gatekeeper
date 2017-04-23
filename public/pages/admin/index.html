@@ -42,6 +42,10 @@
 				path:  "templates/admin/create.cred.tmpl.html",
 				event: "credLoaded"
 			},
+            CredDetail:    {
+				path:  "templates/admin/cred.detail.tmpl.html",
+				event: "credDetailLoaded"
+			},
             Creds:    {
 				path:  "templates/admin/creds.tmpl.html",
 				event: "credsLoaded"
@@ -85,6 +89,7 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.RegToken.path, ADMIN_TEMPLATES.RegToken.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Cred.path, ADMIN_TEMPLATES.Cred.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.CredDetail.path, ADMIN_TEMPLATES.CredDetail.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Creds.path, ADMIN_TEMPLATES.Creds.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.GkLogin.path, ADMIN_TEMPLATES.GkLogin.event);
@@ -162,6 +167,7 @@
 </div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.4.0/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
 
 <script>
 

@@ -104,6 +104,61 @@ class AdminRouter {
 
 			beameAuthServices.credsList(parent).then(list => {
 				res.json(list);
+			}).catch(e=> {
+				console.error('/creds/list/', e);
+				return res.json([]);
+			})
+		});
+
+		this._router.get('/cred/detail/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getCredDetail(fqdn).then(data => {
+				res.json(data);
+			}).catch(e=> {
+				console.error('/cred/detail/', e);
+				 res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.get('/cred/pfx/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getPfx(fqdn).then(data => {
+				res.writeHead(200, {
+					'Content-Type':        'application/x-pkcs12',
+					'Content-disposition': 'attachment;filename=' + (fqdn + '.pfx'),
+					'Content-Length':      data.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(data);
+			}).catch(e=>{
+				 res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/send/pfx', (req, res) => {
+
+			let fqdn = req.body.fqdn,
+				email = req.body.email;
+
+			beameAuthServices.sendPfx(fqdn,email).then(() => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE
+				});
+			}).catch(e=>{
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
 			})
 		});
 

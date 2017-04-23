@@ -391,7 +391,21 @@ p + p {
   display: inline-flex
 }
 .admin-main-wrapper{width: 100%}
-.admin-form-main{padding: 5px;margin: 0;max-width: 640px}
+.admin-form-main{
+    padding: 5px;
+    margin: 0;
+    max-width: 640px;
+
+    .lbl-info{
+        width: 100%;
+        display:block;
+        margin: 7px 0;
+    }
+
+    .button{
+        max-width: 200px;
+    }
+}
 .ad-success{color:green}
 .ad-error{color:red}
 

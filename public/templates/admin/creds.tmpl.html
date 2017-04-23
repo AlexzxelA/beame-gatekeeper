@@ -1,9 +1,36 @@
 <script type="text/x-kendo-template" id="tmpl-creds">
     <h4>Creds tree</h4>
-    <div id="creds-tree"></div>
+    <div id="creds-tree" style="display: inline-block; width:39%;vertical-align: top"></div>
+    <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
 <script>
 	function loadCreds() {
+
+		$("#cred-detail").empty().css({visibility:'hidden'});
+
+		function onSelect(e) {
+            var dataItem = this.dataItem(e.node);
+            console.log(dataItem.fqdn);
+			$.ajax({
+				url: '/cred/detail/' + dataItem.fqdn,
+				cache: false,
+				type: "Get",
+				//data: JSON.stringify(data),
+				datatype: "json",
+				contentType: "application/json; charset=utf-8"
+				, success: function (data) {
+                    console.log(data);
+					var template = kendo.template($("#tmpl-cred-detail").html());
+
+					var credHtml = template({});
+
+					$("#cred-detail").html(credHtml).promise().done(function(){
+						$("#cred-detail").css({visibility:'visible'});
+						loadCredDetail(data);
+					});
+				}
+			});
+		}
 
 		$("#creds-tree").kendoTreeView({
 			dataSource: new kendo.data.HierarchicalDataSource({
@@ -20,7 +47,8 @@
 					}
 				}
 			}),
-			dataTextField: "name"
+			dataTextField: "name",
+			select: onSelect
 		});
 
         return;

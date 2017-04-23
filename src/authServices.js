@@ -1031,7 +1031,7 @@ class BeameAuthServices {
 	}
 
 
-	//region Registration token
+	//region Creds
 	findCreds(pattern) {
 		return new Promise((resolve) => {
 
@@ -1058,7 +1058,7 @@ class BeameAuthServices {
 				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 				// });
 
-				if(parent){
+				if (parent) {
 					let list = store.list(null, {
 						hasParent: parent
 					});
@@ -1066,12 +1066,10 @@ class BeameAuthServices {
 					resolve(list.map(item => {
 
 						let data = {
-							name : item.metadata.name || item.metadata.fqdn,
-							fqdn:item.metadata.fqdn,
-							ReportsTo:item.metadata.parent_fqdn,
-							hasChildren : store.list(null, {
-								hasParent: item.fqdn
-							}).length
+							name:        item.metadata.name || item.metadata.fqdn,
+							fqdn:        item.metadata.fqdn,
+							parent:      item.metadata.parent_fqdn,
+							hasChildren: store.hasLocalChildren(item.fqdn)
 						};
 
 						//data.hasChildren = item.hasLocalParentAtAnyLevel(item.fqdn);
@@ -1079,17 +1077,15 @@ class BeameAuthServices {
 						return data
 					}));
 				}
-				else{
-					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred =>{
+				else {
+					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred => {
 						resolve([{
-							name : cred.metadata.name || cred.metadata.fqdn,
-							fqdn:cred.metadata.fqdn,
-							parent:cred.metadata.parent_fqdn,
-							hasChildren : store.list(null, {
-								hasParent: cred.fqdn
-							}).length
+							name:        cred.metadata.name || cred.metadata.fqdn,
+							fqdn:        cred.metadata.fqdn,
+							parent:      cred.metadata.parent_fqdn,
+							hasChildren: store.hasLocalChildren(cred.fqdn)
 						}]);
-					}).catch(er=>{
+					}).catch(er => {
 						logger.error(er);
 						resolve([]);
 					})
@@ -1130,10 +1126,10 @@ class BeameAuthServices {
 
 				if (data.save_creds) {
 					logger.debug('************* CREATE LOCAL CREDS');
-					cred.createEntityWithLocalCreds(data.fqdn,data.name, data.email, null, data.password)
+					cred.createEntityWithLocalCreds(data.fqdn, data.name, data.email, null, data.password)
 						.then(meta => {
 
-							store.find(meta.fqdn,false).then(newCred =>{
+							store.find(meta.fqdn, false).then(newCred => {
 								// resolve({
 								// 	fqdn:meta.fqdn,
 								// 	pfx: newCred.getKey("PKCS12")
@@ -1153,6 +1149,102 @@ class BeameAuthServices {
 						.catch(reject);
 				}
 
+			}
+		);
+	}
+
+	getPfx(fqdn) {
+		return new Promise((resolve, reject) => {
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PKCS12")) {
+					reject(`Pfx ${fqdn} not found`);
+					return;
+				}
+
+				resolve(cred.getKey("PKCS12"));
+			}
+		);
+	}
+
+	sendPfx(fqdn, email, body) {
+
+		return new Promise((resolve, reject) => {
+				const _sendEmail = (cred) => {
+
+					if (!cred.hasKey("PKCS12")) {
+						reject(`Pfx ${fqdn} not found`);
+						return;
+					}
+
+					if (!cred.hasKey("PWD")) {
+						reject(`Pwd ${fqdn} not found`);
+						return;
+					}
+
+					let sign         = this.signData({fqdn, email}),
+					    provisionApi = new ProvisionApi(),
+					    emailToken   = {
+						    email,
+						    fqdn,
+						    body: `Your certificate is attached.<br /> Use this password is <b>${String.fromCharCode.apply(null, cred.PWD)}</b> to import attached certificate`,
+						    pfx:  new Buffer(cred.getKey("PKCS12")).toString('base64')
+					    };
+
+					provisionApi.postRequest(bootstrapper.emailSendCertUrl, emailToken, (error) => {
+						if (error) {
+							reject(error);
+						}
+						else {
+							resolve();
+						}
+					}, sign);
+				};
+
+				store.find(fqdn, false).then(_sendEmail).catch(reject);
+			}
+		);
+
+
+	}
+
+	getCredDetail(fqdn) {
+		return new Promise((resolve, reject) => {
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				let data = Object.assign({}, cred.metadata);
+
+				data.pwd = cred.hasKey("PWD") ? String.fromCharCode.apply(null, cred.PWD) : null;
+
+				data.hasChildren = store.hasLocalChildren(fqdn);
+
+				data.pfx_path = cred.hasKey("PKCS12") ? `/cred/pfx/${fqdn}` : null;
+
+				data.isLocal = cred.hasKey("PRIVATE_KEY");
+
+				data.validTill = cred.getCertEnd();
+
+				if (cred.metadata.parent_fqdn) {
+					let parent = store.getCredential(cred.metadata.parent_fqdn);
+
+					if (parent) {
+						data.parent_name = parent.metadata.name;
+					}
+				} else {
+					data.parent_name = null;
+				}
+
+				resolve(data);
 			}
 		);
 	}

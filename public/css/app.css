@@ -3200,6 +3200,12 @@ p + p {
   padding: 5px;
   margin: 0;
   max-width: 640px; }
+  .admin-form-main .lbl-info {
+    width: 100%;
+    display: block;
+    margin: 7px 0; }
+  .admin-form-main .button {
+    max-width: 200px; }
 
 .ad-success {
   color: green; }
