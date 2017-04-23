@@ -3,6 +3,9 @@
     <div id="creds-tree" style="display: inline-block; width:39%;vertical-align: top"></div>
     <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
+<script id="treeview-template" type="text/kendo-ui-template">
+    <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span> #: item.name #
+</script>
 <script>
 	function loadCreds() {
 
@@ -47,7 +50,8 @@
 					}
 				}
 			}),
-			dataTextField: "name",
+			//dataTextField: "name",
+			template: kendo.template($("#treeview-template").html()),
 			select: onSelect
 		});
 

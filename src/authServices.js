@@ -1058,6 +1058,16 @@ class BeameAuthServices {
 				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 				// });
 
+				const _formatCred = (cred) => {
+					return {
+						name:        cred.metadata.name || cred.metadata.fqdn,
+						fqdn:        cred.metadata.fqdn,
+						parent:      cred.metadata.parent_fqdn,
+						isLocal:     cred.hasKey("PRIVATE_KEY"),
+						hasChildren: store.hasLocalChildren(cred.fqdn)
+					}
+				};
+
 				if (parent) {
 					let list = store.list(null, {
 						hasParent: parent
@@ -1065,26 +1075,12 @@ class BeameAuthServices {
 
 					resolve(list.map(item => {
 
-						let data = {
-							name:        item.metadata.name || item.metadata.fqdn,
-							fqdn:        item.metadata.fqdn,
-							parent:      item.metadata.parent_fqdn,
-							hasChildren: store.hasLocalChildren(item.fqdn)
-						};
-
-						//data.hasChildren = item.hasLocalParentAtAnyLevel(item.fqdn);
-
-						return data
+						return _formatCred(item);
 					}));
 				}
 				else {
 					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred => {
-						resolve([{
-							name:        cred.metadata.name || cred.metadata.fqdn,
-							fqdn:        cred.metadata.fqdn,
-							parent:      cred.metadata.parent_fqdn,
-							hasChildren: store.hasLocalChildren(cred.fqdn)
-						}]);
+						resolve([_formatCred(cred)]);
 					}).catch(er => {
 						logger.error(er);
 						resolve([]);
