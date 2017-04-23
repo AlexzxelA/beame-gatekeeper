@@ -416,11 +416,11 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 });
 
 unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
-	console.log('DirectPath: checking');
+	let authHead  = req.get('X-BeameAuthToken')
+	console.log('DirectPath: checking '+authHead);
 	clearSessionCookie(res);
 	AuthToken.getRequestAuthToken(req).then(() => {
-		let authHead  = req.get('X-BeameAuthToken'),
-		token = JSON.parse(authHead),
+		let token = JSON.parse(authHead),
 		data = DirectoryServices.readFile(path.join(base_path, 'drct_signin.html'));
 		if(data){
 			let pairingGlobalsRef = utils.pairingGlobals.getInstance();
