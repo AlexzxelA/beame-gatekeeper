@@ -1,0 +1,99 @@
+<script type="text/x-kendo-template" id="tmpl-creds">
+    <h4>Creds tree</h4>
+    <div id="creds-tree"></div>
+</script>
+<script>
+	function loadCreds() {
+
+		$("#creds-tree").kendoTreeView({
+			dataSource: new kendo.data.HierarchicalDataSource({
+				transport: {
+					read: {
+						url: '/creds/list',
+						dataType: "json"
+					}
+				},
+				schema: {
+					model: {
+						id: "fqdn",
+						hasChildren: "hasChildren"
+					}
+				}
+			}),
+			dataTextField: "name"
+		});
+
+        return;
+		$("#creds-grid").kendoGrid({
+			toolbar:    ["excel"],
+			excel:      {
+				fileName: "Creds.xlsx",
+				allPages: true
+			},
+			dataSource: {
+				transport: {
+					read:   {
+						url: "/creds/list"
+					}
+				},
+				schema:    {
+					model: {
+						id:     "id",
+						fields: {
+							fqdn:           {type: "string"},
+							name:           {type: "string"},
+							email:          {type: "string"},
+                            parent_fqdn:    {type: "string"},
+							level:          {type: "number"}
+//
+						}
+					}
+				},
+				pageSize:  20
+//                serverPaging:    true,
+//                serverFiltering: true,
+//                serverSorting:   true
+			},
+			height:     550,
+			filterable: true,
+			sortable:   true,
+			editable:   {
+				mode:         "inline",
+				confirmation: true
+			},
+			pageable:   {
+				pageSize: 20,
+				refresh:  true
+			},
+			columns:    [
+				{
+					field: "fqdn",
+					title: "Fqdn",
+					width:200
+				},
+				{
+					field: "name",
+					title: "Name",
+					width:100
+				},
+
+				{
+					field: "email",
+					title: "Email",
+                    width:100
+				},
+
+				{
+					field: "parent_fqdn",
+					title: "Parent",
+                    width:200
+				},
+				{
+					field: "level",
+					title: "Level",
+					width:80
+				}
+			]
+		});
+	}
+</script>

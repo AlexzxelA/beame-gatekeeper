@@ -12,14 +12,14 @@
             <input name="name" placeholder="Name" class="form-input"/>
             <input name="email" type="email" placeholder="Email" class="form-input"/>
             <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}"  class="form-input" />
-            Save creds <input name="save_creds" type="checkbox" checked>
-            <input type="submit" name="submit" value="Create Certificate" class="button" id="btn-submit-cred">
+            <!--Save creds <input name="save_creds" type="checkbox" checked>-->
+            <input type="submit" name="submit" value="Create Certificate" class="button">
         </form>
 
     </section>
 
 </script>
-6<script>
+<script>
 
 	function loadPfx() {
 
@@ -37,28 +37,35 @@
 			}
 		});
 
-		//if(credEventBinded) return;
 
-		function onFormSubmitted() {
+		$('#pfx_form').submit(function () {
 
 			showLoader();
-            console.log('HUY');
-			$('#pfx_form').ajaxSubmit({
-				error:   function (response) {
-					hideLoader();
-					$("#pfx-info").removeClass('ad-success').addClass('ad-error');
-					$("#pfx-info").html(response.responseDesc);
-				},
-				success: function () {
-					hideLoader();
+
+			var handleCredResponse = function (response) {
+				hideLoader();
+				console.log(response);
+				if (response.responseCode == 1) {
+
+					$("#pfx-info").removeClass('ad-error').addClass('ad-success');
+					var cb = $('#fqdn').data('kendoComboBox');
+					cb.dataSource.read();
 				}
+				else {
+					$("#pfx-info").removeClass('ad-success').addClass('ad-error');
+
+				}
+				$("#pfx-info").html(response.responseDesc);
+			};``
+
+
+			$(this).ajaxSubmit({
+				error:   handleCredResponse,
+				success: handleCredResponse
 			});
 
 			return false;
-		}
-		$('#btn-submit-cred').off('click');
-		$('#btn-submit-cred').on('click',onFormSubmitted);
+		});
 
-		//credEventBinded = true;
 	}
 </script>

@@ -1051,6 +1051,53 @@ class BeameAuthServices {
 		);
 	}
 
+	credsList(parent) {
+		return new Promise((resolve) => {
+
+				// let list = store.list(null, {
+				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+				// });
+
+				if(parent){
+					let list = store.list(null, {
+						hasParent: parent
+					});
+
+					resolve(list.map(item => {
+
+						let data = {
+							name : item.metadata.name || item.metadata.fqdn,
+							fqdn:item.metadata.fqdn,
+							ReportsTo:item.metadata.parent_fqdn,
+							hasChildren : store.list(null, {
+								hasParent: item.fqdn
+							}).length
+						};
+
+						//data.hasChildren = item.hasLocalParentAtAnyLevel(item.fqdn);
+
+						return data
+					}));
+				}
+				else{
+					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred =>{
+						resolve([{
+							name : cred.metadata.name || cred.metadata.fqdn,
+							fqdn:cred.metadata.fqdn,
+							parent:cred.metadata.parent_fqdn,
+							hasChildren : store.list(null, {
+								hasParent: cred.fqdn
+							}).length
+						}]);
+					}).catch(er=>{
+						logger.error(er);
+						resolve([]);
+					})
+				}
+			}
+		);
+	}
+
 	createRegToken(data) {
 		return new Promise((resolve, reject) => {
 				const Credential                      = beameSDK.Credential;
@@ -1087,14 +1134,16 @@ class BeameAuthServices {
 						.then(meta => {
 
 							store.find(meta.fqdn,false).then(newCred =>{
-								resolve({
-									fqdn:meta.fqdn,
-									pfx: newCred.getKey("PKCS12")
-								});
+								// resolve({
+								// 	fqdn:meta.fqdn,
+								// 	pfx: newCred.getKey("PKCS12")
+								// });
+								resolve(meta);
 							}).catch(reject);
 
 
 						})
+						//.then(resolve)
 						.catch(reject)
 				}
 				else {

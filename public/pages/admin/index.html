@@ -38,9 +38,13 @@
 				path:  "templates/admin/regtoken.tmpl.html",
 				event: "tokenLoaded"
 			},
-            Pfx:    {
-				path:  "templates/admin/create.pfx.tmpl.html",
-				event: "pfxLoaded"
+            Cred:    {
+				path:  "templates/admin/create.cred.tmpl.html",
+				event: "credLoaded"
+			},
+            Creds:    {
+				path:  "templates/admin/creds.tmpl.html",
+				event: "credsLoaded"
 			},
 			Service: {
 				path:  "templates/admin/services.tmpl.html",
@@ -80,7 +84,8 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.RegToken.path, ADMIN_TEMPLATES.RegToken.event);
-		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Pfx.path, ADMIN_TEMPLATES.Pfx.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Cred.path, ADMIN_TEMPLATES.Cred.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Creds.path, ADMIN_TEMPLATES.Creds.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.GkLogin.path, ADMIN_TEMPLATES.GkLogin.event);
 
@@ -131,6 +136,7 @@
             <nav>
                 <ul id="menu">
                     <li><a id="showDash" href="#">Dashboard</a></li>
+                    <li><a id="showCreds" href="#/creds">Creds</a></li>
                     <li><a id="showUsers" href="#/users">Users</a></li>
                     <li><a id="showRegs" href="#/regs">Registrations</a></li>
                     <li><a id="showInvs" href="#/inv">Invitations</a></li>
@@ -159,7 +165,7 @@
 
 <script>
 
-	var settings = null, viewDash, viewUsers, viewRegs, viewInvs,viewToken, viewPfx, viewService , viewGkLogin,layout;
+	var settings = null, viewDash, viewUsers,viewCreds, viewRegs, viewInvs,viewToken, viewPfx, viewService , viewGkLogin,layout;
 
 	function initAdminRouters() {
 
@@ -171,6 +177,7 @@
 		viewInvs  = new kendo.View("#inv");
 		viewToken  = new kendo.View("#reg-token");
 		viewPfx  = new kendo.View("#tmpl-create-pfx");
+		viewCreds  = new kendo.View("#tmpl-creds");
 		viewService  = new kendo.View("#services");
 		viewGkLogin  = new kendo.View("#gk-login");
 
@@ -194,6 +201,11 @@
 		var initUsers = function () {
 			layout.showIn("#content", viewUsers);
 			loadUsers();
+		};
+
+		var initCreds = function () {
+			layout.showIn("#content", viewCreds);
+			loadCreds();
 		};
 
 		var initRegs = function () {
@@ -232,6 +244,9 @@
 		$("#showUsers").on("click", function () {
 			initUsers();
 		});
+		$("#showCreds").on("click", function () {
+			initCreds();
+		});
 		$("#showRegs").on("click", function () {
 			initRegs();
 		});
@@ -263,6 +278,10 @@
 			subscribe(ADMIN_TEMPLATES.Dash.event, initDash);
 		});
 
+		router.route("/creds", function () {
+			subscribe(ADMIN_TEMPLATES.Creds.event, initCreds);
+		});
+
 		router.route("/users", function () {
 			subscribe(ADMIN_TEMPLATES.User.event, initUsers);
 		});
@@ -280,7 +299,7 @@
 		});
 
 		router.route("/pfx", function () {
-			subscribe(ADMIN_TEMPLATES.Pfx.event, initPfx);
+			subscribe(ADMIN_TEMPLATES.Cred.event, initPfx);
 		});
 
 		router.route("/srvc", function () {
