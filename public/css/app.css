@@ -3205,7 +3205,8 @@ p + p {
     display: block;
     margin: 7px 0; }
   .admin-form-main .button {
-    max-width: 200px; }
+    max-width: 200px;
+    display: inline-block; }
 
 .ad-success {
   color: green; }

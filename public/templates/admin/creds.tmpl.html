@@ -13,7 +13,8 @@
 
 		function onSelect(e) {
             var dataItem = this.dataItem(e.node);
-            console.log(dataItem.fqdn);
+            if(!dataItem) return;
+
 			$.ajax({
 				url: '/cred/detail/' + dataItem.fqdn,
 				cache: false,
@@ -22,7 +23,7 @@
 				datatype: "json",
 				contentType: "application/json; charset=utf-8"
 				, success: function (data) {
-                    console.log(data);
+
 					var template = kendo.template($("#tmpl-cred-detail").html());
 
 					var credHtml = template({});

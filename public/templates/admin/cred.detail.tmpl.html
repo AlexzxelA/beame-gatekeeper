@@ -1,5 +1,32 @@
+<style>
+    .metrotable > thead > tr > th {
+        padding: 2em 1em 0 0;
+        text-transform: lowercase;
+        text-align: left;
+        font-size: 2em;
+        font-weight: lighter;
+        color: #bbb;
+        border-bottom: 1px solid #ccc;
+    }
 
-
+    .metrotable > tbody > tr > td {
+        padding: .5em 1em .5em 0;
+        text-transform: lowercase;
+        text-align: left;
+        font-size: 1.2em;
+        font-weight: lighter;
+        color: #787878;
+        border-bottom: 1px solid #e1e1e1;
+    }
+    .metrotable > tbody > tr > td  {
+        font-size: 12px;
+    }
+    .metrotable > thead > tr > th {
+        font-size: 14px;
+        padding-top: 0;
+    }
+</style>
+<script src="lib/kendo-2016.3.1118.qr.min.js"></script>
 <script type="text/x-kendo-template" id="tmpl-cred-detail">
 
 
@@ -25,28 +52,86 @@
             <input name="email" required type="email" placeholder="Email" data-bind="value: data.email" class="form-input"/>
             <input name="fqdn" required type="hidden" data-bind="value: data.fqdn" />
             <input type="submit" name="btn-email" value="Send Pfx by Email" class="button">
+            <input type="button" name="btn-qr" data-bind="click: showQr" value="Show QR" class="button" >
         </form>
+
+        <div data-bind="visible:data.actions.length">
+            <h5>History</h5>
+            <table class="metrotable">
+                <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Email</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody data-template="history-row-template" data-bind="source: data.actions"></tbody>
+            </table>
+        </div>
+
     </section>
 
-</script>
-<script>
 
+
+</script>
+<div id="qr-window" style="display: none;text-align: center">
+    <div id="download-qr" style="margin: auto;width: 300px"></div>
+</div>
+
+<script id="history-row-template" type="text/x-kendo-template">
+    <tr>
+        <td data-bind="text: action"></td>
+        <td data-bind="text: email"></td>
+        <td data-bind="text: dateStr"></td>
+    </tr>
+</script>
+
+<script>
+	var viewModel, qrWnd = $("#qr-window");
 	function loadCredDetail(data) {
 
-        console.log('load cred details',data);
-
-		var viewModel = kendo.observable({
+		 viewModel = kendo.observable({
             init:function(){
+            	if(qrWnd.data("kendoWindow")){
+		            qrWnd.data("kendoWindow").close();
+	            }
+
+                if(this.data.download_url){
+	                qrWnd.kendoWindow({
+		                width: "400px",
+		                height:"400px",
+		                title: "Scan QR",
+		                visible: false,
+		                actions: [
+			                "Close"
+		                ]
+	                });
+
+	                $('#download-qr').empty().kendoQRCode({
+		                value:           this.data.download_url,
+		                errorCorrection: "L",
+		                color:           "#000",
+		                background:      "transparent",
+		                padding:         0,
+		                size:            300
+	                });
+                }else{
+	                qrWnd = null;
+                }
+
 	            $('#send_pfx_form').submit(function () {
 
 		            showLoader();
 
 		            var handleSendCredResponse = function (response) {
 			            hideLoader();
-			            console.log(response);
+
 			            if (response.responseCode == 1) {
 				            response.responseDesc = 'Email sent to ' + ( $('#send_pfx_form input[name="email"]').val()) ;
 				            $("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
+				            if(response.data){
+					            viewModel.set("data", response.data);
+                            }
 
 			            }
 			            else {
@@ -66,15 +151,20 @@
 	            });
             },
 			data:data,
+
             parentName: function(){
 			    return this.data.parent_name || this.data.parent_fqdn
             },
             sendPfxUrl:function(){
             	return '/send/pfx/' + this.data.fqdn
+            },
+            showQr:function(){
+	            $('#qr-window').data("kendoWindow").center().open();
             }
 		});
-		console.log('load viewModel',viewModel);
-		kendo.bind($("#cred-form-container"), viewModel);
+
 		viewModel.init();
+		kendo.bind($("#cred-form-container"), viewModel);
+
 	}
 </script>

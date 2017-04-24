@@ -37,6 +37,7 @@ const ProvisionApi     = beameSDK.ProvApi;
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
+const utils            = require('./utils');
 let dataService        = null;
 let beameAuthServices  = null;
 const nop              = function () {
@@ -60,6 +61,8 @@ class BeameAuthServices {
 		/** @type {Credential} */
 		this._creds = store.getCredential(authServerFqdn);
 
+		this._downloadTokens = {};
+
 		if (!this._creds) {
 			logger.fatal(`Beame Auth Server credential not found`);
 		}
@@ -75,6 +78,10 @@ class BeameAuthServices {
 		}
 
 		if (!beameAuthServices) beameAuthServices = this;
+	}
+
+	get downloadTokens() {
+		return this._downloadTokens;
 	}
 
 	//region Entity registration
@@ -992,45 +999,6 @@ class BeameAuthServices {
 
 	//endregion
 
-	getRequestAuthToken(req) {
-		return new Promise((resolve, reject) => {
-				let authHead  = req.get('X-BeameAuthToken'),
-				    /** @type {SignatureToken|null} */
-				    authToken = null;
-
-				logger.debug(`auth head received ${authHead}`);
-
-				if (authHead) {
-					try {
-						authToken = CommonUtils.parse(authHead);
-
-						if (!CommonUtils.isObject(authToken)) {
-							logger.error(`invalid auth ${authToken} token format`);
-							reject({message: 'Auth token invalid json format'});
-							return;
-						}
-					}
-					catch (error) {
-						console.log('FUCK! (3):', error.toString());
-						logger.error(`Parse auth header error ${BeameLogger.formatError(error)}`);
-						reject({message: 'Auth token invalid json format'});
-						return;
-					}
-				}
-
-				if (!authToken) {
-					reject({message: 'Auth token required'});
-					return;
-				}
-
-				this._validateAuthToken(authToken).then(() => {
-					resolve(authToken)
-				}).catch(reject);
-			}
-		);
-	}
-
-
 	//region Creds
 	findCreds(pattern) {
 		return new Promise((resolve) => {
@@ -1149,7 +1117,7 @@ class BeameAuthServices {
 		);
 	}
 
-	getPfx(fqdn) {
+	getPfx(fqdn, saveAction = false) {
 		return new Promise((resolve, reject) => {
 				let cred = store.getCredential(fqdn);
 
@@ -1163,12 +1131,19 @@ class BeameAuthServices {
 					return;
 				}
 
+				if(saveAction){
+					BeameAuthServices._saveCredAction(cred,{
+						action: Constants.CredAction.Download,
+						date:   Date.now()
+					});
+				}
+
 				resolve(cred.getKey("PKCS12"));
 			}
 		);
 	}
 
-	sendPfx(fqdn, email, body) {
+	sendPfx(fqdn, email) {
 
 		return new Promise((resolve, reject) => {
 				const _sendEmail = (cred) => {
@@ -1197,7 +1172,13 @@ class BeameAuthServices {
 							reject(error);
 						}
 						else {
-							resolve();
+							BeameAuthServices._saveCredAction(cred,{
+								action: Constants.CredAction.Send,
+								email,
+								date:   Date.now()
+							});
+
+							this.getCredDetail(fqdn).then(resolve).catch(reject);
 						}
 					}, sign);
 				};
@@ -1205,8 +1186,6 @@ class BeameAuthServices {
 				store.find(fqdn, false).then(_sendEmail).catch(reject);
 			}
 		);
-
-
 	}
 
 	getCredDetail(fqdn) {
@@ -1240,12 +1219,97 @@ class BeameAuthServices {
 					data.parent_name = null;
 				}
 
-				resolve(data);
+				if (cred.metadata.actions) {
+					cred.metadata.actions = cred.metadata.actions.map(function (item) {
+						if (item.date) {
+							item.dateStr = new Date(item.date).toLocaleString();
+						}
+
+						return item;
+					})
+				}
+
+				this._getDownloadUrl(cred).then(url => {
+					data.download_url = url;
+					resolve(data);
+				}).catch((e) => {
+					logger.error(`Get download url error for ${fqdn}`, e);
+					resolve(data);
+				})
+
+
 			}
 		);
 	}
 
+	_getDownloadUrl(cred) {
+		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+		return new Promise((resolve) => {
+				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({fqdn: cred.fqdn}), bootstrapper.proxySessionTtl).then(token => {
+
+					let uid = utils.generateUID(24);
+
+					this._downloadTokens[uid] = token;
+
+					setTimeout(() => {
+						delete  this._downloadTokens[uid];
+					}, bootstrapper.proxySessionTtl);
+
+					resolve(`https://${gwServerFqdn}/cred-download/?uid=${uid}`);
+				});
+			}
+		);
+	}
+
+	static _saveCredAction (cred, token){
+		if (!cred.metadata.actions) {
+			cred.metadata.actions = [];
+		}
+
+		cred.metadata.actions.push(token);
+
+		cred.beameStoreServices.writeMetadataSync(cred.metadata);
+	}
 	//endregion
+
+	getRequestAuthToken(req) {
+		return new Promise((resolve, reject) => {
+				let authHead  = req.get('X-BeameAuthToken'),
+				    /** @type {SignatureToken|null} */
+				    authToken = null;
+
+				logger.debug(`auth head received ${authHead}`);
+
+				if (authHead) {
+					try {
+						authToken = CommonUtils.parse(authHead);
+
+						if (!CommonUtils.isObject(authToken)) {
+							logger.error(`invalid auth ${authToken} token format`);
+							reject({message: 'Auth token invalid json format'});
+							return;
+						}
+					}
+					catch (error) {
+						console.log('FUCK! (3):', error.toString());
+						logger.error(`Parse auth header error ${BeameLogger.formatError(error)}`);
+						reject({message: 'Auth token invalid json format'});
+						return;
+					}
+				}
+
+				if (!authToken) {
+					reject({message: 'Auth token required'});
+					return;
+				}
+
+				this._validateAuthToken(authToken).then(() => {
+					resolve(authToken)
+				}).catch(reject);
+			}
+		);
+	}
 
 	/** @type {BeameAuthServices} */
 	static getInstance() {

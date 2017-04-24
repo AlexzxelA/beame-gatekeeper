@@ -150,9 +150,10 @@ class AdminRouter {
 			let fqdn = req.body.fqdn,
 				email = req.body.email;
 
-			beameAuthServices.sendPfx(fqdn,email).then(() => {
+			beameAuthServices.sendPfx(fqdn,email).then(data => {
 				res.json({
-					"responseCode": RESPONSE_SUCCESS_CODE
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					data
 				});
 			}).catch(e=>{
 				res.json({
@@ -171,24 +172,10 @@ class AdminRouter {
 
 			function resolve(token) {
 
-				// if(data.save_creds){
 					return res.json({
 						"responseCode": RESPONSE_SUCCESS_CODE,
 						"responseDesc":        token.fqdn
 					});
-				// }
-				// else{
-				//
-				// }
-
-				// res.writeHead(200, {
-				// 	'Content-Type':        'application/x-pkcs12',
-				// 	'Content-disposition': 'attachment;filename=' + (token.fqdn + '.pfx'),
-				// 	'Content-Length':      token.pfx.length
-				// });
-				//res.write(new Buffer(token.pfx, 'binary'));
-				//res.end(token.pfx);
-
 			}
 
 			function sendError(e) {

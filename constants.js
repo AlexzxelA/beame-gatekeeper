@@ -89,6 +89,14 @@ const DelegatedLoginNotificationAction = {
 	"Register":   "register",
 	"UnRegister": "unregister"
 };
+
+const CredAction = {
+	"Revoke":"Revoke",
+	"Renew":"Renew",
+	"Send":"Send",
+	"Download":"Download"
+};
+
 /**
  * Sns Message Types
  * DON'T TOUCH, should by synchronized with backend services
@@ -148,6 +156,7 @@ module.exports = {
 	LoadBalancerURL,
 	BeameLoginURL,
 	CredentialType,
+	CredAction,
 	SnsMessageType,
 	DelegatedLoginNotificationAction,
 	SetupServices,
