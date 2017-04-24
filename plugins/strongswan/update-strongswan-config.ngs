@@ -1,0 +1,89 @@
+#!/usr/bin/env ngs
+
+# Asks Beame Gatekeeper for list of credentials and configures strongswan VPN
+# to allow all listed credentials.
+
+# Environment variables and default values:
+#   BEAME_GATEKEEPER_USER (beame-gatekeeper) - user under which beame-gatekeeper runs
+#   IPSEC_CONF (/etc/ipsec.conf) - vpn file to configure with beame credentials
+#   BEAME_VPN_TEMPLATE_FILE (/etc/ipsec.conf.beame.template) - template file to be used for each per-user chunk in IPSEC_CONF
+
+MARKERS = [
+	'# Beame Gatekeeper - start'
+	'# Beame Gatekeeper - end'
+]
+
+F fetch_creds() {
+	user = ENV.get("BEAME_GATEKEEPER_USER", "beame-gatekeeper")
+	user_path = `su -c 'echo -n $PATH' $user`
+	creds = ``su -c "env PATH=$user_path:~/node_modules/.bin beame-gatekeeper creds list --format json" $user``.map(F extract_needed_fields(cred:Hash) {
+		{
+			'fqdn': cred.metadata.fqdn
+			'x509': cred.X509
+		}
+	}).filter(F credential_sanity_check(cred) {
+		cred.fqdn ~ /^[a-zA-Z0-9.]+$/ and
+		cred.x509.get('type') == 'Buffer' and
+		cred.x509.get('data') is Arr and
+		cred.x509.data.all(Int)
+	}).each(F x509_to_str(cred) {
+		cred.x509 = cred.x509.data.map(chr).join('')
+	}).sort('fqdn')
+}
+
+F write_certificates() {
+
+}
+
+# Should not be needed, as will be removed from config file
+# It's also unclear how to track whether the certificates come
+# from Beame Gatekeeper or from other sources.
+F remove_unused_cert() {
+
+}
+
+# TODO: Some version of NGS will contain template processing.
+#       Switch to that when available.
+F my_replace_all(tpl:Str, k:Str, v:Str) {
+	while (p = pos(tpl, k)) is not Null {
+		tpl = tpl[0..p] + v + tpl[p+len(k)..null]
+	}
+	tpl
+}
+
+
+F main() {
+	warn("This is work in progress. Do not use!")
+
+	if $(uname -s).lines()[0] != 'Linux' {
+		die("The only supported platform is Linux")
+	}
+
+	config_file = File(ENV.get("IPSEC_CONF", "/etc/ipsec.conf"))
+
+	# TODO: work with C:: namespace in future NGS versions
+	if not(config_file.access(bor(ACCESS::R_OK, ACCESS::W_OK))) {
+		die("Please run with user that has access to file ${config_file}, probably root")
+	}
+
+	tpl = ENV.get("BEAME_VPN_TEMPLATE_FILE", "/etc/ipsec.conf.beame.template").read()
+
+	current_lines = config_file.lines()
+
+	creds = fetch_creds()
+	beame_creds_config_lines = creds.map(F(cred) {
+		my_replace_all(tpl, '@FQDN@', cred.fqdn)
+	}).join('').lines()
+
+	try {
+		current_lines[MARKERS[0]..MARKERS[1]]
+		output_lines = copy(current_lines)
+		output_lines[MARKERS[0]..MARKERS[1]] = beame_creds_config_lines
+	} catch(e:IndexNotFound) {
+		guard e.container = current_lines
+		output_lines = current_lines + [MARKERS[0]] + beame_creds_config_lines + [MARKERS[1]]
+
+	}
+	output_lines % echo
+
+}
