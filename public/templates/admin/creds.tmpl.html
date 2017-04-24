@@ -1,0 +1,132 @@
+<script type="text/x-kendo-template" id="tmpl-creds">
+    <h4>Creds tree</h4>
+    <div id="creds-tree" style="display: inline-block; width:39%;vertical-align: top"></div>
+    <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
+</script>
+<script id="treeview-template" type="text/kendo-ui-template">
+    <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span> #: item.name #
+</script>
+<script>
+	function loadCreds() {
+
+		$("#cred-detail").empty().css({visibility:'hidden'});
+
+		function onSelect(e) {
+            var dataItem = this.dataItem(e.node);
+            if(!dataItem) return;
+
+			$.ajax({
+				url: '/cred/detail/' + dataItem.fqdn,
+				cache: false,
+				type: "Get",
+				//data: JSON.stringify(data),
+				datatype: "json",
+				contentType: "application/json; charset=utf-8"
+				, success: function (data) {
+
+					var template = kendo.template($("#tmpl-cred-detail").html());
+
+					var credHtml = template({});
+
+					$("#cred-detail").html(credHtml).promise().done(function(){
+						$("#cred-detail").css({visibility:'visible'});
+						loadCredDetail(data);
+					});
+				}
+			});
+		}
+
+		$("#creds-tree").kendoTreeView({
+			dataSource: new kendo.data.HierarchicalDataSource({
+				transport: {
+					read: {
+						url: '/creds/list',
+						dataType: "json"
+					}
+				},
+				schema: {
+					model: {
+						id: "fqdn",
+						hasChildren: "hasChildren"
+					}
+				}
+			}),
+			//dataTextField: "name",
+			template: kendo.template($("#treeview-template").html()),
+			select: onSelect
+		});
+
+        return;
+		$("#creds-grid").kendoGrid({
+			toolbar:    ["excel"],
+			excel:      {
+				fileName: "Creds.xlsx",
+				allPages: true
+			},
+			dataSource: {
+				transport: {
+					read:   {
+						url: "/creds/list"
+					}
+				},
+				schema:    {
+					model: {
+						id:     "id",
+						fields: {
+							fqdn:           {type: "string"},
+							name:           {type: "string"},
+							email:          {type: "string"},
+                            parent_fqdn:    {type: "string"},
+							level:          {type: "number"}
+//
+						}
+					}
+				},
+				pageSize:  20
+//                serverPaging:    true,
+//                serverFiltering: true,
+//                serverSorting:   true
+			},
+			height:     550,
+			filterable: true,
+			sortable:   true,
+			editable:   {
+				mode:         "inline",
+				confirmation: true
+			},
+			pageable:   {
+				pageSize: 20,
+				refresh:  true
+			},
+			columns:    [
+				{
+					field: "fqdn",
+					title: "Fqdn",
+					width:200
+				},
+				{
+					field: "name",
+					title: "Name",
+					width:100
+				},
+
+				{
+					field: "email",
+					title: "Email",
+                    width:100
+				},
+
+				{
+					field: "parent_fqdn",
+					title: "Parent",
+                    width:200
+				},
+				{
+					field: "level",
+					title: "Level",
+					width:80
+				}
+			]
+		});
+	}
+</script>

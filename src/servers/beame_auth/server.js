@@ -118,7 +118,7 @@ class BeameAuthServer {
 			this._socketServer = null;
 		}
 		if (this._httpSocketServer) {
-			for (var srvKey in this._httpSocketServer) {
+			for (let srvKey in this._httpSocketServer) {
 				this._httpSocketServer[srvKey].stop();
 				this._httpSocketServer[srvKey] = null;
 			}

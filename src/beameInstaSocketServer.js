@@ -18,9 +18,11 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const relayManager = require('./relayManager');
 const Constants    = require('../constants');
+const Utils        = require('./utils');
 const Bootstrapper = require('./bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 let relayManagerInstance = null;
+
 class BeameInstaSocketServer {
 
 	/**
@@ -56,6 +58,8 @@ class BeameInstaSocketServer {
 
 		this.qrMessaging = null;
 
+		this._drctSignin = null;
+
 		this._approverManager = null;
 
 		this._serviceName = bootstrapper.serviceName;
@@ -63,16 +67,22 @@ class BeameInstaSocketServer {
 		this._relayFqdn = null;
 
 		this._loginRelayFqdn = null;
+
+		this._pairingGlobals = null;
 	}
 
 
 	start() {
+		new Utils.pairingGlobals();
+		this._pairingGlobals = Utils.pairingGlobals.getInstance();
+		this._pairingGlobals.cleanSessionsCache();
 		new relayManager();
 		relayManagerInstance = relayManager.getInstance();
 
 		return new Promise((resolve, reject) => {
 				this._initWhispererManager()
 					.then(this._initQrMessaging.bind(this))
+					.then(this._initDrctSignin.bind(this))
 					.then(this._initApproverManager.bind(this))
 					.then(this._initLoginManager(this))
 					.then(this._getLocalRelay.bind(this))
@@ -154,6 +164,14 @@ class BeameInstaSocketServer {
 	 * @param {Socket} socket
 	 * @private
 	 */
+	_onDrctBrowserConnection(socket) {
+		this._drctSignin.onDrctBrowserConnection(socket, this._pairingGlobals.getSessionIds());
+	}
+
+	/**
+	 * @param {Socket} socket
+	 * @private
+	 */
 	_onMobileConnection(socket) {
 		this._whispererManager.onMobileConnection(socket);
 	}
@@ -174,6 +192,8 @@ class BeameInstaSocketServer {
 		this._socketioServer.of('mobile').on('connection', this._onMobileConnection.bind(this));
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('qr').on('connection', this._onQrBrowserConnection.bind(this));
+		//noinspection JSUnresolvedFunction
+		this._socketioServer.of('drct').on('connection', this._onDrctBrowserConnection.bind(this));
 		//noinspection JSUnresolvedFunction
 		this._socketioServer.of('beame_login').on('connection', this._onLoginBrowserConnection.bind(this));
 
@@ -220,6 +240,11 @@ class BeameInstaSocketServer {
 		);
 
 		return Promise.resolve();
+	}
+
+	_initDrctSignin(){
+		const DrctSigninRef = require('./pairing/drct_signin');
+		this._drctSignin = new DrctSigninRef(this._fqdn, this._serviceName);
 	}
 
 	_initQrMessaging() {

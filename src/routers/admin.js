@@ -8,8 +8,8 @@ const path    = require('path');
 const express = require('express');
 
 const Constants  = require('../../constants');
-const public_dir           = path.join(__dirname, '..', '..', Constants.WebRootFolder);
-const base_path            = path.join(public_dir, 'pages', 'admin');
+const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const base_path  = path.join(public_dir, 'pages', 'admin');
 
 const beameSDK          = require('beame-sdk');
 const CommonUtils       = beameSDK.CommonUtils;
@@ -21,9 +21,10 @@ const bootstrapper      = Bootstrapper.getInstance();
 const beameAuthServices = require('../authServices').getInstance();
 
 const centralLoginServices = require('../centralLoginServices').getInstance();
+const hookServices         = require('../hooksServices').getInstance();
 
 const RESPONSE_SUCCESS_CODE = 1;
-const RESPONSE_ERROR_CODE = 0;
+const RESPONSE_ERROR_CODE   = 0;
 
 class AdminRouter {
 	constructor(adminServices) {
@@ -65,7 +66,7 @@ class AdminRouter {
 
 			let parts = req.query.filter && req.query.filter.filters && req.query.filter.filters.length ? req.query.filter.filters[0].value : '';
 
-			beameAuthServices.findCreds(parts).then(list=>{
+			beameAuthServices.findCreds(parts).then(list => {
 				res.json(list);
 			})
 		});
@@ -79,7 +80,7 @@ class AdminRouter {
 			function resolve(token) {
 				return res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
-					"token": token
+					"token":        token
 				});
 			}
 
@@ -97,20 +98,84 @@ class AdminRouter {
 
 		});
 
-		this._router.post('/pfx/create', (req, res) => {
+		this._router.get('/creds/list', (req, res) => {
+
+			let parent = req.query.fqdn;
+
+			beameAuthServices.credsList(parent).then(list => {
+				res.json(list);
+			}).catch(e=> {
+				console.error('/creds/list/', e);
+				return res.json([]);
+			})
+		});
+
+		this._router.get('/cred/detail/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getCredDetail(fqdn).then(data => {
+				res.json(data);
+			}).catch(e=> {
+				console.error('/cred/detail/', e);
+				 res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.get('/cred/pfx/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getPfx(fqdn).then(data => {
+				res.writeHead(200, {
+					'Content-Type':        'application/x-pkcs12',
+					'Content-disposition': 'attachment;filename=' + (fqdn + '.pfx'),
+					'Content-Length':      data.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(data);
+			}).catch(e=>{
+				 res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/send/pfx', (req, res) => {
+
+			let fqdn = req.body.fqdn,
+				email = req.body.email;
+
+			beameAuthServices.sendPfx(fqdn,email).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					data
+				});
+			}).catch(e=>{
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/cred/create', (req, res) => {
 
 			let data = req.body;
+				data.save_creds = true; //data.save_creds === "on";
 
 			logger.info(`Create pfx  with ${CommonUtils.data}`);
 
 			function resolve(token) {
-				res.writeHead(200, {
-					'Content-Type': 'application/x-pkcs12',
-					'Content-disposition': 'attachment;filename=' + (token.fqdn + '.pfx'),
-					'Content-Length': token.pfx.length
-				});
-				//res.write(new Buffer(token.pfx, 'binary'));
-				res.end(token.pfx);
+
+					return res.json({
+						"responseCode": RESPONSE_SUCCESS_CODE,
+						"responseDesc":        token.fqdn
+					});
 			}
 
 			function sendError(e) {
@@ -121,7 +186,7 @@ class AdminRouter {
 				});
 			}
 
-			beameAuthServices.createPfx(data)
+			beameAuthServices.createCred(data)
 				.then(resolve)
 				.catch(sendError);
 
@@ -224,6 +289,52 @@ class AdminRouter {
 		});
 		//endregion
 
+		//region hooks
+		this._router.get('/hooks/list', (req, res) => {
+			hookServices.getHooks().then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				logger.error(error);
+				res.json([]);
+			});
+		});
+
+		this._router.post('/hook/create', (req, res) => {
+			let hook = req.body;
+			hookServices.saveHook(hook).then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				res.status(400).send(error);
+			});
+		});
+
+		this._router.post('/hook/update', (req, res) => {
+			let hook = req.body;
+			hookServices.updateHook(hook).then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				res.status(400).send(error);
+			});
+		});
+
+		this._router.post('/hook/destroy', (req, res) => {
+			let data = req.body,
+			    id   = parseInt(data.id);
+
+			hookServices.deleteHook(id).then(() => {
+				res.status(200).json({});
+			}).catch(error => {
+				res.status(400).send(error);
+			});
+
+		});
+		//endregion
 
 		//region gk logins
 		this._router.get('/login/list', (req, res) => {
@@ -285,7 +396,7 @@ class AdminRouter {
 
 		this._router.post('/invitation/send', (req, res) => {
 
-			if(bootstrapper.registrationImageRequired){
+			if (bootstrapper.registrationImageRequired) {
 				return res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": 'Offline registration not allowed, when Required Image flag set to true'
@@ -319,7 +430,7 @@ class AdminRouter {
 
 		this._router.post("/invitation/upload", (req, res) => {
 
-			if(bootstrapper.registrationImageRequired){
+			if (bootstrapper.registrationImageRequired) {
 				res.sendFile(path.join(base_path, 'offline_reg_forbidden.html'));
 				return;
 			}
@@ -337,7 +448,7 @@ class AdminRouter {
 				      invitationSend = 0,
 				      totalInvalid   = 0,
 				      csvData        = [],
-					  resultCsvData =[];
+				      resultCsvData  = [];
 				try {
 					fs.createReadStream(files.csvdata.path)
 						.pipe(parse({delimiter: ','}))
@@ -363,7 +474,7 @@ class AdminRouter {
 							const async = require('async');
 
 							const handler = (item, cb) => {
-								let csvrow = [item.name,item.email,item.user_id];
+								let csvrow = [item.name, item.email, item.user_id];
 
 								this._sendInvitation(item).then(
 									() => {
@@ -371,7 +482,7 @@ class AdminRouter {
 										resultCsvData.push(csvrow.concat([RESPONSE_SUCCESS_CODE]));
 										cb();
 									}).catch((err) => {
-										resultCsvData.push(csvrow.concat([RESPONSE_ERROR_CODE, BeameLogger.formatError(err).replace(',',';')]));
+										resultCsvData.push(csvrow.concat([RESPONSE_ERROR_CODE, BeameLogger.formatError(err).replace(',', ';')]));
 										totalInvalid++;
 										cb();
 									}
@@ -389,7 +500,7 @@ class AdminRouter {
 
 							};
 
-							async.each(csvData, handler, finalCallback.bind(null,resultCsvData));
+							async.each(csvData, handler, finalCallback.bind(null, resultCsvData));
 
 						});
 				} catch (e) {

@@ -18,18 +18,21 @@ const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
 const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
-const PublicRegistration        = true;
-const RegistrationImageRequired = false;
-const EncryptUserData           = true;
-const PairingRequired           = true;
-const UseBeameAuthOnLocal       = true;
-const StartRaspberryApp         = false;
-const AllowDirectSignin         = true;
-const RegistrationMethod        = Constants.RegistrationMethod.Pairing;
-const EnvMode                   = Constants.EnvMode.Gatekeeper;
+const PublicRegistration           = true;
+const RegistrationImageRequired    = false;
+const EncryptUserData              = true;
+const PairingRequired              = true;
+const UseBeameAuthOnLocal          = true;
+const StartRaspberryApp            = false;
+const AllowDirectSignin            = true;
+const RunAuthServerOnZeroLevelCred = true;
+
+const RegistrationMethod = Constants.RegistrationMethod.Pairing;
+const EnvMode            = Constants.EnvMode.Gatekeeper;
 
 const EmailPostUrl = "https://gpymwodu74slo9sg.p1s1ykbqpjqfmw34.v1.s.beameio.net/send/invitation";
 const ExternalMatchingFqdn = "oyr64zl5w1htwudv.mtrc55l896fup0fp.v1.s.beameio.net";
+const EmailSendCertUrl     = "https://gpymwodu74slo9sg.p1s1ykbqpjqfmw34.v1.s.beameio.net/send/pfx";
 
 //const delegatedLoginServers     = "";
 //in sec
@@ -43,6 +46,7 @@ const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
 
+const DisableDemoServers = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -73,6 +77,7 @@ const ConfigProps = {
 		StartRaspberryApp:             "StartRaspberryApp",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
+		EmailSendCertUrl:              "EmailSendCertUrl",
 		PostSmsUrl:                    "PostSmsUrl",
 		ExternalLoginServer:           "ExternalLoginServer",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
@@ -151,6 +156,7 @@ module.exports = {
 
 	ExternalMatchingFqdn: ExternalMatchingFqdn,
 	PostEmailUrl:         EmailPostUrl,
+	EmailSendCertUrl:     EmailSendCertUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
 	//delegatedLoginServers,
@@ -163,6 +169,8 @@ module.exports = {
 	EncryptUserData,
 	StartRaspberryApp,
 	AllowDirectSignin,
+	RunAuthServerOnZeroLevelCred,
+	DisableDemoServers,
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,

@@ -337,6 +337,10 @@ class BrowserControllerSocketioApi {
 			client.emit('data', JSON.stringify(data));
 		}
 
+		client.on('reconnect',()=>{
+			console.log('GW socket reconnected');
+		});
+
 		client.on('browser_connected', function (data) {
 			var cred     = store.getCredential(gwServerFqdn),
 			    token    = AuthToken.create(data, cred, 10),

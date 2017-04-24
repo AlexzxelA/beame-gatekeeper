@@ -278,6 +278,24 @@ class DataServices {
 
 	//endregion
 
+	//region Hooks
+	getHooks() {
+		return this._dbService.getHooks();
+	}
+
+	saveHook(hook) {
+		return this._dbService.saveHook(hook);
+	}
+
+	updateHook(hook) {
+		return this._dbService.updateHook(hook);
+	}
+
+	deleteHook(id) {
+		return this._dbService.deleteHook(id);
+	}
+	//endregion
+
 	/**
 	 *
 	 * @param {DataServicesSettings|null|undefined} [options]

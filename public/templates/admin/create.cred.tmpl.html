@@ -1,0 +1,71 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+
+
+<script type="text/x-kendo-template" id="tmpl-create-pfx">
+
+
+    <h4>Create Certificate</h4>
+    <section id="token-form-container" style="margin-bottom: 50px;background-color:#fff ">
+        <form id="pfx_form" action='/cred/create' method="post" class="form-main admin-form-main">
+            <div id="pfx-info">&nbsp;</div>
+            <input id="fqdn" name="fqdn" placeholder="Signing Credential" required  style="width: 100%;" />
+            <input name="name" placeholder="Name" class="form-input"/>
+            <input name="email" type="email" placeholder="Email" class="form-input"/>
+            <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}"  class="form-input" />
+            <!--Save creds <input name="save_creds" type="checkbox" checked>-->
+            <input type="submit" name="submit" value="Create Certificate" class="button">
+        </form>
+
+    </section>
+
+</script>
+<script>
+
+	function loadPfx() {
+
+
+		$("#fqdn").kendoComboBox({
+			dataTextField: "name",
+            dataValueField: "fqdn",
+			filter: "contains",
+			minLength: 1,
+			dataSource: {
+				serverFiltering: true,
+				transport: {
+					read: "/creds/filter"
+				}
+			}
+		});
+
+
+		$('#pfx_form').submit(function () {
+
+			showLoader();
+
+			var handleCredResponse = function (response) {
+				hideLoader();
+				console.log(response);
+				if (response.responseCode == 1) {
+
+					$("#pfx-info").removeClass('ad-error').addClass('ad-success');
+					var cb = $('#fqdn').data('kendoComboBox');
+					cb.dataSource.read();
+				}
+				else {
+					$("#pfx-info").removeClass('ad-success').addClass('ad-error');
+
+				}
+				$("#pfx-info").html(response.responseDesc);
+			};``
+
+
+			$(this).ajaxSubmit({
+				error:   handleCredResponse,
+				success: handleCredResponse
+			});
+
+			return false;
+		});
+
+	}
+</script>

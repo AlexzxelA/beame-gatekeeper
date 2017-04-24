@@ -25,6 +25,7 @@ const apiConfig            = require('../../../config/api_config.json');
 const relayManagerInstance = require('../../relayManager').getInstance();
 const utils                = require('../../utils');
 const cust_auth_app        = require('../../routers/customer_auth');
+const DirectoryServices    = beameSDK.DirectoryServices;
 
 const unauthenticatedApp = express();
 
@@ -138,6 +139,56 @@ unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, re
 		logger.error(e);
 	});
 });
+
+unauthenticatedApp.get('/cred-download',(req,res) =>{
+	const qs           = querystring.parse(url.parse(req.url).query);
+
+	if(!qs || !qs.uid){
+		res.status(403).send(`payload required`);
+		return;
+	}
+
+	let authServices = BeameAuthServices.getInstance();
+
+	let authToken = authServices.downloadTokens[qs.uid];
+
+	if(!authToken){
+		res.status(403).send(`authToken required`);
+		return;
+	}
+	AuthToken.validate(authToken)
+		.then( () =>{
+			let data = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(authToken).signedData.data));
+
+			if(!data || !data.fqdn){
+				res.status(403).send(`Invalid signed data`);
+				return;
+			}
+
+			let fqdn = data.fqdn;
+
+			authServices.getPfx(fqdn, true).then(data=>{
+
+				res.writeHead(200, {
+					'Content-Type':        'application/x-pkcs12',
+					'Content-disposition': 'attachment;filename=' + (fqdn + '.pfx'),
+					'Content-Length':      data.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(data);
+			}).catch(e=>{
+				logger.error(e);
+				res.status(500).send(BeameLogger.formatError(e));
+			});
+
+		})
+		.catch(e => {
+			logger.error(e);
+			res.status(403).send(`Invalid auth token`);
+
+		});
+
+} );
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
 
@@ -412,6 +463,28 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 	setBeameCookie(cookieNames.CentralLogin, res);
 	res.sendFile(path.join(base_path, 'logged-out.html'));
 
+});
+
+unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
+	let authHead  = req.get('X-BeameAuthToken')
+	console.log('DirectPath: checking '+authHead);
+	clearSessionCookie(res);
+	AuthToken.getRequestAuthToken(req).then(() => {
+		let token = JSON.parse(authHead),
+		data = DirectoryServices.readFile(path.join(base_path, 'drct_signin.html'));
+		if(data){
+			let pairingGlobalsRef = utils.pairingGlobals.getInstance();
+			let sessionId = utils.generateUID(24);
+			pairingGlobalsRef.setNewSessionId(sessionId, token);
+			res.send(data.replace('%$1Mpl363am31d3nt1f1k4t0r%',sessionId));
+		}
+		else
+			res.sendFile(path.join(base_path, 'forbidden.html'));
+
+	}).catch((e)=>{
+		console.log(e);
+		res.sendFile(path.join(base_path, 'forbidden.html'));
+	});
 });
 
 unauthenticatedApp.get(Constants.ConfigData, (req, res) => {

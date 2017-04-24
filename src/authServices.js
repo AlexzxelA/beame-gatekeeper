@@ -37,6 +37,7 @@ const ProvisionApi     = beameSDK.ProvApi;
 const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
+const utils            = require('./utils');
 let dataService        = null;
 let beameAuthServices  = null;
 const nop              = function () {
@@ -60,6 +61,8 @@ class BeameAuthServices {
 		/** @type {Credential} */
 		this._creds = store.getCredential(authServerFqdn);
 
+		this._downloadTokens = {};
+
 		if (!this._creds) {
 			logger.fatal(`Beame Auth Server credential not found`);
 		}
@@ -74,7 +77,11 @@ class BeameAuthServices {
 			});
 		}
 
-		if(!beameAuthServices)beameAuthServices = this;
+		if (!beameAuthServices) beameAuthServices = this;
+	}
+
+	get downloadTokens() {
+		return this._downloadTokens;
 	}
 
 	//region Entity registration
@@ -333,11 +340,11 @@ class BeameAuthServices {
 					return isCompleted ? dataService.markRegistrationAsCompleted(token.fqdn) : Promise.resolve(registration);
 				};
 
-				const _sendCompleteEvent = () =>{
+				const _sendCompleteEvent = () => {
 					return new Promise((resolve) => {
 							let $this = BeameAuthServices.getInstance();
 
-							$this.sendCustomerInvitationCompleteEvent(token.fqdn).then(resolve).catch(err=>{
+							$this.sendCustomerInvitationCompleteEvent(token.fqdn).then(resolve).catch(err => {
 								logger.error(err);
 								resolve();
 							})
@@ -345,7 +352,12 @@ class BeameAuthServices {
 					);
 				};
 
-				dataService.findRegistrationRecordByFqdn(token.fqdn)
+				const _getRemoteCreds = () => {
+					return store.find(token.fqdn, true)
+				};
+
+				_getRemoteCreds()
+					.then(dataService.findRegistrationRecordByFqdn.bind(dataService, token.fqdn))
 					.then(_assertRegistrationStatus)
 					.then(dataService.updateRegistrationCertFlag.bind(dataService))
 					.then(_updateRegistrationStatus)
@@ -765,8 +777,8 @@ class BeameAuthServices {
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
 				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-					version:       bootstrapper.version,
-					pairing:       bootstrapper.pairingRequired
+				    version:       bootstrapper.version,
+				    pairing:       bootstrapper.pairingRequired
 			    },
 			    postEmailUrl = null,
 			    postSmsUrl   = null;
@@ -987,6 +999,280 @@ class BeameAuthServices {
 
 	//endregion
 
+	//region Creds
+	findCreds(pattern) {
+		return new Promise((resolve) => {
+
+				let list = store.list(null, {
+					hasPrivateKey: true,
+					anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+				});
+
+				const _isContains = (cred) => {
+					return cred.getKey("FQDN").indexOf(pattern) >= 0 || (cred.metadata.name && cred.metadata.name.toLowerCase().indexOf(pattern.toLowerCase()) >= 0);
+				};
+
+				resolve(list.filter(_isContains).map(item => {
+					return {fqdn: item.fqdn, name: item.metadata.name ? `${item.metadata.name} (${item.fqdn})` : item.fqdn}
+				}));
+			}
+		);
+	}
+
+	credsList(parent) {
+		return new Promise((resolve) => {
+
+				// let list = store.list(null, {
+				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+				// });
+
+				const _formatCred = (cred) => {
+					return {
+						name:        cred.metadata.name || cred.metadata.fqdn,
+						fqdn:        cred.metadata.fqdn,
+						parent:      cred.metadata.parent_fqdn,
+						isLocal:     cred.hasKey("PRIVATE_KEY"),
+						hasChildren: store.hasLocalChildren(cred.fqdn)
+					}
+				};
+
+				if (parent) {
+					let list = store.list(null, {
+						hasParent: parent
+					});
+
+					resolve(list.map(item => {
+
+						return _formatCred(item);
+					}));
+				}
+				else {
+					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred => {
+						resolve([_formatCred(cred)]);
+					}).catch(er => {
+						logger.error(er);
+						resolve([]);
+					})
+				}
+			}
+		);
+	}
+
+	createRegToken(data) {
+		return new Promise((resolve, reject) => {
+				const Credential                      = beameSDK.Credential;
+				let cred = new Credential(store), ttl = 60 * 60 * 24;
+
+				try {
+					ttl = parseInt(data.ttl);
+				} catch (e) {
+
+				}
+
+				cred.createRegistrationToken({
+						fqdn:      data.fqdn, name: data.name, email: data.email,
+						userId:    data.user_id, ttl: ttl, serviceName: bootstrapper.serviceName,
+						serviceId: bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
+						gwFqdn:    Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+						version:   bootstrapper.version,
+						pairing:   bootstrapper.pairingRequired
+					})
+					.then(resolve)
+					.catch(reject);
+			}
+		);
+	}
+
+	createCred(data) {
+		return new Promise((resolve, reject) => {
+				const Credential = beameSDK.Credential;
+				let cred         = new Credential(store);
+
+				if (data.save_creds) {
+					logger.debug('************* CREATE LOCAL CREDS');
+					cred.createEntityWithLocalCreds(data.fqdn, data.name, data.email, null, data.password)
+						.then(meta => {
+
+							store.find(meta.fqdn, false).then(newCred => {
+								// resolve({
+								// 	fqdn:meta.fqdn,
+								// 	pfx: newCred.getKey("PKCS12")
+								// });
+								resolve(meta);
+							}).catch(reject);
+
+
+						})
+						//.then(resolve)
+						.catch(reject)
+				}
+				else {
+					logger.debug('************* CREATE VIRTUAL CREDS');
+					cred.createVirtualEntity(data.fqdn, data.name, data.email, data.password)
+						.then(resolve)
+						.catch(reject);
+				}
+
+			}
+		);
+	}
+
+	getPfx(fqdn, saveAction = false) {
+		return new Promise((resolve, reject) => {
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PKCS12")) {
+					reject(`Pfx ${fqdn} not found`);
+					return;
+				}
+
+				if(saveAction){
+					BeameAuthServices._saveCredAction(cred,{
+						action: Constants.CredAction.Download,
+						date:   Date.now()
+					});
+				}
+
+				resolve(cred.getKey("PKCS12"));
+			}
+		);
+	}
+
+	sendPfx(fqdn, email) {
+
+		return new Promise((resolve, reject) => {
+				const _sendEmail = (cred) => {
+
+					if (!cred.hasKey("PKCS12")) {
+						reject(`Pfx ${fqdn} not found`);
+						return;
+					}
+
+					if (!cred.hasKey("PWD")) {
+						reject(`Pwd ${fqdn} not found`);
+						return;
+					}
+
+					let sign         = this.signData({fqdn, email}),
+					    provisionApi = new ProvisionApi(),
+					    emailToken   = {
+						    email,
+						    fqdn,
+						    body: `Your certificate is attached.<br /> Use this password is <b>${String.fromCharCode.apply(null, cred.PWD)}</b> to import attached certificate`,
+						    pfx:  new Buffer(cred.getKey("PKCS12")).toString('base64')
+					    };
+
+					provisionApi.postRequest(bootstrapper.emailSendCertUrl, emailToken, (error) => {
+						if (error) {
+							reject(error);
+						}
+						else {
+							BeameAuthServices._saveCredAction(cred,{
+								action: Constants.CredAction.Send,
+								email,
+								date:   Date.now()
+							});
+
+							this.getCredDetail(fqdn).then(resolve).catch(reject);
+						}
+					}, sign);
+				};
+
+				store.find(fqdn, false).then(_sendEmail).catch(reject);
+			}
+		);
+	}
+
+	getCredDetail(fqdn) {
+		return new Promise((resolve, reject) => {
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				let data = Object.assign({}, cred.metadata);
+
+				data.pwd = cred.hasKey("PWD") ? String.fromCharCode.apply(null, cred.PWD) : null;
+
+				data.hasChildren = store.hasLocalChildren(fqdn);
+
+				data.pfx_path = cred.hasKey("PKCS12") ? `/cred/pfx/${fqdn}` : null;
+
+				data.isLocal = cred.hasKey("PRIVATE_KEY");
+
+				data.validTill = cred.getCertEnd();
+
+				if (cred.metadata.parent_fqdn) {
+					let parent = store.getCredential(cred.metadata.parent_fqdn);
+
+					if (parent) {
+						data.parent_name = parent.metadata.name;
+					}
+				} else {
+					data.parent_name = null;
+				}
+
+				if (cred.metadata.actions) {
+					cred.metadata.actions = cred.metadata.actions.map(function (item) {
+						if (item.date) {
+							item.dateStr = new Date(item.date).toLocaleString();
+						}
+
+						return item;
+					})
+				}
+
+				this._getDownloadUrl(cred).then(url => {
+					data.download_url = url;
+					resolve(data);
+				}).catch((e) => {
+					logger.error(`Get download url error for ${fqdn}`, e);
+					resolve(data);
+				})
+
+
+			}
+		);
+	}
+
+	_getDownloadUrl(cred) {
+		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+		return new Promise((resolve) => {
+				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({fqdn: cred.fqdn}), bootstrapper.proxySessionTtl).then(token => {
+
+					let uid = utils.generateUID(24);
+
+					this._downloadTokens[uid] = token;
+
+					setTimeout(() => {
+						delete  this._downloadTokens[uid];
+					}, bootstrapper.proxySessionTtl);
+
+					resolve(`https://${gwServerFqdn}/cred-download/?uid=${uid}`);
+				});
+			}
+		);
+	}
+
+	static _saveCredAction (cred, token){
+		if (!cred.metadata.actions) {
+			cred.metadata.actions = [];
+		}
+
+		cred.metadata.actions.push(token);
+
+		cred.beameStoreServices.writeMetadataSync(cred.metadata);
+	}
+	//endregion
+
 	getRequestAuthToken(req) {
 		return new Promise((resolve, reject) => {
 				let authHead  = req.get('X-BeameAuthToken'),
@@ -1024,62 +1310,6 @@ class BeameAuthServices {
 			}
 		);
 	}
-
-
-	//region Registration token
-	findCreds(fqdnPart) {
-		return new Promise((resolve) => {
-				let list = store.list(null, {hasPrivateKey: true});
-
-				const _isContains = (cred) => {
-					return cred.getKey("FQDN").indexOf(fqdnPart) >= 0;
-				};
-
-				resolve(list.filter(_isContains).map(item => {
-					return {fqdn: item.fqdn}
-				}));
-			}
-		);
-	}
-
-	createRegToken(data) {
-		return new Promise((resolve, reject) => {
-				const Credential                      = beameSDK.Credential;
-				let cred = new Credential(store), ttl = 60 * 60 * 24;
-
-				try {
-					ttl = parseInt(data.ttl);
-				} catch (e) {
-
-				}
-
-				cred.createRegistrationToken({
-						fqdn:      data.fqdn, name: data.name, email: data.email,
-						userId:    data.user_id, ttl: ttl, serviceName: bootstrapper.serviceName,
-						serviceId: bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
-						gwFqdn:    Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-						version:   bootstrapper.version,
-						pairing:   bootstrapper.pairingRequired
-					})
-					.then(resolve)
-					.catch(reject);
-			}
-		);
-	}
-
-	createPfx(data) {
-		return new Promise((resolve, reject) => {
-				const Credential                      = beameSDK.Credential;
-				let cred = new Credential(store);
-
-				cred.createVirtualEntity(data.fqdn, data.name,  data.email, data.password)
-					.then(resolve)
-					.catch(reject);
-			}
-		);
-	}
-
-	//endregion
 
 	/** @type {BeameAuthServices} */
 	static getInstance() {

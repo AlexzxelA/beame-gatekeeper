@@ -567,7 +567,7 @@ function initCryptoSession(relaySocket, originSocketArray, data, decryptedData) 
 	originTmpSocket = originSocketArray.GW;
 	console.log('...Got message from mobile:', decryptedData);
 	if (decryptedData.source) {
-		originTmpSocket = (decryptedData.source == 'qr') ? originSocketArray.QR : (decryptedData.source == 'sound') ? originSocketArray.WH : originSocketArray.AP;
+		originTmpSocket = (decryptedData.source === 'qr') ? originSocketArray.QR : (decryptedData.source === 'sound') ? originSocketArray.WH : originSocketArray.AP;
 	}
 
 

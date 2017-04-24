@@ -45,9 +45,6 @@ $(document).ready(function () {
 
 	window.getNotifManagerInstance().subscribe('STOP_PAIRING', resetQR, null);
 
-
-
-
 	//noinspection ES6ModulesDependencies,NodeModulesDependencies
 	var socket = io.connect("/qr", socketio_options);
 	console.log('QR window ready');

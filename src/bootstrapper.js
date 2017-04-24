@@ -284,6 +284,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.PostEmailUrl] ? this._config[SettingsProps.PostEmailUrl] : null;
 	}
 
+	get emailSendCertUrl() {
+		return this._config && this._config[SettingsProps.EmailSendCertUrl] ? this._config[SettingsProps.EmailSendCertUrl] : null;
+	}
+
 	get postSmsUrl() {
 		return this._config && this._config[SettingsProps.PostSmsUrl] ? this._config[SettingsProps.PostSmsUrl] : null;
 	}
