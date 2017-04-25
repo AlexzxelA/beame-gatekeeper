@@ -13,13 +13,13 @@
 MARKERS = '# Beame Gatekeeper - start'..'# Beame Gatekeeper - end'
 CERTS_DIR = ENV.get("BEAME_VPN_CERTS_DIR", "/etc/ipsec.d/certs")
 
-F fetch_creds(vpn_root_fqdn:Str) {
+F fetch_creds(vpn_root_fqdn:Str, vpn_id:Str) {
 	debug("strongswan", "Fetching VPN users using VPN root FQDN: $vpn_root_fqdn")
 	user = ENV.get("BEAME_GATEKEEPER_USER", "beame-gatekeeper")
 	user_path = `su -c 'echo -n $PATH' $user`
-	creds = ``su -c "env PATH=$user_path:~/node_modules/.bin beame-gatekeeper creds list --format json" $user``.map(F extract_needed_fields(cred:Hash) {
+	creds = ``su -c "env PATH=$user_path:~/node_modules/.bin beame-gatekeeper creds listVpnCreds --fqdn $vpn_root_fqdn --vpnId '$vpn_id' --format json" $user``.map(F extract_needed_fields(cred:Hash) {
 		{
-			'fqdn': cred.metadata.fqdn
+			'fqdn': cred.fqdn
 			'x509': cred.X509
 		}
 	}).filter(F credential_sanity_check(cred) {
@@ -51,7 +51,7 @@ F write_certificates(creds:Arr) {
 	had_changes
 }
 
-F main(vpn_root_fqdn:Str) {
+F main(vpn_root_fqdn:Str, vpn_id:Str) {
 	warn("This is work in progress. Do not use!")
 
 	if $(uname -s).lines()[0] != 'Linux' {
@@ -70,7 +70,7 @@ F main(vpn_root_fqdn:Str) {
 
 	current_lines = config_file.lines()
 
-	creds = fetch_creds(vpn_root_fqdn)
+	creds = fetch_creds(vpn_root_fqdn, vpn_id)
 	debug("strongswan", "Fetched ${creds.len()} credentials.")
 	beame_creds_config_lines = creds.map(F(cred) {
 		["# FQDN ${cred.fqdn}"] + replace(template, '@FQDN@', cred.fqdn).lines()
