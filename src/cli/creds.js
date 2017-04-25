@@ -1,4 +1,6 @@
 'use strict';
+const Table = require('cli-table2');
+const colors      = require('colors');
 
 const fs   = require('fs');
 const path = require('path');
@@ -7,6 +9,7 @@ const Constants         = require('../../constants');
 const Bootstrapper      = require('../bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const credentialManager = new (require('../credentialManager'))();
+const AuthServices      = require('../authServices');
 const serviceManager    = new (require('../servers/gw/serviceManager'))();
 const utils             = require('../utils');
 
@@ -29,7 +32,7 @@ function startDataService() {
 
 function getCreds(regToken, fqdn, callback) {
 
-	if(!regToken && !fqdn){
+	if (!regToken && !fqdn) {
 		callback(`Registration token or fqdn required`);
 		return;
 	}
@@ -55,7 +58,52 @@ function getCreds(regToken, fqdn, callback) {
 		}).catch(callback);
 }
 
-getCreds.params = { 'regToken': {required: false, base64: true, json: true}, 'fqdn': {required: false, base64: false, json: false} };
+getCreds.params = {
+	'regToken': {required: false, base64: true, json: true},
+	'fqdn':     {required: false, base64: false, json: false}
+};
+
+function listVpnCreds(fqdn, callback) {
+
+	AuthServices.vpnCredsList(fqdn).then(list => {
+
+		list = list.map(item => {
+
+			return {
+				fqdn: item.fqdn,
+				name:item.getMetadataKey("Name"),
+				X509: item.getKey("X509"),
+				certEnd:item.getCertEnd(),
+				expired:item.expired
+			}
+		});
+
+		console.log(list);
+
+		callback(null, list);
+	}).catch(e => {
+		logger.error(e);
+		callback(null, []);
+	});
+}
+listVpnCreds.params = {'fqdn': {required: true, base64: false, json: false}};
+listVpnCreds.toText = creds=>{
+	let table = new Table({
+		head:      ['name', 'fqdn','expires'],
+		colWidths: [70, 100, 25]
+	});
+
+	const _setStyle = (value,cred) => {
+		let val = value || '';
+		return cred.expired === true ? colors.red(val) : val;
+	};
+
+	creds.forEach(item => {
+
+		table.push([_setStyle(item.name,item),_setStyle(item.fqdn,item),_setStyle(item.certEnd,item)]);
+	});
+	return table;
+};
 
 function list(regex, callback) {
 	callback(null, beameSDK.creds.list(regex));
@@ -109,21 +157,21 @@ function webToken(type, appId, callback) {
 		.catch(callback);
 }
 webToken.params = {
-	'type':  { required: true, options: ['config', 'admin', 'app'] },
-	'appId': { required: false }
+	'type':  {required: true, options: ['config', 'admin', 'app']},
+	'appId': {required: false}
 };
 webToken.toText = (url) => {
 	return "\n" +
-	"--------------------------------------------------\n" +
-	"Please use the URL below to configure/administer beame-gatekeeper\n" +
-	`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
-	`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
-	url + '\n'  +
-	"--------------------------------------------------\n"
+		"--------------------------------------------------\n" +
+		"Please use the URL below to configure/administer beame-gatekeeper\n" +
+		`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
+		`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
+		url + '\n' +
+		"--------------------------------------------------\n"
 };
 
-function admin(callback){
-	return webToken('admin',null,callback);
+function admin(callback) {
+	return webToken('admin', null, callback);
 }
 admin.toText = (url) => {
 	return "\n" +
@@ -131,13 +179,14 @@ admin.toText = (url) => {
 		"Please use the URL below to configure/administer beame-gatekeeper\n" +
 		`You can use this URL within 10 minutes. If you don't, you will need to get another URL (issue same CLI command)\n` +
 		`Don't forget to run the server with 'beame-gatekeeper server start' command\n` +
-		url + '\n'  +
+		url + '\n' +
 		"--------------------------------------------------\n"
 };
 
 module.exports = {
 	getCreds,
 	list,
+	listVpnCreds,
 	createServersCredentials,
 	webToken,
 	admin

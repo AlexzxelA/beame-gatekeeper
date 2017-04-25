@@ -85,16 +85,14 @@
     <div id="download-qr" style="margin: auto;width: 300px"></div>
 </div>
 
-<div id="vpn-window" style="display: none;text-align: center">
-    <!--<div id="vpn-detail-container"></div>-->
-</div>
+<div id="vpn-window" style="display: none;text-align: center"></div>
 
 <script type="text/x-kendo-template" id="vpn-detail">
     <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
     <form id="vpn_detail_form"  method="post" action="/cred/set-vpn/create" class="admin-form-main" style="width:400px">
         <div id="vpn_detail_form_info">&nbsp;</div>
         <input type="hidden" name="vpn_id" data-bind="value:vpnId">
-        <input name="name" required type="text" placeholder="VPV ID" data-bind="value:name" class="form-input"/>
+        <input name="name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
         <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
         <input type="submit" name="btn-set-vpn" value="Set VPN" class="button">
         <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN" class="button">
@@ -203,6 +201,54 @@
 		return false;
     }
 
+    function initVpnWindow(){
+	    var template = kendo.template($("#vpn-detail").html());
+    	vpnWnd.empty();
+	    vpnWnd.kendoWindow({
+		    width:   "450px",
+		    height:  "400px",
+		    title:   "Set VPN",
+		    visible: false,
+		    modal:true,
+		    content:{
+			    template:template
+		    },
+		    actions: [
+			    "Close"
+		    ],
+		    open: function() {
+			    vpnDetailViewModel.init();
+			    kendo.bind($("#vpn-window"), vpnDetailViewModel);
+			    $('#vpn_detail_form').submit(setVpn);
+			    $('#vpn_delete_form').submit(setVpn);
+		    }
+	    });
+    }
+
+    function initQrWindow(data){
+	    if (data.download_url) {
+		    qrWnd.kendoWindow({
+			    width:   "320px",
+			    height:  "320px",
+			    title:   "Scan QR",
+			    visible: false,
+			    modal:true,
+			    actions: [
+				    "Close"
+			    ]
+		    });
+
+		    $('#download-qr').empty().kendoQRCode({
+			    value:           data.download_url,
+			    errorCorrection: "L",
+			    color:           "#000",
+			    background:      "transparent",
+			    padding:         0,
+			    size:            300
+		    });
+	    }
+    }
+
 	function loadCredDetail(data) {
 
 		console.log('huy',data);
@@ -218,49 +264,9 @@
 				closeWnd('#qr-window');
 				closeWnd('#vpn-window');
 
-				if (this.data.download_url) {
-					qrWnd.kendoWindow({
-						width:   "320px",
-						height:  "320px",
-						title:   "Scan QR",
-						visible: false,
-						modal:true,
-						actions: [
-							"Close"
-						]
-					});
+                initQrWindow(this.data);
 
-					$('#download-qr').empty().kendoQRCode({
-						value:           this.data.download_url,
-						errorCorrection: "L",
-						color:           "#000",
-						background:      "transparent",
-						padding:         0,
-						size:            300
-					});
-				}
-
-				var template = kendo.template($("#vpn-detail").html());
-
-				vpnWnd.kendoWindow({
-					width:   "450px",
-					height:  "400px",
-					title:   "Set VPN",
-					visible: false,
-					modal:true,
-					content:{
-						template:template
-                    },
-					actions: [
-						"Close"
-					],
-					open: function() {
-						vpnDetailViewModel.init();
-						kendo.bind($("#vpn-window"), vpnDetailViewModel);
-						$('#vpn_detail_form').submit(setVpn);
-						$('#vpn_delete_form').submit(setVpn);
-					}
-				});
+                initVpnWindow();
 
 				$('#send_pfx_form').submit(sendEmail);
 			},
@@ -277,7 +283,7 @@
 				qrWnd.data("kendoWindow").center().open();
 			},
 			opneVPN:function(){
-				closeWnd('#qr-window');
+				initVpnWindow();
 				vpnWnd.data("kendoWindow").center().open();
             }
 

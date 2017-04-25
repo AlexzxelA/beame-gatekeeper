@@ -998,7 +998,7 @@ class BeameAuthServices {
 
 	//endregion
 
-	//region Creds
+	//region creds manage
 	findCreds(pattern) {
 		return new Promise((resolve) => {
 
@@ -1053,6 +1053,20 @@ class BeameAuthServices {
 						logger.error(er);
 						resolve([]);
 					})
+				}
+			}
+		);
+	}
+
+	static vpnCredsList(rootFqdn) {
+		return new Promise((resolve, reject) => {
+				try {
+					let list = store.list(null, {
+						anyParent: rootFqdn
+					});
+					resolve(list);
+				} catch (e) {
+					reject(e);
 				}
 			}
 		);
@@ -1192,26 +1206,26 @@ class BeameAuthServices {
 
 		return new Promise((resolve, reject) => {
 
-				store.find(fqdn).then(cred=>{
+				store.find(fqdn).then(cred => {
 
-					const _resolve = ()=>{
+					const _resolve = () => {
 						this.getCredDetail(fqdn).then(resolve).catch(reject);
 					};
 
-					switch (action){
+					switch (action) {
 						case 'create':
 							if (!cred.metadata.vpn) {
 								cred.metadata.vpn = [];
 							}
 
-							if(cred.metadata.vpn.some(x=>x.id === id)){
+							if (cred.metadata.vpn.some(x => x.id === id)) {
 								_resolve();
 							}
 							else {
 								cred.metadata.vpn.push({
-									id:utils.generateUID(32),
+									id:   utils.generateUID(32),
 									name,
-									date:Date.now()
+									date: Date.now()
 								});
 
 								BeameAuthServices._saveCredAction(cred, {
@@ -1229,11 +1243,11 @@ class BeameAuthServices {
 								return;
 							}
 
-							if(cred.metadata.vpn.some(x=>x.id === id)){
-								let item = cred.metadata.vpn.find(x=>x.id === id);
+							if (cred.metadata.vpn.some(x => x.id === id)) {
+								let item = cred.metadata.vpn.find(x => x.id === id);
 
-								if(item){
-									name = item.name;
+								if (item) {
+									name      = item.name;
 									let index = cred.metadata.vpn.indexOf(item);
 									cred.metadata.vpn.splice(index, 1);
 									BeameAuthServices._saveCredAction(cred, {
@@ -1245,12 +1259,13 @@ class BeameAuthServices {
 
 								_resolve();
 							}
-							else{
+							else {
 								_resolve();
 							}
 
 							break;
-						default:_resolve();
+						default:
+							_resolve();
 					}
 
 
