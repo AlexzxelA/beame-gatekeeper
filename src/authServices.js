@@ -38,6 +38,7 @@ const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
 const utils            = require('./utils');
+const uuid             = require('uuid');
 let dataService        = null;
 let beameAuthServices  = null;
 const nop              = function () {
@@ -1058,13 +1059,30 @@ class BeameAuthServices {
 		);
 	}
 
-	static vpnCredsList(rootFqdn) {
+	static vpnCredsList(rootFqdn, vpnId) {
 		return new Promise((resolve, reject) => {
 				try {
-					let list = store.list(null, {
-						anyParent: rootFqdn
-					});
-					resolve(list);
+
+					store.find(rootFqdn).then(cred => {
+
+						let vpn = cred.metadata.vpn;
+
+						if (!vpn || !vpn.length) {
+							reject(`Vpn not defined for ${fqdn}`);
+							return;
+						}
+
+						if (vpn.some(x => x.name === vpnId)) {
+							let list = store.list(null, {
+								anyParent: rootFqdn
+							});
+							resolve(list);
+						}
+
+						reject(`Invalid vpn name`);
+
+					}).catch(reject);
+
 				} catch (e) {
 					reject(e);
 				}
@@ -1223,7 +1241,7 @@ class BeameAuthServices {
 							}
 							else {
 								cred.metadata.vpn.push({
-									id:   utils.generateUID(32),
+									id:   uuid.v4(),
 									name,
 									date: Date.now()
 								});
@@ -1334,7 +1352,7 @@ class BeameAuthServices {
 		return new Promise((resolve) => {
 				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({fqdn: cred.fqdn}), bootstrapper.proxySessionTtl).then(token => {
 
-					let uid = utils.generateUID(24);
+					let uid = uuid.v4();
 
 					this._downloadTokens[uid] = token;
 

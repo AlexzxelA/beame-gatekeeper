@@ -63,9 +63,9 @@ getCreds.params = {
 	'fqdn':     {required: false, base64: false, json: false}
 };
 
-function listVpnCreds(fqdn, callback) {
+function listVpnCreds(fqdn,vpnId,callback) {
 
-	AuthServices.vpnCredsList(fqdn).then(list => {
+	AuthServices.vpnCredsList(fqdn,vpnId).then(list => {
 
 		list = list.map(item => {
 
@@ -81,10 +81,10 @@ function listVpnCreds(fqdn, callback) {
 		callback(null, list);
 	}).catch(e => {
 		logger.error(e);
-		callback(null, []);
+		callback(e);
 	});
 }
-listVpnCreds.params = {'fqdn': {required: true, base64: false, json: false}};
+listVpnCreds.params = {'fqdn': {required: true, base64: false, json: false},'vpnId': {required: true, base64: false, json: false}};
 listVpnCreds.toText = creds=>{
 	let table = new Table({
 		head:      ['name', 'fqdn','expires'],
