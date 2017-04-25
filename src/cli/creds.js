@@ -78,8 +78,6 @@ function listVpnCreds(fqdn, callback) {
 			}
 		});
 
-		console.log(list);
-
 		callback(null, list);
 	}).catch(e => {
 		logger.error(e);
