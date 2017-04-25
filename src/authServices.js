@@ -435,7 +435,6 @@ class BeameAuthServices {
 
 		return {
 			name:        data.name,
-			edge_fqdn:   data.edge_fqdn,
 			email:       data.email,
 			userAgent:   userAgent,
 			parent_fqdn: parent_fqdn,
@@ -1032,7 +1031,8 @@ class BeameAuthServices {
 						fqdn:        cred.metadata.fqdn,
 						parent:      cred.metadata.parent_fqdn,
 						isLocal:     cred.hasKey("PRIVATE_KEY"),
-						hasChildren: store.hasLocalChildren(cred.fqdn)
+						hasChildren: store.hasLocalChildren(cred.fqdn),
+						isRoot:      cred.fqdn === Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 					}
 				};
 
@@ -1131,8 +1131,8 @@ class BeameAuthServices {
 					return;
 				}
 
-				if(saveAction){
-					BeameAuthServices._saveCredAction(cred,{
+				if (saveAction) {
+					BeameAuthServices._saveCredAction(cred, {
 						action: Constants.CredAction.Download,
 						date:   Date.now()
 					});
@@ -1172,7 +1172,7 @@ class BeameAuthServices {
 							reject(error);
 						}
 						else {
-							BeameAuthServices._saveCredAction(cred,{
+							BeameAuthServices._saveCredAction(cred, {
 								action: Constants.CredAction.Send,
 								email,
 								date:   Date.now()
@@ -1262,7 +1262,7 @@ class BeameAuthServices {
 		);
 	}
 
-	static _saveCredAction (cred, token){
+	static _saveCredAction(cred, token) {
 		if (!cred.metadata.actions) {
 			cred.metadata.actions = [];
 		}
@@ -1271,6 +1271,7 @@ class BeameAuthServices {
 
 		cred.beameStoreServices.writeMetadataSync(cred.metadata);
 	}
+
 	//endregion
 
 	getRequestAuthToken(req) {

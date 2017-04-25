@@ -18,9 +18,11 @@
         color: #787878;
         border-bottom: 1px solid #e1e1e1;
     }
-    .metrotable > tbody > tr > td  {
+
+    .metrotable > tbody > tr > td {
         font-size: 12px;
     }
+
     .metrotable > thead > tr > th {
         font-size: 14px;
         padding-top: 0;
@@ -36,23 +38,27 @@
             <div id="pfx-info">&nbsp;</div>
             <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn"></span></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
-            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
+            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span
+                data-bind="text:parentName()"></span></label>
             <label class="lbl-info">Name: <span data-bind="text: data.name"></span></label>
             <label class="lbl-info">Email: <span data-bind="text: data.email"></span></label>
-            <label class="lbl-info" data-bind="visible:data.pwd" >Pfx Pwd: <span data-bind="text: data.pwd"></span></label>
-            <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank" >Download Pfx</a>
+            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span
+                data-bind="text: data.pwd"></span></label>
+            <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank">Download Pfx</a>
 
             <!--<input type="button" name="btn-renew" value="Renew" class="button">-->
             <!--<input type="button" name="btn-revoke" value="Revoke" class="button">-->
             <!--<input type="button" data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="button">-->
         </form>
 
-        <form id="send_pfx_form" action="/send/pfx" data-bind="visible:data.pwd" method="post" class="form-main admin-form-main">
+        <form id="send_pfx_form" action="/send/pfx" data-bind="visible:data.pwd" method="post"
+              class="form-main admin-form-main">
             <div id="send_pfx_form_info">&nbsp;</div>
-            <input name="email" required type="email" placeholder="Email" data-bind="value: data.email" class="form-input"/>
-            <input name="fqdn" required type="hidden" data-bind="value: data.fqdn" />
+            <input name="email" required type="email" placeholder="Email" data-bind="value: data.email"
+                   class="form-input"/>
+            <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
             <input type="submit" name="btn-email" value="Send Pfx by Email" class="button">
-            <input type="button" name="btn-qr" data-bind="click: showQr" value="Show QR" class="button" >
+            <input type="button" name="btn-qr" data-bind="click: showQr" value="Show QR" class="button">
         </form>
 
         <div data-bind="visible:data.actions.length">
@@ -72,7 +78,6 @@
     </section>
 
 
-
 </script>
 <div id="qr-window" style="display: none;text-align: center">
     <div id="download-qr" style="margin: auto;width: 300px"></div>
@@ -89,78 +94,79 @@
 <script>
 	var viewModel, qrWnd = $("#qr-window");
 	function loadCredDetail(data) {
+		console.log('HUY0');
+		viewModel = kendo.observable({
+			init: function () {
 
-		 viewModel = kendo.observable({
-            init:function(){
-            	if(qrWnd.data("kendoWindow")){
-		            qrWnd.data("kendoWindow").close();
-	            }
+				if (qrWnd.data("kendoWindow")) {
+					qrWnd.data("kendoWindow").close();
+				}
 
-                if(this.data.download_url){
-	                qrWnd.kendoWindow({
-		                width: "400px",
-		                height:"400px",
-		                title: "Scan QR",
-		                visible: false,
-		                actions: [
-			                "Close"
-		                ]
-	                });
+				if (this.data.download_url) {
+					qrWnd.kendoWindow({
+						width:   "320px",
+						height:  "320px",
+						title:   "Scan QR",
+						visible: false,
+						actions: [
+							"Close"
+						]
+					});
 
-	                $('#download-qr').empty().kendoQRCode({
-		                value:           this.data.download_url,
-		                errorCorrection: "L",
-		                color:           "#000",
-		                background:      "transparent",
-		                padding:         0,
-		                size:            300
-	                });
-                }else{
-	                qrWnd = null;
-                }
+					$('#download-qr').empty().kendoQRCode({
+						value:           this.data.download_url,
+						errorCorrection: "L",
+						color:           "#000",
+						background:      "transparent",
+						padding:         0,
+						size:            300
+					});
+				} else {
+					qrWnd = null;
+				}
 
-	            $('#send_pfx_form').submit(function () {
+				$('#send_pfx_form').submit(function () {
 
-		            showLoader();
+					showLoader();
 
-		            var handleSendCredResponse = function (response) {
-			            hideLoader();
+					var handleSendCredResponse = function (response) {
+						hideLoader();
 
-			            if (response.responseCode == 1) {
-				            response.responseDesc = 'Email sent to ' + ( $('#send_pfx_form input[name="email"]').val()) ;
-				            $("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
-				            if(response.data){
-					            viewModel.set("data", response.data);
-                            }
+						if (response.responseCode == 1) {
+							response.responseDesc = 'Email sent to ' + ( $('#send_pfx_form input[name="email"]').val());
+							$("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
+							if (response.data && viewModel) {
+								viewModel.set("data", response.data);
+							}
 
-			            }
-			            else {
-				            $("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
+						}
+						else {
+							$("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
 
-			            }
-			            $("#send_pfx_form_info").html(response.responseDesc);
-		            };
+						}
+						$("#send_pfx_form_info").html(response.responseDesc);
+					};
 
 
-		            $(this).ajaxSubmit({
-			            error:   handleSendCredResponse,
-			            success: handleSendCredResponse
-		            });
+					$(this).ajaxSubmit({
+						error:   handleSendCredResponse,
+						success: handleSendCredResponse
+					});
 
-		            return false;
-	            });
-            },
-			data:data,
+					return false;
+				});
+			},
+			data: data,
 
-            parentName: function(){
-			    return this.data.parent_name || this.data.parent_fqdn
-            },
-            sendPfxUrl:function(){
-            	return '/send/pfx/' + this.data.fqdn
-            },
-            showQr:function(){
-	            $('#qr-window').data("kendoWindow").center().open();
-            }
+			parentName: function () {
+				return this.data.parent_name || this.data.parent_fqdn
+			},
+			sendPfxUrl: function () {
+				return '/send/pfx/' + this.data.fqdn
+			},
+			showQr:     function () {
+				$('#qr-window').data("kendoWindow").center().open();
+			}
 		});
 
 		viewModel.init();

@@ -308,12 +308,14 @@ function startTunnel([cert, requestsHandlerPort]) {
 	return new Promise((resolve) => {
 
 		let serverCerts = cert.getHttpsServerOptions();
-		new ProxyClient("HTTPS", cert.fqdn,
-			cert.getMetadataKey('EDGE_FQDN'), 'localhost',
+		let proxyClient = new ProxyClient("HTTPS", cert, 'localhost',
 			requestsHandlerPort, {},
 			null, serverCerts);
 
-		resolve();
+		proxyClient.start().then(resolve).catch(e=>{
+			logger.error(`Start tunnel error ${BeameLogger.formatError(e)}`)
+			resolve();
+		});
 
 	});
 }

@@ -1,6 +1,8 @@
 <script type="text/x-kendo-template" id="tmpl-creds">
     <h4>Creds tree</h4>
-    <div id="creds-tree" style="display: inline-block; width:39%;vertical-align: top"></div>
+    <div id="creds-tree-container" style="display: inline-block; width:39%;vertical-align: top">
+        <div id="creds-tree"></div>
+    </div>
     <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
 <script id="treeview-template" type="text/kendo-ui-template">
@@ -12,6 +14,8 @@
 		$("#cred-detail").empty().css({visibility:'hidden'});
 
 		function onSelect(e) {
+
+
             var dataItem = this.dataItem(e.node);
             if(!dataItem) return;
 
@@ -36,7 +40,18 @@
 			});
 		}
 
-		$("#creds-tree").kendoTreeView({
+		var treeview = $("#creds-tree").data("kendoTreeView");
+		if(treeview){
+			$("#creds-tree").remove();
+
+			var treeDiv = $('<div>').attr({id:'creds-tree'});
+
+			$("#creds-tree-container").append(treeDiv);
+        }
+
+        var path2Expand = null;
+
+		 $("#creds-tree").kendoTreeView({
 			dataSource: new kendo.data.HierarchicalDataSource({
 				transport: {
 					read: {
@@ -49,84 +64,121 @@
 						id: "fqdn",
 						hasChildren: "hasChildren"
 					}
+				},
+				requestEnd: function(e) {
+
+                    path2Expand = null;
+
+					console.log("DataBound", e);
+
+					if(e.type != "read") return;
+
+                    if(e.response.length != 1) return;
+
+                    var cred = e.response[0];
+
+                    if(!cred.isRoot) return;
+
+					try {
+						console.log('huy');
+                        path2Expand = cred.fqdn;
+					} catch (e) {
+					}
+
 				}
 			}),
-			//dataTextField: "name",
 			template: kendo.template($("#treeview-template").html()),
-			select: onSelect
-		});
+			select: onSelect,
+			dataBound: function(e) {
 
-        return;
-		$("#creds-grid").kendoGrid({
-			toolbar:    ["excel"],
-			excel:      {
-				fileName: "Creds.xlsx",
-				allPages: true
-			},
-			dataSource: {
-				transport: {
-					read:   {
-						url: "/creds/list"
-					}
-				},
-				schema:    {
-					model: {
-						id:     "id",
-						fields: {
-							fqdn:           {type: "string"},
-							name:           {type: "string"},
-							email:          {type: "string"},
-                            parent_fqdn:    {type: "string"},
-							level:          {type: "number"}
-//
-						}
-					}
-				},
-				pageSize:  20
-//                serverPaging:    true,
-//                serverFiltering: true,
-//                serverSorting:   true
-			},
-			height:     550,
-			filterable: true,
-			sortable:   true,
-			editable:   {
-				mode:         "inline",
-				confirmation: true
-			},
-			pageable:   {
-				pageSize: 20,
-				refresh:  true
-			},
-			columns:    [
-				{
-					field: "fqdn",
-					title: "Fqdn",
-					width:200
-				},
-				{
-					field: "name",
-					title: "Name",
-					width:100
-				},
+				if(!path2Expand) return;
 
-				{
-					field: "email",
-					title: "Email",
-                    width:100
-				},
+				try {
+					var treeview = e.sender;
 
-				{
-					field: "parent_fqdn",
-					title: "Parent",
-                    width:200
-				},
-				{
-					field: "level",
-					title: "Level",
-					width:80
+					treeview.expandPath([path2Expand]);
+
+					var getitem    = treeview.dataSource.get(path2Expand);
+					var selectitem = treeview.findByUid(getitem.uid);
+					treeview.select(selectitem);
+					treeview.trigger( 'select', {node: selectitem} );
+				} catch (e) {
 				}
-			]
+
+			}
 		});
+
+//        return;
+//		$("#creds-grid").kendoGrid({
+//			toolbar:    ["excel"],
+//			excel:      {
+//				fileName: "Creds.xlsx",
+//				allPages: true
+//			},
+//			dataSource: {
+//				transport: {
+//					read:   {
+//						url: "/creds/list"
+//					}
+//				},
+//				schema:    {
+//					model: {
+//						id:     "id",
+//						fields: {
+//							fqdn:           {type: "string"},
+//							name:           {type: "string"},
+//							email:          {type: "string"},
+//                            parent_fqdn:    {type: "string"},
+//							level:          {type: "number"}
+////
+//						}
+//					}
+//				},
+//				pageSize:  20
+////                serverPaging:    true,
+////                serverFiltering: true,
+////                serverSorting:   true
+//			},
+//			height:     550,
+//			filterable: true,
+//			sortable:   true,
+//			editable:   {
+//				mode:         "inline",
+//				confirmation: true
+//			},
+//			pageable:   {
+//				pageSize: 20,
+//				refresh:  true
+//			},
+//			columns:    [
+//				{
+//					field: "fqdn",
+//					title: "Fqdn",
+//					width:200
+//				},
+//				{
+//					field: "name",
+//					title: "Name",
+//					width:100
+//				},
+//
+//				{
+//					field: "email",
+//					title: "Email",
+//                    width:100
+//				},
+//
+//				{
+//					field: "parent_fqdn",
+//					title: "Parent",
+//                    width:200
+//				},
+//				{
+//					field: "level",
+//					title: "Level",
+//					width:80
+//				}
+//			]
+//		});
 	}
 </script>
