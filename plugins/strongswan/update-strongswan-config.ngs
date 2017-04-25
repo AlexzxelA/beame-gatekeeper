@@ -42,16 +42,6 @@ F remove_unused_cert() {
 
 }
 
-# TODO: Some version of NGS will contain template processing.
-#       Switch to that when available.
-F my_replace_all(tpl:Str, k:Str, v:Str) {
-	while (p = pos(tpl, k)) is not Null {
-		tpl = tpl[0..p] + v + tpl[p+len(k)..null]
-	}
-	tpl
-}
-
-
 F main() {
 	warn("This is work in progress. Do not use!")
 
@@ -72,7 +62,7 @@ F main() {
 
 	creds = fetch_creds()
 	beame_creds_config_lines = creds.map(F(cred) {
-		my_replace_all(tpl, '@FQDN@', cred.fqdn)
+		replace(tpl, '@FQDN@', cred.fqdn)
 	}).join('').lines()
 
 	try {
