@@ -3214,6 +3214,12 @@ p + p {
 .ad-error {
   color: red; }
 
+.btn-row {
+  border-top: dotted 1px #ededed;
+  border-bottom: dotted 1px #ededed;
+  padding: 10px 0;
+  margin: 5px 0; }
+
 .overlay {
   position: fixed;
   top: 0;

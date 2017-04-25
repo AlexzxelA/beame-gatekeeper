@@ -145,6 +145,26 @@ class AdminRouter {
 			})
 		});
 
+		this._router.post('/cred/set-vpn/:action', (req, res) => {
+
+			let fqdn = req.body.fqdn,
+			    name = req.body.name,
+				id = req.body.vpn_id,
+				action = req.params.action;
+
+			beameAuthServices.setCredVpnStatus(fqdn,id,name,action).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					data
+				});
+			}).catch(e=>{
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
 		this._router.post('/send/pfx', (req, res) => {
 
 			let fqdn = req.body.fqdn,

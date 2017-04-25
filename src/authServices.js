@@ -1188,6 +1188,77 @@ class BeameAuthServices {
 		);
 	}
 
+	setCredVpnStatus(fqdn, id, name, action) {
+
+		return new Promise((resolve, reject) => {
+
+				store.find(fqdn).then(cred=>{
+
+					const _resolve = ()=>{
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					};
+
+					switch (action){
+						case 'create':
+							if (!cred.metadata.vpn) {
+								cred.metadata.vpn = [];
+							}
+
+							if(cred.metadata.vpn.some(x=>x.id === id)){
+								_resolve();
+							}
+							else {
+								cred.metadata.vpn.push({
+									id:utils.generateUID(32),
+									name,
+									date:Date.now()
+								});
+
+								BeameAuthServices._saveCredAction(cred, {
+									action: Constants.CredAction.VpnRootCreated,
+									name,
+									date:   Date.now()
+								});
+
+								_resolve();
+							}
+							break;
+						case 'delete':
+							if (!cred.metadata.vpn) {
+								_resolve();
+								return;
+							}
+
+							if(cred.metadata.vpn.some(x=>x.id === id)){
+								let item = cred.metadata.vpn.find(x=>x.id === id);
+
+								if(item){
+									name = item.name;
+									let index = cred.metadata.vpn.indexOf(item);
+									cred.metadata.vpn.splice(index, 1);
+									BeameAuthServices._saveCredAction(cred, {
+										action: Constants.CredAction.VpnRootDeleted,
+										name,
+										date:   Date.now()
+									});
+								}
+
+								_resolve();
+							}
+							else{
+								_resolve();
+							}
+
+							break;
+						default:_resolve();
+					}
+
+
+				}).catch(reject);
+			}
+		);
+	}
+
 	getCredDetail(fqdn) {
 		return new Promise((resolve, reject) => {
 				let cred = store.getCredential(fqdn);

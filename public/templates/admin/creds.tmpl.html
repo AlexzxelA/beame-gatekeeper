@@ -69,8 +69,6 @@
 
                     path2Expand = null;
 
-					console.log("DataBound", e);
-
 					if(e.type != "read") return;
 
                     if(e.response.length != 1) return;
@@ -80,7 +78,6 @@
                     if(!cred.isRoot) return;
 
 					try {
-						console.log('huy');
                         path2Expand = cred.fqdn;
 					} catch (e) {
 					}

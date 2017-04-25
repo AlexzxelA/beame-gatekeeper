@@ -94,7 +94,9 @@ const CredAction = {
 	"Revoke":"Revoke",
 	"Renew":"Renew",
 	"Send":"Send",
-	"Download":"Download"
+	"Download":"Download",
+	"VpnRootCreated":"Set as VPN Root",
+	"VpnRootDeleted":"VPN Root Deleted",
 };
 
 /**
