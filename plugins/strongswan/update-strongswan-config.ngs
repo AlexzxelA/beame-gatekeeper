@@ -70,10 +70,10 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 
 	current_lines = config_file.lines()
 
-	creds = fetch_creds(vpn_root_fqdn, vpn_id)
+	creds = fetch_creds(vpn_root_fqdn, vpn_id).reject(F(c) c.fqdn == vpn_root_fqdn)
 	debug("strongswan", "Fetched ${creds.len()} credentials.")
 	beame_creds_config_lines = creds.map(F(cred) {
-		["# FQDN ${cred.fqdn}"] + replace(template, '@FQDN@', cred.fqdn).lines()
+		["# FQDN ${cred.fqdn}"] + template.replace('@FQDN@', cred.fqdn).replace('@VPN_FQDN@', vpn_root_fqdn).lines()
 	}).flatten()
 
 	if m = current_lines ~ MARKERS {
@@ -88,10 +88,12 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 
 	target_fqdns = creds.fqdn
 
+	had_lines_changes = false
 	if current_lines != target_lines {
 		new_config_file = File(config_file.path + ".gatekeeper.new.${pid()}")
 		new_config_file.lines(target_lines)
 		$(mv $new_config_file $config_file)
+		had_lines_changes = true
 	}
 
 	had_certificate_changes = write_certificates(creds)
@@ -111,13 +113,15 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 		debug("strongswan", "Current and target FQDNs are the same, doing nothing")
 	}
 
-	if had_certificate_changes or fqdns_diff {
+	if had_certificate_changes or had_lines_changes {
 		debug("strongswan", "Reloading strongSwan")
 		$(service strongswan reload)
 	}
 
 	for fqdn in fqdns_diff.remove {
 		debug("strongswan", "Terminating VPN connection for $fqdn")
-		$(ipsec down $fqdn)
+		for sfx in ['', '-iphone', '-normal'] {
+			$(ipsec down "$fqdn$sfx")
+		}
 	}
 }
