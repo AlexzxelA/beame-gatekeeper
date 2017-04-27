@@ -61,7 +61,7 @@ class AdminRouter {
 		});
 		//endregion
 
-		//region Registration token
+		//region creds
 		this._router.get('/creds/filter', (req, res) => {
 
 			let parts = req.query.filter && req.query.filter.filters && req.query.filter.filters.length ? req.query.filter.filters[0].value : '';
@@ -118,6 +118,44 @@ class AdminRouter {
 				res.json(data);
 			}).catch(e=> {
 				console.error('/cred/detail/', e);
+				 res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/cred/renew/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.renewCert(fqdn).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc":"Cert successfully renewed",
+					data
+				});
+			}).catch(e=> {
+				console.error('/cred/renew/', e);
+				 res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/cred/revoke/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.revokeCert(fqdn).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc":"Cert successfully revoked",
+					data
+				});
+			}).catch(e=> {
+				console.error('/cred/renew/', e);
 				 res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
@@ -577,6 +615,5 @@ class AdminRouter {
 		return this._router;
 	}
 }
-
 
 module.exports = AdminRouter;

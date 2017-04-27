@@ -1,3 +1,7 @@
+<style>
+    .red{color:red !important;}
+    .revoked{color:#333 !important;text-decoration: line-through}
+</style>
 <script type="text/x-kendo-template" id="tmpl-creds">
     <h4>Creds tree</h4>
     <div id="creds-tree-container" style="display: inline-block; width:39%;vertical-align: top">
@@ -6,7 +10,16 @@
     <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
 <script id="treeview-template" type="text/kendo-ui-template">
-    <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span> #: item.name #
+    # if (item.revoked) { #
+    <div class="revoked" data-fqdn="#: item.fqdn#">
+    # } else if (item.expired) { #
+    <div class="red" data-fqdn="#: item.fqdn#">
+    # } else { #
+    <div data-fqdn="#: item.fqdn#">
+    #}#
+        <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span> #: item.name #
+    </div>
+
 </script>
 <script>
 	function loadCreds() {
@@ -99,6 +112,7 @@
 					var selectitem = treeview.findByUid(getitem.uid);
 					treeview.select(selectitem);
 					treeview.trigger( 'select', {node: selectitem} );
+
 				} catch (e) {
 				}
 

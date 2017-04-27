@@ -1020,20 +1020,50 @@ class BeameAuthServices {
 	}
 
 	credsList(parent) {
-		return new Promise((resolve) => {
+
+		const _checkOcspStatus = (cred) => {
+
+			const _saveOcspStatus = (isRevoked) => {
+				cred.metadata.revoked = isRevoked;
+				cred.beameStoreServices.writeMetadataSync(cred.metadata);
+			};
+
+			return new Promise((resolve) => {
+					if (cred.hasMetadataKey("revoked")) {
+						resolve(cred.getMetadataKey("revoked"));
+					}
+					else {
+
+						cred.checkOcspStatus(cred.getKey("X509")).then(() => {
+							_saveOcspStatus(false);
+							resolve(false);
+
+						}).catch(() => {
+							_saveOcspStatus(true);
+							resolve(true);
+
+						})
+					}
+				}
+			);
+
+		};
+
+		return new Promise((resolve,reject) => {
 
 				// let list = store.list(null, {
 				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 				// });
 
-				const _formatCred = (cred) => {
+				const _formatCred = (cred, revoked) => {
 					return {
 						name:        cred.metadata.name || cred.metadata.fqdn,
 						fqdn:        cred.metadata.fqdn,
 						parent:      cred.metadata.parent_fqdn,
 						isLocal:     cred.hasKey("PRIVATE_KEY"),
 						hasChildren: store.hasLocalChildren(cred.fqdn),
-						isRoot:      cred.fqdn === Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+						isRoot:      cred.fqdn === Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel),
+						revoked
 					}
 				};
 
@@ -1042,14 +1072,30 @@ class BeameAuthServices {
 						hasParent: parent
 					});
 
-					resolve(list.map(item => {
+					let formatedList = [];
 
-						return _formatCred(item);
-					}));
+					Promise.all(list.map(cred => {
+							return _checkOcspStatus(cred).then(revoked => {
+
+								formatedList.push(_formatCred(cred, revoked));
+							}).catch(e=>{
+								logger.error(`check ocsp status for ${cred.fqdn} error ${BeameLogger.formatError(e)}`);
+								formatedList.push(_formatCred(cred, false));
+							});
+						}
+					)).then(() => {
+						resolve(formatedList)
+					}).catch(reject);
+
 				}
 				else {
 					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred => {
-						resolve([_formatCred(cred)]);
+
+						_checkOcspStatus(cred).then(revoked=>{
+							resolve([_formatCred(cred,revoked)]);
+						})
+
+
 					}).catch(er => {
 						logger.error(er);
 						resolve([]);
@@ -1237,6 +1283,14 @@ class BeameAuthServices {
 							}
 
 							if (cred.metadata.vpn.some(x => x.id === id)) {
+								let item = cred.metadata.vpn.find(x => x.id === id);
+
+								if (item) {
+
+									item.name = name;
+
+									cred.beameStoreServices.writeMetadataSync(cred.metadata);
+								}
 								_resolve();
 							}
 							else {
@@ -1324,7 +1378,7 @@ class BeameAuthServices {
 				}
 
 				if (cred.metadata.actions) {
-					cred.metadata.actions = cred.metadata.actions.map(function (item) {
+					cred.metadata.actions = cred.metadata.actions.map((item) => {
 						if (item.date) {
 							item.dateStr = new Date(item.date).toLocaleString();
 						}
@@ -1345,6 +1399,52 @@ class BeameAuthServices {
 			}
 		);
 	}
+
+	renewCert(fqdn) {
+		return new Promise((resolve, reject) => {
+
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.createAuthTokenForCred(fqdn).then(authToken => {
+
+					cred.renewCert(CommonUtils.parse(authToken), fqdn).then(() => {
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					}).catch(reject);
+
+				}).catch(reject);
+
+			}
+		);
+	}
+
+	revokeCert(fqdn) {
+		return new Promise((resolve, reject) => {
+
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.createAuthTokenForCred(fqdn).then(authToken => {
+
+					cred.revokeCert(CommonUtils.parse(authToken), null, fqdn).then(() => {
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					}).catch(reject);
+
+				}).catch(reject);
+
+			}
+		);
+	}
+
+
 
 	_getDownloadUrl(cred) {
 		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
