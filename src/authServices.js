@@ -1158,7 +1158,8 @@ class BeameAuthServices {
 
 						if (vpn.some(x => x.name === vpnId)) {
 							let list = store.list(null, {
-								anyParent: rootFqdn
+								anyParent: rootFqdn,
+								excludeRevoked:true
 							});
 							resolve(list);
 						}
@@ -1308,7 +1309,7 @@ class BeameAuthServices {
 				    uuid_payloadvpn_client_pkcs12 = uuid.v4(),
 				    vpn_server_fqdn               = server_fqdn,
 				    uuid_payload_vpnconfig        = uuid.v4(),
-				    vpn_client_pkcs12_pwd         = String.fromCharCode.apply(null, cred.PWD),
+				    vpn_client_pkcs12_pwd         = CommonUtils.escapeXmlString(String.fromCharCode.apply(null, cred.PWD)),
 				    vpn_client_pkcs12_name        = `${vpn_client_fqdn}.p12`,
 				    vpn_client_pkcs12_base64      = cred.PKCS12.toString('base64'),
 				    uuid_vpn_server               = uuid.v4(),
