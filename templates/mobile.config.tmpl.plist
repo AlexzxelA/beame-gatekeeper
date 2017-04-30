@@ -95,7 +95,7 @@
 			<key>PayloadDisplayName</key>
 			<string>@vpn_client_pkcs12_name@</string>
 			<key>PayloadIdentifier</key>
-			<string>com.apple.security.root.@uuid_payloadvpn_client_pkcs12@</string>
+			<string>com.apple.security.pkcs12.@uuid_payloadvpn_client_pkcs12@</string>
 			<key>PayloadType</key>
 			<string>com.apple.security.pkcs12</string>
 			<key>PayloadUUID</key>
