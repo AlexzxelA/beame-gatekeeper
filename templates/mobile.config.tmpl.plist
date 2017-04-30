@@ -79,7 +79,7 @@
 				<integer>0</integer>
 			</dict>
 			<key>UserDefinedName</key>
-			<string>@vpn_name@></string>
+			<string>@vpn_server_fqdn@</string>
 			<key>VPNType</key>
 			<string>IKEv2</string>
 		</dict>
@@ -97,7 +97,7 @@
 			<key>PayloadIdentifier</key>
 			<string>com.apple.security.root.@uuid_payloadvpn_client_pkcs12@</string>
 			<key>PayloadType</key>
-			<string>com.apple.security.root</string>
+			<string>com.apple.security.pkcs12</string>
 			<key>PayloadUUID</key>
 			<string>@uuid_payloadvpn_client_pkcs12@</string>
 			<key>PayloadVersion</key>
