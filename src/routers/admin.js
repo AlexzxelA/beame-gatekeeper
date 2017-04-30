@@ -191,7 +191,7 @@ class AdminRouter {
 			beameAuthServices.getIosProfile(fqdn).then(data => {
 				res.writeHead(200, {
 					'Content-Type':        'application/x-plist',
-					'Content-disposition': `attachment;filename=${fqdn}.profile.plist)`,
+					'Content-disposition': `attachment;filename=${fqdn}.mobileconfig`,
 					'Content-Length':       data.length
 				});
 				//res.write(new Buffer(token.pfx, 'binary'));

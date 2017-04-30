@@ -1291,7 +1291,7 @@ class BeameAuthServices {
 
 				let server_fqdn = BeameAuthServices.findParentVpn(fqdn);
 
-				if(!server_fqdn){
+				if (!server_fqdn) {
 					reject(`VPN server for ${fqdn} not found`);
 					return;
 				}
@@ -1323,7 +1323,7 @@ class BeameAuthServices {
 					    .replace('@uuid_vpn_server@', uuid_vpn_server)
 					    .replace('@uuid_payload_uuid@', uuid_payload_uuid);
 
-					resolve(Buffer.from(plist, 'utf8'));
+				resolve(Buffer.from(plist, 'utf8'));
 			}
 		);
 	}
@@ -1496,15 +1496,31 @@ class BeameAuthServices {
 					})
 				}
 
-				this._getDownloadUrl(cred).then(url => {
-					data.download_url = url;
-					resolve(data);
-				}).catch((e) => {
-					logger.error(`Get download url error for ${fqdn}`, e);
-					resolve(data);
-				})
+				const async = require('async');
 
-
+				async.parallel([
+						callback => {
+							this._getCredDownloadUrl(cred).then(url => {
+								data.download_cred_url = url;
+								callback();
+							}).catch((e) => {
+								logger.error(`Get download url error for ${fqdn}`, e);
+								callback();
+							})
+						},
+						callback => {
+							this._getIosProfileDownloadUrl(cred).then(url => {
+								data.download_ios_profile_url = url;
+								callback();
+							}).catch((e) => {
+								logger.error(`Get download url error for ${fqdn}`, e);
+								callback();
+							})
+						}
+					],
+					() => {
+						resolve(data);
+					});
 			}
 		);
 	}
@@ -1554,7 +1570,7 @@ class BeameAuthServices {
 	}
 
 
-	_getDownloadUrl(cred) {
+	_getCredDownloadUrl(cred) {
 		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
 		return new Promise((resolve) => {
@@ -1569,6 +1585,26 @@ class BeameAuthServices {
 					}, bootstrapper.proxySessionTtl);
 
 					resolve(`https://${gwServerFqdn}/cred-download/?uid=${uid}`);
+				});
+			}
+		);
+	}
+
+	_getIosProfileDownloadUrl(cred) {
+		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+		return new Promise((resolve) => {
+				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({fqdn: cred.fqdn}), bootstrapper.proxySessionTtl).then(token => {
+
+					let uid = uuid.v4();
+
+					this._downloadTokens[uid] = token;
+
+					setTimeout(() => {
+						delete  this._downloadTokens[uid];
+					}, bootstrapper.proxySessionTtl);
+
+					resolve(`https://${gwServerFqdn}/ios-profile-download/?uid=${uid}`);
 				});
 			}
 		);

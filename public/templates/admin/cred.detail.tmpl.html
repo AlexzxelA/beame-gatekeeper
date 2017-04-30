@@ -55,7 +55,9 @@
             <form id="ios-profile-form"   method="get"  style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
                 <div id="ios-profile-info">&nbsp;</div>
                 <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile" />
+                 <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr" value="Show Profile QR" class="k-button">
             </form>
+
         </p>
 
         <form id="send_pfx_form" action="/send/pfx" data-bind="visible:emailFormVisible" method="post" class="admin-form-main" style="margin: 15px 0">
@@ -64,7 +66,7 @@
             <input name="email" required type="email" placeholder="Email" data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
             <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
             <input type="submit" name="btn-email" data-bind="disabled:commonButtonDisabled" value="Send Pfx by Email" class="k-button">
-            <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showQr" value="Show QR" class="k-button">
+            <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr" value="Show QR" class="k-button">
         </form>
 
         <div data-bind="visible:data.actions.length">
@@ -231,8 +233,8 @@
 	    });
     }
 
-    function initQrWindow(data){
-	    if (data.download_url) {
+    function initQrWindow(url){
+	    if (url) {
 		    qrWnd.kendoWindow({
 			    width:   "320px",
 			    height:  "320px",
@@ -245,7 +247,7 @@
 		    });
 
 		    $('#download-qr').empty().kendoQRCode({
-			    value:           data.download_url,
+			    value:           url,
 			    errorCorrection: "L",
 			    color:           "#000",
 			    background:      "transparent",
@@ -270,8 +272,6 @@
 				closeWnd('#qr-window');
 				closeWnd('#vpn-window');
 
-                initQrWindow(this.data);
-
                 initVpnWindow();
 
                 this.set('revokeDisabled',this.data.hasChildren || this.data.revoked);
@@ -283,7 +283,6 @@
 				$('#send_pfx_form').submit(sendEmail);
 
 				$('#ios-profile-form').attr('action',this.iosProfileLink());
-				//$('#ios-profile-form').submit(downloadIosProfile);
 			},
 			revokeDisabled:true,
             commonButtonDisabled:false,
@@ -298,10 +297,25 @@
 			sendPfxUrl: function () {
 				return '/send/pfx/' + this.data.fqdn
 			},
-			showQr:     function () {
-				closeWnd('#vpn-window');
-				qrWnd.data("kendoWindow").center().open();
+			showCredQr:     function () {
+                if(!this.data.download_cred_url){
+                	alert('Cred download url not defined');
+                	return;
+                }
+                this.operQrWnd(this.data.download_cred_url);
 			},
+            showIosProfileQr:     function () {
+                if(!this.data.download_ios_profile_url){
+                	alert('Ios Profile download url not defined');
+                	return;
+                }
+                this.operQrWnd(this.data.download_ios_profile_url);
+			},
+            operQrWnd:function(url){
+	            initQrWindow(url);
+	            closeWnd('#vpn-window');
+	            qrWnd.data("kendoWindow").center().open();
+            },
 			iosProfileLink: function() {
 				return "/cred/ios-profile/" + this.data.fqdn;
 			},
