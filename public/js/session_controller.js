@@ -195,8 +195,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 				// Show full screen div with payload.html
 				delete payload.html;
 			}
-
-			if (payload.url) {
+			else if (payload.url) {
 				setIframeUrl(payload.url);
 				// Redirect the main frame to payload.url
 				if(!payload.external) {
@@ -388,12 +387,16 @@ function processInSessionDataFromMobile(rawData, relay_socket) {
 }
 
 function setIframeHtmlContent(html) {
+	console.log(html);
 	var iframe    = document.getElementById('ifrm-content'),
 	    iframedoc = iframe.contentDocument || iframe.contentWindow.document;
 
 	iframe.style.display = 'block';
 
 	iframedoc.body.innerHTML = html;
+
+	iframedoc.getElementById('saml-form').submit();
+
 }
 
 function setIframeUrl(url) {

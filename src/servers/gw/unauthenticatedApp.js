@@ -444,6 +444,12 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 			console.log('switch app error', e);
 		});
 });
+unauthenticatedApp.post('/beame-gw/tteesstt', (req, res) => {
+	// XXX: validate proxy_enable (make sure it's allowed to sign)
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	const qs           = querystring.parse(url.parse(req.url).query);
+	console.log('QS', qs);
+});
 
 // XXX: When logging out destroy
 // (1) SocketIO session

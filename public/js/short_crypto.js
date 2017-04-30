@@ -74,36 +74,32 @@ function initDirectCryptoSession( data, decryptedData) {
 
 	setQRStatus('...Got message from mobile, initializing session');
 
-			if (!userImageRequested) {
-				userImageRequested = true;
-				switch (auth_mode) {
+	if (!userImageRequested) {
+		userImageRequested = true;
+		switch (auth_mode) {
 
-					case 'Session':
-						validateSession(userImageRequired).then(function () {
-							if(getCookie('usrInData')){
-								setCookie('usrInData',
-									JSON.stringify({token:decryptedData.payload.token,uid:getVUID()}), 0.24);
-							}
-							userImageRequested = false;
-							originTmpSocket.emit('_disconnect');
-							userData = decryptedData.userID;
-							startGatewaySession(decryptedData.token, userData, null, decryptedData.uid);
-						}).catch(function (e) {
-							userImageRequested = false;
-							window.alert('Session failure X: image validation:'+e);
-						});
-						return;
+			case 'Session':
+				validateSession(userImageRequired).then(function () {
+					if(getCookie('usrInData')){
+						setCookie('usrInData',
+							JSON.stringify({token:decryptedData.payload.token,uid:getVUID()}), 0.24);
+					}
+					userImageRequested = false;
+					originTmpSocket.emit('_disconnect');
+					userData = decryptedData.userID;
+					startGatewaySession(decryptedData.token, userData, null, decryptedData.uid);
+				}).catch(function (e) {
+					userImageRequested = false;
+					window.alert('Session failure X: image validation:'+e);
+				});
+				return;
 
-					default:
-						window.alert('Unknown Auth mode');
-						allowLogout && logout();
-						return;
-				}
-
-
-			}
-
-
+			default:
+				window.alert('Unknown Auth mode');
+				allowLogout && logout();
+				return;
+		}
+	}
 }
 
 function initDrctSession(socket) {

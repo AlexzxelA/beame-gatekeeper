@@ -18,6 +18,7 @@ const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 var serviceManager      = null;
+const ssoManager       = require('../../samlSessionManager');
 
 
 function assertSignedByGw(session_token) {
@@ -170,16 +171,36 @@ const messageHandlers = {
 				logger.debug(`respond() URL is ${url}`);
 
 				let app = serviceManager.getAppById(payload.app_id);
+				if(payload.app_code && payload.app_code.includes('_saml_')){
+					let ssoManagerX = ssoManager.samlManager.getInstance();
+					let ssoPair = ssoManagerX.getSsoPair(payload.app_code);
 
-				reply({
-					type:    'redirect',
-					payload: {
-						success: true,
-						app_id:  payload.app_id,
-						url:     url,
-						external: app ? app.isRasp : false
-					}
-				});
+					ssoPair.idp.sendLoginResponse(ssoPair.sp, null, 'post', 'hujXXX', function (response) {
+						reply({
+							type: 'saml',
+							payload: {
+								success: true,
+								app_id: payload.app_id,
+								html: ssoManagerX.getSamlHtml(payload.app_code, response),
+								external: app ? app.isRasp : false,
+								url: null
+							}
+						});
+						// response.title = 'POST data';
+						// res.render('actions', response);
+					});
+				}
+				else {
+					reply({
+						type: 'redirect',
+						payload: {
+							success: true,
+							app_id: payload.app_id,
+							url: url,
+							external: app ? app.isRasp : false
+						}
+					});
+				}
 			});
 		}
 
