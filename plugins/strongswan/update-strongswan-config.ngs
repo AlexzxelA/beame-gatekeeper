@@ -59,12 +59,8 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 	}
 
 	config_file = File(ENV.get("IPSEC_CONF", "/etc/ipsec.conf"))
-	config_file.specific() is Symlink throws NotImplemented("Don't know how to work with symlinked config file $config_file")
 
-	# TODO: work with C:: namespace in future NGS versions
-	if not(config_file.access(bor(ACCESS::R_OK, ACCESS::W_OK))) {
-		die("Please run with user that has access to file ${config_file}, probably root")
-	}
+	$(test -L ${config_file.path}) throws NotImplemented("Don't know how to work with symlinked config file $config_file")
 
 	template = ENV.get("BEAME_VPN_TEMPLATE_FILE", "/etc/ipsec.conf.gatekeeper.template").read()
 
@@ -110,12 +106,14 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 			try $(rm ${cert_file(fqdn)})
 		}
 	} else {
-		debug("strongswan", "Current and target FQDNs are the same, doing nothing")
+		debug("strongswan", "Current and target FQDNs are the same")
 	}
 
 	if had_certificate_changes or had_lines_changes {
 		debug("strongswan", "Reloading strongSwan")
 		$(service strongswan reload)
+	} else {
+		debug("strongswan", "Not reloading strongSwan because there were no changes")
 	}
 
 	for fqdn in fqdns_diff.remove {
