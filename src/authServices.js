@@ -1314,14 +1314,14 @@ class BeameAuthServices {
 				    uuid_vpn_server               = uuid.v4(),
 				    uuid_payload_uuid             = uuid.v4(),
 				    plist                         = template.replace('@vpn_client_fqdn@', vpn_client_fqdn)
-					    .replace('@uuid_payloadvpn_client_pkcs12@', uuid_payloadvpn_client_pkcs12)
-					    .replace('@vpn_server_fqdn@', vpn_server_fqdn)
-					    .replace('@uuid_payload_vpnconfig@', uuid_payload_vpnconfig)
-					    .replace('@vpn_client_pkcs12_pwd@', vpn_client_pkcs12_pwd)
-					    .replace('@vpn_client_pkcs12_name@', vpn_client_pkcs12_name)
-					    .replace('@vpn_client_pkcs12_base64@', vpn_client_pkcs12_base64)
-					    .replace('@uuid_vpn_server@', uuid_vpn_server)
-					    .replace('@uuid_payload_uuid@', uuid_payload_uuid);
+					    .replace(/@uuid_payloadvpn_client_pkcs12@/g, uuid_payloadvpn_client_pkcs12)
+					    .replace(/@vpn_server_fqdn@/g, vpn_server_fqdn)
+					    .replace(/@uuid_payload_vpnconfig@/g, uuid_payload_vpnconfig)
+					    .replace(/@vpn_client_pkcs12_pwd@/g, vpn_client_pkcs12_pwd)
+					    .replace(/@vpn_client_pkcs12_name@/g, vpn_client_pkcs12_name)
+					    .replace(/@vpn_client_pkcs12_base64@/g, vpn_client_pkcs12_base64)
+					    .replace(/@uuid_vpn_server@/g, uuid_vpn_server)
+					    .replace(/@uuid_payload_uuid@/g, uuid_payload_uuid);
 
 				resolve(Buffer.from(plist, 'utf8'));
 			}

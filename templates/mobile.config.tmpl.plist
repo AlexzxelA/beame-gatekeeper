@@ -29,7 +29,7 @@
 				<key>EnableCertificateRevocationCheck</key>
 				<integer>0</integer>
 				<key>EnablePFS</key>
-				<true/>
+				<integer>0</integer>
 				<key>IKESecurityAssociationParameters</key>
 				<dict>
 					<key>DiffieHellmanGroup</key>
