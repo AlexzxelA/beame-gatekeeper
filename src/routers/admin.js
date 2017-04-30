@@ -100,9 +100,10 @@ class AdminRouter {
 
 		this._router.get('/creds/list', (req, res) => {
 
-			let parent = req.query.fqdn;
+			let parent = req.query.fqdn,
+				options = req.query.options;
 
-			beameAuthServices.credsList(parent).then(list => {
+			beameAuthServices.credsList(parent,options).then(list => {
 				res.json(list);
 			}).catch(e=> {
 				console.error('/creds/list/', e);
@@ -180,6 +181,23 @@ class AdminRouter {
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
+			})
+		});
+
+		this._router.get('/cred/ios-profile/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getIosProfile(fqdn).then(data => {
+				res.writeHead(200, {
+					'Content-Type':        'application/x-plist',
+					'Content-disposition': `attachment;filename=${fqdn}.profile.plist)`,
+					'Content-Length':       data.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(data);
+			}).catch(e=>{
+				 res.send(BeameLogger.formatError(e));
 			})
 		});
 

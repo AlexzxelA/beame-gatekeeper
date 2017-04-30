@@ -1019,7 +1019,10 @@ class BeameAuthServices {
 		);
 	}
 
-	credsList(parent) {
+	credsList(parent, options) {
+
+		let excludeRevoked = options.excludeRevoked ? options.excludeRevoked === "true" : false,
+		    text           = options.text;
 
 		const _checkOcspStatus = (cred) => {
 
@@ -1049,7 +1052,7 @@ class BeameAuthServices {
 
 		};
 
-		return new Promise((resolve,reject) => {
+		return new Promise((resolve, reject) => {
 
 				// let list = store.list(null, {
 				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
@@ -1063,22 +1066,57 @@ class BeameAuthServices {
 						isLocal:     cred.hasKey("PRIVATE_KEY"),
 						hasChildren: store.hasLocalChildren(cred.fqdn),
 						isRoot:      cred.fqdn === Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel),
-						revoked
+						revoked,
+						expired:     cred.expired,
+						chain:       cred.getParentsChain(cred)
 					}
 				};
 
-				if (parent) {
+				let formatedList  = [],
+				    zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
+
+				if (text) {
+					text     = text.toLowerCase();
+					let list = store.list(null, {
+						anyParent: zeroLevelFqdn
+					});
+
+					Promise.all(list.map(cred => {
+
+							//if (excludeRevoked && revoked) return;
+							try {
+								let name  = cred.metadata.name,
+								    email = cred.metadata.email;
+								if (!cred.fqdn.toLowerCase().includes(text)
+									&& (!name || !name.toLowerCase().includes(text))
+									&& (!email || !email.toLowerCase().includes(text))) {
+									return false;
+								}
+
+								let chain = cred.getParentsChain(cred).map(item => {
+									return item.fqdn
+								}).reverse();
+								chain.push(cred.fqdn);
+								formatedList.push(chain);
+							} catch (e) {
+								logger.error(`search cred error for ${cred.fqdn} ${BeameLogger.formatError(e)}`);
+								console.error(cred);
+							}
+						}
+					)).then(() => {
+						resolve(formatedList)
+					}).catch(reject);
+				}
+				else if (parent) {
 					let list = store.list(null, {
 						hasParent: parent
 					});
 
-					let formatedList = [];
-
 					Promise.all(list.map(cred => {
 							return _checkOcspStatus(cred).then(revoked => {
-
+								if (excludeRevoked && revoked) return;
 								formatedList.push(_formatCred(cred, revoked));
-							}).catch(e=>{
+							}).catch(e => {
 								logger.error(`check ocsp status for ${cred.fqdn} error ${BeameLogger.formatError(e)}`);
 								formatedList.push(_formatCred(cred, false));
 							});
@@ -1089,10 +1127,10 @@ class BeameAuthServices {
 
 				}
 				else {
-					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred => {
+					store.find(zeroLevelFqdn).then(cred => {
 
-						_checkOcspStatus(cred).then(revoked=>{
-							resolve([_formatCred(cred,revoked)]);
+						_checkOcspStatus(cred).then(revoked => {
+							resolve([_formatCred(cred, revoked)]);
 						})
 
 
@@ -1134,6 +1172,27 @@ class BeameAuthServices {
 				}
 			}
 		);
+	}
+
+	static findParentVpn(fqdn) {
+
+		try {
+
+			let cred = store.getCredential(fqdn);
+
+			let vpn = cred.metadata.vpn;
+
+			if (!vpn || !vpn.length) {
+				let parent_fqdn = cred.getMetadataKey("parent_fqdn");
+				return parent_fqdn ? this.findParentVpn(parent_fqdn) : null;
+			}
+
+			return cred.fqdn;
+
+		} catch (e) {
+			return null;
+		}
+
 	}
 
 	createRegToken(data) {
@@ -1217,6 +1276,54 @@ class BeameAuthServices {
 				}
 
 				resolve(cred.getKey("PKCS12"));
+			}
+		);
+	}
+
+	getIosProfile(fqdn) {
+		return new Promise((resolve, reject) => {
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				let server_fqdn = BeameAuthServices.findParentVpn(fqdn);
+
+				if(!server_fqdn){
+					reject(`VPN server for ${fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PKCS12")) {
+					reject(`Pfx ${fqdn} not found`);
+					return;
+				}
+
+				const path   = require('path');
+				let template = beameSDK.DirectoryServices.readFile(path.join(__dirname, '..', 'templates', 'mobile.config.tmpl.plist'));
+
+				let vpn_client_fqdn               = fqdn,
+				    uuid_payloadvpn_client_pkcs12 = uuid.v4(),
+				    vpn_server_fqdn               = server_fqdn,
+				    uuid_payload_vpnconfig        = uuid.v4(),
+				    vpn_client_pkcs12_pwd         = String.fromCharCode.apply(null, cred.PWD),
+				    vpn_client_pkcs12_name        = `${vpn_client_fqdn}.p12`,
+				    vpn_client_pkcs12_base64      = cred.PKCS12.toString('base64'),
+				    uuid_vpn_server               = uuid.v4(),
+				    uuid_payload_uuid             = uuid.v4(),
+				    plist                         = template.replace('@vpn_client_fqdn@', vpn_client_fqdn)
+					    .replace('@uuid_payloadvpn_client_pkcs12@', uuid_payloadvpn_client_pkcs12)
+					    .replace('@vpn_server_fqdn@', vpn_server_fqdn)
+					    .replace('@uuid_payload_vpnconfig@', uuid_payload_vpnconfig)
+					    .replace('@vpn_client_pkcs12_pwd@', vpn_client_pkcs12_pwd)
+					    .replace('@vpn_client_pkcs12_name@', vpn_client_pkcs12_name)
+					    .replace('@vpn_client_pkcs12_base64@', vpn_client_pkcs12_base64)
+					    .replace('@uuid_vpn_server@', uuid_vpn_server)
+					    .replace('@uuid_payload_uuid@', uuid_payload_uuid);
+
+					resolve(Buffer.from(plist, 'utf8'));
 			}
 		);
 	}
@@ -1367,6 +1474,8 @@ class BeameAuthServices {
 
 				data.validTill = cred.getCertEnd();
 
+				data.vpn_server_fqdn = BeameAuthServices.findParentVpn(fqdn);
+
 				if (cred.metadata.parent_fqdn) {
 					let parent = store.getCredential(cred.metadata.parent_fqdn);
 
@@ -1443,7 +1552,6 @@ class BeameAuthServices {
 			}
 		);
 	}
-
 
 
 	_getDownloadUrl(cred) {

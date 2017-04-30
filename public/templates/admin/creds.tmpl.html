@@ -1,10 +1,17 @@
 <style>
     .red{color:red !important;}
     .revoked{color:#333 !important;text-decoration: line-through}
+    .matched{
+        background-color: yellow;
+    }
 </style>
 <script type="text/x-kendo-template" id="tmpl-creds">
     <h4>Creds tree</h4>
     <div id="creds-tree-container" style="display: inline-block; width:39%;vertical-align: top">
+        <label>Exclude revoked:<input type="checkbox" id="chk-exclude-revoke" onchange="rebindTree()" /></label>
+        <br/>
+        <label>Find <input type="text" id="inp-find-cred" /> <input type="button" value="Search" class="k-button" onclick="findCreds()"/></label>
+        <br />
         <div id="creds-tree"></div>
     </div>
     <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
@@ -17,11 +24,23 @@
     # } else { #
     <div data-fqdn="#: item.fqdn#">
     #}#
-        <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span> #: item.name #
+        <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span><span class="cred-name">#: item.name #</span>
     </div>
 
 </script>
 <script>
+    var credsTree =null;
+
+    function treeRequestData(){
+	    console.log('2 huya');
+	    return {
+		    options:{
+			    excludeRevoked:$('#chk-exclude-revoke').is(":checked"),
+			    text : $('#inp-find-cred').val()
+		    }
+	    }
+    }
+
 	function loadCreds() {
 
 		$("#cred-detail").empty().css({visibility:'hidden'});
@@ -64,12 +83,19 @@
 
         var path2Expand = null;
 
-		 $("#creds-tree").kendoTreeView({
+		credsTree =  $("#creds-tree").kendoTreeView({
 			dataSource: new kendo.data.HierarchicalDataSource({
 				transport: {
 					read: {
 						url: '/creds/list',
-						dataType: "json"
+						dataType: "json",
+                        data:function (){
+	                        return {
+		                        options:{
+			                        excludeRevoked:$('#chk-exclude-revoke').is(":checked")
+		                        }
+	                        }
+                        }
 					}
 				},
 				schema: {
@@ -101,11 +127,30 @@
 			select: onSelect,
 			dataBound: function(e) {
 
+				var treeview = e.sender;
+
+                var text =  $('#inp-find-cred').val();
+
+                if(text){
+                	text = text.toLowerCase();
+	                var credNodes = $("#creds-tree").find('.cred-name');
+	                for (var i = 0; i < credNodes.length; i++) {
+
+	                	var node = $(credNodes[i]);
+
+		                if(node.html().toLowerCase().includes(text)){
+                            node.addClass('matched');
+                        }else{
+			                node.removeClass('matched');
+                        }
+	                }
+                }
+
 				if(!path2Expand) return;
 
 				try {
-					var treeview = e.sender;
 
+                    console.log('expand to',[path2Expand]);
 					treeview.expandPath([path2Expand]);
 
 					var getitem    = treeview.dataSource.get(path2Expand);
@@ -118,78 +163,70 @@
 
 			}
 		});
-
-//        return;
-//		$("#creds-grid").kendoGrid({
-//			toolbar:    ["excel"],
-//			excel:      {
-//				fileName: "Creds.xlsx",
-//				allPages: true
-//			},
-//			dataSource: {
-//				transport: {
-//					read:   {
-//						url: "/creds/list"
-//					}
-//				},
-//				schema:    {
-//					model: {
-//						id:     "id",
-//						fields: {
-//							fqdn:           {type: "string"},
-//							name:           {type: "string"},
-//							email:          {type: "string"},
-//                            parent_fqdn:    {type: "string"},
-//							level:          {type: "number"}
-////
-//						}
-//					}
-//				},
-//				pageSize:  20
-////                serverPaging:    true,
-////                serverFiltering: true,
-////                serverSorting:   true
-//			},
-//			height:     550,
-//			filterable: true,
-//			sortable:   true,
-//			editable:   {
-//				mode:         "inline",
-//				confirmation: true
-//			},
-//			pageable:   {
-//				pageSize: 20,
-//				refresh:  true
-//			},
-//			columns:    [
-//				{
-//					field: "fqdn",
-//					title: "Fqdn",
-//					width:200
-//				},
-//				{
-//					field: "name",
-//					title: "Name",
-//					width:100
-//				},
-//
-//				{
-//					field: "email",
-//					title: "Email",
-//                    width:100
-//				},
-//
-//				{
-//					field: "parent_fqdn",
-//					title: "Parent",
-//                    width:200
-//				},
-//				{
-//					field: "level",
-//					title: "Level",
-//					width:80
-//				}
-//			]
-//		});
 	}
+
+    function findCreds(){
+	    showLoader();
+
+	    var options =  {options:{
+		    excludeRevoked:$('#chk-exclude-revoke').is(":checked"),
+			    text : $('#inp-find-cred').val()
+	    }
+	    };
+
+	    $.ajax({
+		    url: '/creds/list',
+		    cache: false,
+		    type: "Get",
+		    data:options,
+		    datatype: "json",
+		    contentType: "application/json; charset=utf-8"
+		    , success: function(response) {
+
+			    hideLoader();
+                console.log(response);
+
+			    try {
+
+				    if (response && response.length) {
+
+					    var treeview = credsTree.data("kendoTreeView"),
+                            ds = treeview.dataSource;
+
+                        for(var i=0; i <response.length;i++){
+                        	var path = response[i];
+
+                        	for(var j=0;j<path.length;j++){
+                        		var fqdn = path[j];
+
+		                        var dataItem = ds.get(fqdn);
+		                        if(dataItem){
+			                        var node = treeview.findByUid(dataItem.uid);
+			                        var isExpanded = $(node).attr("data-expanded");
+
+			                        if (typeof isExpanded == 'undefined' || isExpanded !== "true") {
+			                        	console.log('expand to ',fqdn);
+				                        setTimeout(function(){
+					                        treeview.expandPath([fqdn]);
+                                        },300)
+			                        }
+		                        }
+                            }
+
+	                        treeview.expandPath(path);
+                        }
+
+				    }
+			    } catch (e) {
+			    }
+
+		    }
+	    });
+    }
+
+    function rebindTree(){
+	    credsTree.data("kendoTreeView").dataSource.read();
+    }
+
 </script>
+

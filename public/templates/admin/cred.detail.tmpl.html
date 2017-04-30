@@ -51,6 +51,12 @@
             <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="k-button">
         </p>
 
+        <p>
+            <form id="ios-profile-form"   method="get"  style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
+                <div id="ios-profile-info">&nbsp;</div>
+                <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile" />
+            </form>
+        </p>
 
         <form id="send_pfx_form" action="/send/pfx" data-bind="visible:emailFormVisible" method="post" class="admin-form-main" style="margin: 15px 0">
             <h5>Send Pfx by email</h5>
@@ -272,13 +278,18 @@
                 this.set('commonButtonDisabled',this.data.revoked);
                 this.set('renewButtonDisabled',this.data.revoked || !this.data.isLocal);
 				this.set('emailFormVisible',!this.data.revoked && this.data.pwd);
+				this.set('iosVpnProfileVisible',this.data.vpn_server_fqdn);
 
 				$('#send_pfx_form').submit(sendEmail);
+
+				$('#ios-profile-form').attr('action',this.iosProfileLink());
+				//$('#ios-profile-form').submit(downloadIosProfile);
 			},
 			revokeDisabled:true,
             commonButtonDisabled:false,
             renewButtonDisabled:false,
 			emailFormVisible : true,
+            iosVpnProfileVisible:false,
 			data: data,
 
 			parentName: function () {
@@ -290,6 +301,9 @@
 			showQr:     function () {
 				closeWnd('#vpn-window');
 				qrWnd.data("kendoWindow").center().open();
+			},
+			iosProfileLink: function() {
+				return "/cred/ios-profile/" + this.data.fqdn;
 			},
 			opneVPN:function(){
 				initVpnWindow();
