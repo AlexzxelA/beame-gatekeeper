@@ -7,6 +7,7 @@ const BeameSdk              = require('beame-sdk');
 const dir                   = BeameSdk.DirectoryServices;
 const Config                = BeameSdk.Config;
 const saml2                 = require('express-saml2');
+
 const path                  = require('path');
 let samlManagerInstance     = null;
 const handlebars            = require('handlebars');
@@ -29,7 +30,7 @@ class samlManager{
 		this._path      = cred.beameStoreServices._certsDir + '/sso/';
 		this._sp        = null;//saml2.ServiceProvider(cred.beameStoreServices._certsDir + '/sso/testsp_saml_metadata.xml');
 		this._idp       = saml2.IdentityProvider({
-			entityID:'https://'+cred.fqdn,
+			entityID:'Beameio-SSO',
 			nameIDFormat:['urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'],
 			privateKeyFile: _PKpath,
 			privateKeyFilePass: '',

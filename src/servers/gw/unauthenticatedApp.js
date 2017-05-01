@@ -446,9 +446,7 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 });
 unauthenticatedApp.post('/beame-gw/tteesstt', (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
-	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-	const qs           = querystring.parse(url.parse(req.url).query);
-	console.log('QS', qs);
+	console.log('SAMLResponse: ' + req.body.SAMLResponse.charCodeAt(0) +' >>>:'+ req.body.SAMLResponse);
 });
 
 // XXX: When logging out destroy
@@ -472,7 +470,7 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 });
 
 unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
-	let authHead  = req.get('X-BeameAuthToken')
+	let authHead  = req.get('X-BeameAuthToken');
 	console.log('DirectPath: checking '+authHead);
 	clearSessionCookie(res);
 	AuthToken.getRequestAuthToken(req).then(() => {

@@ -387,7 +387,7 @@ function processInSessionDataFromMobile(rawData, relay_socket) {
 }
 
 function setIframeHtmlContent(html) {
-	console.log(html);
+	console.warn('setIframeHtmlContent >>>>> '+ html.charCodeAt(0) + ' ' + html.charCodeAt(1) + ' ' + html.charCodeAt(2));
 	var iframe    = document.getElementById('ifrm-content'),
 	    iframedoc = iframe.contentDocument || iframe.contentWindow.document;
 

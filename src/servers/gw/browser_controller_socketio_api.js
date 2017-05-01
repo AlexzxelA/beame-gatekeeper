@@ -188,7 +188,7 @@ const messageHandlers = {
 						});
 						// response.title = 'POST data';
 						// res.render('actions', response);
-					});
+					}, null, true);
 				}
 				else {
 					reply({
