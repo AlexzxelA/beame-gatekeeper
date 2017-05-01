@@ -29,15 +29,12 @@
         <li>
             <h4>Create Invitation</h4>
             <section id="inv-form-container" style="margin-bottom: 50px">
-                <form id="invitation_form" action='/invitation/send' method="post" class="form-main admin-form-main">
+                <form id="frm-create-invitation" action='/invitation/send' method="post" class="form-main admin-form-main">
                     <div id="inv-info">&nbsp;</div>
                     <input name="name" placeholder="Name" class="form-input"/>
                     <input name="email" type="email" placeholder="Email" class="form-input"/>
                     <input name="user_id" placeholder="External user ID" class="form-input"/>
-                    <!--
-                    <input name="session_pin" placeholder="4 digits registration code from mobile" class="form-input"/>
-                    -->
-                    <input type="submit" name="submit" value="Send invitation" class="button">
+                    <input type="button" id="btn-create-invitation" name="submit" value="Send invitation" class="button">
                 </form>
             </section>
         </li>
@@ -163,32 +160,44 @@
 		});
 
 
-		$('#invitation_form').submit(function () {
-            showLoader();
-			var handleInviResponse = function (response) {
-				hideLoader();
-				rebindInvitations();
-				console.log(response);
-				if (response.responseCode == 1) {
+		$('#btn-create-invitation').off('click').on('click', function (e) {
 
-					$("#inv-info").removeClass('ad-error').addClass('ad-success');
-				}
-				else {
-					$("#inv-info").removeClass('ad-success').addClass('ad-error');
-				}
-				$("#inv-info").html(response.responseDesc);
-			};
+			e.preventDefault();
 
-			//	document.getElementById("overlay").style.display = "block";
-			$(this).ajaxSubmit({
-				error:   handleInviResponse,
-				success: handleInviResponse
+			showLoader();
+
+			var form     = $('#frm-create-invitation'),
+			    url      = form.attr('action'),
+			    method   = form.attr('method'),
+			    formData = {
+				    name:    form.find('input[name="name"]').val(),
+				    email:   form.find('input[name="email"]').val(),
+				    user_id: form.find('input[name="user_id"]').val()
+			    };
+			console.log('form data', formData);
+			$.ajax({
+				url:         url,
+				cache:       false,
+				data:        JSON.stringify(formData),
+				type:        method,
+				datatype:    "json",
+				contentType: "application/json; charset=utf-8"
+				, success:   function (response) {
+
+					hideLoader();
+					rebindInvitations();
+					console.log(response);
+					if (response.responseCode == 1) {
+
+						$("#inv-info").removeClass('ad-error').addClass('ad-success');
+					}
+					else {
+						$("#inv-info").removeClass('ad-success').addClass('ad-error');
+					}
+					$("#inv-info").html(response.responseDesc);
+				}
 			});
-			//Very important line, it disable the page refresh.
-			return false;
+
 		});
-
-
-
 	}
 </script>

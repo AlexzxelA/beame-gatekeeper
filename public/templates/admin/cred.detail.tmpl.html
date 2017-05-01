@@ -28,45 +28,56 @@
         padding-top: 0;
     }
 </style>
-<script src="lib/kendo-2016.3.1118.qr.min.js"></script>
 
-<script  id="tmpl-cred-detail" type="text/x-kendo-template">
+<script id="tmpl-cred-detail" type="text/x-kendo-template">
     <h4>Cred Details</h4>
     <section id="cred-form-container" style="margin-bottom: 50px">
         <form id="cred-detail-form" class="form-main admin-form-main">
             <div id="cred-info">&nbsp;</div>
             <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn"></span></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
-            <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked" /></label>
-            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
+            <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked"/></label>
+            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span
+                data-bind="text:parentName()"></span></label>
             <label class="lbl-info">Name: <span data-bind="text: data.name"></span></label>
             <label class="lbl-info">Email: <span data-bind="text: data.email"></span></label>
-            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span data-bind="text: data.pwd"></span></label>
+            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span
+                data-bind="text: data.pwd"></span></label>
             <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank">Download Pfx</a>
         </form>
         <p class="btn-row">
-            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN" value="Set VPN" class="k-button">
-            <input type="button" name="btn-renew"  data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew" class="k-button">
-            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke" class="k-button">
-            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="k-button">
+            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN"
+                   value="Set VPN" class="k-button">
+            <input type="button" name="btn-renew" data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew"
+                   class="k-button">
+            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke"
+                   class="k-button">
+            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge"
+                   class="k-button">
         </p>
 
         <p>
-            <form id="ios-profile-form"   method="get"  style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
-                <div id="ios-profile-info">&nbsp;</div>
-                <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile" />
-                 <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr" value="Show Profile QR" class="k-button">
-            </form>
+        <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank"
+              data-bind="visible:iosVpnProfileVisible">
+            <div id="ios-profile-info">&nbsp;</div>
+            <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
+            <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr"
+                   value="Show Profile QR" class="k-button">
+        </form>
 
         </p>
 
-        <form id="send_pfx_form" action="/send/pfx" data-bind="visible:emailFormVisible" method="post" class="admin-form-main" style="margin: 15px 0">
+        <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post"
+              class="admin-form-main" style="margin: 15px 0">
             <h5>Send Pfx by email</h5>
             <div id="send_pfx_form_info">&nbsp;</div>
-            <input name="email" required type="email" placeholder="Email" data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
+            <input name="email" required type="email" placeholder="Email"
+                   data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
             <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
-            <input type="submit" name="btn-email" data-bind="disabled:commonButtonDisabled" value="Send Pfx by Email" class="k-button">
-            <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr" value="Show QR" class="k-button">
+            <input type="button" id="btn-send-pfx-email" name="btn-email" data-bind="disabled:commonButtonDisabled"
+                   value="Send Pfx by Email" class="k-button">
+            <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr"
+                   value="Show QR" class="k-button">
         </form>
 
         <div data-bind="visible:data.actions.length">
@@ -89,21 +100,22 @@
 
 </script>
 
-<script id="vpn-detail" type="text/x-kendo-template" >
+<script id="vpn-detail" type="text/x-kendo-template">
     <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
-    <form id="vpn_detail_form"  method="post" action="/cred/set-vpn/create" class="admin-form-main" style="width:400px">
-        <div id="vpn_detail_form_info">&nbsp;</div>
+    <form id="frm-vpn-detail" method="post" action="/cred/set-vpn/create" class="admin-form-main" style="width:400px">
+        <div id="frm-vpn-detail_info">&nbsp;</div>
         <input type="hidden" name="vpn_id" data-bind="value:vpnId">
         <input name="name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
         <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
-        <input type="submit" name="btn-set-vpn" value="Set VPN" class="button">
-        <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN" class="button">
+        <input type="submit" name="btn-set-vpn" value="Set VPN" class="k-button">
+        <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN"
+               class="k-button">
     </form>
 
-    <form id="vpn_delete_form"  method="post" action="/cred/set-vpn/delete">
+    <form id="frm-vpn-delete" method="post" action="/cred/set-vpn/delete">
         <input name="vpn_id" type="hidden" data-bind="value:vpnId">
-        <input name="name"   type="hidden" data-bind="value:name"/>
-        <input name="fqdn"   type="hidden" data-bind="value:data.fqdn"/>
+        <input name="name" type="hidden" data-bind="value:name"/>
+        <input name="fqdn" type="hidden" data-bind="value:data.fqdn"/>
     </form>
 
 
@@ -133,7 +145,7 @@
 <div id="vpn-window" style="display: none;text-align: center"></div>
 
 <script>
-	var credDetailViewModel,vpnDetailViewModel, qrWnd = $("#qr-window"),vpnWnd = $('#vpn-window');
+	var credDetailViewModel, vpnDetailViewModel, qrWnd = $("#qr-window"), vpnWnd = $('#vpn-window');
 
 	function closeWnd(id) {
 
@@ -144,37 +156,51 @@
 		}
 	}
 
-	function sendEmail(){
-		showLoader();
+	function bindEmailEvent() {
 
-		var handleSendCredResponse = function (response) {
-			hideLoader();
+		$('#btn-send-pfx-email').off('click').on('click', function (e) {
 
-			if (response.responseCode == 1) {
-				response.responseDesc = 'Email sent to ' + ( $('#send_pfx_form input[name="email"]').val());
-				$("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
-				if (response.data && credDetailViewModel) {
-					credDetailViewModel.set("data", response.data);
+			e.preventDefault();
+
+			showLoader();
+
+			var form     = $('#frm-send-pfx-email'),
+			    url      = form.attr('action'),
+			    method   = form.attr('method'),
+			    formData = {
+				    fqdn:  form.find('input[name="fqdn"]').val(),
+				    email: form.find('input[name="email"]').val()
+			    };
+			console.log('form data', formData);
+			$.ajax({
+				url:         url,
+				cache:       false,
+				data:        JSON.stringify(formData),
+				type:        method,
+				datatype:    "json",
+				contentType: "application/json; charset=utf-8"
+				, success:   function (response) {
+
+					hideLoader();
+					if (response.responseCode == 1) {
+						response.responseDesc = 'Email sent to ' + ( $('#frm-send-pfx-email input[name="email"]').val());
+						$("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
+						if (response.data && credDetailViewModel) {
+							credDetailViewModel.set("data", response.data);
+						}
+
+					}
+					else {
+						$("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
+
+					}
+					$("#send_pfx_form_info").html(response.responseDesc);
 				}
-
-			}
-			else {
-				$("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
-
-			}
-			$("#send_pfx_form_info").html(response.responseDesc);
-		};
-
-
-		$(this).ajaxSubmit({
-			error:   handleSendCredResponse,
-			success: handleSendCredResponse
+			});
 		});
+	}
 
-		return false;
-    }
-
-    function setVpn(){
+	function setVpn() {
 		showLoader('wnd-overlay');
 
 		var handleSendCredResponse = function (response) {
@@ -182,9 +208,9 @@
 
 			if (response.responseCode == 1) {
 				response.responseDesc = 'Vpn settings saved';
-				$("#vpn_detail_form_info").removeClass('ad-error').addClass('ad-success');
+				$("#frm-vpn-detail_info").removeClass('ad-error').addClass('ad-success');
 				if (response.data) {
-					if(credDetailViewModel) {
+					if (credDetailViewModel) {
 						credDetailViewModel.set("data", response.data);
 					}
 
@@ -194,10 +220,10 @@
 				}
 			}
 			else {
-				$("#vpn_detail_form_info").removeClass('ad-success').addClass('ad-error');
+				$("#frm-vpn-detail_info").removeClass('ad-success').addClass('ad-error');
 
 			}
-			$("#vpn_detail_form_info").html(response.responseDesc);
+			$("#frm-vpn-detail_info").html(response.responseDesc);
 		};
 
 
@@ -207,179 +233,179 @@
 		});
 
 		return false;
-    }
+	}
 
-    function initVpnWindow(){
-	    var template = kendo.template($("#vpn-detail").html());
-    	vpnWnd.empty();
-	    vpnWnd.kendoWindow({
-		    width:   "450px",
-		    height:  "400px",
-		    title:   "Set VPN",
-		    visible: false,
-		    modal:true,
-		    content:{
-			    template:template
-		    },
-		    actions: [
-			    "Close"
-		    ],
-		    open: function() {
-			    vpnDetailViewModel.init();
-			    kendo.bind($("#vpn-window"), vpnDetailViewModel);
-			    $('#vpn_detail_form').submit(setVpn);
-			    $('#vpn_delete_form').submit(setVpn);
-		    }
-	    });
-    }
+	function initVpnWindow() {
+		var template = kendo.template($("#vpn-detail").html());
+		vpnWnd.empty();
+		vpnWnd.kendoWindow({
+			width:   "450px",
+			height:  "400px",
+			title:   "Set VPN",
+			visible: false,
+			modal:   true,
+			content: {
+				template: template
+			},
+			actions: [
+				"Close"
+			],
+			open:    function () {
+				vpnDetailViewModel.init();
+				kendo.bind($("#vpn-window"), vpnDetailViewModel);
+				$('#frm-vpn-detail').submit(setVpn);
+				$('#frm-vpn-delete').submit(setVpn);
+			}
+		});
+	}
 
-    function initQrWindow(url){
-	    if (url) {
-		    qrWnd.kendoWindow({
-			    width:   "320px",
-			    height:  "320px",
-			    title:   "Scan QR",
-			    visible: false,
-			    modal:true,
-			    actions: [
-				    "Close"
-			    ]
-		    });
+	function initQrWindow(url) {
+		if (url) {
+			qrWnd.kendoWindow({
+				width:   "320px",
+				height:  "320px",
+				title:   "Scan QR",
+				visible: false,
+				modal:   true,
+				actions: [
+					"Close"
+				]
+			});
 
-		    $('#download-qr').empty().kendoQRCode({
-			    value:           url,
-			    errorCorrection: "L",
-			    color:           "#000",
-			    background:      "transparent",
-			    padding:         0,
-			    size:            300
-		    });
-	    }
-    }
+			$('#download-qr').empty().kendoQRCode({
+				value:           url,
+				errorCorrection: "L",
+				color:           "#000",
+				background:      "transparent",
+				padding:         0,
+				size:            300
+			});
+		}
+	}
 
 	function loadCredDetail(data) {
 
-		console.log('huy',data);
+		console.log('huy', data);
 
-		window.getNotifManagerInstance().subscribe('MenuClicked',function(){
+		window.getNotifManagerInstance().subscribe('MenuClicked', function () {
 			closeWnd('#qr-window');
 			closeWnd('#vpn-window');
-        });
+		});
 
 		credDetailViewModel = kendo.observable({
-			init: function () {
+			init:                 function () {
 
 				closeWnd('#qr-window');
 				closeWnd('#vpn-window');
 
-                initVpnWindow();
+				initVpnWindow();
 
-                this.set('revokeDisabled',this.data.hasChildren || this.data.revoked);
-                this.set('commonButtonDisabled',this.data.revoked);
-                this.set('renewButtonDisabled',this.data.revoked || !this.data.isLocal);
-				this.set('emailFormVisible',!this.data.revoked && this.data.pwd);
-				this.set('iosVpnProfileVisible',this.data.vpn_server_fqdn);
+				this.set('revokeDisabled', this.data.hasChildren || this.data.revoked);
+				this.set('commonButtonDisabled', this.data.revoked);
+				this.set('renewButtonDisabled', this.data.revoked || !this.data.isLocal);
+				this.set('emailFormVisible', !this.data.revoked && this.data.pwd);
+				this.set('iosVpnProfileVisible', this.data.vpn_server_fqdn);
 
-				$('#send_pfx_form').submit(sendEmail);
+				bindEmailEvent();
 
-				$('#ios-profile-form').attr('action',this.iosProfileLink());
+				$('#ios-profile-form').attr('action', this.iosProfileLink());
 			},
-			revokeDisabled:true,
-            commonButtonDisabled:false,
-            renewButtonDisabled:false,
-			emailFormVisible : true,
-            iosVpnProfileVisible:false,
-			data: data,
+			revokeDisabled:       true,
+			commonButtonDisabled: false,
+			renewButtonDisabled:  false,
+			emailFormVisible:     true,
+			iosVpnProfileVisible: false,
+			data:                 data,
 
-			parentName: function () {
-                return this.data.parent_name  ? `${this.data.parent_name} (${this.data.parent_fqdn})` : this.data.parent_fqdn
+			parentName:       function () {
+				return this.data.parent_name ? `${this.data.parent_name} (${this.data.parent_fqdn})` : this.data.parent_fqdn
 			},
-			sendPfxUrl: function () {
+			sendPfxUrl:       function () {
 				return '/send/pfx/' + this.data.fqdn
 			},
-			showCredQr:     function () {
-                if(!this.data.download_cred_url){
-                	alert('Cred download url not defined');
-                	return;
-                }
-                this.operQrWnd(this.data.download_cred_url);
+			showCredQr:       function () {
+				if (!this.data.download_cred_url) {
+					alert('Cred download url not defined');
+					return;
+				}
+				this.operQrWnd(this.data.download_cred_url);
 			},
-            showIosProfileQr:     function () {
-                if(!this.data.download_ios_profile_url){
-                	alert('Ios Profile download url not defined');
-                	return;
-                }
-                this.operQrWnd(this.data.download_ios_profile_url);
+			showIosProfileQr: function () {
+				if (!this.data.download_ios_profile_url) {
+					alert('Ios Profile download url not defined');
+					return;
+				}
+				this.operQrWnd(this.data.download_ios_profile_url);
 			},
-            operQrWnd:function(url){
-	            initQrWindow(url);
-	            closeWnd('#vpn-window');
-	            qrWnd.data("kendoWindow").center().open();
-            },
-			iosProfileLink: function() {
+			operQrWnd:        function (url) {
+				initQrWindow(url);
+				closeWnd('#vpn-window');
+				qrWnd.data("kendoWindow").center().open();
+			},
+			iosProfileLink:   function () {
 				return "/cred/ios-profile/" + this.data.fqdn;
 			},
-			opneVPN:function(){
+			opneVPN:          function () {
 				initVpnWindow();
 				vpnWnd.data("kendoWindow").center().open();
-            },
-            renewCert:function () {
+			},
+			renewCert:        function () {
 
-	            showLoader();
-	            $.ajax({
-		            url: '/cred/renew/' + this.data.fqdn,
-		            cache: false,
-		            type: "Post",
-		            datatype: "json",
-		            contentType: "application/json; charset=utf-8"
-		            , success: function(response) {
+				showLoader();
+				$.ajax({
+					url:         '/cred/renew/' + this.data.fqdn,
+					cache:       false,
+					type:        "Post",
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
 
-			            hideLoader();
+						hideLoader();
 
-			            if (response.responseCode == 1) {
-				            $("#cred-info").removeClass('ad-error').addClass('ad-success');
-				            if (response.data && credDetailViewModel) {
-					            credDetailViewModel.set("data", response.data);
-				            }
-			            }
-			            else {
-				            $("#cred-info").removeClass('ad-success').addClass('ad-error');
+						if (response.responseCode == 1) {
+							$("#cred-info").removeClass('ad-error').addClass('ad-success');
+							if (response.data && credDetailViewModel) {
+								credDetailViewModel.set("data", response.data);
+							}
+						}
+						else {
+							$("#cred-info").removeClass('ad-success').addClass('ad-error');
 
-			            }
-			            $("#cred-info").html(response.responseDesc);
-		            }
-	            });
-            },
-            revokeCert:function () {
-                var $this = this;
-	            showLoader();
-	            $.ajax({
-		            url: '/cred/revoke/' + this.data.fqdn,
-		            cache: false,
-		            type: "Post",
-		            datatype: "json",
-		            contentType: "application/json; charset=utf-8"
-		            , success: function(response) {
+						}
+						$("#cred-info").html(response.responseDesc);
+					}
+				});
+			},
+			revokeCert:       function () {
+				var $this = this;
+				showLoader();
+				$.ajax({
+					url:         '/cred/revoke/' + this.data.fqdn,
+					cache:       false,
+					type:        "Post",
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
 
-			            hideLoader();
+						hideLoader();
 
-			            if (response.responseCode == 1) {
-				            $("#cred-info").removeClass('ad-error').addClass('ad-success');
-				            if (response.data && credDetailViewModel) {
-					            credDetailViewModel.set("data", response.data);
-					            credDetailViewModel.init();
-				            }
-				            console.log('revoke');
-				            $('#creds-tree').find('div[data-fqdn="'+ $this.data.fqdn+'"]').addClass('revoked');
-			            }
-			            else {
-				            $("#cred-info").removeClass('ad-success').addClass('ad-error');
+						if (response.responseCode == 1) {
+							$("#cred-info").removeClass('ad-error').addClass('ad-success');
+							if (response.data && credDetailViewModel) {
+								credDetailViewModel.set("data", response.data);
+								credDetailViewModel.init();
+							}
+							console.log('revoke');
+							$('#creds-tree').find('div[data-fqdn="' + $this.data.fqdn + '"]').addClass('revoked');
+						}
+						else {
+							$("#cred-info").removeClass('ad-success').addClass('ad-error');
 
-			            }
-			            $("#cred-info").html(response.responseDesc);
-		            }
-	            });
-            }
+						}
+						$("#cred-info").html(response.responseDesc);
+					}
+				});
+			}
 
 		});
 
@@ -387,27 +413,27 @@
 		kendo.bind($("#cred-form-container"), credDetailViewModel);
 
 		vpnDetailViewModel = kendo.observable({
-            init:function(){
-	            var vpns = this.data.vpn;
-	            if(!vpns || !vpns.length) {
-		            this.set('vpnId',null);
-		            this.set('name',null);
-	            	return;
-                }
+			init:      function () {
+				var vpns = this.data.vpn;
+				if (!vpns || !vpns.length) {
+					this.set('vpnId', null);
+					this.set('name', null);
+					return;
+				}
 
-	            var vpn = vpns[0];
+				var vpn = vpns[0];
 
-                this.set('vpnId',vpn.id);
-                this.set('name',vpn.name);
-            },
-            vpnId :null,
-            name:null,
-            data:data,
-			deleteVpn:function(){
-				this.set('name',null);
-				$('#vpn_delete_form').submit();
-            }
-        });
+				this.set('vpnId', vpn.id);
+				this.set('name', vpn.name);
+			},
+			vpnId:     null,
+			name:      null,
+			data:      data,
+			deleteVpn: function () {
+				this.set('name', null);
+				$('#frm-vpn-delete').submit();
+			}
+		});
 
 	}
 </script>

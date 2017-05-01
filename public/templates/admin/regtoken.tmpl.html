@@ -1,24 +1,25 @@
-
 <script type="text/x-kendo-template" id="reg-token">
 
 
     <h4>Create Registration token</h4>
     <section id="token-form-container" style="margin-bottom: 50px">
-        <form id="token_form" action='/regtoken/create' method="post" class="form-main admin-form-main">
+        <form id="frm-create-regtoken" action='/regtoken/create' method="post" class="form-main admin-form-main">
             <div id="token-info">&nbsp;</div>
-            <input id="fqdn" name="fqdn" placeholder="Signing Credential" required  style="width: 100%;" />
+            <input id="fqdn" name="fqdn" placeholder="Signing Credential" required style="width: 100%;"/>
             <input name="name" placeholder="Name" class="form-input"/>
             <input name="email" type="email" placeholder="Email" class="form-input"/>
             <input name="user_id" placeholder="External user ID" class="form-input"/>
-            <input name="ttl" placeholder="Token TTL in seconds" class="form-input" />
+            <input name="ttl" placeholder="Token TTL in seconds" class="form-input"/>
             <!--
             <input name="session_pin" placeholder="4 digits registration code from mobile" class="form-input"/>
             -->
-            <input type="submit" name="submit" value="Create Registration Token" class="button">
+            <input type="button" name="submit" value="Create Registration Token" class="button"
+                   id="btn-create-regtoken">
         </form>
 
-        <div id="reg-token-container" style="display:none;"  class="form-main admin-form-main">
-            <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="button" data-clipboard-action="copy" data-clipboard-target="#reg_token" />
+        <div id="reg-token-container" style="display:none;" class="form-main admin-form-main">
+            <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="button"
+                   data-clipboard-action="copy" data-clipboard-target="#reg_token"/>
             <textarea id="reg_token" name="reg_token" style="width: 80%;margin: 0 10%;" rows="10"></textarea>
         </div>
 
@@ -26,57 +27,68 @@
 
 </script>
 <script>
-	var tokenEventBinded = false;
+
 	function loadRegToken() {
 
 		new Clipboard('#copy-btn');
 
 		$("#fqdn").kendoComboBox({
-			dataTextField: "name",
-            dataValueField: "fqdn",
-			filter: "contains",
-			minLength: 1,
-			dataSource: {
+			dataTextField:  "name",
+			dataValueField: "fqdn",
+			filter:         "contains",
+			minLength:      1,
+			dataSource:     {
 				serverFiltering: true,
-				transport: {
+				transport:       {
 					read: "/creds/filter"
 				}
 			}
 		});
 
-		if(tokenEventBinded) return;
+		$('#btn-create-regtoken').off('click').on('click', function (e) {
 
-		$('#token_form').submit(function () {
+			e.preventDefault();
 
 			showLoader();
+
 			$('#reg_token').html(null);
 			$('#reg-token-container').hide();
 
-			var handleInviResponse = function (response) {
-				hideLoader();
-				console.log(response);
-				if (response.responseCode == 1) {
+			var form     = $('#frm-create-regtoken'),
+			    url      = form.attr('action'),
+			    method   = form.attr('method'),
+			    formData = {
+				    fqdn:    form.find('input[name="fqdn"]').data('kendoComboBox').value(),
+				    name:    form.find('input[name="name"]').val(),
+				    email:   form.find('input[name="email"]').val(),
+				    user_id: form.find('input[name="user_id"]').val(),
+				    ttl:     form.find('input[name="ttl"]').val()
+			    };
 
-					$("#token-info").removeClass('ad-error').addClass('ad-success');
+			$.ajax({
+				url:         url,
+				cache:       false,
+				data:        JSON.stringify(formData),
+				type:        method,
+				datatype:    "json",
+				contentType: "application/json; charset=utf-8"
+				, success:   function (response) {
+					hideLoader();
+					console.log(response);
+					if (response.responseCode == 1) {
 
-					$('#reg_token').html(response.token);
-					$('#reg-token-container').show();
+						$("#token-info").removeClass('ad-error').addClass('ad-success');
+
+						$('#reg_token').html(response.token);
+						$('#reg-token-container').show();
+					}
+					else {
+						$("#token-info").removeClass('ad-success').addClass('ad-error');
+					}
+					$("#token-info").html(response.responseDesc);
 				}
-				else {
-					$("#token-info").removeClass('ad-success').addClass('ad-error');
-				}
-				$("#token-info").html(response.responseDesc);
-			};
-
-			//	document.getElementById("overlay").style.display = "block";
-			$(this).ajaxSubmit({
-				error:   handleInviResponse,
-				success: handleInviResponse
 			});
-			//Very important line, it disable the page refresh.
-			return false;
-		});
 
-		tokenEventBinded = true;
+		});
 	}
 </script>
