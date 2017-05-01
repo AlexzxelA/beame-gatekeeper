@@ -423,7 +423,7 @@ p + p {
     width: 100%;
     height: 40px;
     margin: 10px 0;
-    padding: 0 0.6rem;
+    padding: 0 0.6rem 0 0;
     color: #0a0a0a;
     background-color: #ffffff;
     border-radius: 3px;
@@ -462,7 +462,7 @@ p + p {
   padding: 5px;
   margin: 0;
   max-width: 640px;
-
+  text-align: left;
   .lbl-info {
     width: 100%;
     display: block;
@@ -475,16 +475,27 @@ p + p {
   }
 }
 
+.info-div-base{margin-bottom: 10px;display: block !important;}
+
 .ad-success {
-  color: green
+  color: green;
+  @extend .info-div-base;
+
 }
 
 .ad-error {
-  color: red
+  color: red;
+  @extend .info-div-base;
 }
 
+.invisible-msg {
+  display: none;
+}
+.inline{
+  display:inline-block;;
+}
 .btn-row {
-  border-top: dotted 1px #ededed;
+
   border-bottom: dotted 1px #ededed;
   padding: 10px 0;
   margin: 5px 0
