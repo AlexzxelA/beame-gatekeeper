@@ -1037,7 +1037,7 @@ class BeameAuthServices {
 					}
 					else {
 
-						cred.checkOcspStatus(cred.getKey("X509")).then(() => {
+						cred.checkOcspStatus(cred).then(() => {
 							_saveOcspStatus(false);
 							resolve(false);
 
@@ -1069,6 +1069,7 @@ class BeameAuthServices {
 						revoked,
 						expired:     cred.expired,
 						chain:       cred.getParentsChain(cred)
+
 					}
 				};
 
@@ -1158,8 +1159,8 @@ class BeameAuthServices {
 
 						if (vpn.some(x => x.name === vpnId)) {
 							let list = store.list(null, {
-								anyParent: rootFqdn,
-								excludeRevoked:true
+								anyParent:      rootFqdn,
+								excludeRevoked: true
 							});
 							resolve(list);
 						}
@@ -1222,6 +1223,7 @@ class BeameAuthServices {
 	}
 
 	createCred(data) {
+		let sendEmail = data.sendEmail, email = data.email;
 		return new Promise((resolve, reject) => {
 				const Credential = beameSDK.Credential;
 				let cred         = new Credential(store);
@@ -1232,16 +1234,19 @@ class BeameAuthServices {
 						.then(meta => {
 
 							store.find(meta.fqdn, false).then(newCred => {
-								// resolve({
-								// 	fqdn:meta.fqdn,
-								// 	pfx: newCred.getKey("PKCS12")
-								// });
-								resolve(meta);
+								if (sendEmail) {
+									this.sendPfx(newCred.fqdn, email).then(() => {
+										resolve(`Credential ${newCred.fqdn} created and sent by email`);
+									}).catch(err => {
+										resolve(`Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
+									})
+								}
+								else {
+									resolve(`Credential ${newCred.fqdn} created`);
+								}
+
 							}).catch(reject);
-
-
 						})
-						//.then(resolve)
 						.catch(reject)
 				}
 				else {
@@ -1465,6 +1470,15 @@ class BeameAuthServices {
 
 				let data = Object.assign({}, cred.metadata);
 
+				//TODO remove, fqdn should be updated in SDK
+				data.dnsRecords = (data.dnsRecords || []).map(item => {
+					if (!item.fqdn) {
+						item.fqdn = fqdn;
+					}
+
+					return item;
+				});
+
 				data.pwd = cred.hasKey("PWD") ? String.fromCharCode.apply(null, cred.PWD) : null;
 
 				data.hasChildren = store.hasLocalChildren(fqdn);
@@ -1496,6 +1510,8 @@ class BeameAuthServices {
 						return item;
 					})
 				}
+
+				data.certData = cred.certData;
 
 				const async = require('async');
 
@@ -1570,6 +1586,65 @@ class BeameAuthServices {
 		);
 	}
 
+	saveDns(data) {
+		let fqdn = data.fqdn;
+		return new Promise((resolve, reject) => {
+				if (!data.fqdn || !data.dnsFqdn) {
+					reject('Required parameter missing');
+					return;
+				}
+
+				let cred = store.getCredential(data.fqdn);
+
+				if (!cred) {
+					reject(`Credential ${data.fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PRIVATE_KEY")) {
+					reject(`Dns update available only for local creds`);
+				}
+
+				cred.setDns(data.fqdn, data.dnsValue, !data.dnsValue || !data.dnsValue.length, data.dnsFqdn).then(value => {
+					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					this.getCredDetail(fqdn).then(updatedCred => {
+						resolve({message: `Dns record created for ${value}`, value: value, data: updatedCred});
+					}).catch(reject);
+
+				}).catch(reject);
+			}
+		);
+	}
+
+	deleteDns(data) {
+		let fqdn = data.fqdn;
+		return new Promise((resolve, reject) => {
+				if (!data.fqdn || !data.dnsFqdn) {
+					reject('Required parameter missing');
+					return;
+				}
+
+				let cred = store.getCredential(data.fqdn);
+
+				if (!cred) {
+					reject(`Credential ${data.fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PRIVATE_KEY")) {
+					reject(`Dns update available only for local creds`);
+				}
+
+				cred.deleteDns(data.fqdn, data.dnsFqdn).then(value => {
+					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					this.getCredDetail(fqdn).then(updatedCred => {
+						resolve({message: `Dns record deleted for ${value}`, value: value, data: updatedCred});
+					}).catch(reject);
+
+				}).catch(reject);
+			}
+		);
+	}
 
 	_getCredDownloadUrl(cred) {
 		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);

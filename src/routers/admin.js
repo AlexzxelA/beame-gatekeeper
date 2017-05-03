@@ -100,12 +100,12 @@ class AdminRouter {
 
 		this._router.get('/creds/list', (req, res) => {
 
-			let parent = req.query.fqdn,
-				options = req.query.options;
+			let parent  = req.query.fqdn,
+			    options = req.query.options;
 
-			beameAuthServices.credsList(parent,options).then(list => {
+			beameAuthServices.credsList(parent, options).then(list => {
 				res.json(list);
-			}).catch(e=> {
+			}).catch(e => {
 				console.error('/creds/list/', e);
 				return res.json([]);
 			})
@@ -117,9 +117,9 @@ class AdminRouter {
 
 			beameAuthServices.getCredDetail(fqdn).then(data => {
 				res.json(data);
-			}).catch(e=> {
+			}).catch(e => {
 				console.error('/cred/detail/', e);
-				 res.json({
+				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
@@ -133,12 +133,12 @@ class AdminRouter {
 			beameAuthServices.renewCert(fqdn).then(data => {
 				res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
-					"responseDesc":"Cert successfully renewed",
+					"responseDesc": "Cert successfully renewed",
 					data
 				});
-			}).catch(e=> {
+			}).catch(e => {
 				console.error('/cred/renew/', e);
-				 res.json({
+				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
@@ -152,12 +152,12 @@ class AdminRouter {
 			beameAuthServices.revokeCert(fqdn).then(data => {
 				res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
-					"responseDesc":"Cert successfully revoked",
+					"responseDesc": "Cert successfully revoked",
 					data
 				});
-			}).catch(e=> {
+			}).catch(e => {
 				console.error('/cred/renew/', e);
-				 res.json({
+				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
@@ -176,8 +176,8 @@ class AdminRouter {
 				});
 				//res.write(new Buffer(token.pfx, 'binary'));
 				res.end(data);
-			}).catch(e=>{
-				 res.json({
+			}).catch(e => {
+				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
@@ -192,28 +192,28 @@ class AdminRouter {
 				res.writeHead(200, {
 					'Content-Type':        'application/x-plist',
 					'Content-disposition': `attachment;filename=${fqdn}.mobileconfig`,
-					'Content-Length':       data.length
+					'Content-Length':      data.length
 				});
 				//res.write(new Buffer(token.pfx, 'binary'));
 				res.end(data);
-			}).catch(e=>{
-				 res.send(BeameLogger.formatError(e));
+			}).catch(e => {
+				res.send(BeameLogger.formatError(e));
 			})
 		});
 
 		this._router.post('/cred/set-vpn/:action', (req, res) => {
 
-			let fqdn = req.body.fqdn,
-			    name = req.body.name,
-				id = req.body.vpn_id,
-				action = req.params.action;
+			let fqdn   = req.body.fqdn,
+			    name   = req.body.name,
+			    id     = req.body.vpn_id,
+			    action = req.params.action;
 
-			beameAuthServices.setCredVpnStatus(fqdn,id,name,action).then(data => {
+			beameAuthServices.setCredVpnStatus(fqdn, id, name, action).then(data => {
 				res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
 					data
 				});
-			}).catch(e=>{
+			}).catch(e => {
 				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
@@ -223,15 +223,15 @@ class AdminRouter {
 
 		this._router.post('/send/pfx', (req, res) => {
 
-			let fqdn = req.body.fqdn,
-				email = req.body.email;
+			let fqdn  = req.body.fqdn,
+			    email = req.body.email;
 
-			beameAuthServices.sendPfx(fqdn,email).then(data => {
+			beameAuthServices.sendPfx(fqdn, email).then(data => {
 				res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
 					data
 				});
-			}).catch(e=>{
+			}).catch(e => {
 				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
@@ -239,23 +239,73 @@ class AdminRouter {
 			})
 		});
 
+		this._router.post('/dns/create', (req, res) => {
+
+			let body = req.body,
+			    data = {
+				    fqdn:     body.fqdn,
+				    dnsFqdn:  body.dnsFqdn,
+				    dnsValue: body.dnsValue
+			    };
+
+			beameAuthServices.saveDns(data).then(token => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": token.message,
+					"dnsValue":     token.value,
+					"data":         token.data
+				});
+			}).catch(e => {
+				logger.error('/dns/create', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			});
+
+		});
+
+		this._router.post('/dns/delete', (req, res) => {
+
+			let body = req.body,
+			    data = {
+				    fqdn:     body.fqdn,
+				    dnsFqdn:  body.dnsFqdn
+			    };
+
+			beameAuthServices.deleteDns(data).then(token => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": token.message,
+					"data":         token.data
+				});
+			}).catch(e => {
+				logger.error('/dns/create', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			});
+
+		});
+
 		this._router.post('/cred/create', (req, res) => {
 
-			let data = req.body;
-				data.save_creds = true; //data.save_creds === "on";
+			let data        = req.body;
+			data.save_creds = true; //data.save_creds === "on";
 
 			logger.info(`Create pfx  with ${CommonUtils.data}`);
 
-			function resolve(token) {
+			function resolve(msg) {
 
-					return res.json({
-						"responseCode": RESPONSE_SUCCESS_CODE,
-						"responseDesc":        token.fqdn
-					});
+				return res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": msg
+				});
 			}
 
 			function sendError(e) {
-				console.error('/regtoken/create error', e);
+				logger.error('/regtoken/create error', e);
 				return res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
