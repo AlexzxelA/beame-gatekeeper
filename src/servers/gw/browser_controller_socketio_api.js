@@ -173,22 +173,43 @@ const messageHandlers = {
 				let app = serviceManager.getAppById(payload.app_id);
 				if(payload.app_code && payload.app_code.includes('_saml_')){
 					let ssoManagerX = ssoManager.samlManager.getInstance();
-					let ssoPair = ssoManagerX.getSsoPair(payload.app_code);
-
-					ssoPair.idp.sendLoginResponse(ssoPair.sp, null, 'post', 'hujXXX', function (response) {
-						reply({
+					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
+					ssoConfig.user = {
+						user:           'testUserID@beame.io',
+						emails:         'testUserID@beame.io',
+						name:           {givenName:null, familyName:null},
+						displayName:    'testUserID@beame.io',
+						id:             1
+					};
+					let ssoSession = new ssoManager.samlSession(ssoConfig);
+					ssoSession.getSamlHtml((err, html)=>{
+						console.log('HTML::: '+ (html || err));
+						if(html)reply({
 							type: 'saml',
 							payload: {
 								success: true,
 								app_id: payload.app_id,
-								html: ssoManagerX.getSamlHtml(payload.app_code, response),
+								html: html,
 								external: app ? app.isRasp : false,
 								url: null
 							}
 						});
-						// response.title = 'POST data';
-						// res.render('actions', response);
-					}, null, true);
+					});
+
+					// ssoPair.idp.sendLoginResponse(ssoPair.sp, null, 'post', 'az@beame.io', function (response) {
+					// 	reply({
+					// 		type: 'saml',
+					// 		payload: {
+					// 			success: true,
+					// 			app_id: payload.app_id,
+					// 			html: ssoManagerX.getSamlHtml(payload.app_code, response),
+					// 			external: app ? app.isRasp : false,
+					// 			url: null
+					// 		}
+					// 	});
+					// 	// response.title = 'POST data';
+					// 	// res.render('actions', response);
+					// }, null, true);
 				}
 				else {
 					reply({

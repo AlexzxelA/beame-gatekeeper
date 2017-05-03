@@ -12,7 +12,13 @@ const path                  = require('path');
 let samlManagerInstance     = null;
 const handlebars            = require('handlebars');
 const fs                    = require('fs');
-
+const samlp                 = require('samlp');
+const parseXmlString        = require('xml2js').parseString;
+var xmldom                  = require('xmldom');
+var parser                  = require('xml2json');
+const x2js                  = require('x2js');
+var certPem                 = null;
+var keyPem                  = null;
 /*
 * SP Entity ID
 * RelayState - where-to redirect on successful login / boomerang in SP initiated session, 80 bytes max, need 2 protect
@@ -25,16 +31,21 @@ class samlManager{
 	constructor(cred){
 		this._cred = cred;
 
-		let _PKpath     = path.join(cred.metadata.path, Config.CertFileNames.PRIVATE_KEY),
-			_CertPath   = path.join(cred.metadata.path, Config.CertFileNames.P7B);
+		let PKpath     = path.join(cred.metadata.path, Config.CertFileNames.PRIVATE_KEY),
+			CertPath   = path.join(cred.metadata.path, Config.CertFileNames.P7B);
 		this._path      = cred.beameStoreServices._certsDir + '/sso/';
+		this._pkPath    = PKpath;
+		this._certPath  = CertPath;
 		this._sp        = null;//saml2.ServiceProvider(cred.beameStoreServices._certsDir + '/sso/testsp_saml_metadata.xml');
+		this._idp1      = {
+			entityID:'Beameio-SSO'
+		};
 		this._idp       = saml2.IdentityProvider({
 			entityID:'Beameio-SSO',
 			nameIDFormat:['urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'],
-			privateKeyFile: _PKpath,
+			privateKeyFile: PKpath,
 			privateKeyFilePass: '',
-			signingCertFile: _CertPath,
+			signingCertFile: CertPath,
 			singleSignOnService:[{
 				Binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
 				Location: 'https://'+cred.fqdn+'/ssoLogin'
@@ -56,9 +67,24 @@ class samlManager{
 		if(!samlManagerInstance)samlManagerInstance = this;
 	}
 
-	getSsoPair(spName){
-		this._sp = saml2.ServiceProvider(this._path + spName);
-		return {idp:this._idp, sp:this._sp};
+	getConfig(spName){
+		if(dir.doesPathExists(this._path + spName)){
+			if(!certPem)
+				certPem = dir.readFile(this._certPath);
+			if(!keyPem)
+				keyPem = dir.readFile(this._pkPath);
+			return {ssoPair:{idp:this._idp, sp:(this._path + spName)}, cred:this._cred,
+			cert: certPem, key: keyPem};
+			//this._sp = parser.toJson(dir.readFile(this._path + spName))
+		}
+			// this._sp = new xmldom.DOMParser().parseFromString(dir.readFile(this._path + spName)).documentElement;
+			// parseXmlString(dir.readFile(this._path + spName), (err, result)=>{
+			// 	if(!err && result){
+			// 		this._sp = JSON.parse(result);
+			// 	}
+			// });
+		// this._sp = saml2.ServiceProvider(this._path + spName);
+
 	}
 
 	getSamlHtml(spName, data){
@@ -87,11 +113,34 @@ class samlManager{
 
 
 class samlSession{
-	constructor(){
-
+	constructor(config){
+		this._ssoPair   = config.ssoPair;
+		this._cred      = config.cred;
+		this._user      = config.user;
+		this._cert      = config.cert;
+		this._key       = config.key;
 	}
-
+	getSamlHtml(cb){
+		const meta = require('./SPMetadataSAML');
+		const metadata = meta(this._ssoPair.sp);
+		const processLogin = samlp.auth({
+			audience:       metadata.getAssertionConsumerService('post'),//metadata.getEntityID(),
+			issuer:         'Beameio-SSO',//,
+			cert:           this._cert,
+			key:            this._key,
+			getPostURL:     () => {return metadata.getAssertionConsumerService('post')},
+			getUserFromRequest: () => {return this._user},
+			signatureNamespacePrefix: 'ds',
+			signResponse:   false,
+			signatureAlgorithm: 'rsa-sha256',
+			digestAlgorithm:    'sha256',
+			idpInitiatedSessionHandler: cb
+		});
+		processLogin();
+	}
 }
+
+
 
 module.exports = {
 	samlSession,
