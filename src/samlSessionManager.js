@@ -134,7 +134,9 @@ class samlSession{
 			signResponse:   false,
 			signatureAlgorithm: 'rsa-sha256',
 			digestAlgorithm:    'sha256',
-			idpInitiatedSessionHandler: cb
+			idpInitiatedSessionHandler: (err, response)=>{
+				cb(response);
+			}
 		});
 		processLogin();
 	}
