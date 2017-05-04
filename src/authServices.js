@@ -1487,6 +1487,8 @@ class BeameAuthServices {
 
 				data.isLocal = cred.hasKey("PRIVATE_KEY");
 
+				data.expired = cred.expired;
+
 				data.validTill = cred.getCertEnd();
 
 				data.vpn_server_fqdn = BeameAuthServices.findParentVpn(fqdn);
@@ -1638,7 +1640,7 @@ class BeameAuthServices {
 				cred.deleteDns(data.fqdn, data.dnsFqdn).then(value => {
 					cred.metadata = cred.beameStoreServices.readMetadataSync();
 					this.getCredDetail(fqdn).then(updatedCred => {
-						resolve({message: `Dns record deleted for ${value}`, value: value, data: updatedCred});
+						resolve({message: `Dns record deleted for ${data.dnsFqdn}`, data: updatedCred});
 					}).catch(reject);
 
 				}).catch(reject);

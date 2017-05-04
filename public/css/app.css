@@ -3278,6 +3278,63 @@ p + p {
   padding: 10px 0;
   margin: 5px 0; }
 
+.cert-wnd-container {
+  text-align: left !important;
+  font-family: sans-serif;
+  font-size: .72rem;
+  letter-spacing: .3px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #111; }
+  .cert-wnd-container .float-left {
+    float: left;
+    padding-right: 16px; }
+  .cert-wnd-container .crop {
+    padding: 0;
+    margin: 0; }
+  .cert-wnd-container .gray {
+    color: #555; }
+  .cert-wnd-container .bold {
+    font-weight: bold; }
+  .cert-wnd-container .vmiddle {
+    vertical-align: middle; }
+  .cert-wnd-container .pointer {
+    color: #888;
+    padding-right: .4rem;
+    font-size: 70%; }
+
+.cert-header {
+  width: 100%;
+  overflow: auto;
+  margin-bottom: 1.4rem; }
+
+.cert-content div span:first-child {
+  width: 140px;
+  display: inline-block;
+  font-weight: bold;
+  color: #888;
+  text-align: right;
+  padding-right: .4rem; }
+
+.cert-content div span:last-child {
+  width: calc(100% - 200px);
+  display: inline-block; }
+
+.cert-content div.title-divider {
+  margin-top: 1rem; }
+
+.cert-content div.title-divider span {
+  color: #ccc; }
+
+.cert-content div.title-divider span:last-child {
+  border-top: 1px solid #ddd;
+  line-height: 0; }
+
+.cert-content div.title-light span:first-child {
+  color: #ccc;
+  margin-top: .5rem; }
+
 .overlay {
   position: fixed;
   top: 0;

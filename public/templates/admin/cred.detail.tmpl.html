@@ -29,6 +29,7 @@
         padding-top: 0;
     }
 
+
 </style>
 
 <script id="tmpl-cred-detail" type="text/x-kendo-template">
@@ -39,38 +40,50 @@
             <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn"></span></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
             <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked"/></label>
-            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
+            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span
+                data-bind="text:parentName()"></span></label>
             <label class="lbl-info">Name: <span data-bind="text: data.name"></span></label>
             <label class="lbl-info">Email: <span data-bind="text: data.email"></span></label>
-            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span data-bind="text: data.pwd"></span></label>
+            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span
+                data-bind="text: data.pwd"></span></label>
         </form>
 
         <div class="btn-row">
             <h5>Cert Actions</h5>
             <input type="button" data-bind="click:openCertWnd" value="Cert Details" class="k-button">
-            <input type="button" name="btn-renew" data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew" class="k-button">
-            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke" class="k-button">
-            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="k-button">
+            <input type="button" name="btn-renew" data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew"
+                   class="k-button">
+            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke"
+                   class="k-button">
+            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge"
+                   class="k-button">
         </div>
 
         <div class="btn-row">
             <h5>Cred Actions</h5>
-            <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child" class="k-button">
-            <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd" value="Create Registration Token" class="k-button">
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child"
+                   class="k-button">
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd"
+                   value="Create Registration Token" class="k-button">
         </div>
 
 
         <div class="btn-row">
             <h5>Share Cred</h5>
-            <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post" class="admin-form-main">
+            <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post"
+                  class="admin-form-main">
                 <div id="send_pfx_form_info" class="invisible-msg">&nbsp;</div>
-                <input name="email" required type="email" placeholder="Email" data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
+                <input name="email" required type="email" placeholder="Email"
+                       data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
                 <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
-                <input type="button" id="btn-send-pfx-email" name="btn-email" data-bind="disabled:commonButtonDisabled" value="Send Pfx by Email" class="k-button">
+                <input type="button" id="btn-send-pfx-email" name="btn-email" data-bind="disabled:commonButtonDisabled"
+                       value="Send Pfx by Email" class="k-button">
             </form>
             <div>
-                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr" value="Show QR" class="k-button">
-                <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank" class="k-button inline">Download Pfx</a>
+                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr"
+                       value="Show QR" class="k-button">
+                <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank"
+                   class="k-button inline">Download Pfx</a>
             </div>
         </div>
 
@@ -79,11 +92,11 @@
             <div data-bind="visible:availableDnsRecords.length">
                 <form id="frm-create-dns" action='/dns/create' method="post" class="form-main admin-form-main">
                     <label class="lbl-info">Add DNS Record</label>
-                    <input  name="dnsFqdn"
-                            id="dnsFqdn"
-                            style="width:100%"
-                            placeholder="Select fqdn"
-                            required
+                    <input name="dnsFqdn"
+                           id="dnsFqdn"
+                           style="width:100%"
+                           placeholder="Select fqdn"
+                           required
                            data-role="combobox"
                            data-auto-bind="false"
                            data-text-field="fqdn"
@@ -91,7 +104,8 @@
                            data-bind="value:dnsFqdn,source:availableDnsRecords"
 
                     />
-                    <input type="text"  name="dnsValue" placeholder="Value: CN or IP (optional)" class="form-input" data-bind="value:dnsValue" />
+                    <input type="text" name="dnsValue" placeholder="Value: CN or IP (optional)" class="form-input"
+                           data-bind="value:dnsValue"/>
                     <input type="hidden" name="fqdn" data-bind="value:data.fqdn">
                     <div id="frm-dns-info" class="invisible-msg">&nbsp;</div>
                     <input type="submit" value="Create Dns Record" class="k-primary">
@@ -107,14 +121,14 @@
                 </tr>
                 </thead>
                 <tbody data-role="listview"
-                     data-edit-template="tmpl-edit-dns-row"
-                     data-template="tmpl-dns-row"
-                     data-bind="source: dnsRecords,
+                       data-edit-template="tmpl-edit-dns-row"
+                       data-template="tmpl-dns-row"
+                       data-bind="source: dnsRecords,
                             events: {
                               edit: onDnsEdit,
-
+                                remove:confirmDelete
                             }"
-                     >
+                >
                 </tbody>
                 <!--<tbody data-template="dns-row-template" data-bind="source: dnsRecords"></tbody>-->
             </table>
@@ -124,11 +138,14 @@
 
         <div class="btn-row">
             <h5>VPN Actions</h5>
-            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN" value="Set VPN" class="k-button">
-            <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
+            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN"
+                   value="Set VPN" class="k-button">
+            <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank"
+                  data-bind="visible:iosVpnProfileVisible">
                 <div id="ios-profile-info">&nbsp;</div>
                 <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
-                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr" value="Show Profile QR" class="k-button">
+                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr"
+                       value="Show Profile QR" class="k-button">
             </form>
 
         </div>
@@ -195,8 +212,12 @@
     <tr>
         <td data-bind="text: fqdn"></td>
         <td data-bind="text: value"></td>
-        <td><button data-bind="click: editDns">Edit</button></td>
-        <td><button data-bind="click: deleteDns">Delete</button></td>
+        <td>
+            <button data-bind="click: editDns">Edit</button>
+        </td>
+        <td>
+            <button data-bind="click: deleteDns">Delete</button>
+        </td>
     </tr>
 </script>
 
@@ -206,9 +227,12 @@
         <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
         <label class="lbl-info">Name: <span data-bind="text:data.name"></span></label>
         <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
-        <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email" />
-        <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password" class="form-input"/>
-        <label class="inline form-input" style="border: none;box-shadow: none">Send cred by email <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled /></label>
+        <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email"/>
+        <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password"
+               class="form-input"/>
+        <label class="inline form-input" style="border: none;box-shadow: none">Send cred by email <input type="checkbox"
+                                                                                                         data-bind="checked:sendEmail,enabled:email"
+                                                                                                         disabled/></label>
         <div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>
         <input type="button" value="Create Certificate" class="k-primary" data-bind="click:createCred">
     </form>
@@ -242,7 +266,8 @@
 
     <div id="reg-token-container" style="display:none;" class="form-main admin-form-main">
         <input type="button" id="btn-regtoken-back" value="back">
-        <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="k-button" data-clipboard-action="copy" />
+        <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="k-button"
+               data-clipboard-action="copy"/>
         <textarea id="reg_token" name="reg_token" style="width: 80%;margin: 15px 0 0;" rows="10"></textarea>
     </div>
 
@@ -257,15 +282,211 @@
 </script>
 
 <script id="tmpl-cert-detail" type="text/x-kendo-template">
-huy
+    <div class="cert-wnd-container">
+        <div class="cert-header">
+            <img class="float-left" src="img/cert.png" width="64" height="53">
+            <div class="float-left">
+                <h4 class="crop">#: commonName #</h4>
+                <div>Issued by: #: issuer.commonName #</div>
+                <div>Expires: #: notAfter #</div>
+                <div class="gray">
+                    # if(isValid) {#
+                    <img class="vmiddle" src="img/ok.png" width="10" height="10">&nbsp;<span class="vmiddle">This certificate is valid</span>
+                    #} else {#
+                    <img class="vmiddle" src="img/bad.svg" width="16" height="16">&nbsp;
+                    # if(expired) {#
+                    <span class="vmiddle">This certificate is expired</span>
+                    # }
+
+                    if(revoked) {#
+                    <span class="vmiddle">This certificate is revoked</span>
+                    # }
+                    } #
+                </div>
+            </div>
+        </div>
+
+        <div class="cert-content">
+
+            <p class="bold"><span class="pointer">▼</span>&nbsp;Details</p>
+
+            <div class="title-divider">
+                <span>Subject name</span>
+                <span>&nbsp;</span>
+            </div>
+
+            <div>
+                <span>Country</span>
+                <span>#: subject.countryName #</span>
+            </div>
+
+            <div>
+                <span>State/Province</span>
+                <span>#: subject.stateOrProvinceName #</span>
+            </div>
+
+            <div>
+                <span>Locality</span>
+                <span>#: subject.localityName #</span>
+            </div>
+
+            <div>
+                <span>Organization</span>
+                <span>#: subject.organizationName #</span>
+            </div>
+
+            <div>
+                <span>Common Name</span>
+                <span>#: subject.commonName #</span>
+            </div>
+
+
+            <div class="title-divider">
+                <span>Issuer Name</span>
+                <span>&nbsp;</span>
+            </div>
+
+            <div>
+                <span>Country</span>
+                <span>#: issuer.country #</span>
+            </div>
+
+            <div>
+                <span>Organization</span>
+                <span>#: issuer.organization #</span>
+            </div>
+
+            <div>
+                <span>Common Name</span>
+                <span>#: issuer.commonName #</span>
+            </div>
+
+
+            <div>
+                <span>Serial Number</span>
+                <span>#: serial #</span>
+            </div>
+
+            <div>
+                <span>Signature Algorithm</span>
+                <span>#: signatureAlgorithm #</span>
+            </div>
+
+
+            <div class="title-divider">
+                <span>Public Key Info</span>
+                <span>&nbsp;</span>
+            </div>
+
+            <div>
+                <span>Algorithm</span>
+                <span>#: publicKey.algorithm #</span>
+            </div>
+
+            <div>
+                <span>Key Size</span>
+                <span>#: publicKey.bitSize # bits</span>
+            </div>
+
+            <div class="title-divider">
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Key Usage</span>
+            </div>
+
+
+            <div>
+                <span>Usage</span>
+                <span>#: extensions.keyUsage#</span>
+            </div>
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Basic Constraints ( 2.5.29.19 )</span>
+            </div>
+
+            <div>
+                <span>Critical</span>
+                <span>#: extensions.basicConstraints #</span>
+            </div>
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Subject Key Identifier ( 2.5.29.14 )</span>
+            </div>
+
+            <div>
+                <span>Key ID</span>
+                <span>#: extensions.subjectKeyIdentifier #</span>
+            </div>
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Subject Alternative Name ( 2.5.29.17 )</span>
+            </div>
+
+            # for (var i = 0; i < altNames.length; i++) { #
+            <div>
+                # if(i >0) { #
+                <span>&nbsp;</span>
+                # } else { #
+                <span>DNS Names</span>
+                # } #
+
+                <span>#= altNames[i] #</span>
+            </div>
+            # } #
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Certificate Policies ( 2.5.29.32 )</span>
+            </div>
+
+            <div>
+                <span></span>
+                <span>#: extensions.certificatePolicies #</span>
+            </div>
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Certificate Authority Information Access ( 1.3.6.1.5.5.7.1.1 )</span>
+            </div>
+
+            <div>
+                <span></span>
+                <span>#: extensions.authorityInformationAccess #</span>
+            </div>
+
+            <div class="title-divider">
+                <span>Fingerprints</span>
+                <span></span>
+            </div>
+
+            <div>
+                <span>SHA-256</span>
+                <span>#: fingerPrint #</span>
+            </div>
+
+        </div>
+    </div>
 </script>
 
 <script id="tmpl-dns-row" type="text/x-kendo-template">
     <tr>
         <td style="width: 42%">#: fqdn #</td>
         <td style="width: 48%">#: value #</td>
-        <td style="width: 5%"><a class="k-button k-edit-button" href="\\#"><span class="k-icon k-i-edit"></span></a></td>
-        <td style="width: 5%"><a class="k-button k-delete-button" href="\\#"><span class="k-icon k-i-delete"></span></a></td>
+        <td style="width: 5%"><a class="k-button k-edit-button" href="\\#"><span class="k-icon k-i-edit"></span></a>
+        </td>
+        <td style="width: 5%"><a class="k-button k-delete-button" href="\\#" data-bind="click:deleteDns"><span
+            class="k-icon k-i-delete"></span></a></td>
     </tr>
 </script>
 
@@ -273,13 +494,13 @@ huy
     <tr>
         <td style="width: 42%">#: fqdn#</td>
         <td style="width: 48%">
-            <input type="text" class="k-textbox" data-bind="value:value" name="value" style="width:98%;" />
+            <input type="text" class="k-textbox" data-bind="value:value" name="value" style="width:98%;"/>
         </td>
         <td style="width: 5%">
             <a class="k-button k-update-button dns-update" href="\\#"><span class="k-icon k-i-check"></span></a>
-            <!--<input type="button" class="k-button dns-update"  value="update" data-bind="click:updateDns" />-->
         </td>
-        <td style="width: 5%"><a class="k-button k-cancel-button" href="\\#"><span class="k-icon k-i-cancel"></span></a></td>
+        <td style="width: 5%"><a class="k-button k-cancel-button" href="\\#"><span class="k-icon k-i-cancel"></span></a>
+        </td>
     </tr>
 </script>
 
@@ -296,10 +517,10 @@ huy
 <div id="create-regtoken-window" class="wnd-default"></div>
 
 <script>
-	var credDetailViewModel, vpnDetailViewModel,createCredViewModel,
+	var credDetailViewModel, vpnDetailViewModel, createCredViewModel,
 	    qrWnd       = $("#qr-window"),
 	    vpnWnd      = $('#vpn-window'),
-        certWnd     = $('#cert-window'),
+	    certWnd     = $('#cert-window'),
 	    credWnd     = $('#create-child-cred-window'),
 	    regtokenWnd = $('#create-regtoken-window');
 
@@ -413,7 +634,7 @@ huy
 	}
 
 	function initCredWindow() {
-		var template     = kendo.template($("#tmpl-create-child-cred").html());
+		var template = kendo.template($("#tmpl-create-child-cred").html());
 		credWnd.empty();
 		credWnd.kendoWindow({
 			width:   "440px",
@@ -453,11 +674,11 @@ huy
 			],
 			open:    function () {
 				new Clipboard('#copy-btn');
-				$('#copy-btn').attr("data-clipboard-target","#reg_token");
-				$('#btn-regtoken-back').off('click').on('click',function(){
+				$('#copy-btn').attr("data-clipboard-target", "#reg_token");
+				$('#btn-regtoken-back').off('click').on('click', function () {
 					$('#frm-create-regtoken').show();
 					$('#reg-token-container').hide();
-                });
+				});
 
 				$('#btn-create-regtoken').off('click').on('click', function (e) {
 					showLoader('wnd-overlay');
@@ -511,15 +732,16 @@ huy
 	function initCertWindow(certData) {
 		var template     = kendo.template($("#tmpl-cert-detail").html());
 		var certTemplate = template(certData);
+		console.log('certData', certData);
 		certWnd.empty();
 		certWnd.kendoWindow({
-			width:   "440px",
+			width:   "750px",
 			height:  "600px",
 			title:   "Certificate Details",
 			visible: false,
 			modal:   true,
 			content: {
-				template: template
+				template: certTemplate
 			},
 			actions: [
 				"Close"
@@ -551,14 +773,35 @@ huy
 		}
 	}
 
+	function handleDnsResponse(response) {
+		hideLoader();
+
+		if (response.responseCode == 1) {
+
+			$("#frm-dns-info").removeClass('ad-error').addClass('ad-success');
+
+			if (response.data) {
+				credDetailViewModel.set("data", response.data);
+				credDetailViewModel.set('dnsRecords', response.data.dnsRecords || []);
+				credDetailViewModel.set("dnsFqdn", null);
+				credDetailViewModel.set("dnsValue", null);
+				credDetailViewModel.set("availableDnsRecords", credDetailViewModel.getAvailableDnsRecords());
+			}
+		}
+		else {
+			$("#frm-dns-info").removeClass('ad-success').addClass('ad-error');
+		}
+		$("#frm-dns-info").html(response.responseDesc);
+	};
+
 	function loadCredDetail(data) {
-		console.log('huy',data);
+		console.log(data);
 		window.getNotifManagerInstance().subscribe('MenuClicked', function () {
 			closeWnd();
 		});
 
 		credDetailViewModel = kendo.observable({
-			init:                 function () {
+			init: function () {
 
 				closeWnd();
 
@@ -574,7 +817,7 @@ huy
 
 				$('#ios-profile-form').attr('action', this.iosProfileLink());
 
-                this.initDnsModel();
+				this.initDnsModel();
 			},
 
 			revokeDisabled:       true,
@@ -624,8 +867,13 @@ huy
 				initRegtokenWindow(this.data.fqdn, this.data.name);
 				regtokenWnd.data("kendoWindow").center().open();
 			},
-            openCertWnd:  function () {
-				initCertWindow(this.data.certData);
+			openCertWnd:      function () {
+
+				var certData     = this.data.certData;
+				certData.revoked = this.data.revoked;
+				certData.expired = this.data.expired;
+				certData.isValid = !certData.revoked && !certData.expired;
+				initCertWindow(certData);
 				certWnd.data("kendoWindow").center().open();
 			},
 			renewCert:        function () {
@@ -686,80 +934,102 @@ huy
 				});
 			},
 
-            //DNS record
-            dnsRecords:[],
-			availableDnsRecords:[],
-            dnsFqdn:null,
-            dnsValue:null,
-            initDnsModel:function(){
-	            var $this = this;
+			//DNS record
+			dnsRecords:             [],
+			availableDnsRecords:    [],
+			dnsFqdn:                null,
+			dnsValue:               null,
+			initDnsModel:           function () {
+				var $this = this;
 
-	            this.set('dnsRecords',this.data.dnsRecords || []);
+				this.set('dnsRecords', this.data.dnsRecords || []);
 
-	            var   handleDnsResponse = function handleDnsResponse(response) {
-		            hideLoader();
+				$('#frm-create-dns').submit(function () {
+					showLoader();
+					$(this).ajaxSubmit({
+						error:   handleDnsResponse,
+						success: handleDnsResponse
+					});
+					//Very important line, it disable the page refresh.
+					return false;
+				});
 
-		            if (response.responseCode == 1) {
+				this.set("availableDnsRecords", this.getAvailableDnsRecords());
 
-			            $("#frm-dns-info").removeClass('ad-error').addClass('ad-success');
+			},
+			getAvailableDnsRecords: function () {
+				try {
+					var dnsRec = this.dnsRecords || [];
 
-			            if (response.data) {
-                            credDetailViewModel.set("data", response.data);
-				            credDetailViewModel.set('dnsRecords',response.data.dnsRecords || []);
-				            credDetailViewModel.set("dnsFqdn",null);
-				            credDetailViewModel.set("dnsValue",null);
-				            credDetailViewModel.set("availableDnsRecords",credDetailViewModel.getAvailableDnsRecords());
-			            }
-		            }
-		            else {
-			            $("#frm-dns-info").removeClass('ad-success').addClass('ad-error');
+					var list = this.data.certData.altNames.filter(function (el) {
+						return !dnsRec.map(function (item) {
+							return item.fqdn;
+						}).includes(el);
+					}).map(function (item) {
+						return {fqdn: item};
+					});
 
-		            }
-		            $("#frm-dns-info").html(response.responseDesc);
-	            };
+					console.log(list);
 
-	            $('#frm-create-dns').submit(function () {
-		            showLoader();
-		            $(this).ajaxSubmit({
-			            error: handleDnsResponse,
-			            success: handleDnsResponse
-		            });
-		            //Very important line, it disable the page refresh.
-		            return false;
-	            });
+					if (list.length) {
+						this.set("dnsFqdn", list[0]);
+					}
 
-	            this.set("availableDnsRecords",this.getAvailableDnsRecords());
+					return list;
+				} catch (e) {
+					return [];
+				}
+			},
+			updateDns:              function (model) {
+				console.log('update', model);
+				showLoader();
 
-            },
-            getAvailableDnsRecords:function(){
-	            try {
-		            var dnsRec = this.dnsRecords || [];
+				var fqdn     = this.get("fqdn"),
+				    formData = {
+					    fqdn:     this.get('data.fqdn'),
+					    dnsFqdn:  model.fqdn,
+					    dnsValue: model.value
+				    };
+				console.log('form data', formData);
+				$.ajax({
+					url:         '/dns/create',
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        'Post',
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   handleDnsResponse
+				});
+			},
+			confirmDelete:          function (e) {
+				e.preventDefault();
+			},
+			deleteDns:              function (e) {
+				e.preventDefault();
+				if (!confirm("Are you sure?")) return;
+				var data = e.data;
+				console.log('delete', data);
 
-		            var list   = this.data.certData.altNames.filter(function (el) {
-			            return !dnsRec.map(function (item) {
-				            return item.fqdn;
-			            }).includes(el);
-		            }).map(function(item){
-			            return {fqdn:item};
-		            });
+				showLoader();
 
-		            console.log(list);
-
-		            if(list.length){
-		            	this.set("dnsFqdn",list[0]);
-                    }
-
-		            return list;
-	            } catch (e) {
-	            	return [];
-	            }
-            },
-            updateDns:function (model) {
-                console.log('update',model);
-            },
-			onDnsEdit:function (e) {
-				e.item.find('.dns-update').off('click').on('click',this.updateDns.bind(null,e.model));
-            }
+				formData = {
+					fqdn:    credDetailViewModel.get('data.fqdn'),
+					dnsFqdn: data.fqdn
+				};
+				console.log('form data', formData);
+				$.ajax({
+					url:         '/dns/delete',
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        'Post',
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   handleDnsResponse
+				});
+			},
+			onDnsEdit:              function (e) {
+				e.item.find('.dns-update').off('click').on('click', this.updateDns.bind(credDetailViewModel, e.model));
+			}
 
 		});
 
@@ -790,57 +1060,57 @@ huy
 		});
 
 		createCredViewModel = kendo.observable({
-            init:function(){
-                this.set("fqdn",data.fqdn);
-            },
-			data:data,
-            fqdn:null,
-            email:null,
-            name:null,
-            password:null,
-            sendEmail:false,
-            createCred:function(e){
+			init:       function () {
+				this.set("fqdn", data.fqdn);
+			},
+			data:       data,
+			fqdn:       null,
+			email:      null,
+			name:       null,
+			password:   null,
+			sendEmail:  false,
+			createCred: function (e) {
 
-	            showLoader('wnd-overlay');
-	            e.preventDefault();
-	            var form     = $('#frm-create-child-cred'),
-	                url      = form.attr('action'),
-	                method   = form.attr('method'),
-                    fqdn=  this.get("fqdn"),
-	                formData = {
-		                fqdn:     fqdn,
-		                name:     this.get("name"),
-		                email:    this.get("email"),
-		                password: this.get("password"),
-		                sendEmail:this.get("sendEmail")
-	                };
-	            console.log('form data', formData);
-	            $.ajax({
-		            url:         url,
-		            cache:       false,
-		            data:        JSON.stringify(formData),
-		            type:        method,
-		            datatype:    "json",
-		            contentType: "application/json; charset=utf-8"
-		            , success:   function (response) {
+				showLoader('wnd-overlay');
+				e.preventDefault();
+				var form     = $('#frm-create-child-cred'),
+				    url      = form.attr('action'),
+				    method   = form.attr('method'),
+				    fqdn     = this.get("fqdn"),
+				    formData = {
+					    fqdn:      fqdn,
+					    name:      this.get("name"),
+					    email:     this.get("email"),
+					    password:  this.get("password"),
+					    sendEmail: this.get("sendEmail")
+				    };
+				console.log('form data', formData);
+				$.ajax({
+					url:         url,
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        method,
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
 
-			            hideLoader('wnd-overlay');
-			            var info = $('#create-child-cred-info');
-			            console.log(response);
-			            if (response.responseCode == 1) {
+						hideLoader('wnd-overlay');
+						var info = $('#create-child-cred-info');
+						console.log(response);
+						if (response.responseCode == 1) {
 
-				            info.removeClass('ad-error').addClass('ad-success');
-				            window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn})
-			            }
-			            else {
-				            info.removeClass('ad-success').addClass('ad-error');
+							info.removeClass('ad-error').addClass('ad-success');
+							window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn})
+						}
+						else {
+							info.removeClass('ad-success').addClass('ad-error');
 
-			            }
-			            info.html(response.responseDesc);
-		            }
-	            });
-            }
-        });
+						}
+						info.html(response.responseDesc);
+					}
+				});
+			}
+		});
 
 	}
 </script>
