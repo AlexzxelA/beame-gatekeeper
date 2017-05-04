@@ -78,7 +78,7 @@
         <div class="btn-row" data-bind="visible:data.isLocal">
             <h5>DNS</h5>
             <div data-bind="visible:availableDnsRecords.length">
-                <form id="frm-create-dns" action='/dns/create' method="post" class="form-main admin-form-main">
+                <form id="frm-create-dns" action='/dns/create' method="post" class="form-main admin-form-main add-dns-form">
                     <label class="lbl-info">Add DNS Record</label>
                     <input name="dnsFqdn"
                            id="dnsFqdn"
@@ -92,7 +92,15 @@
                            data-bind="value:dnsFqdn,source:availableDnsRecords"
 
                     />
-                    <input type="text" name="dnsValue" placeholder="Value: CN or IP (optional)" class="form-input" data-bind="value:dnsValue"/>
+                    <div style="height: 40px">
+                        <label class="secondary-label" style="width: 100px">Use Beame edge </label> <input type="radio"  name="dns-method-radio" data-bind="attr:{value:dnsMethods.BeameEdge}, checked:selectedDnsMethod, click:onDnsMethodChanged" />
+                    </div>
+
+                    <div style="height: 40px">
+                        <label class="secondary-label" style="width: 100px">Custom</label>  <input type="radio" value="1" name="dns-method-radio" data-bind="attr:{value:dnsMethods.Custom}, checked:selectedDnsMethod, click:onDnsMethodChanged" />
+                        <input type="text" name="dnsValue" placeholder="Value: CN or IP" class="k-input" data-bind="value:dnsValue, enabled:dnsValueEnabled" style="width: 350px"/>
+                    </div>
+
                     <input type="hidden" name="fqdn" data-bind="value:data.fqdn">
                     <div id="frm-dns-info" class="invisible-msg">&nbsp;</div>
                     <input type="submit" value="Create Dns Record" class="k-primary">
@@ -904,8 +912,27 @@
 			availableDnsRecords:    [],
 			dnsFqdn:                null,
 			dnsValue:               null,
+            dnsMethods:{
+				BeameEdge:0,
+                Custom:1
+            },
+            selectedDnsMethod:null,
+			dnsValueEnabled:function(){
+                return this.get("selectedDnsMethod") == this.dnsMethods.Custom;
+            },
+			onDnsMethodChanged:function(e){
+			    var m = parseInt($(e.currentTarget).val());
+
+                if(m == this.dnsMethods.BeameEdge) {
+                	this.set("dnsValue",null);
+                }
+
+                this.set("selectedDnsMethod",m);
+            },
 			initDnsModel:           function () {
 				var $this = this;
+
+				this.set('selectedDnsMethod', this.dnsMethods.BeameEdge);
 
 				this.set('dnsRecords', this.data.dnsRecords || []);
 

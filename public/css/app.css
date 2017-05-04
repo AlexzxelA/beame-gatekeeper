@@ -3278,6 +3278,11 @@ p + p {
   padding: 10px 0;
   margin: 5px 0; }
 
+.add-dns-form .secondary-label {
+  font-size: 13px;
+  display: inline-block;
+  padding-top: 15px; }
+
 .cert-wnd-container {
   text-align: left !important;
   font-family: sans-serif;

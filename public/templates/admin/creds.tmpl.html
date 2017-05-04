@@ -17,13 +17,12 @@
     <div id="creds-tree-container" style="display: inline-block; width:39%;vertical-align: top">
         <label>Exclude revoked:<input type="checkbox" id="chk-exclude-revoke" onchange="rebindTree()"/></label>
         <br/>
-        <label>Find <input type="text" id="inp-find-cred"/> <input type="button" value="Search" class="k-button"
-                                                                   onclick="findCreds()"/></label>
+        <label>Find <input type="text" id="inp-find-cred"/> <input type="button" value="Search" class="k-button" onclick="findCreds()"/></label>
+        <a style="display: inline-block;" id="btn-refresh-tree"></a>
         <br/>
         <div id="creds-tree"></div>
     </div>
-    <div id="cred-detail"
-         style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
+    <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
 <script id="treeview-template" type="text/kendo-ui-template">
     # if (item.revoked) { #
@@ -103,12 +102,12 @@
 			var fqdn = args.fqdn;
 			if (!fqdn) return;
 
-			var treeview = credsTree.data("kendoTreeView"),
+			var tv = credsTree.data("kendoTreeView"),
                 dataItem = getTreeNode(fqdn);
 
 			if (dataItem) {
 
-				var node       = treeview.findByUid(dataItem.uid);
+				var node       = tv.findByUid(dataItem.uid);
 				var isExpanded = $(node).attr("data-expanded");
 
 				if (typeof isExpanded !== 'undefined') {
@@ -223,6 +222,13 @@
 				}
 
 			}
+		});
+
+		$("#btn-refresh-tree").kendoButton({
+			icon: "refresh",
+			click: function(){
+				credsTree.data("kendoTreeView").dataSource.read();
+            }
 		});
 	}
 

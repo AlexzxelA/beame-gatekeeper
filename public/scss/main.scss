@@ -495,11 +495,18 @@ p + p {
   display:inline-block;;
 }
 .btn-row {
-
   border-bottom: dotted 1px #ededed;
   padding: 10px 0;
   margin: 5px 0
 }
+.add-dns-form{
+  .secondary-label{
+    font-size: 13px;
+    display: inline-block;
+    padding-top: 15px;
+  }
+}
+
 
 // cert details window
 .cert-wnd-container{
