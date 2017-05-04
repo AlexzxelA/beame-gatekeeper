@@ -1,3 +1,4 @@
+<!--suppress ALL -->
 <style>
     .metrotable > thead > tr > th {
         padding: 2em 1em 0 0;
@@ -27,39 +28,118 @@
         font-size: 14px;
         padding-top: 0;
     }
+
+
 </style>
-<script src="lib/kendo-2016.3.1118.qr.min.js"></script>
-<script type="text/x-kendo-template" id="tmpl-cred-detail">
 
-
+<script id="tmpl-cred-detail" type="text/x-kendo-template">
     <h4>Cred Details</h4>
     <section id="cred-form-container" style="margin-bottom: 50px">
-        <form id="cred-detail-form" class="form-main admin-form-main">
-            <div id="pfx-info">&nbsp;</div>
+        <form id="cred-detail-form" class="admin-form-main">
+            <div id="cred-info" class="invisible-msg">&nbsp;</div>
             <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn"></span></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
-            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span
-                data-bind="text:parentName()"></span></label>
+            <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked"/></label>
+            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
             <label class="lbl-info">Name: <span data-bind="text: data.name"></span></label>
             <label class="lbl-info">Email: <span data-bind="text: data.email"></span></label>
-            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span
-                data-bind="text: data.pwd"></span></label>
-            <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank">Download Pfx</a>
-
-            <!--<input type="button" name="btn-renew" value="Renew" class="button">-->
-            <!--<input type="button" name="btn-revoke" value="Revoke" class="button">-->
-            <!--<input type="button" data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="button">-->
+            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span data-bind="text: data.pwd"></span></label>
         </form>
 
-        <form id="send_pfx_form" action="/send/pfx" data-bind="visible:data.pwd" method="post"
-              class="form-main admin-form-main">
-            <div id="send_pfx_form_info">&nbsp;</div>
-            <input name="email" required type="email" placeholder="Email" data-bind="value: data.email"
-                   class="form-input"/>
-            <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
-            <input type="submit" name="btn-email" value="Send Pfx by Email" class="button">
-            <input type="button" name="btn-qr" data-bind="click: showQr" value="Show QR" class="button">
-        </form>
+        <div class="btn-row">
+            <h5>Cert Actions</h5>
+            <input type="button" data-bind="click:openCertWnd" value="Cert Details" class="k-button">
+            <input type="button" name="btn-renew" data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew" class="k-button">
+            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke" class="k-button">
+            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="k-button">
+        </div>
+
+        <div class="btn-row">
+            <h5>Cred Actions</h5>
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child" class="k-button">
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd" value="Create Registration Token" class="k-button">
+        </div>
+
+
+        <div class="btn-row">
+            <h5>Share Cred</h5>
+            <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post" class="admin-form-main">
+                <div id="send_pfx_form_info" class="invisible-msg">&nbsp;</div>
+                <input name="email" required type="email" placeholder="Email" data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
+                <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
+                <input type="button" id="btn-send-pfx-email" name="btn-email" data-bind="disabled:commonButtonDisabled" value="Send Pfx by Email" class="k-button">
+            </form>
+            <div>
+                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr" value="Show QR" class="k-button">
+                <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank" class="k-button inline">Download Pfx</a>
+            </div>
+        </div>
+
+        <div class="btn-row" data-bind="visible:data.isLocal">
+            <h5>DNS</h5>
+            <div data-bind="visible:availableDnsRecords.length">
+                <form id="frm-create-dns" action='/dns/create' method="post" class="form-main admin-form-main add-dns-form">
+                    <label class="lbl-info">Add DNS Record</label>
+                    <input name="dnsFqdn"
+                           id="dnsFqdn"
+                           style="width:100%"
+                           placeholder="Select fqdn"
+                           required
+                           data-role="combobox"
+                           data-auto-bind="false"
+                           data-text-field="fqdn"
+                           data-value-field="fqdn"
+                           data-bind="value:dnsFqdn,source:availableDnsRecords"
+
+                    />
+                    <div style="height: 40px">
+                        <label class="secondary-label" style="width: 100px">Use Beame edge </label> <input type="radio"  name="dns-method-radio" data-bind="attr:{value:dnsMethods.BeameEdge}, checked:selectedDnsMethod, click:onDnsMethodChanged" />
+                    </div>
+
+                    <div style="height: 40px">
+                        <label class="secondary-label" style="width: 100px">Custom</label>  <input type="radio" value="1" name="dns-method-radio" data-bind="attr:{value:dnsMethods.Custom}, checked:selectedDnsMethod, click:onDnsMethodChanged" />
+                        <input type="text" name="dnsValue" placeholder="Value: CN or IP" class="k-input" data-bind="value:dnsValue, enabled:dnsValueEnabled" style="width: 350px"/>
+                    </div>
+
+                    <input type="hidden" name="fqdn" data-bind="value:data.fqdn">
+                    <div id="frm-dns-info" class="invisible-msg">&nbsp;</div>
+                    <input type="submit" value="Create Dns Record" class="k-primary">
+                </form>
+            </div>
+            <table class="metrotable">
+                <thead>
+                <tr>
+                    <th style="width: 42%">Fqdn</th>
+                    <th style="width: 48%">Value</th>
+                    <th style="width: 5%"></th>
+                    <th style="width: 5%"></th>
+                </tr>
+                </thead>
+                <tbody data-role="listview"
+                       data-edit-template="tmpl-edit-dns-row"
+                       data-template="tmpl-dns-row"
+                       data-bind="source: dnsRecords,
+                            events: {
+                              edit: onDnsEdit,
+                                remove:confirmDelete
+                            }"
+                >
+                </tbody>
+            </table>
+
+        </div>
+
+
+        <div class="btn-row">
+            <h5>VPN Actions</h5>
+            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN" value="Set VPN" class="k-button">
+            <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
+                <div id="ios-profile-info">&nbsp;</div>
+                <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
+                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr" value="Show Profile QR" class="k-button">
+            </form>
+
+        </div>
 
         <div data-bind="visible:data.actions.length">
             <h5>History</h5>
@@ -68,6 +148,7 @@
                 <tr>
                     <th>Action</th>
                     <th>Email</th>
+                    <th>Name</th>
                     <th>Date</th>
                 </tr>
                 </thead>
@@ -79,98 +160,949 @@
 
 
 </script>
-<div id="qr-window" style="display: none;text-align: center">
-    <div id="download-qr" style="margin: auto;width: 300px"></div>
-</div>
+
+<script id="vpn-detail" type="text/x-kendo-template">
+    <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
+    <form id="frm-vpn-detail" method="post" action="/cred/set-vpn/create" class="admin-form-main" style="width:400px">
+        <div id="frm-vpn-detail_info" class="invisible-msg">&nbsp;</div>
+        <input type="hidden" name="vpn_id" data-bind="value:vpnId">
+        <input name="name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
+        <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
+        <input type="submit" name="btn-set-vpn" value="Set VPN" class="k-button">
+        <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN" class="k-button">
+    </form>
+
+    <form id="frm-vpn-delete" method="post" action="/cred/set-vpn/delete">
+        <input name="vpn_id" type="hidden" data-bind="value:vpnId">
+        <input name="name" type="hidden" data-bind="value:name"/>
+        <input name="fqdn" type="hidden" data-bind="value:data.fqdn"/>
+    </form>
+
+
+    <div id="wnd-overlay" class="overlay" style="max-height: 100% !important">
+        <div>
+            <h3>Processing Request</h3>
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+        </div>
+    </div>
+</script>
 
 <script id="history-row-template" type="text/x-kendo-template">
     <tr>
         <td data-bind="text: action"></td>
         <td data-bind="text: email"></td>
+        <td data-bind="text: name"></td>
         <td data-bind="text: dateStr"></td>
     </tr>
 </script>
 
+<script id="tmpl-create-child-cred" type="text/x-kendo-template">
+    <form id="frm-create-child-cred" action='/cred/create' method="post" class="form-main admin-form-main">
+        <label class="lbl-info">Create child credential for</label>
+        <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
+        <label class="lbl-info">Name: <span data-bind="text:data.name"></span></label>
+        <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
+        <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email"/>
+        <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password" class="form-input"/>
+        <label class="inline form-input" style="border: none;box-shadow: none">Send cred by email <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/></label>
+        <div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>
+        <input type="button" value="Create Certificate" class="k-primary" data-bind="click:createCred">
+    </form>
+    <div id="wnd-overlay" class="overlay" style="max-height: 100% !important">
+        <div>
+            <h3>Processing Request</h3>
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+        </div>
+    </div>
+</script>
+
+<script id="tmpl-create-regtoken" type="text/x-kendo-template">
+    <form id="frm-create-regtoken" action='/regtoken/create' method="post" class="form-main admin-form-main">
+
+        <label class="lbl-info">Create registration token signed by</label>
+        <label class="lbl-info">Fqdn: #: fqdn#</label>
+        # if(name) {#
+        <label class="lbl-info">Name: #: name#</label>
+        # } #
+        <input id="fqdn" type="hidden" name="fqdn" value="#: fqdn#"/>
+        <input name="name" placeholder="Name" class="form-input"/>
+        <input name="email" type="email" placeholder="Email" class="form-input"/>
+        <input name="user_id" placeholder="External user ID" class="form-input"/>
+        <input name="ttl" placeholder="Token TTL in seconds" class="form-input"/>
+
+        <div id="token-info" class="invisible-msg">&nbsp;</div>
+        <input type="button" value="Create Registration Token" class="k-primary" id="btn-create-regtoken">
+    </form>
+
+    <div id="reg-token-container" style="display:none;" class="form-main admin-form-main">
+        <input type="button" id="btn-regtoken-back" value="back">
+        <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="k-button" data-clipboard-action="copy"/>
+        <textarea id="reg_token" name="reg_token" style="width: 80%;margin: 15px 0 0;" rows="10"></textarea>
+    </div>
+
+    <div id="wnd-overlay" class="overlay" style="max-height: 100% !important">
+        <div>
+            <h3>Processing Request</h3>
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+        </div>
+    </div>
+</script>
+
+<script id="tmpl-cert-detail" type="text/x-kendo-template">
+    <div class="cert-wnd-container">
+        <div class="cert-header">
+            <img class="float-left" src="img/cert.png" width="64" height="53">
+            <div class="float-left">
+                <h4 class="crop">#: commonName #</h4>
+                <div>Issued by: #: issuer.commonName #</div>
+                <div>Expires: #: notAfter #</div>
+                <div class="gray">
+                    # if(isValid) {#
+                    <img class="vmiddle" src="img/ok.png" width="10" height="10">&nbsp;<span class="vmiddle">This certificate is valid</span>
+                    #} else {#
+                    <img class="vmiddle" src="img/bad.svg" width="16" height="16">&nbsp;
+                    # if(expired) {#
+                    <span class="vmiddle">This certificate is expired</span>
+                    # }
+
+                    if(revoked) {#
+                    <span class="vmiddle">This certificate is revoked</span>
+                    # }
+                    } #
+                </div>
+            </div>
+        </div>
+
+        <div class="cert-content">
+
+            <p class="bold"><span class="pointer">▼</span>&nbsp;Details</p>
+
+            <div class="title-divider">
+                <span>Subject name</span>
+                <span>&nbsp;</span>
+            </div>
+
+            <div>
+                <span>Country</span>
+                <span>#: subject.countryName #</span>
+            </div>
+
+            <div>
+                <span>State/Province</span>
+                <span>#: subject.stateOrProvinceName #</span>
+            </div>
+
+            <div>
+                <span>Locality</span>
+                <span>#: subject.localityName #</span>
+            </div>
+
+            <div>
+                <span>Organization</span>
+                <span>#: subject.organizationName #</span>
+            </div>
+
+            <div>
+                <span>Common Name</span>
+                <span>#: subject.commonName #</span>
+            </div>
+
+
+            <div class="title-divider">
+                <span>Issuer Name</span>
+                <span>&nbsp;</span>
+            </div>
+
+            <div>
+                <span>Country</span>
+                <span>#: issuer.country #</span>
+            </div>
+
+            <div>
+                <span>Organization</span>
+                <span>#: issuer.organization #</span>
+            </div>
+
+            <div>
+                <span>Common Name</span>
+                <span>#: issuer.commonName #</span>
+            </div>
+
+
+            <div>
+                <span>Serial Number</span>
+                <span>#: serial #</span>
+            </div>
+
+            <div>
+                <span>Signature Algorithm</span>
+                <span>#: signatureAlgorithm #</span>
+            </div>
+
+
+            <div class="title-divider">
+                <span>Public Key Info</span>
+                <span>&nbsp;</span>
+            </div>
+
+            <div>
+                <span>Algorithm</span>
+                <span>#: publicKey.algorithm #</span>
+            </div>
+
+            <div>
+                <span>Key Size</span>
+                <span>#: publicKey.bitSize # bits</span>
+            </div>
+
+            <div class="title-divider">
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Key Usage</span>
+            </div>
+
+
+            <div>
+                <span>Usage</span>
+                <span>#: extensions.keyUsage#</span>
+            </div>
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Basic Constraints ( 2.5.29.19 )</span>
+            </div>
+
+            <div>
+                <span>Critical</span>
+                <span>#: extensions.basicConstraints #</span>
+            </div>
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Subject Key Identifier ( 2.5.29.14 )</span>
+            </div>
+
+            <div>
+                <span>Key ID</span>
+                <span>#: extensions.subjectKeyIdentifier #</span>
+            </div>
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Subject Alternative Name ( 2.5.29.17 )</span>
+            </div>
+
+            # for (var i = 0; i < altNames.length; i++) { #
+            <div>
+                # if(i >0) { #
+                <span>&nbsp;</span>
+                # } else { #
+                <span>DNS Names</span>
+                # } #
+
+                <span>#= altNames[i] #</span>
+            </div>
+            # } #
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Certificate Policies ( 2.5.29.32 )</span>
+            </div>
+
+            <div>
+                <span></span>
+                <span>#: extensions.certificatePolicies #</span>
+            </div>
+
+
+            <div class="title-light">
+                <span>Extension</span>
+                <span>Certificate Authority Information Access ( 1.3.6.1.5.5.7.1.1 )</span>
+            </div>
+
+            <div>
+                <span></span>
+                <span>#: extensions.authorityInformationAccess #</span>
+            </div>
+
+            <div class="title-divider">
+                <span>Fingerprints</span>
+                <span></span>
+            </div>
+
+            <div>
+                <span>SHA-256</span>
+                <span>#: fingerPrint #</span>
+            </div>
+
+        </div>
+    </div>
+</script>
+
+<script id="tmpl-dns-row" type="text/x-kendo-template">
+    <tr>
+        <td style="width: 42%">#: fqdn #</td>
+        <td style="width: 48%">#: value #</td>
+        <td style="width: 5%"><a class="k-button k-edit-button" href="\\#"><span class="k-icon k-i-edit"></span></a>
+        </td>
+        <td style="width: 5%"><a class="k-button k-delete-button" href="\\#" data-bind="click:deleteDns"><span class="k-icon k-i-delete"></span></a></td>
+    </tr>
+</script>
+
+<script id="tmpl-edit-dns-row" type="text/x-kendo-template">
+    <tr>
+        <td style="width: 42%">#: fqdn#</td>
+        <td style="width: 48%">
+            <input type="text" class="k-textbox" data-bind="value:value" name="value" style="width:98%;"/>
+        </td>
+        <td style="width: 5%">
+            <a class="k-button k-update-button dns-update" href="\\#"><span class="k-icon k-i-check"></span></a>
+        </td>
+        <td style="width: 5%"><a class="k-button k-cancel-button" href="\\#"><span class="k-icon k-i-cancel"></span></a>
+        </td>
+    </tr>
+</script>
+
+<div id="qr-window" class="wnd-default">
+    <div id="download-qr" style="margin: auto;width: 300px"></div>
+</div>
+
+<div id="vpn-window" class="wnd-default"></div>
+
+<div id="cert-window" class="wnd-default"></div>
+
+<div id="create-child-cred-window" class="wnd-default"></div>
+
+<div id="create-regtoken-window" class="wnd-default"></div>
+
 <script>
-	var viewModel, qrWnd = $("#qr-window");
+	var credDetailViewModel, vpnDetailViewModel, createCredViewModel,
+	    qrWnd       = $("#qr-window"),
+	    vpnWnd      = $('#vpn-window'),
+	    certWnd     = $('#cert-window'),
+	    credWnd     = $('#create-child-cred-window'),
+	    regtokenWnd = $('#create-regtoken-window');
+
+	function closeWnd() {
+		$(".k-window .k-window-content").each(function (index, element) {
+			$(element).data("kendoWindow").close();
+		});
+	}
+
+	function bindEmailEvent() {
+
+		$('#btn-send-pfx-email').off('click').on('click', function (e) {
+
+			e.preventDefault();
+
+			showLoader();
+
+			var form     = $('#frm-send-pfx-email'),
+			    url      = form.attr('action'),
+			    method   = form.attr('method'),
+			    formData = {
+				    fqdn:  form.find('input[name="fqdn"]').val(),
+				    email: form.find('input[name="email"]').val()
+			    };
+			console.log('form data', formData);
+			$.ajax({
+				url:         url,
+				cache:       false,
+				data:        JSON.stringify(formData),
+				type:        method,
+				datatype:    "json",
+				contentType: "application/json; charset=utf-8"
+				, success:   function (response) {
+
+					hideLoader();
+					if (response.responseCode == 1) {
+						response.responseDesc = 'Email sent to ' + ( $('#frm-send-pfx-email input[name="email"]').val());
+						$("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
+						if (response.data && credDetailViewModel) {
+							credDetailViewModel.set("data", response.data);
+						}
+
+					}
+					else {
+						$("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
+
+					}
+					$("#send_pfx_form_info").html(response.responseDesc);
+				}
+			});
+		});
+	}
+
+	function setVpn() {
+		showLoader('wnd-overlay');
+
+		var handleSendCredResponse = function (response) {
+			hideLoader('wnd-overlay');
+
+			if (response.responseCode == 1) {
+				response.responseDesc = 'Vpn settings saved';
+				$("#frm-vpn-detail_info").removeClass('ad-error').addClass('ad-success');
+				if (response.data) {
+					if (credDetailViewModel) {
+						credDetailViewModel.set("data", response.data);
+					}
+
+
+					vpnDetailViewModel.set("data", response.data);
+					vpnDetailViewModel.init();
+				}
+			}
+			else {
+				$("#frm-vpn-detail_info").removeClass('ad-success').addClass('ad-error');
+
+			}
+			$("#frm-vpn-detail_info").html(response.responseDesc);
+		};
+
+
+		$(this).ajaxSubmit({
+			error:   handleSendCredResponse,
+			success: handleSendCredResponse
+		});
+
+		return false;
+	}
+
+	function initVpnWindow() {
+		var template = kendo.template($("#vpn-detail").html());
+		vpnWnd.empty();
+		vpnWnd.kendoWindow({
+			width:   "450px",
+			height:  "400px",
+			title:   "Set VPN",
+			visible: false,
+			modal:   true,
+			content: {
+				template: template
+			},
+			actions: [
+				"Close"
+			],
+			open:    function () {
+				vpnDetailViewModel.init();
+				kendo.bind($("#vpn-window"), vpnDetailViewModel);
+				$('#frm-vpn-detail').submit(setVpn);
+				$('#frm-vpn-delete').submit(setVpn);
+			}
+		});
+	}
+
+	function initCredWindow() {
+		var template = kendo.template($("#tmpl-create-child-cred").html());
+		credWnd.empty();
+		credWnd.kendoWindow({
+			width:   "440px",
+			height:  "500px",
+			title:   "Create Child Credential",
+			visible: false,
+			modal:   true,
+			content: {
+				template: template
+			},
+			actions: [
+				"Close"
+			],
+			open:    function () {
+
+				createCredViewModel.init();
+				kendo.bind($("#create-child-cred-window"), createCredViewModel);
+			}
+		});
+	}
+
+	function initRegtokenWindow(fqdn, name) {
+		var template     = kendo.template($("#tmpl-create-regtoken").html());
+		var fqdnTemplate = template({fqdn: fqdn, name: name});
+		regtokenWnd.empty();
+		regtokenWnd.kendoWindow({
+			width:   "440px",
+			height:  "450px",
+			title:   "Create Child Credential",
+			visible: false,
+			modal:   true,
+			content: {
+				template: fqdnTemplate
+			},
+			actions: [
+				"Close"
+			],
+			open:    function () {
+				new Clipboard('#copy-btn');
+				$('#copy-btn').attr("data-clipboard-target", "#reg_token");
+				$('#btn-regtoken-back').off('click').on('click', function () {
+					$('#frm-create-regtoken').show();
+					$('#reg-token-container').hide();
+				});
+
+				$('#btn-create-regtoken').off('click').on('click', function (e) {
+					showLoader('wnd-overlay');
+					e.preventDefault();
+
+
+					$('#reg_token').html(null);
+					$('#reg-token-container').hide();
+
+					var form     = $('#frm-create-regtoken'),
+					    url      = form.attr('action'),
+					    method   = form.attr('method'),
+					    formData = {
+						    fqdn:    form.find('input[name="fqdn"]').val(),
+						    name:    form.find('input[name="name"]').val(),
+						    email:   form.find('input[name="email"]').val(),
+						    user_id: form.find('input[name="user_id"]').val(),
+						    ttl:     form.find('input[name="ttl"]').val()
+					    };
+
+					$.ajax({
+						url:         url,
+						cache:       false,
+						data:        JSON.stringify(formData),
+						type:        method,
+						datatype:    "json",
+						contentType: "application/json; charset=utf-8"
+						, success:   function (response) {
+							hideLoader('wnd-overlay');
+							console.log(response);
+							if (response.responseCode == 1) {
+
+								$("#token-info").removeClass('ad-error').addClass('ad-success');
+
+								$('#reg_token').html(response.token);
+								$('#frm-create-regtoken').hide();
+								$('#reg-token-container').show();
+							}
+							else {
+								$("#token-info").removeClass('ad-success').addClass('ad-error');
+							}
+							$("#token-info").html(response.responseDesc);
+						}
+					});
+
+				});
+			}
+		});
+	}
+
+	function initCertWindow(certData) {
+		var template     = kendo.template($("#tmpl-cert-detail").html());
+		var certTemplate = template(certData);
+		console.log('certData', certData);
+		certWnd.empty();
+		certWnd.kendoWindow({
+			width:   "750px",
+			height:  "600px",
+			title:   "Certificate Details",
+			visible: false,
+			modal:   true,
+			content: {
+				template: certTemplate
+			},
+			actions: [
+				"Close"
+			]
+		});
+	}
+
+	function initQrWindow(url) {
+		if (url) {
+			qrWnd.kendoWindow({
+				width:   "320px",
+				height:  "320px",
+				title:   "Scan QR",
+				visible: false,
+				modal:   true,
+				actions: [
+					"Close"
+				]
+			});
+
+			$('#download-qr').empty().kendoQRCode({
+				value:           url,
+				errorCorrection: "L",
+				color:           "#000",
+				background:      "transparent",
+				padding:         0,
+				size:            300
+			});
+		}
+	}
+
+	function handleDnsResponse(response) {
+		hideLoader();
+
+		if (response.responseCode == 1) {
+
+			$("#frm-dns-info").removeClass('ad-error').addClass('ad-success');
+
+			if (response.data) {
+				credDetailViewModel.set("data", response.data);
+				credDetailViewModel.set('dnsRecords', response.data.dnsRecords || []);
+				credDetailViewModel.set("dnsFqdn", null);
+				credDetailViewModel.set("dnsValue", null);
+				credDetailViewModel.set("availableDnsRecords", credDetailViewModel.getAvailableDnsRecords());
+			}
+		}
+		else {
+			$("#frm-dns-info").removeClass('ad-success').addClass('ad-error');
+		}
+		$("#frm-dns-info").html(response.responseDesc);
+	};
+
 	function loadCredDetail(data) {
-		console.log('HUY0');
-		viewModel = kendo.observable({
+		console.log(data);
+		window.getNotifManagerInstance().subscribe('MenuClicked', function () {
+			closeWnd();
+		});
+
+		credDetailViewModel = kendo.observable({
 			init: function () {
 
-				if (qrWnd.data("kendoWindow")) {
-					qrWnd.data("kendoWindow").close();
+				closeWnd();
+
+				//initVpnWindow();
+
+				this.set('revokeDisabled', this.data.hasChildren || this.data.revoked);
+				this.set('commonButtonDisabled', this.data.revoked);
+				this.set('renewButtonDisabled', this.data.revoked || !this.data.isLocal);
+				this.set('emailFormVisible', !this.data.revoked && this.data.pwd);
+				this.set('iosVpnProfileVisible', this.data.vpn_server_fqdn);
+
+				bindEmailEvent();
+
+				$('#ios-profile-form').attr('action', this.iosProfileLink());
+
+				this.initDnsModel();
+			},
+
+			revokeDisabled:       true,
+			commonButtonDisabled: false,
+			renewButtonDisabled:  false,
+			emailFormVisible:     true,
+			iosVpnProfileVisible: false,
+			data:                 data,
+
+			parentName:       function () {
+				return this.data.parent_name ? `${this.data.parent_name} (${this.data.parent_fqdn})` : this.data.parent_fqdn
+			},
+			sendPfxUrl:       function () {
+				return '/send/pfx/' + this.data.fqdn
+			},
+			showCredQr:       function () {
+				if (!this.data.download_cred_url) {
+					alert('Cred download url not defined');
+					return;
 				}
-
-				if (this.data.download_url) {
-					qrWnd.kendoWindow({
-						width:   "320px",
-						height:  "320px",
-						title:   "Scan QR",
-						visible: false,
-						actions: [
-							"Close"
-						]
-					});
-
-					$('#download-qr').empty().kendoQRCode({
-						value:           this.data.download_url,
-						errorCorrection: "L",
-						color:           "#000",
-						background:      "transparent",
-						padding:         0,
-						size:            300
-					});
-				} else {
-					qrWnd = null;
+				this.operQrWnd(this.data.download_cred_url);
+			},
+			showIosProfileQr: function () {
+				if (!this.data.download_ios_profile_url) {
+					alert('Ios Profile download url not defined');
+					return;
 				}
+				this.operQrWnd(this.data.download_ios_profile_url);
+			},
+			operQrWnd:        function (url) {
+				initQrWindow(url);
+				closeWnd();
+				qrWnd.data("kendoWindow").center().open();
+			},
+			iosProfileLink:   function () {
+				return "/cred/ios-profile/" + this.data.fqdn;
+			},
+			opneVPN:          function () {
+				initVpnWindow();
+				vpnWnd.data("kendoWindow").center().open();
+			},
+			openCredWnd:      function () {
+				initCredWindow();
+				credWnd.data("kendoWindow").center().open();
+			},
+			openRegtokenWnd:  function () {
+				initRegtokenWindow(this.data.fqdn, this.data.name);
+				regtokenWnd.data("kendoWindow").center().open();
+			},
+			openCertWnd:      function () {
 
-				$('#send_pfx_form').submit(function () {
+				var certData     = this.data.certData;
+				certData.revoked = this.data.revoked;
+				certData.expired = this.data.expired;
+				certData.isValid = !certData.revoked && !certData.expired;
+				initCertWindow(certData);
+				certWnd.data("kendoWindow").center().open();
+			},
+			renewCert:        function () {
 
-					showLoader();
+				showLoader();
+				$.ajax({
+					url:         '/cred/renew/' + this.data.fqdn,
+					cache:       false,
+					type:        "Post",
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
 
-					var handleSendCredResponse = function (response) {
 						hideLoader();
 
 						if (response.responseCode == 1) {
-							response.responseDesc = 'Email sent to ' + ( $('#send_pfx_form input[name="email"]').val());
-							$("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
-							if (response.data && viewModel) {
-								viewModel.set("data", response.data);
+							$("#cred-info").removeClass('ad-error').addClass('ad-success');
+							if (response.data && credDetailViewModel) {
+								credDetailViewModel.set("data", response.data);
 							}
-
 						}
 						else {
-							$("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
+							$("#cred-info").removeClass('ad-success').addClass('ad-error');
 
 						}
-						$("#send_pfx_form_info").html(response.responseDesc);
-					};
-
-
-					$(this).ajaxSubmit({
-						error:   handleSendCredResponse,
-						success: handleSendCredResponse
-					});
-
-					return false;
+						$("#cred-info").html(response.responseDesc);
+					}
 				});
 			},
-			data: data,
+			revokeCert:       function () {
+				if (!confirm("Are you sure?")) return;
+				var $this = this;
+				showLoader();
+				$.ajax({
+					url:         '/cred/revoke/' + this.data.fqdn,
+					cache:       false,
+					type:        "Post",
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
 
-			parentName: function () {
-				return this.data.parent_name || this.data.parent_fqdn
+						hideLoader();
+
+						if (response.responseCode == 1) {
+							$("#cred-info").removeClass('ad-error').addClass('ad-success');
+							if (response.data && credDetailViewModel) {
+								credDetailViewModel.set("data", response.data);
+								credDetailViewModel.init();
+							}
+							console.log('revoke');
+							$('#creds-tree').find('div[data-fqdn="' + $this.data.fqdn + '"]').addClass('revoked');
+						}
+						else {
+							$("#cred-info").removeClass('ad-success').addClass('ad-error');
+
+						}
+						$("#cred-info").html(response.responseDesc);
+					}
+				});
 			},
-			sendPfxUrl: function () {
-				return '/send/pfx/' + this.data.fqdn
+
+			//DNS record
+			dnsRecords:             [],
+			availableDnsRecords:    [],
+			dnsFqdn:                null,
+			dnsValue:               null,
+            dnsMethods:{
+				BeameEdge:0,
+                Custom:1
+            },
+            selectedDnsMethod:null,
+			dnsValueEnabled:function(){
+                return this.get("selectedDnsMethod") == this.dnsMethods.Custom;
+            },
+			onDnsMethodChanged:function(e){
+			    var m = parseInt($(e.currentTarget).val());
+
+                if(m == this.dnsMethods.BeameEdge) {
+                	this.set("dnsValue",null);
+                }
+
+                this.set("selectedDnsMethod",m);
+            },
+			initDnsModel:           function () {
+				var $this = this;
+
+				this.set('selectedDnsMethod', this.dnsMethods.BeameEdge);
+
+				this.set('dnsRecords', this.data.dnsRecords || []);
+
+				$('#frm-create-dns').submit(function () {
+					showLoader();
+					$(this).ajaxSubmit({
+						error:   handleDnsResponse,
+						success: handleDnsResponse
+					});
+					//Very important line, it disable the page refresh.
+					return false;
+				});
+
+				this.set("availableDnsRecords", this.getAvailableDnsRecords());
+
 			},
-			showQr:     function () {
-				$('#qr-window').data("kendoWindow").center().open();
+			getAvailableDnsRecords: function () {
+				try {
+					var dnsRec = this.dnsRecords || [];
+
+					var list = this.data.certData.altNames.filter(function (el) {
+						return !dnsRec.map(function (item) {
+							return item.fqdn;
+						}).includes(el);
+					}).map(function (item) {
+						return {fqdn: item};
+					});
+
+					console.log(list);
+
+					if (list.length) {
+						this.set("dnsFqdn", list[0]);
+					}
+
+					return list;
+				} catch (e) {
+					return [];
+				}
+			},
+			updateDns:              function (model) {
+
+				showLoader();
+
+				var fqdn     = this.get("fqdn"),
+				    formData = {
+					    fqdn:     this.get('data.fqdn'),
+					    dnsFqdn:  model.fqdn,
+					    dnsValue: model.value
+				    };
+
+				$.ajax({
+					url:         '/dns/create',
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        'Post',
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   handleDnsResponse
+				});
+			},
+			confirmDelete:          function (e) {
+				e.preventDefault();
+			},
+			deleteDns:              function (e) {
+				e.preventDefault();
+				if (!confirm("Are you sure?")) return;
+				var data = e.data;
+				console.log('delete', data);
+
+				showLoader();
+
+				formData = {
+					fqdn:    credDetailViewModel.get('data.fqdn'),
+					dnsFqdn: data.fqdn
+				};
+				console.log('form data', formData);
+				$.ajax({
+					url:         '/dns/delete',
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        'Post',
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   handleDnsResponse
+				});
+			},
+			onDnsEdit:              function (e) {
+				e.item.find('.dns-update').off('click').on('click', this.updateDns.bind(credDetailViewModel, e.model));
+			}
+
+		});
+
+		credDetailViewModel.init();
+		kendo.bind($("#cred-form-container"), credDetailViewModel);
+
+		vpnDetailViewModel = kendo.observable({
+			init:      function () {
+				var vpns = this.data.vpn;
+				if (!vpns || !vpns.length) {
+					this.set('vpnId', null);
+					this.set('name', null);
+					return;
+				}
+
+				var vpn = vpns[0];
+
+				this.set('vpnId', vpn.id);
+				this.set('name', vpn.name);
+			},
+			vpnId:     null,
+			name:      null,
+			data:      data,
+			deleteVpn: function () {
+				this.set('name', null);
+				$('#frm-vpn-delete').submit();
 			}
 		});
 
-		viewModel.init();
-		kendo.bind($("#cred-form-container"), viewModel);
+		createCredViewModel = kendo.observable({
+			init:       function () {
+				this.set("fqdn", data.fqdn);
+			},
+			data:       data,
+			fqdn:       null,
+			email:      null,
+			name:       null,
+			password:   null,
+			sendEmail:  false,
+			createCred: function (e) {
+
+				showLoader('wnd-overlay');
+				e.preventDefault();
+				var form     = $('#frm-create-child-cred'),
+				    url      = form.attr('action'),
+				    method   = form.attr('method'),
+				    fqdn     = this.get("fqdn"),
+				    formData = {
+					    fqdn:      fqdn,
+					    name:      this.get("name"),
+					    email:     this.get("email"),
+					    password:  this.get("password"),
+					    sendEmail: this.get("sendEmail")
+				    };
+				console.log('form data', formData);
+				$.ajax({
+					url:         url,
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        method,
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
+
+						hideLoader('wnd-overlay');
+						var info = $('#create-child-cred-info');
+						console.log(response);
+						if (response.responseCode == 1) {
+
+							info.removeClass('ad-error').addClass('ad-success');
+							window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn})
+						}
+						else {
+							info.removeClass('ad-success').addClass('ad-error');
+
+						}
+						info.html(response.responseDesc);
+					}
+				});
+			}
+		});
 
 	}
 </script>

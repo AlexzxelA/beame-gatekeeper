@@ -38,6 +38,7 @@ const apiEntityActions = apiConfig.Actions.Entity;
 const Bootstrapper     = require('./bootstrapper');
 const bootstrapper     = Bootstrapper.getInstance();
 const utils            = require('./utils');
+const uuid             = require('uuid');
 let dataService        = null;
 let beameAuthServices  = null;
 const nop              = function () {
@@ -365,6 +366,16 @@ class BeameAuthServices {
 					.then(_sendCompleteEvent)
 					.then(resolve)
 					.catch(reject);
+			}
+		);
+	}
+
+	static onRevokeSnsReceived(token){
+		return new Promise((resolve) => {
+				store.find(token.fqdn,true).then(cred=>{
+					cred.saveOcspStatus(true);
+					resolve();
+				}).catch(resolve);
 			}
 		);
 	}
@@ -998,7 +1009,7 @@ class BeameAuthServices {
 
 	//endregion
 
-	//region Creds
+	//region creds manage
 	findCreds(pattern) {
 		return new Promise((resolve) => {
 
@@ -1018,37 +1029,122 @@ class BeameAuthServices {
 		);
 	}
 
-	credsList(parent) {
-		return new Promise((resolve) => {
+	credsList(parent, options) {
+
+		let excludeRevoked = options.excludeRevoked ? options.excludeRevoked === "true" : false,
+		    text           = options.text;
+
+		const _checkOcspStatus = (cred) => {
+
+			const _saveOcspStatus = (isRevoked) => {
+				cred.metadata.revoked = isRevoked;
+				cred.beameStoreServices.writeMetadataSync(cred.metadata);
+			};
+
+			return new Promise((resolve) => {
+					if (cred.hasMetadataKey("revoked")) {
+						resolve(cred.getMetadataKey("revoked"));
+					}
+					else {
+
+						cred.checkOcspStatus(cred).then(() => {
+							_saveOcspStatus(false);
+							resolve(false);
+
+						}).catch(() => {
+							_saveOcspStatus(true);
+							resolve(true);
+
+						})
+					}
+				}
+			);
+
+		};
+
+		return new Promise((resolve, reject) => {
 
 				// let list = store.list(null, {
 				// 	anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 				// });
 
-				const _formatCred = (cred) => {
+				const _formatCred = (cred, revoked) => {
 					return {
 						name:        cred.metadata.name || cred.metadata.fqdn,
 						fqdn:        cred.metadata.fqdn,
 						parent:      cred.metadata.parent_fqdn,
 						isLocal:     cred.hasKey("PRIVATE_KEY"),
 						hasChildren: store.hasLocalChildren(cred.fqdn),
-						isRoot:      cred.fqdn === Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+						isRoot:      cred.fqdn === Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel),
+						revoked,
+						expired:     cred.expired,
+						chain:       cred.getParentsChain(cred)
+
 					}
 				};
 
-				if (parent) {
+				let formatedList  = [],
+				    zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
+
+				if (text) {
+					text     = text.toLowerCase();
+					let list = store.list(null, {
+						anyParent: zeroLevelFqdn
+					});
+
+					Promise.all(list.map(cred => {
+
+							//if (excludeRevoked && revoked) return;
+							try {
+								let name  = cred.metadata.name,
+								    email = cred.metadata.email;
+								if (!cred.fqdn.toLowerCase().includes(text)
+									&& (!name || !name.toLowerCase().includes(text))
+									&& (!email || !email.toLowerCase().includes(text))) {
+									return false;
+								}
+
+								let chain = cred.getParentsChain(cred).map(item => {
+									return item.fqdn
+								}).reverse();
+								chain.push(cred.fqdn);
+								formatedList.push(chain);
+							} catch (e) {
+								logger.error(`search cred error for ${cred.fqdn} ${BeameLogger.formatError(e)}`);
+								console.error(cred);
+							}
+						}
+					)).then(() => {
+						resolve(formatedList)
+					}).catch(reject);
+				}
+				else if (parent) {
 					let list = store.list(null, {
 						hasParent: parent
 					});
 
-					resolve(list.map(item => {
+					Promise.all(list.map(cred => {
+							return _checkOcspStatus(cred).then(revoked => {
+								if (excludeRevoked && revoked) return;
+								formatedList.push(_formatCred(cred, revoked));
+							}).catch(e => {
+								logger.error(`check ocsp status for ${cred.fqdn} error ${BeameLogger.formatError(e)}`);
+								formatedList.push(_formatCred(cred, false));
+							});
+						}
+					)).then(() => {
+						resolve(formatedList)
+					}).catch(reject);
 
-						return _formatCred(item);
-					}));
 				}
 				else {
-					store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)).then(cred => {
-						resolve([_formatCred(cred)]);
+					store.find(zeroLevelFqdn).then(cred => {
+
+						_checkOcspStatus(cred).then(revoked => {
+							resolve([_formatCred(cred, revoked)]);
+						})
+
+
 					}).catch(er => {
 						logger.error(er);
 						resolve([]);
@@ -1056,6 +1152,59 @@ class BeameAuthServices {
 				}
 			}
 		);
+	}
+
+	static vpnCredsList(rootFqdn, vpnId) {
+		return new Promise((resolve, reject) => {
+				try {
+
+					store.find(rootFqdn).then(cred => {
+
+						let vpn = cred.metadata.vpn;
+
+						if (!vpn || !vpn.length) {
+							reject(`Vpn not defined for ${fqdn}`);
+							return;
+						}
+
+						if (vpn.some(x => x.name === vpnId)) {
+							let list = store.list(null, {
+								anyParent:      rootFqdn,
+								excludeRevoked: true
+							});
+							resolve(list);
+						}
+
+						reject(`Invalid vpn name`);
+
+					}).catch(reject);
+
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
+
+	static findParentVpn(fqdn) {
+
+		try {
+
+			let cred = store.getCredential(fqdn);
+
+			let vpn = cred.metadata.vpn;
+
+			if (!vpn || !vpn.length) {
+				let parent_fqdn = cred.getMetadataKey("parent_fqdn");
+				return parent_fqdn ? this.findParentVpn(parent_fqdn) : null;
+			}
+
+			return cred.fqdn;
+
+		} catch (e) {
+			return null;
+		}
+
 	}
 
 	createRegToken(data) {
@@ -1084,6 +1233,7 @@ class BeameAuthServices {
 	}
 
 	createCred(data) {
+		let sendEmail = data.sendEmail, email = data.email;
 		return new Promise((resolve, reject) => {
 				const Credential = beameSDK.Credential;
 				let cred         = new Credential(store);
@@ -1094,16 +1244,19 @@ class BeameAuthServices {
 						.then(meta => {
 
 							store.find(meta.fqdn, false).then(newCred => {
-								// resolve({
-								// 	fqdn:meta.fqdn,
-								// 	pfx: newCred.getKey("PKCS12")
-								// });
-								resolve(meta);
+								if (sendEmail) {
+									this.sendPfx(newCred.fqdn, email).then(() => {
+										resolve(`Credential ${newCred.fqdn} created and sent by email`);
+									}).catch(err => {
+										resolve(`Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
+									})
+								}
+								else {
+									resolve(`Credential ${newCred.fqdn} created`);
+								}
+
 							}).catch(reject);
-
-
 						})
-						//.then(resolve)
 						.catch(reject)
 				}
 				else {
@@ -1139,6 +1292,54 @@ class BeameAuthServices {
 				}
 
 				resolve(cred.getKey("PKCS12"));
+			}
+		);
+	}
+
+	getIosProfile(fqdn) {
+		return new Promise((resolve, reject) => {
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				let server_fqdn = BeameAuthServices.findParentVpn(fqdn);
+
+				if (!server_fqdn) {
+					reject(`VPN server for ${fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PKCS12")) {
+					reject(`Pfx ${fqdn} not found`);
+					return;
+				}
+
+				const path   = require('path');
+				let template = beameSDK.DirectoryServices.readFile(path.join(__dirname, '..', 'templates', 'mobile.config.tmpl.plist'));
+
+				let vpn_client_fqdn               = fqdn,
+				    uuid_payloadvpn_client_pkcs12 = uuid.v4(),
+				    vpn_server_fqdn               = server_fqdn,
+				    uuid_payload_vpnconfig        = uuid.v4(),
+				    vpn_client_pkcs12_pwd         = CommonUtils.escapeXmlString(String.fromCharCode.apply(null, cred.PWD)),
+				    vpn_client_pkcs12_name        = `${vpn_client_fqdn}.p12`,
+				    vpn_client_pkcs12_base64      = cred.PKCS12.toString('base64'),
+				    uuid_vpn_server               = uuid.v4(),
+				    uuid_payload_uuid             = uuid.v4(),
+				    plist                         = template.replace('@vpn_client_fqdn@', vpn_client_fqdn)
+					    .replace(/@uuid_payloadvpn_client_pkcs12@/g, uuid_payloadvpn_client_pkcs12)
+					    .replace(/@vpn_server_fqdn@/g, vpn_server_fqdn)
+					    .replace(/@uuid_payload_vpnconfig@/g, uuid_payload_vpnconfig)
+					    .replace(/@vpn_client_pkcs12_pwd@/g, vpn_client_pkcs12_pwd)
+					    .replace(/@vpn_client_pkcs12_name@/g, vpn_client_pkcs12_name)
+					    .replace(/@vpn_client_pkcs12_base64@/g, vpn_client_pkcs12_base64)
+					    .replace(/@uuid_vpn_server@/g, uuid_vpn_server)
+					    .replace(/@uuid_payload_uuid@/g, uuid_payload_uuid);
+
+				resolve(Buffer.from(plist, 'utf8'));
 			}
 		);
 	}
@@ -1188,6 +1389,86 @@ class BeameAuthServices {
 		);
 	}
 
+	setCredVpnStatus(fqdn, id, name, action) {
+
+		return new Promise((resolve, reject) => {
+
+				store.find(fqdn).then(cred => {
+
+					const _resolve = () => {
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					};
+
+					switch (action) {
+						case 'create':
+							if (!cred.metadata.vpn) {
+								cred.metadata.vpn = [];
+							}
+
+							if (cred.metadata.vpn.some(x => x.id === id)) {
+								let item = cred.metadata.vpn.find(x => x.id === id);
+
+								if (item) {
+
+									item.name = name;
+
+									cred.beameStoreServices.writeMetadataSync(cred.metadata);
+								}
+								_resolve();
+							}
+							else {
+								cred.metadata.vpn.push({
+									id:   uuid.v4(),
+									name,
+									date: Date.now()
+								});
+
+								BeameAuthServices._saveCredAction(cred, {
+									action: Constants.CredAction.VpnRootCreated,
+									name,
+									date:   Date.now()
+								});
+
+								_resolve();
+							}
+							break;
+						case 'delete':
+							if (!cred.metadata.vpn) {
+								_resolve();
+								return;
+							}
+
+							if (cred.metadata.vpn.some(x => x.id === id)) {
+								let item = cred.metadata.vpn.find(x => x.id === id);
+
+								if (item) {
+									name      = item.name;
+									let index = cred.metadata.vpn.indexOf(item);
+									cred.metadata.vpn.splice(index, 1);
+									BeameAuthServices._saveCredAction(cred, {
+										action: Constants.CredAction.VpnRootDeleted,
+										name,
+										date:   Date.now()
+									});
+								}
+
+								_resolve();
+							}
+							else {
+								_resolve();
+							}
+
+							break;
+						default:
+							_resolve();
+					}
+
+
+				}).catch(reject);
+			}
+		);
+	}
+
 	getCredDetail(fqdn) {
 		return new Promise((resolve, reject) => {
 				let cred = store.getCredential(fqdn);
@@ -1199,6 +1480,15 @@ class BeameAuthServices {
 
 				let data = Object.assign({}, cred.metadata);
 
+				//TODO remove, fqdn should be updated in SDK
+				data.dnsRecords = (data.dnsRecords || []).map(item => {
+					if (!item.fqdn) {
+						item.fqdn = fqdn;
+					}
+
+					return item;
+				});
+
 				data.pwd = cred.hasKey("PWD") ? String.fromCharCode.apply(null, cred.PWD) : null;
 
 				data.hasChildren = store.hasLocalChildren(fqdn);
@@ -1207,7 +1497,11 @@ class BeameAuthServices {
 
 				data.isLocal = cred.hasKey("PRIVATE_KEY");
 
+				data.expired = cred.expired;
+
 				data.validTill = cred.getCertEnd();
+
+				data.vpn_server_fqdn = BeameAuthServices.findParentVpn(fqdn);
 
 				if (cred.metadata.parent_fqdn) {
 					let parent = store.getCredential(cred.metadata.parent_fqdn);
@@ -1220,7 +1514,7 @@ class BeameAuthServices {
 				}
 
 				if (cred.metadata.actions) {
-					cred.metadata.actions = cred.metadata.actions.map(function (item) {
+					cred.metadata.actions = cred.metadata.actions.map((item) => {
 						if (item.date) {
 							item.dateStr = new Date(item.date).toLocaleString();
 						}
@@ -1229,26 +1523,148 @@ class BeameAuthServices {
 					})
 				}
 
-				this._getDownloadUrl(cred).then(url => {
-					data.download_url = url;
-					resolve(data);
-				}).catch((e) => {
-					logger.error(`Get download url error for ${fqdn}`, e);
-					resolve(data);
-				})
+				data.certData = cred.certData;
 
+				const async = require('async');
+
+				async.parallel([
+						callback => {
+							this._getCredDownloadUrl(cred).then(url => {
+								data.download_cred_url = url;
+								callback();
+							}).catch((e) => {
+								logger.error(`Get download url error for ${fqdn}`, e);
+								callback();
+							})
+						},
+						callback => {
+							this._getIosProfileDownloadUrl(cred).then(url => {
+								data.download_ios_profile_url = url;
+								callback();
+							}).catch((e) => {
+								logger.error(`Get download url error for ${fqdn}`, e);
+								callback();
+							})
+						}
+					],
+					() => {
+						resolve(data);
+					});
+			}
+		);
+	}
+
+	renewCert(fqdn) {
+		return new Promise((resolve, reject) => {
+
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.createAuthTokenForCred(fqdn).then(authToken => {
+
+					cred.renewCert(CommonUtils.parse(authToken), fqdn).then(() => {
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					}).catch(reject);
+
+				}).catch(reject);
 
 			}
 		);
 	}
 
-	_getDownloadUrl(cred) {
+	revokeCert(fqdn) {
+		return new Promise((resolve, reject) => {
+
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.createAuthTokenForCred(fqdn).then(authToken => {
+
+					cred.revokeCert(CommonUtils.parse(authToken), null, fqdn).then(() => {
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					}).catch(reject);
+
+				}).catch(reject);
+
+			}
+		);
+	}
+
+	saveDns(data) {
+		let fqdn = data.fqdn;
+		return new Promise((resolve, reject) => {
+				if (!data.fqdn || !data.dnsFqdn) {
+					reject('Required parameter missing');
+					return;
+				}
+
+				let cred = store.getCredential(data.fqdn);
+
+				if (!cred) {
+					reject(`Credential ${data.fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PRIVATE_KEY")) {
+					reject(`Dns update available only for local creds`);
+				}
+
+				cred.setDns(data.fqdn, data.dnsValue, !data.dnsValue || !data.dnsValue.length, data.dnsFqdn).then(value => {
+					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					this.getCredDetail(fqdn).then(updatedCred => {
+						resolve({message: `Dns record created for ${value}`, value: value, data: updatedCred});
+					}).catch(reject);
+
+				}).catch(reject);
+			}
+		);
+	}
+
+	deleteDns(data) {
+		let fqdn = data.fqdn;
+		return new Promise((resolve, reject) => {
+				if (!data.fqdn || !data.dnsFqdn) {
+					reject('Required parameter missing');
+					return;
+				}
+
+				let cred = store.getCredential(data.fqdn);
+
+				if (!cred) {
+					reject(`Credential ${data.fqdn} not found`);
+					return;
+				}
+
+				if (!cred.hasKey("PRIVATE_KEY")) {
+					reject(`Dns update available only for local creds`);
+				}
+
+				cred.deleteDns(data.fqdn, data.dnsFqdn).then(value => {
+					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					this.getCredDetail(fqdn).then(updatedCred => {
+						resolve({message: `Dns record deleted for ${data.dnsFqdn}`, data: updatedCred});
+					}).catch(reject);
+
+				}).catch(reject);
+			}
+		);
+	}
+
+	_getCredDownloadUrl(cred) {
 		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
 		return new Promise((resolve) => {
 				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({fqdn: cred.fqdn}), bootstrapper.proxySessionTtl).then(token => {
 
-					let uid = utils.generateUID(24);
+					let uid = uuid.v4();
 
 					this._downloadTokens[uid] = token;
 
@@ -1257,6 +1673,26 @@ class BeameAuthServices {
 					}, bootstrapper.proxySessionTtl);
 
 					resolve(`https://${gwServerFqdn}/cred-download/?uid=${uid}`);
+				});
+			}
+		);
+	}
+
+	_getIosProfileDownloadUrl(cred) {
+		let gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+		return new Promise((resolve) => {
+				utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({fqdn: cred.fqdn}), bootstrapper.proxySessionTtl).then(token => {
+
+					let uid = uuid.v4();
+
+					this._downloadTokens[uid] = token;
+
+					setTimeout(() => {
+						delete  this._downloadTokens[uid];
+					}, bootstrapper.proxySessionTtl);
+
+					resolve(`https://${gwServerFqdn}/ios-profile-download/?uid=${uid}`);
 				});
 			}
 		);
