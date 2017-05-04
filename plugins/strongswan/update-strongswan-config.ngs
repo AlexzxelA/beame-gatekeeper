@@ -16,8 +16,8 @@ CERTS_DIR = ENV.get("BEAME_VPN_CERTS_DIR", "/etc/ipsec.d/certs")
 F fetch_creds(vpn_root_fqdn:Str, vpn_id:Str) {
 	debug("strongswan", "Fetching VPN users using VPN root FQDN: $vpn_root_fqdn")
 	user = ENV.get("BEAME_GATEKEEPER_USER", "beame-gatekeeper")
-	user_path = `su -c 'echo -n $PATH' $user`
-	creds = ``su -c "env PATH=$user_path:~/node_modules/.bin beame-gatekeeper creds listVpnCreds --fqdn $vpn_root_fqdn --vpnId '$vpn_id' --format json" $user``.map(F extract_needed_fields(cred:Hash) {
+	user_path = `su -s /bin/bash -c 'echo -n $PATH' $user`
+	creds = ``su -s /bin/bash -c "env PATH=$user_path:~/node_modules/.bin beame-gatekeeper creds listVpnCreds --fqdn $vpn_root_fqdn --vpnId '$vpn_id' --format json" $user``.map(F extract_needed_fields(cred:Hash) {
 		{
 			'fqdn': cred.fqdn
 			'x509': cred.X509
