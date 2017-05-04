@@ -370,6 +370,16 @@ class BeameAuthServices {
 		);
 	}
 
+	static onRevokeSnsReceived(token){
+		return new Promise((resolve) => {
+				store.find(token.fqdn,true).then(cred=>{
+					cred.saveOcspStatus(true);
+					resolve();
+				}).catch(resolve);
+			}
+		);
+	}
+
 	static onUserDataReceived(hash) {
 		return new Promise((resolve, reject) => {
 

@@ -40,50 +40,38 @@
             <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn"></span></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
             <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked"/></label>
-            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span
-                data-bind="text:parentName()"></span></label>
+            <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
             <label class="lbl-info">Name: <span data-bind="text: data.name"></span></label>
             <label class="lbl-info">Email: <span data-bind="text: data.email"></span></label>
-            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span
-                data-bind="text: data.pwd"></span></label>
+            <label class="lbl-info" data-bind="visible:data.pwd">Pfx Pwd: <span data-bind="text: data.pwd"></span></label>
         </form>
 
         <div class="btn-row">
             <h5>Cert Actions</h5>
             <input type="button" data-bind="click:openCertWnd" value="Cert Details" class="k-button">
-            <input type="button" name="btn-renew" data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew"
-                   class="k-button">
-            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke"
-                   class="k-button">
-            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge"
-                   class="k-button">
+            <input type="button" name="btn-renew" data-bind="disabled:renewButtonDisabled,click:renewCert" value="Renew" class="k-button">
+            <input type="button" name="btn-revoke" data-bind="disabled:revokeDisabled,click:revokeCert" value="Revoke" class="k-button">
+            <input type="button" disabled data-bind="visible:data.isLocal" name="btn-purge" value="Purge" class="k-button">
         </div>
 
         <div class="btn-row">
             <h5>Cred Actions</h5>
-            <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child"
-                   class="k-button">
-            <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd"
-                   value="Create Registration Token" class="k-button">
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child" class="k-button">
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd" value="Create Registration Token" class="k-button">
         </div>
 
 
         <div class="btn-row">
             <h5>Share Cred</h5>
-            <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post"
-                  class="admin-form-main">
+            <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post" class="admin-form-main">
                 <div id="send_pfx_form_info" class="invisible-msg">&nbsp;</div>
-                <input name="email" required type="email" placeholder="Email"
-                       data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
+                <input name="email" required type="email" placeholder="Email" data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
                 <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
-                <input type="button" id="btn-send-pfx-email" name="btn-email" data-bind="disabled:commonButtonDisabled"
-                       value="Send Pfx by Email" class="k-button">
+                <input type="button" id="btn-send-pfx-email" name="btn-email" data-bind="disabled:commonButtonDisabled" value="Send Pfx by Email" class="k-button">
             </form>
             <div>
-                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr"
-                       value="Show QR" class="k-button">
-                <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank"
-                   class="k-button inline">Download Pfx</a>
+                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showCredQr" value="Show QR" class="k-button">
+                <a data-bind="attr: { href: data.pfx_path },visible:data.pfx_path" target="_blank" class="k-button inline">Download Pfx</a>
             </div>
         </div>
 
@@ -104,8 +92,7 @@
                            data-bind="value:dnsFqdn,source:availableDnsRecords"
 
                     />
-                    <input type="text" name="dnsValue" placeholder="Value: CN or IP (optional)" class="form-input"
-                           data-bind="value:dnsValue"/>
+                    <input type="text" name="dnsValue" placeholder="Value: CN or IP (optional)" class="form-input" data-bind="value:dnsValue"/>
                     <input type="hidden" name="fqdn" data-bind="value:data.fqdn">
                     <div id="frm-dns-info" class="invisible-msg">&nbsp;</div>
                     <input type="submit" value="Create Dns Record" class="k-primary">
@@ -130,7 +117,6 @@
                             }"
                 >
                 </tbody>
-                <!--<tbody data-template="dns-row-template" data-bind="source: dnsRecords"></tbody>-->
             </table>
 
         </div>
@@ -138,14 +124,11 @@
 
         <div class="btn-row">
             <h5>VPN Actions</h5>
-            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN"
-                   value="Set VPN" class="k-button">
-            <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank"
-                  data-bind="visible:iosVpnProfileVisible">
+            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN" value="Set VPN" class="k-button">
+            <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
                 <div id="ios-profile-info">&nbsp;</div>
                 <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
-                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr"
-                       value="Show Profile QR" class="k-button">
+                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr" value="Show Profile QR" class="k-button">
             </form>
 
         </div>
@@ -178,8 +161,7 @@
         <input name="name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
         <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
         <input type="submit" name="btn-set-vpn" value="Set VPN" class="k-button">
-        <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN"
-               class="k-button">
+        <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN" class="k-button">
     </form>
 
     <form id="frm-vpn-delete" method="post" action="/cred/set-vpn/delete">
@@ -208,19 +190,6 @@
     </tr>
 </script>
 
-<script id="dns-row-template" type="text/x-kendo-template">
-    <tr>
-        <td data-bind="text: fqdn"></td>
-        <td data-bind="text: value"></td>
-        <td>
-            <button data-bind="click: editDns">Edit</button>
-        </td>
-        <td>
-            <button data-bind="click: deleteDns">Delete</button>
-        </td>
-    </tr>
-</script>
-
 <script id="tmpl-create-child-cred" type="text/x-kendo-template">
     <form id="frm-create-child-cred" action='/cred/create' method="post" class="form-main admin-form-main">
         <label class="lbl-info">Create child credential for</label>
@@ -228,11 +197,8 @@
         <label class="lbl-info">Name: <span data-bind="text:data.name"></span></label>
         <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
         <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email"/>
-        <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password"
-               class="form-input"/>
-        <label class="inline form-input" style="border: none;box-shadow: none">Send cred by email <input type="checkbox"
-                                                                                                         data-bind="checked:sendEmail,enabled:email"
-                                                                                                         disabled/></label>
+        <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password" class="form-input"/>
+        <label class="inline form-input" style="border: none;box-shadow: none">Send cred by email <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/></label>
         <div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>
         <input type="button" value="Create Certificate" class="k-primary" data-bind="click:createCred">
     </form>
@@ -266,8 +232,7 @@
 
     <div id="reg-token-container" style="display:none;" class="form-main admin-form-main">
         <input type="button" id="btn-regtoken-back" value="back">
-        <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="k-button"
-               data-clipboard-action="copy"/>
+        <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="k-button" data-clipboard-action="copy"/>
         <textarea id="reg_token" name="reg_token" style="width: 80%;margin: 15px 0 0;" rows="10"></textarea>
     </div>
 
@@ -485,8 +450,7 @@
         <td style="width: 48%">#: value #</td>
         <td style="width: 5%"><a class="k-button k-edit-button" href="\\#"><span class="k-icon k-i-edit"></span></a>
         </td>
-        <td style="width: 5%"><a class="k-button k-delete-button" href="\\#" data-bind="click:deleteDns"><span
-            class="k-icon k-i-delete"></span></a></td>
+        <td style="width: 5%"><a class="k-button k-delete-button" href="\\#" data-bind="click:deleteDns"><span class="k-icon k-i-delete"></span></a></td>
     </tr>
 </script>
 
@@ -904,6 +868,7 @@
 				});
 			},
 			revokeCert:       function () {
+				if (!confirm("Are you sure?")) return;
 				var $this = this;
 				showLoader();
 				$.ajax({
@@ -981,7 +946,7 @@
 				}
 			},
 			updateDns:              function (model) {
-				console.log('update', model);
+
 				showLoader();
 
 				var fqdn     = this.get("fqdn"),
@@ -990,7 +955,7 @@
 					    dnsFqdn:  model.fqdn,
 					    dnsValue: model.value
 				    };
-				console.log('form data', formData);
+
 				$.ajax({
 					url:         '/dns/create',
 					cache:       false,
