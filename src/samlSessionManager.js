@@ -134,9 +134,9 @@ class samlSession{
 			signResponse:   false,
 			signatureAlgorithm: 'rsa-sha256',
 			digestAlgorithm:    'sha256',
-			idpInitiatedSessionHandler: (err, response)=>{
-				cb(response);
-			}
+			plainXml:       true,
+			template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
+			idpInitiatedSessionHandler: cb
 		});
 		processLogin();
 	}

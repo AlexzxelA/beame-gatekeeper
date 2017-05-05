@@ -395,7 +395,7 @@ function setIframeHtmlContent(html) {
 
 	iframedoc.body.innerHTML = html;
 
-	iframedoc.getElementById('saml-form').submit();
+	iframedoc.getElementsByTagName('form')[0].submit();
 
 }
 
