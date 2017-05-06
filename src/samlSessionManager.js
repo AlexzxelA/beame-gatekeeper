@@ -124,8 +124,9 @@ class samlSession{
 		const meta = require('./SPMetadataSAML');
 		const metadata = meta(this._ssoPair.sp);
 		const processLogin = samlp.auth({
-			audience:       metadata.getAssertionConsumerService('post'),//metadata.getEntityID(),
-			issuer:         'Beameio-SSO',//,
+			recipient:      metadata.getAssertionConsumerService('post'),
+			audience:       'https://zl9fezagifp2o725.p2payp4q8f5ruo22.v1.d.beameio.net',//metadata.getEntityID(),
+			issuer:         'https://zl9fezagifp2o725.p2payp4q8f5ruo22.v1.d.beameio.net',//,
 			cert:           this._cert,
 			key:            this._key,
 			getPostURL:     () => {return metadata.getAssertionConsumerService('post')},
@@ -134,7 +135,7 @@ class samlSession{
 			signResponse:   false,
 			signatureAlgorithm: 'rsa-sha256',
 			digestAlgorithm:    'sha256',
-			plainXml:       true,
+			plainXml:       false,
 			template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
 			idpInitiatedSessionHandler: cb
 		});

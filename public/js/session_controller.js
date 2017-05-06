@@ -188,7 +188,15 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 			}
 
 
-			if (payload.html) {
+			if (payload.samlHtml) {
+				sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
+					str2ab(JSON.stringify({type:'redirect', payload:{'success':true, 'forceLogout':true}})),
+					setTimeout(function () {
+						document.write(payload.samlHtml);
+						document.close();
+					}, 0.1));
+			}
+			else if (payload.html) {
 
 				setIframeHtmlContent(payload.html);
 				// Happens on 'authenticated' type event
@@ -395,7 +403,7 @@ function setIframeHtmlContent(html) {
 
 	iframedoc.body.innerHTML = html;
 
-	iframedoc.getElementsByTagName('form')[0].submit();
+	// iframedoc.getElementsByTagName('form')[0].submit();
 
 }
 

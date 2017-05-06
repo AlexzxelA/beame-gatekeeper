@@ -175,11 +175,11 @@ const messageHandlers = {
 					let ssoManagerX = ssoManager.samlManager.getInstance();
 					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
 					ssoConfig.user = {
-						user:           'testUserID@beame.io',
-						emails:         'testUserID@beame.io',
+						user:           'az@beame.io',
+						emails:         'az@beame.io',
 						name:           {givenName:null, familyName:null},
-						displayName:    'testUserID@beame.io',
-						id:             1
+						displayName:    'az@beame.io',
+						id:             'az@beame.io'
 					};
 					let ssoSession = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
@@ -189,7 +189,7 @@ const messageHandlers = {
 							payload: {
 								success: true,
 								app_id: payload.app_id,
-								html: html,
+								samlHtml: html,
 								external: app ? app.isRasp : false,
 								url: null
 							}
