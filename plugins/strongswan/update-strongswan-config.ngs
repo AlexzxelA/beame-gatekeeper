@@ -5,19 +5,20 @@
 
 # Environment variables and default values:
 #   BEAME_GATEKEEPER_USER (beame-gatekeeper) - user under which beame-gatekeeper runs
-#   IPSEC_CONF (/etc/ipsec.conf) - vpn file to configure with beame credentials
+#   BEAME_GATEKEEPER_BIN  (beame-gatekeeper) - beame-gatekeeper program name
+#   IPSEC_CONF            (/etc/ipsec.conf)  - vpn file to configure with beame credentials
 #   BEAME_VPN_TEMPLATE_FILE (/etc/ipsec.conf.gatekeeper.template) - template file to be used for each per-user chunk in IPSEC_CONF
-
-#   BEAME_VPN_CERTS_DIR (/etc/ipsec.d/certs) - directory where to store certificates that can connect
+#   BEAME_VPN_CERTS_DIR     (/etc/ipsec.d/certs)                  - directory where to store certificates that can connect
 
 MARKERS = '# Beame Gatekeeper - start'..'# Beame Gatekeeper - end'
 CERTS_DIR = ENV.get("BEAME_VPN_CERTS_DIR", "/etc/ipsec.d/certs")
+GATEKEEPER_BIN = ENV.get("BEAME_GATEKEEPER_BIN", "beame-gatekeeper")
 
 F fetch_creds(vpn_root_fqdn:Str, vpn_id:Str) {
 	debug("strongswan", "Fetching VPN users using VPN root FQDN: $vpn_root_fqdn")
 	user = ENV.get("BEAME_GATEKEEPER_USER", "beame-gatekeeper")
-	user_path = `su -c 'echo -n $PATH' $user`
-	creds = ``su -c "env PATH=$user_path:~/node_modules/.bin beame-gatekeeper creds listVpnCreds --fqdn $vpn_root_fqdn --vpnId '$vpn_id' --format json" $user``.map(F extract_needed_fields(cred:Hash) {
+	user_path = `su -s /bin/bash -c 'echo -n $PATH' $user`
+	creds = ``su -s /bin/bash -c "env PATH=$user_path:~/node_modules/.bin ${GATEKEEPER_BIN} creds listVpnCreds --fqdn $vpn_root_fqdn --vpnId '$vpn_id' --format json" $user``.map(F extract_needed_fields(cred:Hash) {
 		{
 			'fqdn': cred.fqdn
 			'x509': cred.X509
@@ -52,7 +53,6 @@ F write_certificates(creds:Arr) {
 }
 
 F main(vpn_root_fqdn:Str, vpn_id:Str) {
-	warn("This is work in progress. Do not use!")
 
 	if $(uname -s).lines()[0] != 'Linux' {
 		die("The only supported platform is Linux")
@@ -66,7 +66,8 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 
 	current_lines = config_file.lines()
 
-	creds = fetch_creds(vpn_root_fqdn, vpn_id).reject(F(c) c.fqdn == vpn_root_fqdn)
+	creds_including_root = fetch_creds(vpn_root_fqdn, vpn_id)
+	creds = creds_including_root.reject(F(c) c.fqdn == vpn_root_fqdn)
 	debug("strongswan", "Fetched ${creds.len()} credentials.")
 	beame_creds_config_lines = creds.map(F(cred) {
 		["# FQDN ${cred.fqdn}"] + template.replace('@FQDN@', cred.fqdn).replace('@VPN_FQDN@', vpn_root_fqdn).lines()
@@ -92,7 +93,7 @@ F main(vpn_root_fqdn:Str, vpn_id:Str) {
 		had_lines_changes = true
 	}
 
-	had_certificate_changes = write_certificates(creds)
+	had_certificate_changes = write_certificates(creds_including_root)
 
 	if fqdns_diff = Diff(current_fqdns, target_fqdns) {
 		for fqdn in fqdns_diff.add {
