@@ -73,22 +73,50 @@ const messageHandlers = {
 
 		function respond([apps, token]) {
 			return new Promise(() => {
-				logger.debug('messageHandlers/auth/respond token', token);
-				reply({
-					type:    'authenticated',
-					payload: {
-						serviceName:    bootstrapper.serviceName,
-						pairing:        bootstrapper.pairingRequired,
-						imageRequired:  bootstrapper.registrationImageRequired,
-						success:       true,
-						session_token: token,
-						apps:          apps,
-						//html:          page,
-						url:           `https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`,
-						user:          authenticatedUserInfo,
-						userData:      decryptedUserData
-					}
-				});
+				if(payload.SAMLRequest){
+					let userIdData = (typeof decryptedUserData === 'object')?decryptedUserData:JSON.parse(decryptedUserData);
+					let ssoManagerX = ssoManager.samlManager.getInstance();
+					let ssoConfig = ssoManagerX.getConfig();
+					ssoConfig.user = {
+						user:           userIdData.name,
+						emails:         userIdData.email,
+						name:           {givenName:null, familyName:null},
+						displayName:    userIdData.nickname,
+						id:             userIdData.name
+					};
+					ssoConfig.SAMLRequest = payload.SAMLRequest;
+					let ssoSession = new ssoManager.samlSession(ssoConfig);
+					ssoSession.getSamlHtml((err, html)=>{
+						console.log('HTML::: '+ (html || err));
+						if(html)reply({
+							type: 'saml',
+							payload: {
+								success: true,
+								samlHtml: html,
+								session_token: token,
+								url: null
+							}
+						});
+					});
+				}
+				else{
+					logger.debug('messageHandlers/auth/respond token', token);
+					reply({
+						type:    'authenticated',
+						payload: {
+							serviceName:    bootstrapper.serviceName,
+							pairing:        bootstrapper.pairingRequired,
+							imageRequired:  bootstrapper.registrationImageRequired,
+							success:       true,
+							session_token: token,
+							apps:          apps,
+							//html:          page,
+							url:           `https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`,
+							user:          authenticatedUserInfo,
+							userData:      decryptedUserData
+						}
+					});
+				}
 			});
 		}
 
@@ -402,7 +430,7 @@ class BrowserControllerSocketioApi {
 				if(expectedMessages.indexOf(data.type)<0)
 					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
-			if(sessionUserData)data.sessionUserData = sessionUserData;
+			if(sessionUserData)data.payload.sessionUserData = sessionUserData;
 			messageHandlers[data.type] && messageHandlers[data.type](data.payload || data, reply);
 		});
 	}

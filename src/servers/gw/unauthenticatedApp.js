@@ -26,7 +26,7 @@ const relayManagerInstance = require('../../relayManager').getInstance();
 const utils                = require('../../utils');
 const cust_auth_app        = require('../../routers/customer_auth');
 const DirectoryServices    = beameSDK.DirectoryServices;
-
+const samlp                = require('samlp');
 const unauthenticatedApp = express();
 
 const clearSessionCookie = res => {
@@ -552,6 +552,19 @@ unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
 		res.send(JSON.stringify({'beame_login_config': {error: e}}));
 	});
 
+});
+
+unauthenticatedApp.get('/beame-sso', (req, res) => {
+	clearSessionCookie(res);
+	try{
+		samlp.parseRequest(req, (error, SAMLRequest)=>{
+			console.log(SAMLRequest);
+		});
+		res.sendFile(path.join(base_path, 'signin.html'));
+	}
+	catch (e){
+		res.status(500).send();
+	}
 });
 
 unauthenticatedApp.get('/beame-slo', (req, res) => {

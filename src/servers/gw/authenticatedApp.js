@@ -19,13 +19,11 @@ const CommonUtils      = beameSDK.CommonUtils;
 const module_name      = "GwAuthenticatedApp";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
-const ssoManager       = require('../../samlSessionManager');
 
 const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'gw', 'authenticated');
 
 const authenticatedApp = express();
-//const authRouter = express.Router();
 
 authenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));

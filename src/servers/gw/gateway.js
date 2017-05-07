@@ -23,8 +23,7 @@ const unauthenticatedApp = require('./unauthenticatedApp');
 const authenticatedApp   = require('./authenticatedApp');
 const configApp          = require('./configApp');
 const COOKIE_NAME        = 'X-Beame-GW-Service-Token';
-const utils              = require('../../utils');
-const samlManager       = require('../../samlSessionManager');
+const samlManagerRef        = require('../../samlSessionManager');
 
 let adminApp         = null;
 let expectsAuthToken = false;
@@ -381,7 +380,7 @@ class GatewayServer {
 	_startRequestsHandler(cert) {
 		logger.debug('startRequestsHandler');
 
-		let samlManagerInstance = new samlManager.samlManager(cert);
+		new samlManagerRef.samlManager(cert);
 
 		return new Promise((resolve, reject) => {
 

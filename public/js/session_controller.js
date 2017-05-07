@@ -16,7 +16,8 @@ var logoutUrl = null,
 	gwloginTarget,
 	gwloginRelay,
 	gw_socket = null,
-	isDirectSession;
+	isDirectSession,
+	samlRequest = getParameterByName('SAMLRequest');
 
 
 function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
@@ -88,7 +89,8 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 				type:    'auth',
 				payload: {
 					token:    authToken,
-					userData: userData
+					userData: userData,
+					SAMLRequest: samlRequest
 				}
 			})
 
