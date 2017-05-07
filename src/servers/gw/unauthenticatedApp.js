@@ -554,6 +554,10 @@ unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
 
 });
 
+unauthenticatedApp.get('/beame-slo', (req, res) => {
+	clearSessionCookie(res);
+	res.sendFile(path.join(base_path, 'xprs_signin.html'));
+});
 
 unauthenticatedApp.use(cust_auth_app);
 

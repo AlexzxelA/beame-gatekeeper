@@ -37,7 +37,7 @@ function assertSignedByGw(session_token) {
 
 // TODO: Session renewal?
 const messageHandlers = {
-	'auth':          function (payload, reply) {
+	'auth':          function (payload, reply, cb) {
 		// TODO: validate token and check it belongs to one of the registered users
 		// TODO: return apps list + session token
 		// --- request ---
@@ -111,7 +111,6 @@ const messageHandlers = {
 								reject(`user data decryption failed`);
 							}
 
-
 						}).catch(function (e) {
 							let errMsg = `Failed to decrypt user_id ${e.message}`;
 							logger.error(errMsg);
@@ -172,14 +171,15 @@ const messageHandlers = {
 
 				let app = serviceManager.getAppById(payload.app_id);
 				if(payload.app_code && payload.app_code.includes('_saml_')){
+					let userIdData = (typeof payload.sessionUserData === 'object')?payload.sessionUserData:JSON.parse(payload.sessionUserData);
 					let ssoManagerX = ssoManager.samlManager.getInstance();
 					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
 					ssoConfig.user = {
-						user:           'az@beame.io',
-						emails:         'az@beame.io',
+						user:           userIdData.name,
+						emails:         userIdData.email,
 						name:           {givenName:null, familyName:null},
-						displayName:    'az@beame.io',
-						id:             'az@beame.io'
+						displayName:    userIdData.nickname,
+						id:             userIdData.name
 					};
 					let ssoSession = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
@@ -195,21 +195,6 @@ const messageHandlers = {
 							}
 						});
 					});
-
-					// ssoPair.idp.sendLoginResponse(ssoPair.sp, null, 'post', 'az@beame.io', function (response) {
-					// 	reply({
-					// 		type: 'saml',
-					// 		payload: {
-					// 			success: true,
-					// 			app_id: payload.app_id,
-					// 			html: ssoManagerX.getSamlHtml(payload.app_code, response),
-					// 			external: app ? app.isRasp : false,
-					// 			url: null
-					// 		}
-					// 	});
-					// 	// response.title = 'POST data';
-					// 	// res.render('actions', response);
-					// }, null, true);
 				}
 				else {
 					reply({
@@ -374,8 +359,12 @@ class BrowserControllerSocketioApi {
 	_onConnection(client) {
 		// Browser controller will connect here
 		logger.debug('[GW] handleSocketIoConnect');
-
+		let sessionUserData = null;
 		function reply(data) {
+			if(data.type && data.type === 'authenticated' && data.payload && data.payload.userData){
+				sessionUserData = data.payload.userData;
+				logger.info(`Session user data set to ${data.payload.userData}`);
+			}
 			client.emit('data', JSON.stringify(data));
 		}
 
@@ -413,6 +402,7 @@ class BrowserControllerSocketioApi {
 				if(expectedMessages.indexOf(data.type)<0)
 					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
+			if(sessionUserData)data.sessionUserData = sessionUserData;
 			messageHandlers[data.type] && messageHandlers[data.type](data.payload || data, reply);
 		});
 	}

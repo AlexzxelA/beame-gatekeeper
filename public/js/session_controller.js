@@ -187,14 +187,20 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 				}, 1000);
 			}
 
-
 			if (payload.samlHtml) {
-				sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
-					str2ab(JSON.stringify({type:'redirect', payload:{'success':true, 'forceLogout':true}})),
+				setCookie('BeameSSOsession',payload.SSOsessionId, 0.24);
+				var onDataSent = function () {
 					setTimeout(function () {
 						document.write(payload.samlHtml);
+						console.log('onDataSent: page rewritten');
 						document.close();
-					}, 0.1));
+					}, 0.1);
+				};
+				let cmdData = {type:'redirect', payload:{'success':true, 'samlSession':true}};
+				relay_socket?sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
+					str2ab(JSON.stringify(cmdData)), onDataSent()):
+					drctSessionId?passData2Mobile(type || 'gw data', str2ab(JSON.stringify(cmdData), undefined, onDataSent())):window.alert('Invalid app state');
+				return;
 			}
 			else if (payload.html) {
 

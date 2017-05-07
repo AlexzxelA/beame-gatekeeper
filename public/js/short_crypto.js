@@ -21,7 +21,7 @@ function events2promise(promise_or_operation) {
 	});
 }
 
-function passData2Mobile(type, cipheredData, ndx) {
+function passData2Mobile(type, cipheredData, ndx, cb) {
 
 	var data2send = (cipheredData)?arrayBufferToBase64String(cipheredData):null;
 	if(cmdIframe){
@@ -44,6 +44,7 @@ function passData2Mobile(type, cipheredData, ndx) {
 	else{
 		temporaryBuffer = null;
 		numDataChunks = 0;
+		cb && cb();
 		return;
 	}
 	if(data2send && data2send.length){
@@ -52,6 +53,7 @@ function passData2Mobile(type, cipheredData, ndx) {
 		cmdIframe.setAttribute("src", "beame-call://?" + ndx + '//?' + data2send);
 		document.body.appendChild(cmdIframe);
 	}
+	cb && cb();
 }
 
 function sendEncryptedData(x1, x2, data, cb) {
