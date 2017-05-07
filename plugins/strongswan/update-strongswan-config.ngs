@@ -3,6 +3,12 @@
 # Asks Beame Gatekeeper for list of credentials and configures strongswan VPN
 # to allow all listed credentials.
 
+# TODO: handle vpn root certificate: place private key in /etc/ipsec.d/private/
+#       cp /home/nodejs/.beame/v2/FQDN/private_key.pem /etc/ipsec.d/private/FQDN.pem
+#       /etc/ipsec.secrets -> ": RSA FQDN.pem"
+# NOTE: enable ip forwarding
+# NOTE: enable SNAT
+
 # Environment variables and default values:
 #   BEAME_GATEKEEPER_USER (beame-gatekeeper) - user under which beame-gatekeeper runs
 #   BEAME_GATEKEEPER_BIN  (beame-gatekeeper) - beame-gatekeeper program name
