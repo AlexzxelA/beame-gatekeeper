@@ -290,27 +290,27 @@
 
             <div>
                 <span>Country</span>
-                <span>#: subject.countryName #</span>
+                <span>#: subject.country #</span>
             </div>
 
             <div>
                 <span>State/Province</span>
-                <span>#: subject.stateOrProvinceName #</span>
+                <span>#: subject.state #</span>
             </div>
 
             <div>
                 <span>Locality</span>
-                <span>#: subject.localityName #</span>
+                <span>#: subject.locality #</span>
             </div>
 
             <div>
                 <span>Organization</span>
-                <span>#: subject.organizationName #</span>
+                <span>#: subject.organization #</span>
             </div>
 
             <div>
                 <span>Common Name</span>
-                <span>#: subject.commonName #</span>
+                <span>#: subject.common #</span>
             </div>
 
 
@@ -345,22 +345,6 @@
                 <span>#: signatureAlgorithm #</span>
             </div>
 
-
-            <div class="title-divider">
-                <span>Public Key Info</span>
-                <span>&nbsp;</span>
-            </div>
-
-            <div>
-                <span>Algorithm</span>
-                <span>#: publicKey.algorithm #</span>
-            </div>
-
-            <div>
-                <span>Key Size</span>
-                <span>#: publicKey.bitSize # bits</span>
-            </div>
-
             <div class="title-divider">
                 <span></span>
                 <span></span>
@@ -377,16 +361,6 @@
                 <span>#: extensions.keyUsage#</span>
             </div>
 
-
-            <div class="title-light">
-                <span>Extension</span>
-                <span>Basic Constraints ( 2.5.29.19 )</span>
-            </div>
-
-            <div>
-                <span>Critical</span>
-                <span>#: extensions.basicConstraints #</span>
-            </div>
 
             <div class="title-light">
                 <span>Extension</span>
@@ -416,37 +390,6 @@
             </div>
             # } #
 
-
-            <div class="title-light">
-                <span>Extension</span>
-                <span>Certificate Policies ( 2.5.29.32 )</span>
-            </div>
-
-            <div>
-                <span></span>
-                <span>#: extensions.certificatePolicies #</span>
-            </div>
-
-
-            <div class="title-light">
-                <span>Extension</span>
-                <span>Certificate Authority Information Access ( 1.3.6.1.5.5.7.1.1 )</span>
-            </div>
-
-            <div>
-                <span></span>
-                <span>#: extensions.authorityInformationAccess #</span>
-            </div>
-
-            <div class="title-divider">
-                <span>Fingerprints</span>
-                <span></span>
-            </div>
-
-            <div>
-                <span>SHA-256</span>
-                <span>#: fingerPrint #</span>
-            </div>
 
         </div>
     </div>
