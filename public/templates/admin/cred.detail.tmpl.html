@@ -37,7 +37,7 @@
     <section id="cred-form-container" style="margin-bottom: 50px">
         <form id="cred-detail-form" class="admin-form-main">
             <div id="cred-info" class="invisible-msg">&nbsp;</div>
-            <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn"></span></label>
+            <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn" id="hid-fqdn"></span>  <input id="copy-fqdn-btn" type="button"  value="Copy to clipboard" class="k-button" data-clipboard-action="copy"/></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
             <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked"/></label>
             <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
@@ -720,7 +720,8 @@
 
 				closeWnd();
 
-				//initVpnWindow();
+				new Clipboard('#copy-fqdn-btn');
+				$('#copy-fqdn-btn').attr("data-clipboard-target", "#hid-fqdn");
 
 				this.set('revokeDisabled', this.data.hasChildren || this.data.revoked);
 				this.set('commonButtonDisabled', this.data.revoked);

@@ -18,7 +18,9 @@ const BeameLogger       = beameSDK.Logger;
 const logger            = new BeameLogger(module_name);
 const Bootstrapper      = require('../bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
-const beameAuthServices = require('../authServices').getInstance();
+
+const BeameAuthServices = require('../authServices');
+const beameAuthServices = BeameAuthServices.getInstance();
 
 const centralLoginServices = require('../centralLoginServices').getInstance();
 const hookServices         = require('../hooksServices').getInstance();
@@ -108,6 +110,21 @@ class AdminRouter {
 			}).catch(e => {
 				console.error('/creds/list/', e);
 				return res.json([]);
+			})
+		});
+
+		this._router.get('/creds/reload', (req, res) => {
+
+			BeameAuthServices.reloadStore().then(() => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE
+				});
+			}).catch(e => {
+				console.error('/creds/reload/', e);
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
 			})
 		});
 

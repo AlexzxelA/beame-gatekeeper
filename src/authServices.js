@@ -1029,6 +1029,16 @@ class BeameAuthServices {
 		);
 	}
 
+	static reloadStore(){
+		try {
+			store.credentials = {};
+			store.init();
+			return Promise.resolve();
+		} catch (e) {
+			return Promise.reject(e);
+		}
+	}
+
 	credsList(parent, options) {
 
 		let excludeRevoked = options.excludeRevoked ? options.excludeRevoked === "true" : false,

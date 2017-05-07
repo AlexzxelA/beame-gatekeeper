@@ -19,6 +19,7 @@
         <br/>
         <label>Find <input type="text" id="inp-find-cred"/> <input type="button" value="Search" class="k-button" onclick="findCreds()"/></label>
         <a style="display: inline-block;" id="btn-refresh-tree"></a>
+        <a style="display: inline-block;" id="btn-refresh-store">Refresh store</a>
         <br/>
         <div id="creds-tree"></div>
     </div>
@@ -227,6 +228,34 @@
 		$("#btn-refresh-tree").kendoButton({
 			icon: "refresh",
 			click: function(){
+				credsTree.data("kendoTreeView").dataSource.read();
+            }
+		});
+
+		$("#btn-refresh-store").kendoButton({
+			icon: "refresh",
+			click: function(){
+                showLoader();
+				$.ajax({
+					url:         '/creds/reload/',
+					cache:       false,
+					type:        "Get",
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
+
+						hideLoader();
+
+						if (response.responseCode == 1) {
+							credsTree.data("kendoTreeView").dataSource.read();
+						}
+						else {
+							alert(response.responseDesc);
+						}
+
+					}
+				});
+
 				credsTree.data("kendoTreeView").dataSource.read();
             }
 		});
