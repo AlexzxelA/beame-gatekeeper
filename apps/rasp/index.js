@@ -40,12 +40,12 @@ class Server {
 				case "on":
 					led.writeSync(1);
 					res.status(200).json({cmd,status:200});
-					this._socketioServer.socket.emit('switch',{cmd});
+					this._socketioServer.sockets.emit('switch',{cmd});
 					break;
 				case "off":
 					led.writeSync(0);
 					res.status(200).json({cmd,status:200});
-					this._socketioServer.socket.emit('switch',{cmd});
+					this._socketioServer.sockets.emit('switch',{cmd});
 					break;
 				default:
 					res.status(200).json({message:'Hello? yes, this is pi!',status:201});
