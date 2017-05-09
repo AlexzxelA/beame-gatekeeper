@@ -28,7 +28,6 @@ class samlManager{
 		this._certPath  = CertPath;
 		this._idp       =
 		{
-			audience:       'https://'+cred.fqdn,//metadata.getEntityID(),
 			issuer:         'https://'+cred.fqdn
 		};
 
@@ -72,13 +71,15 @@ class samlSession{
 		const metadata = this._ssoPair.sp?meta(this._ssoPair.sp):null;
 		const processLogin = (metadata, sessionMeta) => {
 			let a = samlp.auth({
-				RelayState: metadata?null:sessionMeta.id,
+				RelayState:     metadata?null:sessionMeta.id,
 				SAMLRequest:    this._request,
+				destination:    metadata?metadata.getEntityID():sessionMeta.issuer,
 				recipient:      metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL,
-				audience:       this._ssoPair.idp.audience,
+				audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
 				issuer:         this._ssoPair.idp.issuer,//,
 				cert:           this._ssoPair.idp.cert,
 				key:            this._ssoPair.idp.key,
+				attributes:     {'User.Email':this._user.emails},
 				getPostURL:     () => {return metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL},
 				getUserFromRequest: () => {return this._user},
 				signatureNamespacePrefix: 'ds',

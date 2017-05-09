@@ -204,14 +204,13 @@ const messageHandlers = {
 					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
 					ssoConfig.user = {
 						user:           userIdData.name,
-						emails:         userIdData.email,
+						emails:         userIdData.name,//userIdData.email,
 						name:           {givenName:null, familyName:null},
 						displayName:    userIdData.nickname,
 						id:             userIdData.name
 					};
 					let ssoSession = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
-						console.log('HTML::: '+ (html || err));
 						if(html)reply({
 							type: 'saml',
 							payload: {

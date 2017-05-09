@@ -328,7 +328,7 @@ class Whisperer {
 		let fqdn     = this._fqdn,
 			cred     = store.getCredential(fqdn),
 			name     = pin.toString().replace(/,/g,'-') + '.pin.virt.beameio.net',
-			token    = authToken.create(name, cred, 10),
+			token    = authToken.create(name, cred, 360),
 			tokenStr = CommonUtils.stringify({
 				'relay':     'https://'+ this._relay + '/control',
 				'signature': token,
