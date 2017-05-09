@@ -370,9 +370,9 @@ class BeameAuthServices {
 		);
 	}
 
-	static onRevokeSnsReceived(token){
+	static onRevokeSnsReceived(token) {
 		return new Promise((resolve) => {
-				store.find(token.fqdn,true).then(cred=>{
+				store.find(token.fqdn, true).then(cred => {
 					cred.saveOcspStatus(true);
 					resolve();
 				}).catch(resolve);
@@ -1029,7 +1029,7 @@ class BeameAuthServices {
 		);
 	}
 
-	static reloadStore(){
+	static reloadStore() {
 		try {
 			store.credentials = {};
 			store.init();
@@ -1219,8 +1219,13 @@ class BeameAuthServices {
 
 	createRegToken(data) {
 		return new Promise((resolve, reject) => {
-				const Credential                      = beameSDK.Credential;
-				let cred = new Credential(store), ttl = 60 * 60 * 24;
+
+				let cred = store.getCredential(data.fqdn), ttl = 60 * 60 * 24;
+
+				if (!cred) {
+					reject(`Credential for ${data.fqdn} not found`);
+					return;
+				}
 
 				try {
 					ttl = parseInt(data.ttl);
@@ -1229,14 +1234,29 @@ class BeameAuthServices {
 				}
 
 				cred.createRegistrationToken({
-						fqdn:      data.fqdn, name: data.name, email: data.email,
-						userId:    data.user_id, ttl: ttl, serviceName: bootstrapper.serviceName,
-						serviceId: bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
-						gwFqdn:    Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-						version:   bootstrapper.version,
-						pairing:   bootstrapper.pairingRequired
+						fqdn:        data.fqdn,
+						name:        data.name,
+						email:       data.email,
+						userId:      data.user_id,
+						ttl:         ttl,
+						serviceName: bootstrapper.serviceName,
+						serviceId:   bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
+						gwFqdn:      Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+						version:     bootstrapper.version,
+						pairing:     bootstrapper.pairingRequired
 					})
-					.then(resolve)
+					.then(regToken => {
+						BeameAuthServices._saveCredAction(cred, {
+							action: Constants.CredAction.RegTokenCreated,
+							name:   data.name,
+							email:  data.email,
+							date:   Date.now()
+						});
+						cred.metadata = cred.beameStoreServices.readMetadataSync();
+						this.getCredDetail(cred.fqdn).then(updatedCred => {
+							resolve({token: regToken, data: updatedCred});
+						}).catch(reject);
+					})
 					.catch(reject);
 			}
 		);
@@ -1246,7 +1266,26 @@ class BeameAuthServices {
 		let sendEmail = data.sendEmail, email = data.email;
 		return new Promise((resolve, reject) => {
 				const Credential = beameSDK.Credential;
-				let cred         = new Credential(store);
+				let cred = store.getCredential(data.fqdn);
+
+				if (!cred) {
+					reject(`Credential for ${data.fqdn} not found`);
+					return;
+				}
+
+				const _resolve = (fqdn,message) =>{
+					BeameAuthServices._saveCredAction(cred, {
+						action: Constants.CredAction.ChildCreated,
+						fqdn:   fqdn,
+						name:   data.name,
+						email:  data.email,
+						date:   Date.now()
+					});
+					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					this.getCredDetail(cred.fqdn).then(updatedCred => {
+						resolve({message: message, data: updatedCred, fqdn:fqdn});
+					}).catch(reject);
+				};
 
 				if (data.save_creds) {
 					logger.debug('************* CREATE LOCAL CREDS');
@@ -1254,15 +1293,17 @@ class BeameAuthServices {
 						.then(meta => {
 
 							store.find(meta.fqdn, false).then(newCred => {
+
+
 								if (sendEmail) {
 									this.sendPfx(newCred.fqdn, email).then(() => {
-										resolve(`Credential ${newCred.fqdn} created and sent by email`);
+										_resolve(newCred.fqdn,`Credential ${newCred.fqdn} created and sent by email`);
 									}).catch(err => {
-										resolve(`Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
+										_resolve(newCred.fqdn,`Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
 									})
 								}
 								else {
-									resolve(`Credential ${newCred.fqdn} created`);
+									_resolve(newCred.fqdn,`Credential ${newCred.fqdn} created`);
 								}
 
 							}).catch(reject);
@@ -1384,7 +1425,7 @@ class BeameAuthServices {
 						}
 						else {
 							BeameAuthServices._saveCredAction(cred, {
-								action: Constants.CredAction.Send,
+								action: Constants.CredAction.SendByEmail,
 								email,
 								date:   Date.now()
 							});
@@ -1577,6 +1618,10 @@ class BeameAuthServices {
 				cred.createAuthTokenForCred(fqdn).then(authToken => {
 
 					cred.renewCert(CommonUtils.parse(authToken), fqdn).then(() => {
+						BeameAuthServices._saveCredAction(cred, {
+							action: Constants.CredAction.Renew,
+							date:   Date.now()
+						});
 						this.getCredDetail(fqdn).then(resolve).catch(reject);
 					}).catch(reject);
 
@@ -1599,10 +1644,30 @@ class BeameAuthServices {
 				cred.createAuthTokenForCred(fqdn).then(authToken => {
 
 					cred.revokeCert(CommonUtils.parse(authToken), null, fqdn).then(() => {
+						BeameAuthServices._saveCredAction(cred, {
+							action: Constants.CredAction.Revoke,
+							date:   Date.now()
+						});
 						this.getCredDetail(fqdn).then(resolve).catch(reject);
 					}).catch(reject);
 
 				}).catch(reject);
+
+			}
+		);
+	}
+
+	checkOcsp(fqdn) {
+		return new Promise((resolve, reject) => {
+
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.checkOcspStatus(cred).then(resolve).catch(reject);
 
 			}
 		);
@@ -1629,6 +1694,12 @@ class BeameAuthServices {
 
 				cred.setDns(data.fqdn, data.dnsValue, !data.dnsValue || !data.dnsValue.length, data.dnsFqdn).then(value => {
 					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					BeameAuthServices._saveCredAction(cred, {
+						action: Constants.CredAction.DnsSaved,
+						fqdn:   data.dnsFqdn || data.fqdn,
+						value:  value,
+						date:   Date.now()
+					});
 					this.getCredDetail(fqdn).then(updatedCred => {
 						resolve({message: `Dns record created for ${value}`, value: value, data: updatedCred});
 					}).catch(reject);
@@ -1657,8 +1728,13 @@ class BeameAuthServices {
 					reject(`Dns update available only for local creds`);
 				}
 
-				cred.deleteDns(data.fqdn, data.dnsFqdn).then(value => {
+				cred.deleteDns(data.fqdn, data.dnsFqdn).then(() => {
 					cred.metadata = cred.beameStoreServices.readMetadataSync();
+					BeameAuthServices._saveCredAction(cred, {
+						action: Constants.CredAction.DnsDeleted,
+						fqdn:   data.fqdn || data.dnsFqdn,
+						date:   Date.now()
+					});
 					this.getCredDetail(fqdn).then(updatedCred => {
 						resolve({message: `Dns record deleted for ${data.dnsFqdn}`, data: updatedCred});
 					}).catch(reject);

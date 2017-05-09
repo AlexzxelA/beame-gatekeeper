@@ -42,7 +42,7 @@
 	var credsTree = null;
 
 	function treeRequestData() {
-		console.log('2 huya');
+
 		return {
 			options: {
 				excludeRevoked: $('#chk-exclude-revoke').is(":checked"),
@@ -111,6 +111,17 @@
 				var node       = tv.findByUid(dataItem.uid);
 				var isExpanded = $(node).attr("data-expanded");
 
+                if(args.data || args.newFqdn){
+                	var data = args.data;
+
+                	if(args.newFqdn){
+		                $('#inp-find-cred').val(args.newFqdn);
+                    }
+                	else if(data.name || data.email){
+		                $('#inp-find-cred').val(data.name || data.email);
+                    }
+                }
+
 				if (typeof isExpanded !== 'undefined') {
 					console.log('expand to ', fqdn);
 
@@ -119,7 +130,7 @@
 				}
 				else {
 					if (dataItem.hasChildren) {
-						treeview.expandPath([fqdn]);
+						tv.expandPath([fqdn]);
 					} else {
 						var parents = dataItem.chain && dataItem.chain.length ? dataItem.chain.map(function (item) {
 							return item.fqdn
@@ -131,7 +142,7 @@
 								parentDataItem.loaded(false);
 								parentDataItem.load();
 								setTimeout(function(){
-									treeview.expandPath([fqdn]);
+									tv.expandPath([fqdn]);
                                 },500)
                             }
                         }
@@ -197,9 +208,10 @@
 					var credNodes = $("#creds-tree").find('.cred-name');
 					for (var i = 0; i < credNodes.length; i++) {
 
-						var node = $(credNodes[i]);
+						var node = $(credNodes[i]),
+                            parent = node.parent();
 
-						if (node.html().toLowerCase().includes(text)) {
+						if (node.html().toLowerCase().includes(text) || parent.attr("data-fqdn") == text) {
 							node.addClass('matched');
 						} else {
 							node.removeClass('matched');

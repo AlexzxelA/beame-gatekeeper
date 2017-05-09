@@ -3257,6 +3257,12 @@ p + p {
     max-width: 200px;
     display: inline-block; }
 
+.overflow {
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  width: 100%;
+  display: block; }
+
 .info-div-base, .ad-success, .ad-error {
   margin-bottom: 10px;
   display: block !important; }
