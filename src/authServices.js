@@ -113,7 +113,7 @@ class BeameAuthServices {
 						updateHash();
 					}
 					else {
-						resolve();
+						resolve(registration);
 					}
 
 
@@ -724,6 +724,23 @@ class BeameAuthServices {
 		);
 	}
 
+	_findExistingRegistration(hash) {
+
+		return new Promise((resolve, reject) => {
+
+				dataService.findRegistrationRecordByHash(hash).then(registration => {
+					if (registration) {
+
+						resolve({pin: registration.pin, id: registration.id});
+					}
+					else {
+						resolve(null);
+					}
+				}).catch(reject);
+			}
+		);
+	};
+
 	/**
 	 * @param {String} method
 	 * @param {Object} metadata
@@ -732,30 +749,6 @@ class BeameAuthServices {
 	sendCustomerInvitation(method, metadata, phone_number) {
 
 		let existingRegistrationRecord = null, customerFqdn = null;
-
-		const _findExistingRegistration = () => {
-
-			return new Promise((resolve, reject) => {
-
-					dataService.findRegistrationRecordByHash(metadata.hash).then(registration => {
-						if (registration) {
-
-							existingRegistrationRecord = registration;
-
-							// if (registration.completed) {
-							// 	reject(`Customer with email ${metadata.email}, name ${metadata.name}, userId ${metadata.user_id} already registered`);
-							// 	return;
-							// }
-
-							resolve(registration.pin);
-						}
-						else {
-							resolve(null);
-						}
-					}).catch(reject);
-				}
-			);
-		};
 
 		const _saveRegistration = data => {
 			return new Promise((resolve, reject) => {
@@ -948,11 +941,11 @@ class BeameAuthServices {
 
 		return new Promise((resolve, reject) => {
 
-				_findExistingRegistration()
-					.then(pin => {
+				this._findExistingRegistration(metadata.hash)
+					.then(reg => {
 						//existing unfinished registration with pin found
-						if (pin) {
-							resolve(pin);
+						if (reg && reg.pin) {
+							resolve(reg.pin);
 							return;
 						}
 
@@ -971,6 +964,229 @@ class BeameAuthServices {
 
 					}).catch(reject);
 
+			}
+		);
+
+	}
+
+	getInvitationForCred(fqdn, metadata, sendByEmail) {
+
+		let existingRegistrationRecord = null, customerFqdn = null;
+
+		const _saveRegistration = data => {
+			return new Promise((resolve, reject) => {
+					if (existingRegistrationRecord) {
+						dataService.updateRegistrationPin(existingRegistrationRecord.id, data.pin).then(() => {
+							resolve({pin: data.pin, id: existingRegistrationRecord.id});
+						}).catch(reject);
+					}
+					else {
+						data.fqdn = customerFqdn;
+						this.saveRegistration(data).then(registration => {
+							resolve({pin: data.pin, id: registration.id});
+						}).catch(reject);
+					}
+				}
+			);
+		};
+
+		const _sendCustomerInvitation = (regRecord) => {
+
+			let options      = {
+				    fqdn:          fqdn,
+				    name:          metadata.name,
+				    email:         metadata.email,
+				    userId:        metadata.user_id,
+				    matchingFqdn:  this._matchingServerFqdn,
+				    serviceName:   bootstrapper.serviceName,
+				    serviceId:     bootstrapper.appId,
+				    ttl:           bootstrapper.customerInvitationTtl,
+				    imageRequired: bootstrapper.registrationImageRequired,
+				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
+				    version:       bootstrapper.version,
+				    pairing:       bootstrapper.pairingRequired
+			    },
+			    postEmailUrl = null;
+
+			const getRegToken = () => {
+				return new Promise((resolve, reject) => {
+						let cred = new beameSDK.Credential(store);
+
+						cred.createMobileRegistrationToken(options).then(resolve).catch(reject);
+					}
+				);
+			};
+
+			const saveInvitation = (regToken) => {
+
+				return new Promise((resolve, reject) => {
+						try {
+							let sign         = this.signData(options),
+							    provisionApi = new ProvisionApi(),
+							    fqdn         = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(new Buffer(regToken, 'base64').toString()).authToken).signedData.data).fqdn,
+							    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.SaveInvitation.endpoint}`,
+							    invitation   = {
+								    token:  regToken,
+								    appId:  bootstrapper.appId,
+								    fqdn:   fqdn,
+								    name:   options.name,
+								    email:  options.email,
+								    userId: options.user_id
+							    };
+
+							customerFqdn = fqdn;
+							provisionApi.postRequest(`https://${url}`, invitation, (error, payload) => {
+								if (error) {
+									reject(error);
+								}
+								else {
+									resolve(payload.data);
+								}
+							}, sign, 10);
+						} catch (e) {
+							reject(e);
+						}
+					}
+				);
+			};
+
+			const _resolve = (data) => {
+				return new Promise((resolve, reject) => {
+
+						let token        = {pin: data.pin, id: data.id, matching: this._matchingServerFqdn},
+						    base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
+						    url          = `${UniversalLinkUrl}?token=${base64Token}`,
+						    data2Resolve = {pin: data.pin, url: url};
+
+						if (!sendByEmail) return resolve(data2Resolve);
+
+						let sign         = this.signData(options),
+						    provisionApi = new ProvisionApi(),
+						    emailToken   = {
+							    email:   options.email,
+							    service: bootstrapper.serviceName,
+							    url:     url,
+							    id:      data.id
+						    };
+
+						provisionApi.postRequest(postEmailUrl, emailToken, (error) => {
+							if (error) {
+								reject(error);
+							}
+							else {
+								data2Resolve.message = `Invitation sent by email to ${options.email}`;
+								resolve(data2Resolve);
+							}
+						}, sign);
+					}
+				);
+			};
+
+			const assertEmail = () => {
+
+				if (sendByEmail) {
+					if (!metadata.email) {
+						return Promise.reject(`Email required`);
+					}
+
+					postEmailUrl = bootstrapper.postEmailUrl;
+
+					if (!postEmailUrl) {
+						return Promise.reject(`Post Email url not defined`);
+					}
+				}
+
+				return Promise.resolve();
+			};
+
+			return new Promise((resolve, reject) => {
+					const $this = this;
+					if (regRecord) {
+						assertEmail()
+							.then(_resolve.bind($this, regRecord))
+							.then(resolve)
+							.catch(reject);
+					} else {
+						assertEmail()
+							.then(getRegToken)
+							.then(saveInvitation)
+							.then(_resolve)
+							.then(resolve)
+							.catch(reject);
+					}
+
+				}
+			);
+		};
+
+		return new Promise((resolve, reject) => {
+
+				this._findExistingRegistration(metadata.hash)
+					.then(reg => {
+
+						const _resolve = (token, message) => {
+							let base64Token  = new Buffer(CommonUtils.stringify(token, false)).toString('base64'),
+							    url          = `${UniversalLinkUrl}?token=${base64Token}`,
+							    data2Resolve = {pin: token.pin, url: url, message: message};
+
+							resolve(data2Resolve);
+						};
+
+						const _send = (regRecord) => {
+
+							let save = !regRecord;
+
+							_sendCustomerInvitation(regRecord)
+								.then(resp => {
+									if (!resp.pin) {
+										reject(`pin not received`);
+										return;
+									}
+									if (save) {
+
+										metadata.pin = resp.pin;
+
+										_saveRegistration(metadata).then(data => {
+											let token = {
+												pin:      data.pin,
+												id:       data.id,
+												matching: this._matchingServerFqdn
+											};
+
+											_resolve(token, resp.message);
+
+										}).catch(reject);
+									}
+									else {
+										let token = {
+											pin:      reg.pin,
+											id:       reg.id,
+											matching: this._matchingServerFqdn
+										};
+
+										_resolve(token, resp.message);
+									}
+
+
+								}).catch(reject);
+						};
+
+						if (reg) {
+
+							if (!sendByEmail) {
+								let token = {pin: reg.pin, id: reg.id, matching: this._matchingServerFqdn};
+
+								_resolve(token);
+							}
+							else {
+								_send(reg);
+							}
+						}
+						else {
+							_send();
+						}
+
+					}).catch(reject);
 			}
 		);
 
@@ -1266,14 +1482,14 @@ class BeameAuthServices {
 		let sendEmail = data.sendEmail, email = data.email;
 		return new Promise((resolve, reject) => {
 				const Credential = beameSDK.Credential;
-				let cred = store.getCredential(data.fqdn);
+				let cred         = store.getCredential(data.fqdn);
 
 				if (!cred) {
 					reject(`Credential for ${data.fqdn} not found`);
 					return;
 				}
 
-				const _resolve = (fqdn,message) =>{
+				const _resolve = (fqdn, message) => {
 					BeameAuthServices._saveCredAction(cred, {
 						action: Constants.CredAction.ChildCreated,
 						fqdn:   fqdn,
@@ -1283,7 +1499,7 @@ class BeameAuthServices {
 					});
 					cred.metadata = cred.beameStoreServices.readMetadataSync();
 					this.getCredDetail(cred.fqdn).then(updatedCred => {
-						resolve({message: message, data: updatedCred, fqdn:fqdn});
+						resolve({message: message, data: updatedCred, fqdn: fqdn});
 					}).catch(reject);
 				};
 
@@ -1297,13 +1513,13 @@ class BeameAuthServices {
 
 								if (sendEmail) {
 									this.sendPfx(newCred.fqdn, email).then(() => {
-										_resolve(newCred.fqdn,`Credential ${newCred.fqdn} created and sent by email`);
+										_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created and sent by email`);
 									}).catch(err => {
-										_resolve(newCred.fqdn,`Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
+										_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
 									})
 								}
 								else {
-									_resolve(newCred.fqdn,`Credential ${newCred.fqdn} created`);
+									_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created`);
 								}
 
 							}).catch(reject);

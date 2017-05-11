@@ -253,6 +253,41 @@ class AdminRouter {
 			})
 		});
 
+		this._router.post('/cred/invite/:fqdn', (req, res) => {
+
+			if (bootstrapper.registrationImageRequired) {
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": 'Offline registration not allowed, when Required Image flag set to true'
+				});
+			}
+
+			let data = req.body,
+			    fqdn = req.params.fqdn;
+
+			logger.info(`Save invitation  with ${CommonUtils.data}`);
+
+			const _resolve = (resp) => {
+				return res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"data": resp
+				});
+			};
+
+			const _sendError = (e) => {
+				console.error(`/cred/invitation error ${fqdn}`, e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			};
+
+			this._getInvitation(fqdn,data,data.sendEmail)
+				.then(_resolve)
+				.catch(_sendError);
+
+		});
+
 		this._router.get('/cred/ios-profile/:fqdn', (req, res) => {
 
 			let fqdn = req.params.fqdn;
@@ -717,6 +752,17 @@ class AdminRouter {
 						reject(`${method} registration method not supports offline registrations`);
 						return;
 				}
+			}
+		);
+	}
+
+	_getInvitation(fqdn, data, sendByEmail) {
+		return new Promise((resolve, reject) => {
+
+				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
+				data.hash     = CommonUtils.generateDigest(data4hash);
+
+				beameAuthServices.getInvitationForCred(fqdn, data, sendByEmail).then(resolve).catch(reject);
 			}
 		);
 	}

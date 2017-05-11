@@ -35,6 +35,8 @@
         padding-top: 0;
     }
 
+    #inv-qr > div{margin: 0 auto;}
+
     /* Success template */
     .k-notification-success.k-group {
         background: rgba(0%,60%,0%,.7);
@@ -47,7 +49,7 @@
         line-height: 100px;
     }
     .notif-success h3 {
-        font-size: 1.2em;
+        font-size: 13px;
         font-weight: normal;
         display: inline-block;
         vertical-align: middle;
@@ -71,7 +73,7 @@
         line-height: 100px;
     }
     .notif-error h3 {
-        font-size: 1.2em;
+        font-size: 13px;
         font-weight: normal;
         display: inline-block;
         vertical-align: middle;
@@ -89,7 +91,7 @@
     <section id="cred-form-container" style="margin-bottom: 50px">
         <form id="cred-detail-form" class="admin-form-main">
             <div id="cred-info" class="invisible-msg">&nbsp;</div>
-            <label class="lbl-info">Fqdn: <span data-bind="text: data.fqdn" id="hid-fqdn"></span>  <input id="copy-fqdn-btn" type="button"  value="Copy to clipboard" class="k-button" data-clipboard-action="copy"/></label>
+            <label class="lbl-info">Fqdn: <span id="hid-fqdn">https://<span data-bind="text: data.fqdn"></span> </span> <input id="copy-fqdn-btn" type="button"  value="Copy to clipboard" class="k-button" data-clipboard-action="copy"/></label>
             <label class="lbl-info">Valid till: <span data-bind="text: data.validTill"></span></label>
             <label class="lbl-info">Revoked: <input type="checkbox" disabled data-bind="checked: data.revoked"/></label>
             <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">Parent: <span data-bind="text:parentName()"></span></label>
@@ -110,6 +112,7 @@
         <div class="btn-row"  data-bind="visible:showValidCertForms">
             <h5>Cred Actions</h5>
             <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child" class="k-button">
+            <input type="button" data-bind="disabled:commonButtonDisabled,click:openInvitationWnd" value="Create Invitation" class="k-button">
             <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd" value="Create Registration Token" class="k-button">
         </div>
 
@@ -315,6 +318,34 @@
     </div>
 </script>
 
+<script id="tmpl-create-invitation" type="text/x-kendo-template">
+    <h4>Create Invitation</h4>
+    <section id="inv-form-container" style="margin-bottom: 50px">
+        <form id="frm-create-invitation" method="post" class="form-main admin-form-main">
+            <div id="inv-info">&nbsp;</div>
+            <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
+            <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
+            <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>
+            <label class="inline form-input" style="border: none;box-shadow: none">Send invitation by email <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/></label>
+            <input type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Send invitation" class="button">
+        </form>
+    </section>
+
+    <div id="inv-qr-container" style="display:none;text-align: center" class="form-main admin-form-main">
+        <input type="button" id="btn-inv-back" value="back" data-bind="click:back">
+        <div id="inv-qr" style="margin: 10px auto 0;"></div>
+    </div>
+
+    <div id="wnd-overlay" class="overlay" style="max-height: 100% !important">
+        <div>
+            <h3>Processing Request</h3>
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+        </div>
+    </div>
+</script>
+
 <script id="tmpl-cert-detail" type="text/x-kendo-template">
     <div class="cert-wnd-container">
         <div class="cert-header">
@@ -504,16 +535,19 @@
 
 <div id="create-child-cred-window" class="wnd-default"></div>
 
+<div id="create-invitation-window" class="wnd-default"></div>
+
 <div id="create-regtoken-window" class="wnd-default"></div>
 
-<div id="d-notif" style="width: 240px;height: 100px;"></div>
+<div id="d-notif" style="width: 340px;height: 100px;"></div>
 
 <script>
-	var credDetailViewModel, vpnDetailViewModel, createCredViewModel,
+	var credDetailViewModel, vpnDetailViewModel, createCredViewModel,createInvitationViewModel,
 	    qrWnd       = $("#qr-window"),
 	    vpnWnd      = $('#vpn-window'),
 	    certWnd     = $('#cert-window'),
 	    credWnd     = $('#create-child-cred-window'),
+        invWnd      = $('#create-invitation-window'),
 	    regtokenWnd = $('#create-regtoken-window');
 
 	function showNotification(success,message,hideAfter){
@@ -529,7 +563,7 @@
 				top: 50,
 				left: newLeft
 			},
-			autoHideAfter:hideAfter || 5000,
+			autoHideAfter: hideAfter || 5000,
 			button: true,
 			templates: [{
 				type: "error",
@@ -671,6 +705,30 @@
 
 				createCredViewModel.init();
 				kendo.bind($("#create-child-cred-window"), createCredViewModel);
+			}
+		});
+	}
+
+	function initInvitationWindow() {
+		var template = kendo.template($("#tmpl-create-invitation").html());
+		invWnd.empty();
+		invWnd.kendoWindow({
+			width:   "400px",
+			height:  "450px",
+			title:   "Create Invitation",
+			visible: false,
+			modal:   true,
+			content: {
+				template: template
+			},
+			actions: [
+				"Close"
+			],
+			open:    function () {
+
+				createInvitationViewModel.init();
+				kendo.bind($("#create-invitation-window"), createInvitationViewModel);
+
 			}
 		});
 	}
@@ -900,6 +958,10 @@
 			openCredWnd:      function () {
 				initCredWindow();
 				credWnd.data("kendoWindow").center().open();
+			},
+            openInvitationWnd:      function () {
+	            initInvitationWindow();
+				invWnd.data("kendoWindow").center().open();
 			},
 			openRegtokenWnd:  function () {
 				initRegtokenWindow(this.data.fqdn, this.data.name);
@@ -1210,6 +1272,73 @@
 
 						}
 						info.html(response.responseDesc);
+					}
+				});
+			}
+		});
+
+		createInvitationViewModel = kendo.observable({
+			init:       function () {
+				this.set("fqdn", data.fqdn);
+			},
+			data:       data,
+			fqdn:       null,
+			email:      null,
+			name:       null,
+            user_id:    null,
+			sendEmail:  false,
+            back:function(){
+	            $('#inv-form-container').show();
+	            $('#inv-qr-container').hide();
+	            $('#inv-qr').empty();
+            },
+			createInvitation: function (e) {
+
+				showLoader('wnd-overlay');
+				e.preventDefault();
+				var form     = $('#frm-create-invitation'),
+				    fqdn     = this.get("fqdn"),
+                    url = '/cred/invite/' + this.get("fqdn"),
+				    formData = {
+					    fqdn:      fqdn,
+					    name:      this.get("name"),
+					    email:     this.get("email"),
+                        user_id:     this.get("user_id"),
+					    sendEmail: this.get("sendEmail")
+				    };
+				console.log('form data', formData);
+
+				$.ajax({
+					url:         url,
+					cache:       false,
+					data:        JSON.stringify(formData),
+					type:        'Post',
+					datatype:    "json",
+					contentType: "application/json; charset=utf-8"
+					, success:   function (response) {
+                        console.log(response);
+						hideLoader('wnd-overlay');
+
+						if (response.responseCode == 1) {
+							$('#inv-form-container').hide();
+							$('#inv-qr-container').show();
+							$('#inv-qr').empty().kendoQRCode({
+								value:           response.data.url,
+								errorCorrection: "L",
+								color:           "#000",
+								background:      "transparent",
+								padding:         0,
+								size:            250
+							});
+
+							if(response.data.message){
+								showNotification(true,response.data.message);
+                            }
+						}
+						else {
+							showNotification(false,response.responseDesc);
+						}
+
 					}
 				});
 			}
