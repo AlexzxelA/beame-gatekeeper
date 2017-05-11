@@ -31,6 +31,7 @@ const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
 
 const EmailPostUrl         = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";
+const EmailSendCertUrl     = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/pfx";
 const ExternalMatchingFqdn = "gpqhiai526aemun8.ohkv8odznwh5jpwm.v1.p.beameio.net";
 
 //in sec
