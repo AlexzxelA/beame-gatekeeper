@@ -28,7 +28,6 @@ const BeameRootPath            = path.join(home, beame_server_folder_name);
 const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
 
 
-
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
 
@@ -91,10 +90,16 @@ const DelegatedLoginNotificationAction = {
 };
 
 const CredAction = {
-	"Revoke":"Revoke",
-	"Renew":"Renew",
-	"Send":"Send",
-	"Download":"Download"
+	"Revoke":          "Revoke",
+	"Renew":           "Renew",
+	"SendByEmail":     "Send by email",
+	"Download":        "Download",
+	"VpnRootCreated":  "Set as VPN Root",
+	"VpnRootDeleted":  "VPN Root Deleted",
+	"ChildCreated":    "Child cred created",
+	"RegTokenCreated": "Reg token created",
+	"DnsSaved":      "Dns Saved",
+	"DnsDeleted":      "Dns deleted"
 };
 
 /**
@@ -103,7 +108,7 @@ const CredAction = {
  * @readonly
  * @enum {Number}
  */
-const SnsMessageType                   = {
+const SnsMessageType = {
 	Cert:   1,
 	Revoke: 2,
 	Delete: 3

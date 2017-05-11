@@ -13,7 +13,8 @@
     <!-- endbuild -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.web.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.all.min.js"></script>
+    <script src="js/notification_manager.js"></script>
     <script src="lib/clipboard.min.js"></script>
     <script src="js/utils.js"></script>
     <script>
@@ -96,7 +97,11 @@
 
 
 		$(document).ready(function () {
-			var menu = $("#menu").kendoMenu();
+			var menu = $("#menu").kendoMenu({
+				select: function(){
+					window.getNotifManagerInstance().notify('MenuClicked');
+                }
+            });
 			getSettings(function(){
 				var isLogin = settings.AppConfig.EnvMode == "DelegatedLoginMaster";
 				if(!isLogin){
@@ -109,11 +114,11 @@
 
 		});
 
-        function showLoader(){
-	        document.getElementById("overlay").style.display = "block";
+        function showLoader(id){
+	        document.getElementById(id || "overlay").style.display = "block";
         }
-        function hideLoader(){
-	        document.getElementById("overlay").style.display = "none";
+        function hideLoader(id){
+	        document.getElementById(id || "overlay").style.display = "none";
         }
 
     </script>

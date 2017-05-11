@@ -11,14 +11,16 @@ const Constants  = require('../../constants');
 const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
 const base_path  = path.join(public_dir, 'pages', 'admin');
 
-const beameSDK          = require('beame-sdk');
-const CommonUtils       = beameSDK.CommonUtils;
-const module_name       = "BeameAdminServices";
-const BeameLogger       = beameSDK.Logger;
-const logger            = new BeameLogger(module_name);
-const Bootstrapper      = require('../bootstrapper');
-const bootstrapper      = Bootstrapper.getInstance();
-const beameAuthServices = require('../authServices').getInstance();
+const beameSDK     = require('beame-sdk');
+const CommonUtils  = beameSDK.CommonUtils;
+const module_name  = "BeameAdminServices";
+const BeameLogger  = beameSDK.Logger;
+const logger       = new BeameLogger(module_name);
+const Bootstrapper = require('../bootstrapper');
+const bootstrapper = Bootstrapper.getInstance();
+
+const BeameAuthServices = require('../authServices');
+const beameAuthServices = BeameAuthServices.getInstance();
 
 const centralLoginServices = require('../centralLoginServices').getInstance();
 const hookServices         = require('../hooksServices').getInstance();
@@ -61,13 +63,51 @@ class AdminRouter {
 		});
 		//endregion
 
-		//region Registration token
-		this._router.get('/creds/filter', (req, res) => {
+		//region creds
 
-			let parts = req.query.filter && req.query.filter.filters && req.query.filter.filters.length ? req.query.filter.filters[0].value : '';
+		this._router.post('/cred/create', (req, res) => {
 
-			beameAuthServices.findCreds(parts).then(list => {
-				res.json(list);
+			let data        = req.body;
+			data.save_creds = true; //data.save_creds === "on";
+
+			logger.info(`Create pfx  with ${CommonUtils.data}`);
+
+			function resolve(resp) {
+
+				return res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": resp.message,
+					"data":         resp.data,
+					"newFqdn": resp.fqdn
+				});
+			}
+
+			function sendError(e) {
+				logger.error('/regtoken/create error', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			}
+
+			beameAuthServices.createCred(data)
+				.then(resolve)
+				.catch(sendError);
+
+		});
+
+		this._router.get('/cred/detail/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getCredDetail(fqdn).then(data => {
+				res.json(data);
+			}).catch(e => {
+				console.error('/cred/detail/', e);
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
 			})
 		});
 
@@ -77,10 +117,11 @@ class AdminRouter {
 
 			logger.info(`Create registration token  with ${CommonUtils.data}`);
 
-			function resolve(token) {
+			function resolve(resp) {
 				return res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
-					"token":        token
+					"token":        resp.token,
+					"data":         resp.data
 				});
 			}
 
@@ -98,31 +139,98 @@ class AdminRouter {
 
 		});
 
+		this._router.get('/creds/filter', (req, res) => {
+
+			let parts = req.query.filter && req.query.filter.filters && req.query.filter.filters.length ? req.query.filter.filters[0].value : '';
+
+			beameAuthServices.findCreds(parts).then(list => {
+				res.json(list);
+			})
+		});
+
 		this._router.get('/creds/list', (req, res) => {
 
-			let parent = req.query.fqdn;
+			let parent  = req.query.fqdn,
+			    options = req.query.options;
 
-			beameAuthServices.credsList(parent).then(list => {
+			beameAuthServices.credsList(parent, options).then(list => {
 				res.json(list);
-			}).catch(e=> {
+			}).catch(e => {
 				console.error('/creds/list/', e);
 				return res.json([]);
 			})
 		});
 
-		this._router.get('/cred/detail/:fqdn', (req, res) => {
+		this._router.get('/creds/reload', (req, res) => {
 
-			let fqdn = req.params.fqdn;
-
-			beameAuthServices.getCredDetail(fqdn).then(data => {
-				res.json(data);
-			}).catch(e=> {
-				console.error('/cred/detail/', e);
-				 res.json({
+			BeameAuthServices.reloadStore().then(() => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE
+				});
+			}).catch(e => {
+				console.error('/creds/reload/', e);
+				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
 			})
+		});
+
+		this._router.post('/cred/renew/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.renewCert(fqdn).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": "Cert successfully renewed",
+					data
+				});
+			}).catch(e => {
+				console.error('/cred/renew/', e);
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/cred/revoke/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.revokeCert(fqdn).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": "Cert successfully revoked",
+					data
+				});
+			}).catch(e => {
+				console.error('/cred/renew/', e);
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.get('/cred/ocsp/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.checkOcsp(fqdn).then(resp => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"data":         resp
+				});
+			}).catch(e => {
+				logger.error('/dns/create', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			});
+
 		});
 
 		this._router.get('/cred/pfx/:fqdn', (req, res) => {
@@ -137,8 +245,80 @@ class AdminRouter {
 				});
 				//res.write(new Buffer(token.pfx, 'binary'));
 				res.end(data);
-			}).catch(e=>{
-				 res.json({
+			}).catch(e => {
+				res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			})
+		});
+
+		this._router.post('/cred/invite/:fqdn', (req, res) => {
+
+			if (bootstrapper.registrationImageRequired) {
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": 'Offline registration not allowed, when Required Image flag set to true'
+				});
+			}
+
+			let data = req.body,
+			    fqdn = req.params.fqdn;
+
+			logger.info(`Save invitation  with ${CommonUtils.data}`);
+
+			const _resolve = (resp) => {
+				return res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"data": resp
+				});
+			};
+
+			const _sendError = (e) => {
+				console.error(`/cred/invitation error ${fqdn}`, e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			};
+
+			this._getInvitation(fqdn,data,data.sendEmail)
+				.then(_resolve)
+				.catch(_sendError);
+
+		});
+
+		this._router.get('/cred/ios-profile/:fqdn', (req, res) => {
+
+			let fqdn = req.params.fqdn;
+
+			beameAuthServices.getIosProfile(fqdn).then(data => {
+				res.writeHead(200, {
+					'Content-Type':        'application/x-plist',
+					'Content-disposition': `attachment;filename=${fqdn}.mobileconfig`,
+					'Content-Length':      data.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(data);
+			}).catch(e => {
+				res.send(BeameLogger.formatError(e));
+			})
+		});
+
+		this._router.post('/cred/set-vpn/:action', (req, res) => {
+
+			let fqdn   = req.body.fqdn,
+			    name   = req.body.name,
+			    id     = req.body.vpn_id,
+			    action = req.params.action;
+
+			beameAuthServices.setCredVpnStatus(fqdn, id, name, action).then(data => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					data
+				});
+			}).catch(e => {
+				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
@@ -147,15 +327,15 @@ class AdminRouter {
 
 		this._router.post('/send/pfx', (req, res) => {
 
-			let fqdn = req.body.fqdn,
-				email = req.body.email;
+			let fqdn  = req.body.fqdn,
+			    email = req.body.email;
 
-			beameAuthServices.sendPfx(fqdn,email).then(data => {
+			beameAuthServices.sendPfx(fqdn, email).then(data => {
 				res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
 					data
 				});
-			}).catch(e=>{
+			}).catch(e => {
 				res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
@@ -163,34 +343,57 @@ class AdminRouter {
 			})
 		});
 
-		this._router.post('/cred/create', (req, res) => {
+		this._router.post('/dns/create', (req, res) => {
 
-			let data = req.body;
-				data.save_creds = true; //data.save_creds === "on";
+			let body = req.body,
+			    data = {
+				    fqdn:     body.fqdn,
+				    dnsFqdn:  body.dnsFqdn,
+				    dnsValue: body.dnsValue
+			    };
 
-			logger.info(`Create pfx  with ${CommonUtils.data}`);
-
-			function resolve(token) {
-
-					return res.json({
-						"responseCode": RESPONSE_SUCCESS_CODE,
-						"responseDesc":        token.fqdn
-					});
-			}
-
-			function sendError(e) {
-				console.error('/regtoken/create error', e);
+			beameAuthServices.saveDns(data).then(token => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": token.message,
+					"dnsValue":     token.value,
+					"data":         token.data
+				});
+			}).catch(e => {
+				logger.error('/dns/create', e);
 				return res.json({
 					"responseCode": RESPONSE_ERROR_CODE,
 					"responseDesc": BeameLogger.formatError(e)
 				});
-			}
-
-			beameAuthServices.createCred(data)
-				.then(resolve)
-				.catch(sendError);
+			});
 
 		});
+
+		this._router.post('/dns/delete', (req, res) => {
+
+			let body = req.body,
+			    data = {
+				    fqdn:    body.fqdn,
+				    dnsFqdn: body.dnsFqdn
+			    };
+
+			beameAuthServices.deleteDns(data).then(token => {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": token.message,
+					"data":         token.data
+				});
+			}).catch(e => {
+				logger.error('/dns/create', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			});
+
+		});
+
+
 		//endregion
 
 		//region grids actions
@@ -553,10 +756,20 @@ class AdminRouter {
 		);
 	}
 
+	_getInvitation(fqdn, data, sendByEmail) {
+		return new Promise((resolve, reject) => {
+
+				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
+				data.hash     = CommonUtils.generateDigest(data4hash);
+
+				beameAuthServices.getInvitationForCred(fqdn, data, sendByEmail).then(resolve).catch(reject);
+			}
+		);
+	}
+
 	get router() {
 		return this._router;
 	}
 }
-
 
 module.exports = AdminRouter;

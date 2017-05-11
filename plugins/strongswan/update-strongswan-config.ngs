@@ -1,0 +1,132 @@
+#!/usr/bin/env ngs
+
+# Asks Beame Gatekeeper for list of credentials and configures strongswan VPN
+# to allow all listed credentials.
+
+# TODO: handle vpn root certificate: place private key in /etc/ipsec.d/private/
+#       cp /home/nodejs/.beame/v2/FQDN/private_key.pem /etc/ipsec.d/private/FQDN.pem
+#       /etc/ipsec.secrets -> ": RSA FQDN.pem"
+# NOTE: enable ip forwarding
+# NOTE: enable SNAT
+
+# Environment variables and default values:
+#   BEAME_GATEKEEPER_USER (beame-gatekeeper) - user under which beame-gatekeeper runs
+#   BEAME_GATEKEEPER_BIN  (beame-gatekeeper) - beame-gatekeeper program name
+#   IPSEC_CONF            (/etc/ipsec.conf)  - vpn file to configure with beame credentials
+#   BEAME_VPN_TEMPLATE_FILE (/etc/ipsec.conf.gatekeeper.template) - template file to be used for each per-user chunk in IPSEC_CONF
+#   BEAME_VPN_CERTS_DIR     (/etc/ipsec.d/certs)                  - directory where to store certificates that can connect
+
+MARKERS = '# Beame Gatekeeper - start'..'# Beame Gatekeeper - end'
+CERTS_DIR = ENV.get("BEAME_VPN_CERTS_DIR", "/etc/ipsec.d/certs")
+GATEKEEPER_BIN = ENV.get("BEAME_GATEKEEPER_BIN", "beame-gatekeeper")
+
+F fetch_creds(vpn_root_fqdn:Str, vpn_id:Str) {
+	debug("strongswan", "Fetching VPN users using VPN root FQDN: $vpn_root_fqdn")
+	user = ENV.get("BEAME_GATEKEEPER_USER", "beame-gatekeeper")
+	user_path = `su -s /bin/bash -c 'echo -n $PATH' $user`
+	creds = ``su -s /bin/bash -c "env PATH=$user_path:~/node_modules/.bin ${GATEKEEPER_BIN} creds listVpnCreds --fqdn $vpn_root_fqdn --vpnId '$vpn_id' --format json" $user``.map(F extract_needed_fields(cred:Hash) {
+		{
+			'fqdn': cred.fqdn
+			'x509': cred.X509
+		}
+	}).filter(F credential_sanity_check(cred) {
+		cred.fqdn ~ /^[a-zA-Z0-9][a-zA-Z0-9.-]+$/ and
+		cred.x509.get('type') == 'Buffer' and
+		cred.x509.get('data') is Arr and
+		cred.x509.data.all(Int)
+	}).each(F x509_to_str(cred) {
+		cred.x509 = cred.x509.data.map(chr).join('')
+	}).sort('fqdn')
+}
+
+F cert_file(fqdn:Str) MaybeFile(CERTS_DIR / fqdn + ".pem")
+
+# TODO: If/when File will be Res, this should be File("...").converge(content=...)
+F write_certificates(creds:Arr) {
+	had_changes = false
+	for cred in creds {
+		f = cert_file(cred.fqdn)
+		content = f.read()
+		if content == cred.x509 {
+			debug("strongswan", "Credential is up to date: $f")
+		} else {
+			debug("strongswan", "Writing credential to $f")
+			cred.x509.write(f)
+			had_changes = true
+		}
+	}
+	had_changes
+}
+
+F main(vpn_root_fqdn:Str, vpn_id:Str) {
+
+	if $(uname -s).lines()[0] != 'Linux' {
+		die("The only supported platform is Linux")
+	}
+
+	config_file = File(ENV.get("IPSEC_CONF", "/etc/ipsec.conf"))
+
+	$(test -L ${config_file.path}) throws NotImplemented("Don't know how to work with symlinked config file $config_file")
+
+	template = ENV.get("BEAME_VPN_TEMPLATE_FILE", "/etc/ipsec.conf.gatekeeper.template").read()
+
+	current_lines = config_file.lines()
+
+	creds_including_root = fetch_creds(vpn_root_fqdn, vpn_id)
+	creds = creds_including_root.reject(F(c) c.fqdn == vpn_root_fqdn)
+	debug("strongswan", "Fetched ${creds.len()} credentials.")
+	beame_creds_config_lines = creds.map(F(cred) {
+		["# FQDN ${cred.fqdn}"] + template.replace('@FQDN@', cred.fqdn).replace('@VPN_FQDN@', vpn_root_fqdn).lines()
+	}).flatten()
+
+	if m = current_lines ~ MARKERS {
+		# File has markers
+		target_lines = m.before + beame_creds_config_lines + m.after
+		current_fqdns = current_lines[MARKERS].filter(/^# FQDN/).map(F(line) line.split(' ')[2])
+	} else {
+		# File has no markers
+		target_lines = current_lines + [MARKERS.start] + beame_creds_config_lines + [MARKERS.end]
+		current_fqdns = []
+	}
+
+	target_fqdns = creds.fqdn
+
+	had_lines_changes = false
+	if current_lines != target_lines {
+		new_config_file = File(config_file.path + ".gatekeeper.new.${pid()}")
+		new_config_file.lines(target_lines)
+		$(mv $new_config_file $config_file)
+		had_lines_changes = true
+	}
+
+	had_certificate_changes = write_certificates(creds_including_root)
+
+	if fqdns_diff = Diff(current_fqdns, target_fqdns) {
+		for fqdn in fqdns_diff.add {
+			debug("strongswan", "FQDN to add: $fqdn")
+		}
+		for fqdn in fqdns_diff.remove {
+			debug("strongswan", "FQDN to remove: $fqdn")
+			# Errors here can be ignored as it's just cleanup
+			# and non-removal of certificate file does not affect
+			# the operation of VPN.
+			try $(rm ${cert_file(fqdn)})
+		}
+	} else {
+		debug("strongswan", "Current and target FQDNs are the same")
+	}
+
+	if had_certificate_changes or had_lines_changes {
+		debug("strongswan", "Reloading strongSwan")
+		$(service strongswan reload)
+	} else {
+		debug("strongswan", "Not reloading strongSwan because there were no changes")
+	}
+
+	for fqdn in fqdns_diff.remove {
+		debug("strongswan", "Terminating VPN connection for $fqdn")
+		for sfx in ['', '-iphone', '-normal'] {
+			$(ipsec down "$fqdn$sfx")
+		}
+	}
+}

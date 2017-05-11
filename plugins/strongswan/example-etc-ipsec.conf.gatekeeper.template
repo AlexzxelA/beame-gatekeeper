@@ -1,0 +1,10 @@
+conn @FQDN@-iphone
+    # iphone
+    leftcert=@VPN_FQDN@.pem
+    leftid=@@VPN_FQDN@
+    rightcert=@FQDN@.pem
+    rightid=@@FQDN@
+conn @FQDN@-normal
+    # others
+    leftcert=@VPN_FQDN@.pem
+    rightcert=@FQDN@.pem

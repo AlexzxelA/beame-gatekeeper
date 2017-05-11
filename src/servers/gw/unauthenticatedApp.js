@@ -190,6 +190,56 @@ unauthenticatedApp.get('/cred-download',(req,res) =>{
 
 } );
 
+unauthenticatedApp.get('/ios-profile-download',(req,res) =>{
+	const qs           = querystring.parse(url.parse(req.url).query);
+
+	if(!qs || !qs.uid){
+		res.status(403).send(`payload required`);
+		return;
+	}
+
+	let authServices = BeameAuthServices.getInstance();
+
+	let authToken = authServices.downloadTokens[qs.uid];
+
+	if(!authToken){
+		res.status(403).send(`authToken required`);
+		return;
+	}
+	AuthToken.validate(authToken)
+		.then( () =>{
+			let data = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(authToken).signedData.data));
+
+			if(!data || !data.fqdn){
+				res.status(403).send(`Invalid signed data`);
+				return;
+			}
+
+			let fqdn = data.fqdn;
+
+			authServices.getIosProfile(fqdn, true).then(data=>{
+
+				res.writeHead(200, {
+					'Content-Type':        'application/x-plist',
+					'Content-disposition': `attachment;filename=${fqdn}.mobileconfig`,
+					'Content-Length':      data.length
+				});
+				//res.write(new Buffer(token.pfx, 'binary'));
+				res.end(data);
+			}).catch(e=>{
+				logger.error(e);
+				res.status(500).send(BeameLogger.formatError(e));
+			});
+
+		})
+		.catch(e => {
+			logger.error(e);
+			res.status(403).send(`Invalid auth token`);
+
+		});
+
+} );
+
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
 
 	AuthToken.getRequestAuthToken(req).then(() => {
