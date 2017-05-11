@@ -73,6 +73,42 @@ function signDataWithFqdn(fqdn, data) {
 		});
 	});
 }
+let pairingGlobalsRef = null;
+class pairingGlobals{
+	constructor(){
+		this._sessionIdTimeout  = 180;//adjust this value to allow "refresh" on mobile browser
+		this._sessionIdScan     = 60 * 1000;
+		if(!pairingGlobalsRef){
+			pairingGlobalsRef = this;
+			this._directSessionIds = {};
+		}
+	}
+
+	setNewSessionId(key, value){
+		this._directSessionIds[key] = {token:value, time: (Math.floor(Date.now() / 1000) + this._sessionIdTimeout)};
+	}
+
+	getSessionIds(){
+		return this._directSessionIds;
+	}
+	 cleanSessionsCache(){
+		setInterval(function () {
+			if(this._directSessionIds){
+				for(let i = 0; i < this._directSessionIds.length; i++) {
+					let record = this._directSessionIds[i];
+					if(!record.time || Math.floor(Date.now() / 1000) > record.time){
+						console.log('deleted record:',record);
+						delete this._directSessionIds[i];
+					}
+				}
+			}
+		},this._sessionIdScan)
+	}
+
+	static getInstance(){
+		return pairingGlobalsRef;
+	}
+}
 
 function  clearSessionCookie (res){
 	const Constants         = require('../constants');
@@ -84,10 +120,21 @@ function  clearSessionCookie (res){
 	res.clearCookie(cookieNames.LoginData);
 }
 
+function generateUID(length) {
+	let text     = "",
+	    possible = "_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef.ghijklmnopqrstuvwxyz0123456789.";
+	for (var i = 0; i < length; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}
+
 module.exports = {
 	clearSessionCookie,
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,
-	signDataWithFqdn
+	signDataWithFqdn,
+	generateUID,
+	pairingGlobals
 };

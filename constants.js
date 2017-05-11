@@ -20,11 +20,12 @@ const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
 const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const RegisterPath             = `${GatewayControllerPath}/register`;
+const DirectPath               = `${GatewayControllerPath}/direct-signin`;
 const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
-const BeameAuthServerLocalPort = 65000;
+const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
 
 
 const ConfigFolder      = "config";
@@ -87,13 +88,27 @@ const DelegatedLoginNotificationAction = {
 	"Register":   "register",
 	"UnRegister": "unregister"
 };
+
+const CredAction = {
+	"Revoke":          "Revoke",
+	"Renew":           "Renew",
+	"SendByEmail":     "Send by email",
+	"Download":        "Download",
+	"VpnRootCreated":  "Set as VPN Root",
+	"VpnRootDeleted":  "VPN Root Deleted",
+	"ChildCreated":    "Child cred created",
+	"RegTokenCreated": "Reg token created",
+	"DnsSaved":      "Dns Saved",
+	"DnsDeleted":      "Dns deleted"
+};
+
 /**
  * Sns Message Types
  * DON'T TOUCH, should by synchronized with backend services
  * @readonly
  * @enum {Number}
  */
-const SnsMessageType                   = {
+const SnsMessageType = {
 	Cert:   1,
 	Revoke: 2,
 	Delete: 3
@@ -146,6 +161,7 @@ module.exports = {
 	LoadBalancerURL,
 	BeameLoginURL,
 	CredentialType,
+	CredAction,
 	SnsMessageType,
 	DelegatedLoginNotificationAction,
 	SetupServices,
@@ -167,6 +183,7 @@ module.exports = {
 	AppSwitchPath,
 	DCLSOfflinePath,
 	RegisterPath,
+	DirectPath,
 	RegisterSuccessPath,
 	UniversalLinkUrl,
 	BeameRootPath,

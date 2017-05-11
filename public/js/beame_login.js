@@ -364,8 +364,8 @@ var _setBit = function (freq, phase, samples, padding) {
 	for (i = 0; i < samples; i++) {
 		if (i < samples - lclPad)
 			data[i] = (Math.sin(phase + i * twoPi * (freq / SR)) +
-			(Math.sin(phase + i * twoPi * ((freq - 10) / SR))) +
-			(Math.sin(phase + i * twoPi * ((freq + 10) / SR)))
+				(Math.sin(phase + i * twoPi * ((freq - 10) / SR))) +
+				(Math.sin(phase + i * twoPi * ((freq + 10) / SR)))
 				//+ (Math.sin(phase + i * twoPi * ((freq + 20) / SR)))
 			);
 		else
@@ -1182,10 +1182,10 @@ function initComRelay(virtRelaySocket) {
 
 function updateUIelements() {
 	var
-	signBox      = document.getElementById('pairing-box'),
-	imgBox       = document.getElementById('user-img-box'),
-	lblReqImg    = document.getElementById('lbl-req-img'),
-	lblReqImgMsg = document.getElementById('lbl-req-img-msg');
+		signBox      = document.getElementById('pairing-box'),
+		imgBox       = document.getElementById('user-img-box'),
+		lblReqImg    = document.getElementById('lbl-req-img'),
+		lblReqImgMsg = document.getElementById('lbl-req-img-msg');
 	if(signBox) signBox.style.display   = 'none';
 	if(imgBox) imgBox.style.display    = 'block';
 	if(lblReqImg) lblReqImg.style.display = 'block';
@@ -1195,4 +1195,3 @@ function beameLoginData(){
 	return "huy";
 
 }
-

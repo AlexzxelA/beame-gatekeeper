@@ -21,33 +21,30 @@
 </head>
 <body>
 
-<div class="card card-center">
+<div class="card card-center card-simple">
 
-    <a class="my-1 d-block" href="/">
-        <!-- build:logo -->
-        <img src="img/beame-logo-grad.png" width="100" height="16">
+    <div class="my-1 text-blue font-md semi">
+        <!-- build:logo-product -->
+        <img class="mr-half" src="../img/shield.png" width="30" height="36">Gatekeeper
         <!-- endbuild -->
-    </a>
+    </div>
 
     <div class="row">
-
-        <div class="column medium-6 card-left p-2 shadow-main">
-            <h4 class="text-white main-title">Welcome to <br/> Beame Gatekeeper</h4>
-
-            <a href="https://github.com/beameio/beame-gatekeeper" target="_blank" class="gk-product-link">Beame Gatekeeper product homepage</a>
+        <div class="column medium-12 shadow-main text-center">
+            <h1 class="text-purple main-title mb-half">Welcome to Gatekeeper</h1>
+            <p>Open the Beame Authenticator App to start</p>
+            <div class="px-3"><a class="button mb-2 mt-7" href="/beame-gw/signin">Sign in</a></div>
+            <p>Don't have an account? <a href="/beame-gw/register">Register</a></p>
         </div>
+    </div>
 
-        <div class="column medium-6 card-right shadow-main p-2">
-            <p class="text-center">Open the Beame Authenticator App to start</p>
-
-            <form id="" action="" class="form-main">
-
-                    <a class="button expanded button-main" href="/beame-gw/signin">Sign in</a>
-                    <a class="button expanded button-main" href="/beame-gw/register">Register</a>
-
-            </form>
-        </div>
-
+    <div class="text-right my-1 mr-half">
+        <span class="vbottom lh-1 text-gray-light">By:</span>
+        <a href="/">
+            <!-- build:logo -->
+            <img src="../img/beame-logo-gray.png" width="100" height="16">
+            <!-- endbuild -->
+        </a>
     </div>
 
 </div>

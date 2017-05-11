@@ -1,11 +1,11 @@
 Hi.
 
 Currently, you have no certificates. You must have a certificate in order
-to run your beame-insta-server.
+to run your beame-gatekeeper.
 
 Here are the steps to obtain SSL certificate from Beame.io:
 
-* Visit https://p2payp4q8f5ruo22.q6ujqecc83gg6fod.v1.d.beameio.net/insta-server
+* Visit https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper
 * Get email with further instructions
 * Run the command mentioned in the instructions
 * Run "beame-gatekeeper server start"

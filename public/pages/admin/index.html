@@ -13,7 +13,8 @@
     <!-- endbuild -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.web.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.all.min.js"></script>
+    <script src="js/notification_manager.js"></script>
     <script src="lib/clipboard.min.js"></script>
     <script src="js/utils.js"></script>
     <script>
@@ -38,9 +39,17 @@
 				path:  "templates/admin/regtoken.tmpl.html",
 				event: "tokenLoaded"
 			},
-            Pfx:    {
-				path:  "templates/admin/create.pfx.tmpl.html",
-				event: "pfxLoaded"
+            Cred:    {
+				path:  "templates/admin/create.cred.tmpl.html",
+				event: "credLoaded"
+			},
+            CredDetail:    {
+				path:  "templates/admin/cred.detail.tmpl.html",
+				event: "credDetailLoaded"
+			},
+            Creds:    {
+				path:  "templates/admin/creds.tmpl.html",
+				event: "credsLoaded"
 			},
 			Service: {
 				path:  "templates/admin/services.tmpl.html",
@@ -80,13 +89,19 @@
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.RegToken.path, ADMIN_TEMPLATES.RegToken.event);
-		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Pfx.path, ADMIN_TEMPLATES.Pfx.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Cred.path, ADMIN_TEMPLATES.Cred.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.CredDetail.path, ADMIN_TEMPLATES.CredDetail.event);
+		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Creds.path, ADMIN_TEMPLATES.Creds.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
 		templateLoader.loadExtTemplate(ADMIN_TEMPLATES.GkLogin.path, ADMIN_TEMPLATES.GkLogin.event);
 
 
 		$(document).ready(function () {
-			var menu = $("#menu").kendoMenu();
+			var menu = $("#menu").kendoMenu({
+				select: function(){
+					window.getNotifManagerInstance().notify('MenuClicked');
+                }
+            });
 			getSettings(function(){
 				var isLogin = settings.AppConfig.EnvMode == "DelegatedLoginMaster";
 				if(!isLogin){
@@ -99,11 +114,11 @@
 
 		});
 
-        function showLoader(){
-	        document.getElementById("overlay").style.display = "block";
+        function showLoader(id){
+	        document.getElementById(id || "overlay").style.display = "block";
         }
-        function hideLoader(){
-	        document.getElementById("overlay").style.display = "none";
+        function hideLoader(id){
+	        document.getElementById(id || "overlay").style.display = "none";
         }
 
     </script>
@@ -131,6 +146,7 @@
             <nav>
                 <ul id="menu">
                     <li><a id="showDash" href="#">Dashboard</a></li>
+                    <li><a id="showCreds" href="#/creds">Creds</a></li>
                     <li><a id="showUsers" href="#/users">Users</a></li>
                     <li><a id="showRegs" href="#/regs">Registrations</a></li>
                     <li><a id="showInvs" href="#/inv">Invitations</a></li>
@@ -156,10 +172,11 @@
 </div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.4.0/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
 
 <script>
 
-	var settings = null, viewDash, viewUsers, viewRegs, viewInvs,viewToken, viewPfx, viewService , viewGkLogin,layout;
+	var settings = null, viewDash, viewUsers,viewCreds, viewRegs, viewInvs,viewToken, viewPfx, viewService , viewGkLogin,layout;
 
 	function initAdminRouters() {
 
@@ -171,6 +188,7 @@
 		viewInvs  = new kendo.View("#inv");
 		viewToken  = new kendo.View("#reg-token");
 		viewPfx  = new kendo.View("#tmpl-create-pfx");
+		viewCreds  = new kendo.View("#tmpl-creds");
 		viewService  = new kendo.View("#services");
 		viewGkLogin  = new kendo.View("#gk-login");
 
@@ -194,6 +212,11 @@
 		var initUsers = function () {
 			layout.showIn("#content", viewUsers);
 			loadUsers();
+		};
+
+		var initCreds = function () {
+			layout.showIn("#content", viewCreds);
+			loadCreds();
 		};
 
 		var initRegs = function () {
@@ -232,6 +255,9 @@
 		$("#showUsers").on("click", function () {
 			initUsers();
 		});
+		$("#showCreds").on("click", function () {
+			initCreds();
+		});
 		$("#showRegs").on("click", function () {
 			initRegs();
 		});
@@ -263,6 +289,10 @@
 			subscribe(ADMIN_TEMPLATES.Dash.event, initDash);
 		});
 
+		router.route("/creds", function () {
+			subscribe(ADMIN_TEMPLATES.Creds.event, initCreds);
+		});
+
 		router.route("/users", function () {
 			subscribe(ADMIN_TEMPLATES.User.event, initUsers);
 		});
@@ -280,7 +310,7 @@
 		});
 
 		router.route("/pfx", function () {
-			subscribe(ADMIN_TEMPLATES.Pfx.event, initPfx);
+			subscribe(ADMIN_TEMPLATES.Cred.event, initPfx);
 		});
 
 		router.route("/srvc", function () {

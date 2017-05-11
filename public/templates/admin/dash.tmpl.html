@@ -49,14 +49,15 @@
 
                         <li>
                             <label>Registration method</label>
-                            <input data-role="dropdownlist"
-                                   data-auto-bind="true"
-                                   data-value-primitive="true"
-                                   data-text-field="name"
-                                   data-value-field="name"
-                                   data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"
-                                   class='k-textbox'
-                            />
+                            <!--<input data-role="dropdownlist"-->
+                                   <!--data-auto-bind="true"-->
+                                   <!--data-value-primitive="true"-->
+                                   <!--data-text-field="name"-->
+                                   <!--data-value-field="name"-->
+                                   <!--data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"-->
+                                   <!--class='k-textbox'-->
+                            <!--/>-->
+                            <input data-role="dropdownlist" data-auto-bind="true" data-value-primitive="true" data-text-field="name" data-value-field="name" data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods" class="k-textbox">
                         </li>
 
                         <li>
@@ -116,6 +117,11 @@
                         <li>
                             <label>Email post url</label>
                             <textarea  data-bind="value:data.AppConfig.PostEmailUrl"  class='k-textbox' id="PostEmailUrl" cols="30" rows="2"></textarea>
+                        </li>
+
+                        <li>
+                            <label>Email send cert url</label>
+                            <textarea  data-bind="value:data.AppConfig.EmailSendCertUrl"  class='k-textbox' id="EmailSendCertUrl" cols="30" rows="2"></textarea>
                         </li>
 
                         <li>
