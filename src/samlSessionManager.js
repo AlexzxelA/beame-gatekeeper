@@ -9,9 +9,11 @@ const Config                = BeameSdk.Config;
 const path                  = require('path');
 const fs                    = require('fs');
 const samlp                 = require('samlp');
+const metaParser            = require('./SPMetadataSAML');
 let certPem                 = null;
 let keyPem                  = null;
 let samlManagerInstance     = null;
+
 /*
 * SP Entity ID
 * RelayState - where-to redirect on successful login / boomerang in SP initiated session, 80 bytes max, need 2 protect
@@ -34,16 +36,20 @@ class samlManager{
 		if(!samlManagerInstance)samlManagerInstance = this;
 	}
 
-	getConfig(spName){
+	getCredData(){
 		if(!certPem){
 			certPem = dir.readFile(this._certPath);
 			this._idp.cert = certPem;
 		}
-
 		if(!keyPem){
 			keyPem = dir.readFile(this._pkPath);
 			this._idp.key = keyPem;
 		}
+		return {cert:certPem,key:keyPem};
+	}
+
+	getConfig(spName){
+		this.getCredData();
 		if(spName && dir.doesPathExists(this._path + spName)){
 			return {ssoPair:{idp:this._idp, sp:(this._path + spName)}, cred:this._cred};
 		}
@@ -65,43 +71,55 @@ class samlSession{
 		this._user      = config.user;
 		this._request   = config.SAMLRequest;
 	}
+
+	initMetadata(metadata, cb){
+		metadata?metadata.initMetadata(()=>{cb(metadata)}):cb();
+	}
+
 	getSamlHtml(cb){
-		const meta = require('./SPMetadataSAML');
-		let sessionMeta = null;
-		const metadata = this._ssoPair.sp?meta(this._ssoPair.sp):null;
-		const processLogin = (metadata, sessionMeta) => {
-			let a = samlp.auth({
-				RelayState:     metadata?null:sessionMeta.id,
-				SAMLRequest:    this._request,
-				destination:    metadata?metadata.getEntityID():sessionMeta.issuer,
-				recipient:      metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL,
-				audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
-				issuer:         this._ssoPair.idp.issuer,//,
-				cert:           this._ssoPair.idp.cert,
-				key:            this._ssoPair.idp.key,
-				attributes:     {'User.Email':this._user.emails},
-				getPostURL:     () => {return metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL},
-				getUserFromRequest: () => {return this._user},
-				signatureNamespacePrefix: 'ds',
-				signResponse:   false,
-				signatureAlgorithm: 'rsa-sha256',
-				digestAlgorithm:    'sha256',
-				plainXml:       false,
-				template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
-				customResponseHandler: cb
-			});
-			a();
-		};
+		let xXx=this._ssoPair.sp?new metaParser(this._ssoPair.sp):null;
+		this.initMetadata(xXx, (metadata)=>{
+			const processLogin = (metadata, sessionMeta) => {
+				let postTarget = metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL;
+				let SPorigin    = postTarget;
+				if(postTarget){
+					if(postTarget.includes('://')){
+						let segments = postTarget.split("/");
+						SPorigin = segments[0] + "//" + segments[2];
+					}
+				}
+				let a = samlp.auth({
+					inResponseTo:   metadata?null:sessionMeta.id,
+					RelayState:     metadata?null:sessionMeta.id,
+					SAMLRequest:    this._request,
+					destination:    SPorigin,
+					recipient:      postTarget,
+					audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
+					issuer:         this._ssoPair.idp.issuer,//,
+					cert:           this._ssoPair.idp.cert,
+					key:            this._ssoPair.idp.key,
+					attributes:     {'User.Email':this._user.emails},
+					getPostURL:     () => {return postTarget || SPorigin},
+					getUserFromRequest: () => {return this._user},
+					nameIdentifierFormat:   metadata?metadata.getNameIDFormat():null,
+					signatureNamespacePrefix: 'ds',
+					signResponse:   false,
+					signatureAlgorithm: 'rsa-sha256',
+					digestAlgorithm:    'sha256',
+					plainXml:       false,
+					template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
+					customResponseHandler: cb
+				});
+				a();
+			};
 
-		if(this._request)
-			samlp.parseRequest({query:{SAMLRequest:this._request}}, (err, request)=>{
-				sessionMeta = request;
-				processLogin(null, sessionMeta);
-			});
-		else
-			processLogin(metadata);
-
-
+			if(this._request)
+				samlp.parseRequest({query:{SAMLRequest:this._request}}, (err, request)=>{
+					processLogin(null, request);
+				});
+			else
+				processLogin(metadata);
+		});
 	}
 }
 

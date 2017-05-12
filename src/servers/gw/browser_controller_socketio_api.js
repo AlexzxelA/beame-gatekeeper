@@ -79,15 +79,15 @@ const messageHandlers = {
 					let ssoConfig = ssoManagerX.getConfig();
 					ssoConfig.user = {
 						user:           userIdData.name,
-						emails:         userIdData.email,
-						name:           {givenName:null, familyName:null},
+						emails:         userIdData.name,//userIdData.email,
+						name:           {givenName:undefined, familyName:undefined},
 						displayName:    userIdData.nickname,
 						id:             userIdData.name
 					};
-					ssoConfig.SAMLRequest = payload.SAMLRequest;
-					let ssoSession = new ssoManager.samlSession(ssoConfig);
+					ssoConfig.persistentId  = token.signedBy;
+					ssoConfig.SAMLRequest   = payload.SAMLRequest;
+					let ssoSession          = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
-						console.log('HTML::: '+ (html || err));
 						if(html)reply({
 							type: 'saml',
 							payload: {
@@ -205,7 +205,7 @@ const messageHandlers = {
 					ssoConfig.user = {
 						user:           userIdData.name,
 						emails:         userIdData.name,//userIdData.email,
-						name:           {givenName:null, familyName:null},
+						name:           {givenName:undefined, familyName:undefined},
 						displayName:    userIdData.nickname,
 						id:             userIdData.name
 					};
@@ -264,7 +264,6 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise(() => {
-				console.log('*************** Logout with data:', payload);
 				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
 				let type = 'redirect';
 				if(bootstrapper.externalLoginUrl){

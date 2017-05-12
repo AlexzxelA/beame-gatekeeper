@@ -19,11 +19,11 @@ const ProxyClient        = beameSDK.ProxyClient;
 const BeameStore         = new beameSDK.BeameStore();
 const Constants          = require('../../../constants');
 const cookieNames        = Constants.CookieNames;
+const samlManagerRef     = require('../../samlSessionManager');
 const unauthenticatedApp = require('./unauthenticatedApp');
 const authenticatedApp   = require('./authenticatedApp');
 const configApp          = require('./configApp');
 const COOKIE_NAME        = 'X-Beame-GW-Service-Token';
-const samlManagerRef        = require('../../samlSessionManager');
 
 let adminApp         = null;
 let expectsAuthToken = false;
@@ -381,7 +381,7 @@ class GatewayServer {
 		logger.debug('startRequestsHandler');
 
 		new samlManagerRef.samlManager(cert);
-
+		unauthenticatedApp.initSSOdata();
 		return new Promise((resolve, reject) => {
 
 			let serverCerts = cert.getHttpsServerOptions();

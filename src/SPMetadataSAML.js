@@ -6,11 +6,12 @@
  * @author Tony Ngan
  * @desc  Metadata of service provider
  */
-const namespace = {
+"use strict";
+const namespaceX = {
 	binding: {
 		redirect: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
 		post: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-		arifact: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-ARIFACT'
+		artifact: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-ARIFACT'
 	},
 	names: {
 		protocol: 'urn:oasis:names:tc:SAML:2.0:protocol',
@@ -61,22 +62,63 @@ const namespace = {
 		unsupportedBinding:'urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding'
 	}
 };
-var Metadata = require('./MetadataSAML');
-var xml = require('xml');
+const metaFields = [{
+	localName: 'SPSSODescriptor',
+	attributes: ['WantAssertionsSigned', 'AuthnRequestsSigned']
+},{
+	localName: 'AssertionConsumerService',
+	attributes: ['Binding', 'Location', 'isDefault', 'index']
+},{
+	localName: 'EntityDescriptor',
+	attributes: ['entityID']
+},{
+	localName: {
+		tag: 'KeyDescriptor',
+		key: 'use'
+	},
+	valueTag: 'X509Certificate'
+},{
+	localName: {
+		tag: 'SingleLogoutService',
+		key: 'Binding'
+	},
+	attributeTag: 'Location'
+}, 'NameIDFormat'];
+
+const xml       = require('xml');
+let fs = require('fs');
+let dom = require('xmldom').DOMParser;
+let xpath = require('xpath');
 
 /**
  * @param  {object/string} meta (either file path in string format or configuation in object)
  * @return {object} prototypes including public functions
  */
-module.exports = function(meta) {
-	var byMetadata = typeof meta === 'string';
+class SPMetadata
+{
+	constructor(meta){
+		this.meta = null;
+		this.isXml = typeof meta === 'string'?false:true;
+		this.xmlString = this.isXml? meta.toString() :　fs.readFileSync(meta).toString();
+	}
+
+	initMetadata(cb){
+		try{
+			this.meta = this.extractor(this.xmlString, metaFields);
+		}
+		catch (e){
+			console.error(e);
+		}
+
+		cb();
+	}
 	/**
 	 * @desc Helper function to create the key section in metadata (abstraction for signing and encrypt use)
 	 * @param  {string} use          type of certificate (e.g. signing, encrypt)
 	 * @param  {string} certFile     declares the .cer file (e.g. path/certificate.cer)
 	 * @return {object} object used in xml module
 	 */
-	createKeySection: function createKeySection(use, certFile) {
+	 createKeySection(use, certFile){
 		return {
 			KeyDescriptor:[{
 				_attr: {
@@ -94,66 +136,287 @@ module.exports = function(meta) {
 				}]
 			}]
 		};
-	}
-	/**
-	 * @desc SP Metadata is for creating Service Provider, provides a set of API to manage the actions in SP.
-	 */
-	function SPMetadata() {}
-	/**
-	 * @desc  Initialize with creating a new metadata object
-	 * @param {string/objects} meta     declares path of the metadata
-	 * @param {array of Objects}        high-level XML element selector
-	 */
-	SPMetadata.prototype = new Metadata(meta, [{
-		localName: 'SPSSODescriptor',
-		attributes: ['WantAssertionsSigned', 'AuthnRequestsSigned']
-	},{
-		localName: 'AssertionConsumerService',
-		attributes: ['Binding', 'Location', 'isDefault', 'index']
-	}], !byMetadata);
+	};
+
 	/**
 	 * @desc Get the preference whether it wants a signed assertion response
 	 * @return {boolean} Wantassertionssigned
 	 */
-	SPMetadata.prototype.isWantAssertionsSigned = function isWantAssertionsSigned() {
+	isWantAssertionsSigned (){
 		return this.meta.spssodescriptor.wantassertionssigned === 'true';
 	};
 	/**
 	 * @desc Get the preference whether it signs request
 	 * @return {boolean} Authnrequestssigned
 	 */
-	SPMetadata.prototype.isAuthnRequestSigned = function isAuthnRequestSigned() {
+	isAuthnRequestSigned () {
 		return this.meta.spssodescriptor.authnrequestssigned === 'true';
 	};
+	/**
+	 * @desc Get the support NameQualifier format declared in entity metadata
+	 * @return {array} support NameID format
+	 */
+	// getNameQualifier () {
+	// 	return this.meta.namequalifier;
+	// };
+	// /**
+	//  * @desc Get the support SPNameQualifier format declared in entity metadata
+	//  * @return {array} support NameID format
+	//  */
+	// getSPNameQualifier() {
+	// 	return this.meta.spnamequalifier;
+	// };
+	getNameIDFormat(){
+		return this.meta.nameidformat;
+	}
+	getEntityID(){
+		return this.meta.entitydescriptor.entityid;
+	}
 	/**
 	 * @desc Get the entity endpoint for assertion consumer service
 	 * @param  {string} binding         protocol binding (e.g. redirect, post)
 	 * @return {string/[string]} URL of endpoint(s)
 	 */
-	SPMetadata.prototype.getAssertionConsumerService = function getAssertionConsumerService(binding) {
+	getAssertionConsumerService(binding) {
 		if(typeof binding === 'string') {
-			var _location;
-			var _binding = namespace.binding[binding];
-
-			if(this.meta.assertionconsumerservice.length > 0) {
-				this.meta.assertionconsumerservice.forEach(function(obj) {
+			let _location;
+			let _binding = namespaceX.binding[binding];
+			let tmpObj = Object.assign(this.meta.assertionconsumerservice,{});
+			if(tmpObj > 0) {
+				tmpObj.forEach((obj) => {
 					if(obj.binding === _binding) {
 						_location = obj.location;
-						return;
 					}
 				});
-			} else {
+			}
+			else {
 				if(this.meta.assertionconsumerservice.binding === _binding) {
 					_location = this.meta.assertionconsumerservice.location;
 				}
 			}
 			return _location;
-		} else {
+		}
+		else {
 			return this.meta.assertionconsumerservice;
 		}
 	};
+
+	createXPath(local, isExtractAll) {
+		let xpath = '';
+		if(typeof local === 'object') {
+			xpath = "//*[local-name(.)='" + local.name + "']/@" + local.attr;
+		} else {
+			xpath = isExtractAll === true ? "//*[local-name(.)='" + local + "']/text()" : "//*[local-name(.)='" + local + "']";
+		}
+		return xpath;
+	}
 	/**
-	 * @desc return the prototype
+	 * @private
+	 * @desc Get the entire body according to the XPath
+	 * @param  {xml} xmlDoc              used xml document
+	 * @param  {string} localName        tag name without prefix
+	 * @param  {boolean} isOutputString  output is string format (default is true)
+	 * @return {string/array}
 	 */
-	return SPMetadata.prototype;
-};
+	getEntireBody(xmlDoc, localName, isOutputString){
+		let _xpath = this.createXPath(localName);
+		let _selection = xpath.select(_xpath, xmlDoc);
+
+		if(_selection.length === 0) {
+			return undefined;
+		} else {
+			let data = [];
+			_selection.forEach((_s)=>{
+				data.push(this.convertToString(_s, isOutputString !== false));
+			});
+			return data.length == 1 ? data[0] : data;
+		}
+	}
+
+	/**
+	 * @private
+	 * @desc  Get the inner xml according to the XPath
+	 * @param  {xml} xmlDoc          used xml document
+	 * @param  {string} localName    tag name without prefix
+	 * @return {string/array} value
+	 */
+	getInnerText(xmlDoc, localName){
+		let _xpath = this.createXPath(localName, true);
+		let _selection = xpath.select(_xpath, xmlDoc);
+
+		if(_selection.length === 0) {
+			return undefined;
+		} else {
+			let data = [];
+			_selection.forEach((_s)=>{
+				data.push(_s.nodeValue.toString());
+			});
+			return data.length == 1 ? data[0] : data;
+		}
+	}
+	/**
+	 * @private
+	 * @desc Helper function used to return result with complex format
+	 * @param  {xml} xmlDoc              used xml document
+	 * @param  {string} localName        tag name without prefix
+	 * @param  {string} localNameKey     key associated with tag name
+	 * @param  {string} valueTag         tag of the value
+	 */
+	getInnerTextWithOuterKey(xmlDoc, localName, localNameKey, valueTag) {
+		let _xpath = this.createXPath(localName);
+		let _selection = xpath.select(_xpath, xmlDoc);
+		let obj = {};
+
+		_selection.forEach((_s)=> {
+			let xd = new dom().parseFromString(_s.toString());
+			let key = xpath.select("//*[local-name(.)='" + localName + "']/@" + localNameKey, xd);
+			let value = xpath.select("//*[local-name(.)='" + valueTag + "']/text()", xd);
+			let res;
+
+			if(key && key.length == 1 && value && value.length > 0) {
+				if(value.length == 1) {
+					res = value[0].nodeValue.toString();
+				}
+				else {
+					let _dat = [];
+					value.forEach((v)=> {
+						_dat.push(v.nodeValue.toString());
+					});
+					res = _dat;
+				}
+				obj[key[0].nodeValue.toString()] = res;
+			} else{
+				//console.warn('Multiple keys or null value is found');
+			}
+		});
+		return Object.keys(obj).length == 0 ? undefined : obj;
+	}
+	/**
+	 * @private
+	 * @desc  Get the attribute according to the key
+	 * @param  {string} localName            tag name without prefix
+	 * @param  {string} localNameKey         key associated with tag name
+	 * @param  {string} attributeTag         tag of the attribute
+	 */
+	getAttributeKey(xmlDoc, localName, localNameKey, attributeTag){
+		let _xpath = this.createXPath(localName);
+		let _selection = xpath.select(_xpath, xmlDoc);
+		let data = [];
+
+		_selection.forEach((_s)=> {
+			let xd = new dom().parseFromString(_s.toString());
+			let key = xpath.select("//*[local-name(.)='" + localName + "']/@" + localNameKey, xd);
+			let value = xpath.select("//*[local-name(.)='" + localName + "']/@" + attributeTag, xd);
+
+			if(value && value.length == 1 && key && key.length == 1) {
+				let obj = {};
+				obj[key[0].nodeValue.toString()] = value[0].nodeValue.toString();
+				data.push(obj);
+			}
+			else {
+				//console.warn('Multiple keys or null value is found');
+			}
+		});
+		return data.length === 0 ? undefined : data;
+	}
+
+	extractor(xmlString, fields){
+
+		let doc = new dom().parseFromString(xmlString);
+		let _meta = {};
+
+		fields.forEach((field)=>{
+			let _objKey;
+			let res;
+
+			if(typeof field === 'string') {
+				_meta[field.toLowerCase()] = this.getInnerText(doc, field);
+			}
+			else if(typeof field === 'object') {
+				let _localName = field.localName;
+				let _extractEntireBody = field.extractEntireBody == true;
+				let _attributes = field.attributes || [];
+				let _customKey = field.customKey || '';
+
+				if(typeof _localName === 'string') {
+					_objKey = _localName;
+					if(_extractEntireBody) {
+						res = this.getEntireBody(doc,_localName);
+					} else {
+						if(_attributes.length !== 0) {
+							res = this.getAttributes(doc, _localName, _attributes);
+						} else {
+							res = this.getInnerText(doc,_localName);
+						}
+					}
+				} else {
+					_objKey = _localName.tag;
+					if(field.attributeTag) {
+						res = this.getAttributeKey(doc, _objKey, _localName.key, field.attributeTag);
+					} else if (field.valueTag) {
+						res = this.getInnerTextWithOuterKey(doc, _objKey, _localName.key, field.valueTag);
+					}
+				}
+				_meta[_customKey === '' ? _objKey.toLowerCase() : _customKey] = res;
+			}
+		});
+		return _meta;
+	}
+	getAttributes(xmlDoc, localName, attributes) {
+		var _xpath = this.createXPath(localName);
+		var _selection = xpath.select(_xpath, xmlDoc);
+
+		if(_selection.length === 0) {
+			return undefined;
+		} else {
+			var data = [];
+			_selection.forEach((_s)=>{
+				var _dat = {};
+				var doc = new dom().parseFromString(_s.toString());
+				attributes.forEach((_attribute)=>{
+					_dat[_attribute.toLowerCase()] = this.getAttribute(doc, localName, _attribute);
+				});
+				data.push(_dat);
+			});
+			return data.length === 1 ? data[0] : data;
+		}
+	}
+	/**
+	 * @private
+	 * @desc Helper function used by another private function: getAttributes
+	 * @param  {xml} xmlDoc          used xml document
+	 * @param  {string} localName    tag name without prefix
+	 * @param  {string} attribute    name of attribute
+	 * @return {string} attribute value
+	 */
+	getAttribute(xmlDoc, localName, attribute) {
+		var _xpath = this.createXPath({
+			name: localName,
+			attr: attribute
+		});
+		var _selection = xpath.select(_xpath, xmlDoc);
+
+		if(_selection.length !== 1) {
+			return undefined;
+		} else {
+			return _selection[0].nodeValue.toString();
+		}
+	}
+	/**
+	 * @desc Get the x509 certificate declared in entity metadata
+	 * @param  {string} use declares the type of certificate
+	 * @return {string} certificate in string format
+	 */
+	getX509Certificate(use){
+		if (use === 'signing' || use === 'encryption') {
+			return this.meta.keydescriptor[use];
+		}
+		throw new Error('undefined use of key in getX509Certificate');
+	}
+
+	convertToString(input, isOutputString){
+		return isOutputString ? input.toString() : input;
+	}
+}
+
+module.exports = SPMetadata;

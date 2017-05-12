@@ -554,6 +554,19 @@ unauthenticatedApp.get(Constants.ConfigData, (req, res) => {
 
 });
 
+unauthenticatedApp.post('/beame-sso', (req, res) => {
+	clearSessionCookie(res);
+	try{
+		samlp.parseRequest(req, (error, SAMLRequest)=>{
+			console.log(SAMLRequest);
+		});
+		res.sendFile(path.join(base_path, 'signin.html'));
+	}
+	catch (e){
+		res.status(500).send();
+	}
+});
+
 unauthenticatedApp.get('/beame-sso', (req, res) => {
 	clearSessionCookie(res);
 	try{
@@ -567,11 +580,29 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 	}
 });
 
+const ssoManager        = require('../../samlSessionManager');
+let credData            = {};
+
+
+unauthenticatedApp.get('/test-sso',
+samlp.auth({
+	issuer:     'the-issuer',
+	cert:       credData.cert,
+	key:        credData.key,
+	getPostURL:  () => {
+		return 'https://beameio-team.slack.com/sso/saml';
+	}
+}));
+
 unauthenticatedApp.get('/beame-slo', (req, res) => {
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 
 unauthenticatedApp.use(cust_auth_app);
+
+unauthenticatedApp.initSSOdata = function (){
+	credData = ssoManager.samlManager.getInstance().getCredData();
+};
 
 module.exports = unauthenticatedApp;
