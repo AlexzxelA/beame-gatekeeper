@@ -475,6 +475,12 @@ p + p {
   }
 }
 
+.overflow{text-overflow: ellipsis;
+  overflow-x: hidden;
+  width: 100%;
+  display: block;
+}
+
 .info-div-base{margin-bottom: 10px;display: block !important;}
 
 .ad-success {

@@ -16,7 +16,7 @@ const Constants            = require('../constants');
 const BeameAuthServices    = require('./authServices');
 const CentralLoginServices = require('../src/centralLoginServices');
 const utils                = require('./utils');
-const defaults          = require('../defaults');
+const defaults             = require('../defaults');
 
 class ServersManager {
 

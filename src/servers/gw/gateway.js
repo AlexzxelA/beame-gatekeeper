@@ -313,7 +313,7 @@ function startTunnel([cert, requestsHandlerPort]) {
 			null, serverCerts);
 
 		proxyClient.start().then(resolve).catch(e=>{
-			logger.error(`Start tunnel error ${BeameLogger.formatError(e)}`)
+			logger.error(`Start tunnel error ${BeameLogger.formatError(e)}`);
 			resolve();
 		});
 
