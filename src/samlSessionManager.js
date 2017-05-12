@@ -94,6 +94,8 @@ class samlSession{
 					SAMLRequest:    this._request,
 					destination:    SPorigin,
 					recipient:      postTarget,
+					nameQualifier:  metadata?metadata.getNameQualifier():null,
+					spNameQualifier:metadata?metadata.getSPNameQualifier():null,
 					audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
 					issuer:         this._ssoPair.idp.issuer,//,
 					cert:           this._ssoPair.idp.cert,

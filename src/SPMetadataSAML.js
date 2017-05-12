@@ -83,7 +83,10 @@ const metaFields = [{
 		key: 'Binding'
 	},
 	attributeTag: 'Location'
-}, 'NameIDFormat'];
+},
+'NameIDFormat',
+'NameQualifier',
+'SPNameQualifier'];
 
 const xml       = require('xml');
 let fs = require('fs');
@@ -156,16 +159,16 @@ class SPMetadata
 	 * @desc Get the support NameQualifier format declared in entity metadata
 	 * @return {array} support NameID format
 	 */
-	// getNameQualifier () {
-	// 	return this.meta.namequalifier;
-	// };
-	// /**
-	//  * @desc Get the support SPNameQualifier format declared in entity metadata
-	//  * @return {array} support NameID format
-	//  */
-	// getSPNameQualifier() {
-	// 	return this.meta.spnamequalifier;
-	// };
+	getNameQualifier () {
+		return this.meta.namequalifier;
+	};
+	/**
+	 * @desc Get the support SPNameQualifier format declared in entity metadata
+	 * @return {array} support NameID format
+	 */
+	getSPNameQualifier() {
+		return this.meta.spnamequalifier;
+	};
 	getNameIDFormat(){
 		return this.meta.nameidformat;
 	}
