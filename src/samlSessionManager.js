@@ -92,7 +92,7 @@ class samlSession{
 					inResponseTo:   metadata?null:sessionMeta.id,
 					RelayState:     metadata?null:sessionMeta.id,
 					SAMLRequest:    this._request,
-					destination:    SPorigin,
+					destination:    postTarget,
 					recipient:      postTarget,
 					nameQualifier:  metadata?metadata.getNameQualifier():null,
 					spNameQualifier:metadata?metadata.getSPNameQualifier():null,

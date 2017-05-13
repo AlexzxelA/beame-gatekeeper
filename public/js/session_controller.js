@@ -153,7 +153,13 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 					removeLogin();
 				}
 				else {
-					forceReloadWindowOnSessionFailure = true;
+					var e = (payload.error && payload.error!=='undefined')?payload.error:'Login failed';
+					sendEncryptedData(getRelaySocket(), getRelaySocketID(),
+						str2ab(JSON.stringify({'type': 'autheticated', 'payload':{'error':e}})),
+						function () {
+							forceReloadWindowOnSessionFailure = true;
+							window.alert(e);
+						});
 				}
 
 			}

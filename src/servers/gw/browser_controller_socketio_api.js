@@ -58,7 +58,7 @@ const messageHandlers = {
 					resolve(user);
 				}).catch(error => {
 					logger.error(`loginUser on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
-					reject(error);
+					reject(`error ${BeameLogger.formatError(error)}`);
 				});
 			});
 		}
@@ -160,13 +160,13 @@ const messageHandlers = {
 			.then(createSessionToken)
 			.then(respond)
 			.catch(e => {
-				logger.error(`auth error ${e.message}`);
-				console.log(e.message);
+				logger.error(`auth error ${e.message || e}`);
+				console.log(e.message || e);
 				reply({
 					type:    'authenticated',
 					payload: {
 						success: false,
-						error:   e.message
+						error:   e.message || e
 					}
 				});
 			});
