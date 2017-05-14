@@ -84,11 +84,9 @@ class samlSession{
 		return new Promise((resolve, reject)=>{
 			let files = fs.readdirSync(this._path);
 			let lastIndex = (ndx, array) => {
-				if(ndx == array.length - 1){
+				if(ndx == (array.length - 1)){
 					resolve(null);
-					return;
 				}
-
 			};
 			if(!files)
 				resolve(null);
@@ -117,49 +115,40 @@ class samlSession{
 
 	processRequest(xXx, sessionMeta, cb){
 		this.initMetadata(xXx, (metadata)=>{
-			//const processLogin = (metadata, sessionMeta) => {
-				let postTarget = metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL;
-				let SPorigin    = postTarget;
-				if(postTarget){
-					if(postTarget.includes('://')){
-						let segments = postTarget.split("/");
-						SPorigin = segments[0] + "//" + segments[2];
-					}
+			let postTarget = metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL;
+			let SPorigin    = postTarget;
+			if(postTarget){
+				if(postTarget.includes('://')){
+					let segments = postTarget.split("/");
+					SPorigin = segments[0] + "//" + segments[2];
 				}
-				let a = samlp.auth({
-					inResponseTo:   sessionMeta?sessionMeta.id:null,
-					RelayState:     sessionMeta?sessionMeta.id:null,
-					SAMLRequest:    this._request,
-					destination:    SPorigin,
-					recipient:      SPorigin,
-					nameQualifier:  metadata?metadata.getNameQualifier():null,
-					spNameQualifier:metadata?metadata.getSPNameQualifier():null,
-					persistentId:   this._persistentId,
-					audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
-					issuer:         this._ssoPair.idp.issuer,//,
-					cert:           this._ssoPair.idp.cert,
-					key:            this._ssoPair.idp.key,
-					attributes:     {'User.Email':this._user.emails},
-					getPostURL:     () => {return postTarget || SPorigin},
-					getUserFromRequest: () => {return this._user},
-					nameIdentifierFormat:   metadata?metadata.getNameIDFormat():null,
-					signatureNamespacePrefix: 'ds',
-					signResponse:   false,
-					signatureAlgorithm: 'rsa-sha256',
-					digestAlgorithm:    'sha256',
-					plainXml:       false,
-					template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
-					customResponseHandler: cb
-				});
-				a();
-			//};
-
-			// if(this._request)
-			// 	samlp.parseRequest({query:{SAMLRequest:this._request}}, (err, request)=>{
-			// 		processLogin(null, request);
-			// 	});
-			// else
-			// 	processLogin(metadata);
+			}
+			let a = samlp.auth({
+				inResponseTo:   sessionMeta?sessionMeta.id:null,
+				RelayState:     sessionMeta?sessionMeta.id:null,
+				SAMLRequest:    this._request,
+				destination:    SPorigin,
+				recipient:      SPorigin,
+				nameQualifier:  metadata?metadata.getNameQualifier():null,
+				spNameQualifier:metadata?metadata.getSPNameQualifier():null,
+				persistentId:   this._persistentId,
+				audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
+				issuer:         this._ssoPair.idp.issuer,//,
+				cert:           this._ssoPair.idp.cert,
+				key:            this._ssoPair.idp.key,
+				attributes:     {'User.Email':this._user.emails},
+				getPostURL:     () => {return postTarget || SPorigin},
+				getUserFromRequest: () => {return this._user},
+				nameIdentifierFormat:   metadata?metadata.getNameIDFormat():null,
+				signatureNamespacePrefix: 'ds',
+				signResponse:   false,
+				signatureAlgorithm: 'rsa-sha256',
+				digestAlgorithm:    'sha256',
+				plainXml:       false,
+				template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
+				customResponseHandler: cb
+			});
+			a();
 		});
 	}
 
