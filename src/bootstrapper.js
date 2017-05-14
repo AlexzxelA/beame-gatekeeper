@@ -157,6 +157,14 @@ class Bootstrapper {
 		});
 	}
 
+	/**
+	 * Set OCSP cache which override default from SDK
+	 * @param {Number|null} [days]
+	 */
+	setOcspCachePeriod (days) {
+		process.env.BEAME_OCSP_CACHE_PERIOD = (days || this.ocspCachePeriod) * 1000 * 60 * 60 * 24;
+	}
+
 	static getServersToCreate() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
@@ -278,6 +286,10 @@ class Bootstrapper {
 
 	get whispererSendPinInterval() {
 		return this._config && this._config[SettingsProps.WhispererSendPinInterval] ? this._config[SettingsProps.WhispererSendPinInterval] : defaults.WhispererSendPinInterval;
+	}
+
+	get ocspCachePeriod() {
+		return this._config && this._config[SettingsProps.OcspCachePeriod] ? this._config[SettingsProps.OcspCachePeriod] : defaults.OcspCachePeriod;
 	}
 
 	get postEmailUrl() {
@@ -514,6 +526,7 @@ class Bootstrapper {
 	}
 
 	saveAppConfigFile() {
+
 		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, true));
 	}
 

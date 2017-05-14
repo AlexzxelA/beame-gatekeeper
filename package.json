@@ -34,7 +34,6 @@
   },
   "homepage": "https://github.com/beameio/beame-gatekeeper#readme",
   "dependencies": {
-    "samlp":"https://github.com/beameio/node-samlp",
     "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git#dev",
     "async": "^2.1.2",
     "beame-cli": "0.0.3",
@@ -51,6 +50,7 @@
     "minimist": "^1.2.0",
     "onoff": "^1.1.1",
     "request": "^2.78.0",
+    "samlp": "https://github.com/beameio/node-samlp",
     "semver": "^5.3.0",
     "sequelize": "^3.24.8",
     "sequelize-cli": "^2.4.0",
@@ -60,6 +60,7 @@
     "socket.io-client": "1.7.3",
     "sqlite3": "^3.1.8",
     "uuid": "^3.0.1",
+    "xml": "^1.0.1",
     "xmldom": "^0.1.27"
   },
   "devDependencies": {

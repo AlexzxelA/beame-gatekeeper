@@ -55,7 +55,7 @@ const compilePage = (pagePath, distPath) => {
 
 	console.log(`saving ${pagePath} to ${distPath}`);
 
-	let cdn_folder_path = `https://cdn.beame.io/${bucket_dir}/${version}/`;
+	let cdn_folder_path = '/';//`https://cdn.beame.io/${bucket_dir}/${version}/`;
 
 	gulp.src(pagePath)
 		.pipe(htmlreplace({
@@ -67,6 +67,8 @@ const compilePage = (pagePath, distPath) => {
 			'approval-js-head': `${cdn_folder_path}js/approval.min.js`,
 			'utils-head':       `${cdn_folder_path}js/utils.min.js`,
 			'cef':              `${cdn_folder_path}js/cef.min.js`,
+			'admin-js-head':    `${cdn_folder_path}js/admin.head.min.js`,
+			'admin-js-foot':    `${cdn_folder_path}js/admin.foot.min.js`,
 			'logo':             `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
@@ -196,6 +198,19 @@ gulp.task('compile-js', () => {
 		'./public/js/signin.js'
 	], 'signin.min.js', true);
 
+	compileJs([
+		'./public/js/notification_manager.js',
+		'./public/lib/clipboard.min.js',
+		'./public/js/utils.js',
+		'./public/js/admin_head.js'
+	], 'admin.head.min.js', true);
+
+	compileJs([
+		'./public/lib/jszip-2.4.0.min.js',
+		'./public/lib/lib/jquery.form-3.5.1.min.js',
+		'./public/js/admin_foot.js'
+	], 'admin.foot.min.js', true);
+
 
 	compileJs(
 		[
@@ -233,7 +248,7 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
-			'./public/lib/socket.io-1.4.5.min.js',
+			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/angular-1.5.7.min.js',
 			'./public/lib/jquery-2.2.4.min.js',
 			'./public/lib/kendo-2016.3.1118.qr.min.js'

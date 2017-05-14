@@ -32,8 +32,10 @@ class ServersManager {
 		this._servers        = {};
 	}
 
+
 	start() {
 
+		bootstrapper.setOcspCachePeriod();
 
 		const _startMatching  = () => {
 			return new Promise((resolve, reject) => {
@@ -204,6 +206,7 @@ class ServersManager {
 
 		//TODO check app-state too
 
+		//noinspection JSUnresolvedFunction
 		async.parallel([
 				callback => {
 					_startMatching()

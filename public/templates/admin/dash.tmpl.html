@@ -130,6 +130,12 @@
                         </li>
 
                         <li>
+                            <label>OCSP cache period (days)</label>
+                            <input data-role="numerictextbox" data-bind="value:data.AppConfig.OcspCachePeriod"
+                                   id="OcspCachePeriod" type="text" data-spinners="false" data-format="{0:D}"/>
+                        </li>
+
+                        <li>
                             <label>Customer Invitation Ttl (sec)</label>
                             <input data-role="numerictextbox" data-bind="value:data.AppConfig.CustomerInvitationTtl"
                                    id="CustomerInvitationTtl" type="text" data-spinners="false" data-format="{0:D}"/>

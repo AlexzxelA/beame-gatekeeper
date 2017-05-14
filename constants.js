@@ -89,18 +89,7 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
-const CredAction = {
-	"Revoke":          "Revoke",
-	"Renew":           "Renew",
-	"SendByEmail":     "Send by email",
-	"Download":        "Download",
-	"VpnRootCreated":  "Set as VPN Root",
-	"VpnRootDeleted":  "VPN Root Deleted",
-	"ChildCreated":    "Child cred created",
-	"RegTokenCreated": "Reg token created",
-	"DnsSaved":      "Dns Saved",
-	"DnsDeleted":      "Dns deleted"
-};
+const CredAction = require('beame-sdk').Config.CredAction;
 
 /**
  * Sns Message Types

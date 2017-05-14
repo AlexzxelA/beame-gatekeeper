@@ -45,8 +45,8 @@ const CustomerInvitationTtl         = 60 * 60 * 24 * 2;
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
-
-const DisableDemoServers = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
+const OcspCachePeriod               = 30; //in days
+const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -80,6 +80,7 @@ const ConfigProps = {
 		EmailSendCertUrl:              "EmailSendCertUrl",
 		PostSmsUrl:                    "PostSmsUrl",
 		ExternalLoginServer:           "ExternalLoginServer",
+		OcspCachePeriod:               "OcspCachePeriod",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
 		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
@@ -153,7 +154,7 @@ module.exports = {
 	ProxySessionTtl,
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
-
+	OcspCachePeriod,
 	ExternalMatchingFqdn: ExternalMatchingFqdn,
 	PostEmailUrl:         EmailPostUrl,
 	EmailSendCertUrl:     EmailSendCertUrl,

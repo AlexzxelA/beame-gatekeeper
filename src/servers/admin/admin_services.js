@@ -32,6 +32,8 @@ class AdminServices {
 
 				bootstrapper.setAppConfig = CommonUtils.parse(req.data).AppConfig;
 
+				bootstrapper.setOcspCachePeriod();
+
 				bootstrapper.saveAppConfigFile()
 					.then(resolve)
 					.catch(error => {
