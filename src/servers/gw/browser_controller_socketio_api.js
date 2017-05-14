@@ -55,6 +55,10 @@ const messageHandlers = {
 				BeameAuthServices.loginUser(token.signedBy).then(user => {
 					logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
 					authenticatedUserInfo = user;
+					if(!decryptedUserData){
+						user.persistentId = token.signedBy;
+						decryptedUserData = JSON.stringify(user);
+					}
 					resolve(user);
 				}).catch(error => {
 					logger.error(`loginUser on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
@@ -74,7 +78,14 @@ const messageHandlers = {
 		function respond([apps, token]) {
 			return new Promise(() => {
 				if(payload.SAMLRequest){
-					let userIdData = (typeof decryptedUserData === 'object')?decryptedUserData:JSON.parse(decryptedUserData);
+					let userIdData;
+					try{
+						userIdData = (typeof decryptedUserData === 'object')?decryptedUserData:JSON.parse(decryptedUserData);
+					}
+					catch (e){
+						logger.error('Internal app error. User ID not found');
+						userIdData = {};
+					}
 					let ssoManagerX = ssoManager.samlManager.getInstance();
 					let ssoConfig = ssoManagerX.getConfig();
 					ssoConfig.user = {
@@ -82,9 +93,9 @@ const messageHandlers = {
 						emails:         userIdData.name,//userIdData.email,
 						name:           {givenName:undefined, familyName:undefined},
 						displayName:    userIdData.nickname,
-						id:             userIdData.name
+						id:             userIdData.name,
 					};
-					ssoConfig.persistentId  = token.signedBy;
+					ssoConfig.persistentId  = userIdData.persistentId;
 					ssoConfig.SAMLRequest   = payload.SAMLRequest;
 					let ssoSession          = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
@@ -132,6 +143,7 @@ const messageHandlers = {
 							let decryptedData = cred.decryptWithRSA(userData);
 
 							if (decryptedData) {
+								decryptedData.persistentId = token.signedBy;
 								decryptedUserData = decryptedData.toString();
 								resolve(token);
 							}

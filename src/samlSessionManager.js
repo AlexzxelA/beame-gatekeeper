@@ -51,10 +51,10 @@ class samlManager{
 	getConfig(spName){
 		this.getCredData();
 		if(spName && dir.doesPathExists(this._path + spName)){
-			return {ssoPair:{idp:this._idp, sp:(this._path + spName)}, cred:this._cred};
+			return {ssoPair:{idp:this._idp, sp:(this._path + spName)}, cred:this._cred, path: this._path};
 		}
 		else
-			return {ssoPair:{idp:this._idp}, cred:this._cred};
+			return {ssoPair:{idp:this._idp}, cred:this._cred, path: this._path};
 	}
 
 	static getInstance() {
@@ -70,16 +70,54 @@ class samlSession{
 		this._cred      = config.cred;
 		this._user      = config.user;
 		this._request   = config.SAMLRequest;
+		this._persistentId = config.persistentId;
+		this._path      = config.path;
 	}
 
 	initMetadata(metadata, cb){
-		metadata?metadata.initMetadata(()=>{cb(metadata)}):cb();
+		metadata?metadata.initMetadata(()=>{
+			cb(metadata)
+		}):cb();
 	}
 
-	getSamlHtml(cb){
-		let xXx=this._ssoPair.sp?new metaParser(this._ssoPair.sp):null;
+	findSPmeta(spId){
+		return new Promise((resolve, reject)=>{
+			let files = fs.readdirSync(this._path);
+			let lastIndex = (ndx, array) => {
+				if(ndx == array.length - 1){
+					resolve(null);
+					return;
+				}
+
+			};
+			if(!files)
+				resolve(null);
+			else {
+				for(let idx = 0; idx < files.length; idx++) {
+					try {
+						let tmpFile = path.join(this._path, files[idx]);
+						if (fs.lstatSync(tmpFile).isFile()) {
+							let fileContent = fs.readFileSync(tmpFile);
+							if (fileContent && fileContent.indexOf(spId) >= 0){
+								resolve(tmpFile);
+								break;
+							}
+							else lastIndex(idx, files);
+						}
+						else lastIndex(idx, files);
+					}
+					catch (e) {
+						lastIndex(idx, files);
+					}
+				}
+			}
+		});
+
+	}
+
+	processRequest(xXx, sessionMeta, cb){
 		this.initMetadata(xXx, (metadata)=>{
-			const processLogin = (metadata, sessionMeta) => {
+			//const processLogin = (metadata, sessionMeta) => {
 				let postTarget = metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL;
 				let SPorigin    = postTarget;
 				if(postTarget){
@@ -89,13 +127,14 @@ class samlSession{
 					}
 				}
 				let a = samlp.auth({
-					inResponseTo:   metadata?null:sessionMeta.id,
-					RelayState:     metadata?null:sessionMeta.id,
+					inResponseTo:   sessionMeta?sessionMeta.id:null,
+					RelayState:     sessionMeta?sessionMeta.id:null,
 					SAMLRequest:    this._request,
-					destination:    postTarget,
-					recipient:      postTarget,
+					destination:    SPorigin,
+					recipient:      SPorigin,
 					nameQualifier:  metadata?metadata.getNameQualifier():null,
 					spNameQualifier:metadata?metadata.getSPNameQualifier():null,
+					persistentId:   this._persistentId,
 					audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
 					issuer:         this._ssoPair.idp.issuer,//,
 					cert:           this._ssoPair.idp.cert,
@@ -113,15 +152,37 @@ class samlSession{
 					customResponseHandler: cb
 				});
 				a();
-			};
+			//};
 
-			if(this._request)
-				samlp.parseRequest({query:{SAMLRequest:this._request}}, (err, request)=>{
-					processLogin(null, request);
-				});
-			else
-				processLogin(metadata);
+			// if(this._request)
+			// 	samlp.parseRequest({query:{SAMLRequest:this._request}}, (err, request)=>{
+			// 		processLogin(null, request);
+			// 	});
+			// else
+			// 	processLogin(metadata);
 		});
+	}
+
+	getSamlHtml(cb){
+		let xXx=this._ssoPair.sp?new metaParser(this._ssoPair.sp):null;
+		if(this._request){
+			samlp.parseRequest({query:{SAMLRequest:this._request}}, (err, request)=>{
+				if(err){
+					console.error(err);
+				}
+				else{
+					this.findSPmeta(request.issuer).then((sp)=>{
+						xXx = sp && new metaParser(sp);
+						this.processRequest(xXx, request, cb);
+					});
+				}
+
+			});
+		}
+		else{
+			this.processRequest(xXx, null, cb);
+		}
+
 	}
 }
 
