@@ -20,7 +20,7 @@ const module_name      = "GwAuthenticatedApp";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
 
-const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
+const public_dir = path.join(__dirname, '..', '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path  = path.join(public_dir, 'pages', 'gw', 'authenticated');
 
 const authenticatedApp = express();
@@ -30,7 +30,7 @@ authenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 	res.sendFile(path.join(base_path, 'logged-in-home.html'));
 });
 
-authenticatedApp.use(Constants.GwAuthenticatedPath,express.static(path.join(__dirname, '..', '..', '..',Constants.WebRootFolder)));
+authenticatedApp.use(Constants.GwAuthenticatedPath,express.static(path.join(__dirname, '..', '..', '..',process.env.BEAME_INSTA_DOC_ROOT)));
 
 authenticatedApp.use(bodyParser.json());
 

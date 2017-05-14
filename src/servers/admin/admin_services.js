@@ -100,6 +100,20 @@ class AdminServices {
 								data.EnvModes = ds;
 
 								callback();
+							},
+							callback =>{
+
+								const options = Constants.HtmlEnvMode;
+
+								let ds = [];
+
+								Object.keys(options).forEach(key=>{
+									ds.push({name:options[key]})
+								});
+
+								data.HtmlEnvModes = ds;
+
+								callback();
 							}
 						],
 						() => {

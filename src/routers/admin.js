@@ -8,7 +8,7 @@ const path    = require('path');
 const express = require('express');
 
 const Constants  = require('../../constants');
-const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const public_dir = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path  = path.join(public_dir, 'pages', 'admin');
 
 const beameSDK     = require('beame-sdk');

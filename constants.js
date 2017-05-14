@@ -7,8 +7,6 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
-const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
-
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
 const SigninPath               = `${GatewayControllerPath}/signin`;
@@ -56,6 +54,11 @@ const EnvMode = {
 	"Gatekeeper":           "Gatekeeper",
 	"CentralLogin":         "CentralLogin",
 	"DelegatedLoginMaster": "DelegatedLoginMaster",
+};
+
+const HtmlEnvMode = {
+	"Development": "Dev",
+	"Production":  "Prod",
 };
 
 /**
@@ -147,6 +150,7 @@ module.exports = {
 	RegistrationMethod,
 	RegistrationSource,
 	EnvMode,
+	HtmlEnvMode,
 	LoadBalancerURL,
 	BeameLoginURL,
 	CredentialType,
@@ -160,7 +164,6 @@ module.exports = {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"
 	},
-	WebRootFolder,
 	GatewayControllerPath,
 	GwAuthenticatedPath,
 	SigninPath,

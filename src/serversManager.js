@@ -30,12 +30,14 @@ class ServersManager {
 		this._serviceManager = _serviceManager;
 		this._settings       = serversSettings;
 		this._servers        = {};
+
+		bootstrapper.setHtmlEnvMode();
+
+		bootstrapper.setOcspCachePeriod();
 	}
 
 
 	start() {
-
-		bootstrapper.setOcspCachePeriod();
 
 		const _startMatching  = () => {
 			return new Promise((resolve, reject) => {

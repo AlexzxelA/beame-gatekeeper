@@ -73,6 +73,18 @@
                         </li>
 
                         <li>
+                            <label>HTML Mode</label>
+                            <input data-role="dropdownlist"
+                                   data-auto-bind="true"
+                                   data-value-primitive="true"
+                                   data-text-field="name"
+                                   data-value-field="name"
+                                   data-bind="value: data.AppConfig.HtmlEnvMode, source: data.HtmlEnvModes"
+                                   class='k-textbox'
+                            />
+                        </li>
+
+                        <li>
                             <label>Allow Public Registration</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.PublicRegistration" />
                         </li>

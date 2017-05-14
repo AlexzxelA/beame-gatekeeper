@@ -20,7 +20,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
-const EncryptUserData              = true;
+const EncryptUserData              = false;
 const PairingRequired              = true;
 const UseBeameAuthOnLocal          = true;
 const StartRaspberryApp            = false;
@@ -29,6 +29,8 @@ const RunAuthServerOnZeroLevelCred = true;
 
 const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
+const HtmlEnvMode        = Constants.HtmlEnvMode.Development;
+
 
 const EmailPostUrl         = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
 const EmailSendCertUrl     = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/pfx";
@@ -68,6 +70,7 @@ const ConfigProps = {
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
 		EnvMode:                       "EnvMode",
+		HtmlEnvMode:                   "HtmlEnvMode",
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
@@ -160,9 +163,9 @@ module.exports = {
 	EmailSendCertUrl:     EmailSendCertUrl,
 	PostSmsUrl:           "",
 	ExternalLoginServer:  "",
-	//delegatedLoginServers,
 	RegistrationMethod,
 	EnvMode,
+	HtmlEnvMode,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
 	PairingRequired,

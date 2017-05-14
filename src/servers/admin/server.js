@@ -9,7 +9,7 @@ const utils     = require('../../utils');
 const Router    = require('../../routers/admin');
 const Constants = require('../../../constants');
 
-const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
+const public_dir = path.join(__dirname, '..', '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 
 
 const beameSDK          = require('beame-sdk');

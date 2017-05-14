@@ -40,7 +40,7 @@ function setExpressApp(router, staticDir) {
 }
 
 function setExpressAppCommonRoutes(app) {
-	app.use(express.static(path.join(__dirname, '..', Constants.WebRootFolder)));
+	app.use(express.static(path.join(__dirname, '..', process.env.BEAME_INSTA_DOC_ROOT)));
 }
 
 

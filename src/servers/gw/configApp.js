@@ -9,7 +9,7 @@ const Constants    = require('../../../constants');
 
 
 
-const public_dir = path.join(__dirname, '..', '..', '..', Constants.WebRootFolder);
+const public_dir = path.join(__dirname, '..', '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path  = path.join(public_dir, 'pages', 'config');
 
 const utils         = require('../../utils');
