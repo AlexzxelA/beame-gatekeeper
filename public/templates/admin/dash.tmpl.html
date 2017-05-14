@@ -226,49 +226,7 @@
 
 </script>
 
-<script>
-
-	function loadSettings(){
-
-		var loadDash =  function(){
-
-			viewDash  = new kendo.View("home",{
-				model: new kendo.observable({
-					data: settings,
-					onSave:function(){
-
-						$.ajax({
-							type: "POST",
-							url: '/settings/save',
-							data: {data: JSON.stringify(this.data)},
-							success: function(result){
-								alert(result.success ? 'Settings saved' : result.error);
-							},
-							dataType: 'json'
-						});
-
-
-					}
-				})
-			});
-			layout.showIn("#content", viewDash);
-			$("#panelbar").kendoPanelBar({
-				expandMode: "single"
-			});
-
-			setTimeout(function () {
-				$("#panelbar").show();
-			},50);
-
-			$('#save-app-config-btn').kendoButton();
-		};
-
-		if(!settings){
-			getSettings(loadDash);
-        }
-        else{
-			loadDash();
-        }
-
-	}
-</script>
+<!-- Scripts -->
+<!-- build:admin-template -->
+<script src="js/admin/dash.js"></script>
+<!-- endbuild -->

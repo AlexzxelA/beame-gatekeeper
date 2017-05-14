@@ -204,7 +204,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 						document.close();
 					}, 0.1);
 				};
-				let cmdData = {type:'redirect', payload:{'success':true, 'samlSession':true}};
+				var cmdData = {"type":"redirect", "payload":{"success":true, "samlSession":true}};
 				relay_socket?sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
 					str2ab(JSON.stringify(cmdData)), onDataSent()):
 					drctSessionId?passData2Mobile(type || 'gw data', str2ab(JSON.stringify(cmdData), undefined, onDataSent())):window.alert('Invalid app state');

@@ -1906,7 +1906,7 @@ class BeameAuthServices {
 				}
 
 				cred.setDns(data.fqdn, data.dnsValue, !data.dnsValue || !data.dnsValue.length, data.dnsFqdn).then(value => {
-					cred.metadata = cred.beameStoreServices.readMetadataSync();
+
 					this.getCredDetail(fqdn).then(updatedCred => {
 						resolve({message: `Dns record created for ${value}`, value: value, data: updatedCred});
 					}).catch(reject);

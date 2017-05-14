@@ -21,6 +21,7 @@ const clean         = require('gulp-rimraf');
 const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
+var ignore = require('gulp-ignore');
 
 const bucket_dir = 'insta-server-dev';
 
@@ -29,7 +30,6 @@ const dist_folder_name = 'dist';
 const tools_folder_name = 'tools';
 const tools_bucket_dir  = 'insta-server-meta';
 
-const web_dist_root_path = 'Web/';
 const web_src_root_path  = './apps/';
 
 const getVersion = () => {
@@ -49,7 +49,7 @@ const getVersion = () => {
 
 const version = process.env.version || getVersion();
 
-console.log(`version is ${version} ${typeof version}`);
+//console.log(`version is ${version} ${typeof version}`);
 
 const compilePage = (pagePath, distPath) => {
 
@@ -69,6 +69,7 @@ const compilePage = (pagePath, distPath) => {
 			'cef':              `${cdn_folder_path}js/cef.min.js`,
 			'admin-js-head':    `${cdn_folder_path}js/admin.head.min.js`,
 			'admin-js-foot':    `${cdn_folder_path}js/admin.foot.min.js`,
+			'admin-template':   ``,
 			'logo':             `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
@@ -77,13 +78,15 @@ const compilePage = (pagePath, distPath) => {
 
 };
 
-const compileJs = (funcArray, dist_name, optimize) => {
+const gulpUtil = require('gulp-util');
+const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
-		//	.pipe(gulpif(optimize, uglify()))
-		.pipe(gulp.dest(`./${dist_folder_name}/js/`));
+		.pipe(ignore.exclude([ "**/*.map" ]))
+		.pipe(gulpif(optimize, uglify()).on('error', gulpUtil.log))
+		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
 };
 
 const compileCss = (funcArray, dist_name) => {
@@ -193,6 +196,7 @@ gulp.task('compile-css', () => {
 
 gulp.task('compile-js', () => {
 
+
 	compileJs([
 		'./public/js/utils.js',
 		'./public/js/signin.js'
@@ -202,13 +206,23 @@ gulp.task('compile-js', () => {
 		'./public/js/notification_manager.js',
 		'./public/lib/clipboard.min.js',
 		'./public/js/utils.js',
-		'./public/js/admin_head.js'
+		'./public/js/admin/admin_head.js'
 	], 'admin.head.min.js', true);
 
 	compileJs([
 		'./public/lib/jszip-2.4.0.min.js',
 		'./public/lib/lib/jquery.form-3.5.1.min.js',
-		'./public/js/admin_foot.js'
+		'./public/js/admin/admin_foot.js',
+		'./public/js/admin/create.cred.js',
+		'./public/js/admin/cred.detail.js',
+		'./public/js/admin/cred.tree.js',
+		'./public/js/admin/gk.login.js',
+		'./public/js/admin/invitation.manage.js',
+		'./public/js/admin/service.manage.js',
+		'./public/js/admin/user.manage.js',
+		'./public/js/admin/registration.manage.js',
+		'./public/js/admin/registration.token.js',
+		'./public/js/admin/dash.js',
 	], 'admin.foot.min.js', true);
 
 
@@ -270,7 +284,17 @@ gulp.task('compile-pages', () => {
 
 gulp.task('compile-static', () => {
 	gulp.src('./public/img/**/*').pipe(gulp.dest(`./${dist_folder_name}/img/`));
-	gulp.src('./public/templates/**/*').pipe(gulp.dest(`./${dist_folder_name}/templates/`));
+	gulp.src('./public/templates/*.html')
+		.pipe(htmlmin({collapseWhitespace: true}))
+		.pipe(inlinesource())
+		.pipe(gulp.dest(`./${dist_folder_name}/templates/`));
+	gulp.src('./public/templates/admin/*.html')
+		.pipe(htmlmin({collapseWhitespace: true}))
+		.pipe(inlinesource())
+		.pipe(htmlreplace({
+			'admin-template':   ``
+		}))
+		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
 });
 
 gulp.task('compile', ['compile-sass','compile-css', 'compile-js', 'compile-pages', 'compile-static']);

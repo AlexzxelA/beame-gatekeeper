@@ -8,44 +8,44 @@ var cryptoObj = window.crypto || window.msCrypto,
 var CryptoAlg = 'RSASSA-PKCS1-v1_5';//(engineFlag)?'HMAC':'RSASSA-PKCS1-v1_5';
 
 var PK_RSAOAEP = engineFlag?{//encrypt only
-	name: "RSA-OAEP",
-	hash: {name: "SHA-1"}
+	"name": "RSA-OAEP",
+	"hash": {name: "SHA-1"}
 }:{//encrypt only
-	name: "RSA-OAEP",
-	hash: {name: "SHA-1"}
+	"name": "RSA-OAEP",
+	"hash": {name: "SHA-1"}
 };
 
 var PK_PKCS = engineFlag?
 {//verify signature only
-	name: CryptoAlg,
-	hash: {name: "SHA-256"}
+	"name": CryptoAlg,
+	"hash": {name: "SHA-256"}
 }:{//verify signature only
-	name: CryptoAlg,
-	hash: {name: "SHA-256"}
+	"name": CryptoAlg,
+	"hash": {name: "SHA-256"}
 };
 
 var RSAOAEP = engineFlag?{//encrypt only
-	name:           "RSA-OAEP",
-	modulusLength:  2048,
-	publicExponent: new Uint8Array([1, 0, 1]),
-	hash: {name: "SHA-1"}}:
+	"name":           "RSA-OAEP",
+	"modulusLength":  2048,
+	"publicExponent": new Uint8Array([1, 0, 1]),
+	"hash": {name: "SHA-1"}}:
 {
-	name:           "RSA-OAEP",
-	modulusLength:  2048,
-	publicExponent: new Uint8Array([1, 0, 1]),
-	hash: {name: "SHA-1"}
+	"name":           "RSA-OAEP",
+	"modulusLength":  2048,
+	"publicExponent": new Uint8Array([1, 0, 1]),
+	"hash": {name: "SHA-1"}
 };
 
 var RSAPKCS         = engineFlag?{//verify signature only
-	name: "RSASSA-PKCS1-v1_5",
-	modulusLength: "2048",
-	publicExponent: new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
-	hash: { name: "SHA-256" }
+	"name": "RSASSA-PKCS1-v1_5",
+	"modulusLength": "2048",
+	"publicExponent": new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
+	"hash": { name: "SHA-256" }
 }:{//verify signature only
-	name: "RSASSA-PKCS1-v1_5",
-	modulusLength: "2048",
-	publicExponent: new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
-	hash: { name: "SHA-256" }
+	"name": "RSASSA-PKCS1-v1_5",
+	"modulusLength": "2048",
+	"publicExponent": new Uint8Array([1, 0, 1]), // 2^16 + 1 (65537)
+	"hash": { name: "SHA-256" }
 };
 var keyPair;
 var keyPairSign;
