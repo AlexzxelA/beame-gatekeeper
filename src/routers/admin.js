@@ -12,6 +12,7 @@ const public_dir = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_
 const base_path  = path.join(public_dir, 'pages', 'admin');
 
 const beameSDK     = require('beame-sdk');
+const BeameStore   = new beameSDK.BeameStore();
 const CommonUtils  = beameSDK.CommonUtils;
 const module_name  = "BeameAdminServices";
 const BeameLogger  = beameSDK.Logger;
@@ -758,18 +759,41 @@ class AdminRouter {
 
 	_getInvitation(fqdn, data, sendByEmail) {
 		return new Promise((resolve, reject) => {
-
+			this.encryptUserData(data).then((data)=>{
 				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
 				data.hash     = CommonUtils.generateDigest(data4hash);
 
 				beameAuthServices.getInvitationForCred(fqdn, data, sendByEmail).then(resolve).catch(reject);
-			}
-		);
+			});
+		});
 	}
 
 	get router() {
 		return this._router;
 	}
+
+	encryptUserData(data) {
+		return new Promise((resolve, reject) => {
+			if (bootstrapper.encryptUserData) {
+
+				BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
+
+					let data2encrypt = CommonUtils.stringify(data,false);//TODO - check final length to be < 214 bytes if QR is overloaded
+					data.user_id     = cred.encryptWithRSA(data2encrypt);
+					resolve(data);
+
+				}).catch(function (e) {
+					let errMsg = `Failed to encrypt user_id ${e.message}`;
+					logger.error(errMsg);
+					reject(errMsg)
+				});
+			}
+			else{
+				resolve(data);
+			}
+		}
+	);
+}
 }
 
 module.exports = AdminRouter;
