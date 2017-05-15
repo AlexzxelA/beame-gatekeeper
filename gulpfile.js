@@ -21,11 +21,14 @@ const clean         = require('gulp-rimraf');
 const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
-var ignore = require('gulp-ignore');
+const ignore = require('gulp-ignore');
+const injectPartials = require('gulp-inject-partials');
+const minify = require('gulp-minify');
 
 const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
+const build_folder_name = 'build';
 
 const tools_folder_name = 'tools';
 const tools_bucket_dir  = 'insta-server-meta';
@@ -84,7 +87,7 @@ const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 		.pipe(concat(dist_name))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
-		.pipe(ignore.exclude([ "**/*.map" ]))
+		// .pipe(ignore.exclude([ "**/*.map" ]))
 		.pipe(gulpif(optimize, uglify()).on('error', gulpUtil.log))
 		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
 };
@@ -186,7 +189,7 @@ gulp.task('watch', function () {
 });
 
 gulp.task('clean', () => {
-	return gulp.src(`${dist_folder_name}`, {read: false})
+	gulp.src(`${dist_folder_name}`, {read: false})
 		.pipe(clean());
 });
 
@@ -222,7 +225,7 @@ gulp.task('compile-js', () => {
 		'./public/js/admin/user.manage.js',
 		'./public/js/admin/registration.manage.js',
 		'./public/js/admin/registration.token.js',
-		'./public/js/admin/dash.js',
+		'./public/js/admin/dash.js'
 	], 'admin.foot.min.js', true);
 
 
@@ -274,12 +277,34 @@ gulp.task('compile-pages', () => {
 	compilePage('./public/pages/gw/unauthenticated/welcome.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
 	compilePage('./public/pages/gw/unauthenticated/signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
 	compilePage('./public/pages/gw/unauthenticated/login.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/drct_signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/forbidden.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/xprs_signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/logged-out.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/offline.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+
 	compilePage('./public/pages/gw/authenticated/logged-in-home.html', `./${dist_folder_name}/pages/gw/authenticated/`);
+
+
 	compilePage('./public/pages/customer_auth/register.html', `./${dist_folder_name}/pages/customer_auth/`);
 	compilePage('./public/pages/customer_auth/register_success.html', `./${dist_folder_name}/pages/customer_auth/`);
+	compilePage('./public/pages/customer_auth/forbidden.html', `./${dist_folder_name}/pages/customer_auth/`);
+
+
 	compilePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
 	compilePage('./public/pages/beame_auth/client_approval.html', `./${dist_folder_name}/pages/beame_auth/`);
+
+
 	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
+	compilePage('./public/pages/admin/offline_reg_forbidden.html', `./${dist_folder_name}/pages/admin/`);
+});
+
+gulp.task('admin-index', function () {
+	 gulp.src(`./${build_folder_name}/pages/admin/index.html`)
+		.pipe(injectPartials({
+			prefix:`templates/`
+		}))
+		.pipe(gulp.dest(`./${dist_folder_name}/pages/admin/`));
 });
 
 gulp.task('compile-static', () => {
@@ -288,16 +313,17 @@ gulp.task('compile-static', () => {
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/`));
+
 	gulp.src('./public/templates/admin/*.html')
-		.pipe(htmlmin({collapseWhitespace: true}))
-		.pipe(inlinesource())
+		//.pipe(htmlmin({collapseWhitespace: true}))
+		//.pipe(inlinesource())
 		.pipe(htmlreplace({
 			'admin-template':   ``
 		}))
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
 });
 
-gulp.task('compile', ['compile-sass','compile-css', 'compile-js', 'compile-pages', 'compile-static']);
+gulp.task('compile', ['compile-sass','compile-css', 'compile-js', 'compile-static', 'compile-pages']);
 
 gulp.task('compile-sass', ['sass','web_sass','rasp_sass']);
 
