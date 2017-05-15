@@ -75,7 +75,7 @@ class BeameAuthServices {
 
 		if (subscribe) {
 			this._creds.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
-				logger.error(`Auth server subscription error  ${BeameLogger.formatError(error)}`);
+				logger.fatal(`Auth server subscription error  ${BeameLogger.formatError(error)}. Please try restart server`);
 			});
 		}
 
