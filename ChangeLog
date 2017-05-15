@@ -1,9 +1,11 @@
 2017-05-?? Beame <support@beame.io> UNRELEASED
 
 	* Release NPM version 1.0.16
+	* Work on SAML
 	* Vastly expanded web admin functionality
 	* Fix bug in users creation
 	* Improve browser side stability
+	* Raspberry application fix
 	* StrongSwan server and iOS client support
 
 2017-04-19 Beame <support@beame.io>
