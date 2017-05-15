@@ -115,24 +115,29 @@ class samlSession{
 
 	processRequest(xXx, sessionMeta, cb){
 		this.initMetadata(xXx, (metadata)=>{
-			let postTarget = metadata?metadata.getAssertionConsumerService('post'):sessionMeta.assertionConsumerServiceURL;
+			let postTarget =
+				sessionMeta?sessionMeta.assertionConsumerServiceURL:
+				metadata?metadata.getAssertionConsumerService('post'):null;
 			let SPorigin    = postTarget;
 			if(postTarget){
 				if(postTarget.includes('://')){
 					let segments = postTarget.split("/");
-					SPorigin = segments[0] + "//" + segments[2];
+					SPorigin = (segments[0] + "//" + segments[2]).split('?')[0];
 				}
 			}
+			if(!metadata.getNameQualifier())
+				this._persistentId=this._user.id;
+
 			let a = samlp.auth({
 				inResponseTo:   sessionMeta?sessionMeta.id:null,
-				RelayState:     sessionMeta?sessionMeta.id:null,
+				RelayState:     sessionMeta?sessionMeta.RelayState:null,
 				SAMLRequest:    this._request,
-				destination:    SPorigin,
-				recipient:      SPorigin,
+				destination:    postTarget.split('?')[0],
+				recipient:      postTarget,
 				nameQualifier:  metadata?metadata.getNameQualifier():null,
 				spNameQualifier:metadata?metadata.getSPNameQualifier():null,
 				persistentId:   this._persistentId,
-				audience:       metadata?metadata.getEntityID():sessionMeta.issuer,
+				audience:       sessionMeta?sessionMeta.issuer:metadata.getEntityID(),
 				issuer:         this._ssoPair.idp.issuer,//,
 				cert:           this._ssoPair.idp.cert,
 				key:            this._ssoPair.idp.key,
@@ -146,7 +151,7 @@ class samlSession{
 				digestAlgorithm:    'sha256',
 				plainXml:       false,
 				template:       path.join(__dirname,'../templates','samlResponseTpl.ejs'),
-				customResponseHandler: cb
+				customResponseHandler: (err, html)=>{console.log(html);cb(err, html)}
 			});
 			a();
 		});
