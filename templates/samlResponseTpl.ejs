@@ -1,0 +1,50 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beame.io for Developers</title>
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800"  rel="stylesheet" type="text/css"/>
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="authenticated/css/app.css">
+    <!-- endbuild -->
+
+</head>
+<body onload="loaded()">
+<form method="post" name="saml-form" action="<%= callback %>" autocomplete="off">
+    <div class="card card-center">
+
+    <span class="logo">
+        <!-- build:logo -->
+        <img src="img/beame-logo-grad.png" width="100" height="16">
+        <!-- endbuild -->
+    </span>
+
+        <div class="row h-100">
+
+            <div class="column large-12 card-left card-right card-full-box p-2 shadow-main">
+                <h1>Working... <span id="wlcm-user"></span></h1>
+
+                Sending login request, please hold
+            </div>
+
+        </div>
+
+    </div>
+
+    <input type="hidden" name="<%= type %>" value="<%= token %>">
+    <% if (RelayState){ %>
+    <input type="hidden" name="RelayState" value="<%= RelayState %>">
+    <%}%>
+    </form>
+    <script type="text/javascript">
+	    function loaded()
+	    {
+		    document.getElementsByTagName('form')[0].submit();
+	    }
+	    loaded();
+    </script>
+</body>
+</html>

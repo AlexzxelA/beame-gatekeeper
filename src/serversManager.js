@@ -30,10 +30,14 @@ class ServersManager {
 		this._serviceManager = _serviceManager;
 		this._settings       = serversSettings;
 		this._servers        = {};
+
+		bootstrapper.setHtmlEnvMode();
+
+		bootstrapper.setOcspCachePeriod();
 	}
 
-	start() {
 
+	start() {
 
 		const _startMatching  = () => {
 			return new Promise((resolve, reject) => {
@@ -204,6 +208,7 @@ class ServersManager {
 
 		//TODO check app-state too
 
+		//noinspection JSUnresolvedFunction
 		async.parallel([
 				callback => {
 					_startMatching()
@@ -244,15 +249,15 @@ class ServersManager {
 					mobilePhotoApp.start();
 					callback();
 				},
-				// callback => {
-				// 	if (isCentralLogin) {
-				// 		callback();
-				// 		return;
-				// 	}
-				// 	let mobileStreamApp = new (require('../apps/stream'))();
-				// 	mobileStreamApp.start();
-				// 	callback();
-				// },
+				callback => {
+					if (isDemoServersDisabled) {
+						callback();
+						return;
+					}
+					let mobileStreamApp = new (require('../apps/stream'))();
+					mobileStreamApp.start();
+					callback();
+				},
 				callback => {
 					if (isDemoServersDisabled) {
 						callback();

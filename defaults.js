@@ -20,7 +20,7 @@ const sqlite_db_storage_root   = path.join(home, ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
-const EncryptUserData              = true;
+const EncryptUserData              = false;
 const PairingRequired              = true;
 const UseBeameAuthOnLocal          = true;
 const StartRaspberryApp            = false;
@@ -29,6 +29,8 @@ const RunAuthServerOnZeroLevelCred = true;
 
 const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
+const HtmlEnvMode        = Constants.HtmlEnvMode.Development;
+
 
 const EmailPostUrl         = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";
 const EmailSendCertUrl     = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/pfx";
@@ -44,8 +46,8 @@ const CustomerInvitationTtl         = 60 * 60 * 24 * 2;
 const SessionRecordDeleteTimeout    = 1000 * 60 * 10;
 const KillSocketOnDisconnectTimeout = 1000 * 60 * 3;
 const WhispererSendPinInterval      = 1000 * 60;
-
-const DisableDemoServers = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
+const OcspCachePeriod               = 30; //in days
+const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
 
 const SqliteConfigTemplate = {
 	[sqlite_env_name]: {
@@ -67,6 +69,7 @@ const ConfigProps = {
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
 		EnvMode:                       "EnvMode",
+		HtmlEnvMode:                   "HtmlEnvMode",
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
 		PublicRegistration:            "PublicRegistration",
@@ -79,6 +82,7 @@ const ConfigProps = {
 		EmailSendCertUrl:              "EmailSendCertUrl",
 		PostSmsUrl:                    "PostSmsUrl",
 		ExternalLoginServer:           "ExternalLoginServer",
+		OcspCachePeriod:               "OcspCachePeriod",
 		RegistrationAuthTokenTtl:      "RegistrationAuthTokenTtl",
 		SessionRecordDeleteTimeout:    "SessionRecordDeleteTimeout",
 		KillSocketOnDisconnectTimeout: "KillSocketOnDisconnectTimeout",
@@ -152,7 +156,7 @@ module.exports = {
 	ProxySessionTtl,
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
-
+	OcspCachePeriod,
 	ExternalMatchingFqdn: ExternalMatchingFqdn,
 	PostEmailUrl:         EmailPostUrl,
 	EmailSendCertUrl:     EmailSendCertUrl,
@@ -160,6 +164,7 @@ module.exports = {
 	ExternalLoginServer:  "",
 	RegistrationMethod,
 	EnvMode,
+	HtmlEnvMode,
 	UseBeameAuthOnLocal,
 	PublicRegistration,
 	PairingRequired,

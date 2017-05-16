@@ -21,15 +21,18 @@ const clean         = require('gulp-rimraf');
 const cloudfront    = require("gulp-cloudfront-invalidate");
 const gulpif        = require('gulp-if');
 const modifyCssUrls = require('gulp-modify-css-urls');
+const ignore = require('gulp-ignore');
+const injectPartials = require('gulp-inject-partials');
+const minify = require('gulp-minify');
 
 const bucket_dir = 'insta-server-dev';
 
 const dist_folder_name = 'dist';
+const build_folder_name = 'build';
 
 const tools_folder_name = 'tools';
 const tools_bucket_dir  = 'insta-server-meta';
 
-const web_dist_root_path = 'Web/';
 const web_src_root_path  = './apps/';
 
 const getVersion = () => {
@@ -49,13 +52,13 @@ const getVersion = () => {
 
 const version = process.env.version || getVersion();
 
-console.log(`version is ${version} ${typeof version}`);
+//console.log(`version is ${version} ${typeof version}`);
 
 const compilePage = (pagePath, distPath) => {
 
 	console.log(`saving ${pagePath} to ${distPath}`);
 
-	let cdn_folder_path = `https://cdn.beame.io/${bucket_dir}/${version}/`;
+	let cdn_folder_path = '/';//`https://cdn.beame.io/${bucket_dir}/${version}/`;
 
 	gulp.src(pagePath)
 		.pipe(htmlreplace({
@@ -67,6 +70,9 @@ const compilePage = (pagePath, distPath) => {
 			'approval-js-head': `${cdn_folder_path}js/approval.min.js`,
 			'utils-head':       `${cdn_folder_path}js/utils.min.js`,
 			'cef':              `${cdn_folder_path}js/cef.min.js`,
+			'admin-js-head':    `${cdn_folder_path}js/admin.head.min.js`,
+			'admin-js-foot':    `${cdn_folder_path}js/admin.foot.min.js`,
+			'admin-template':   ``,
 			'logo':             `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
@@ -75,13 +81,15 @@ const compilePage = (pagePath, distPath) => {
 
 };
 
-const compileJs = (funcArray, dist_name, optimize) => {
+const gulpUtil = require('gulp-util');
+const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
-		//	.pipe(gulpif(optimize, uglify()))
-		.pipe(gulp.dest(`./${dist_folder_name}/js/`));
+		// .pipe(ignore.exclude([ "**/*.map" ]))
+		.pipe(gulpif(optimize, uglify()).on('error', gulpUtil.log))
+		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
 };
 
 const compileCss = (funcArray, dist_name) => {
@@ -181,7 +189,7 @@ gulp.task('watch', function () {
 });
 
 gulp.task('clean', () => {
-	return gulp.src(`${dist_folder_name}`, {read: false})
+	gulp.src(`${dist_folder_name}`, {read: false})
 		.pipe(clean());
 });
 
@@ -191,10 +199,34 @@ gulp.task('compile-css', () => {
 
 gulp.task('compile-js', () => {
 
+
 	compileJs([
 		'./public/js/utils.js',
 		'./public/js/signin.js'
 	], 'signin.min.js', true);
+
+	compileJs([
+		'./public/js/notification_manager.js',
+		'./public/lib/clipboard.min.js',
+		'./public/js/utils.js',
+		'./public/js/admin/admin_head.js'
+	], 'admin.head.min.js', true);
+
+	compileJs([
+		'./public/lib/jszip-2.4.0.min.js',
+		'./public/lib/lib/jquery.form-3.5.1.min.js',
+		'./public/js/admin/admin_foot.js',
+		'./public/js/admin/create.cred.js',
+		'./public/js/admin/cred.detail.js',
+		'./public/js/admin/cred.tree.js',
+		'./public/js/admin/gk.login.js',
+		'./public/js/admin/invitation.manage.js',
+		'./public/js/admin/service.manage.js',
+		'./public/js/admin/user.manage.js',
+		'./public/js/admin/registration.manage.js',
+		'./public/js/admin/registration.token.js',
+		'./public/js/admin/dash.js'
+	], 'admin.foot.min.js', true);
 
 
 	compileJs(
@@ -233,7 +265,7 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
-			'./public/lib/socket.io-1.4.5.min.js',
+			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/angular-1.5.7.min.js',
 			'./public/lib/jquery-2.2.4.min.js',
 			'./public/lib/kendo-2016.3.1118.qr.min.js'
@@ -245,20 +277,53 @@ gulp.task('compile-pages', () => {
 	compilePage('./public/pages/gw/unauthenticated/welcome.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
 	compilePage('./public/pages/gw/unauthenticated/signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
 	compilePage('./public/pages/gw/unauthenticated/login.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/drct_signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/forbidden.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/xprs_signin.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/logged-out.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+	compilePage('./public/pages/gw/unauthenticated/offline.html', `./${dist_folder_name}/pages/gw/unauthenticated/`);
+
 	compilePage('./public/pages/gw/authenticated/logged-in-home.html', `./${dist_folder_name}/pages/gw/authenticated/`);
+
+
 	compilePage('./public/pages/customer_auth/register.html', `./${dist_folder_name}/pages/customer_auth/`);
 	compilePage('./public/pages/customer_auth/register_success.html', `./${dist_folder_name}/pages/customer_auth/`);
+	compilePage('./public/pages/customer_auth/forbidden.html', `./${dist_folder_name}/pages/customer_auth/`);
+
+
 	compilePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
 	compilePage('./public/pages/beame_auth/client_approval.html', `./${dist_folder_name}/pages/beame_auth/`);
+
+
 	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
+	compilePage('./public/pages/admin/offline_reg_forbidden.html', `./${dist_folder_name}/pages/admin/`);
+});
+
+gulp.task('admin-index', function () {
+	 gulp.src(`./${build_folder_name}/pages/admin/index.html`)
+		.pipe(injectPartials({
+			prefix:`templates/`
+		}))
+		.pipe(gulp.dest(`./${dist_folder_name}/pages/admin/`));
 });
 
 gulp.task('compile-static', () => {
 	gulp.src('./public/img/**/*').pipe(gulp.dest(`./${dist_folder_name}/img/`));
-	gulp.src('./public/templates/**/*').pipe(gulp.dest(`./${dist_folder_name}/templates/`));
+	gulp.src('./public/templates/*.html')
+		.pipe(htmlmin({collapseWhitespace: true}))
+		.pipe(inlinesource())
+		.pipe(gulp.dest(`./${dist_folder_name}/templates/`));
+
+	gulp.src('./public/templates/admin/*.html')
+		//.pipe(htmlmin({collapseWhitespace: true}))
+		//.pipe(inlinesource())
+		.pipe(htmlreplace({
+			'admin-template':   ``
+		}))
+		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
 });
 
-gulp.task('compile', ['compile-sass','compile-css', 'compile-js', 'compile-pages', 'compile-static']);
+gulp.task('compile', ['compile-sass','compile-css', 'compile-js', 'compile-static', 'compile-pages']);
 
 gulp.task('compile-sass', ['sass','web_sass','rasp_sass']);
 

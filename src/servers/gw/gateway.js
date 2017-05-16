@@ -19,11 +19,11 @@ const ProxyClient        = beameSDK.ProxyClient;
 const BeameStore         = new beameSDK.BeameStore();
 const Constants          = require('../../../constants');
 const cookieNames        = Constants.CookieNames;
+const samlManagerRef     = require('../../samlSessionManager');
 const unauthenticatedApp = require('./unauthenticatedApp');
 const authenticatedApp   = require('./authenticatedApp');
 const configApp          = require('./configApp');
 const COOKIE_NAME        = 'X-Beame-GW-Service-Token';
-const utils              = require('../../utils');
 
 let adminApp         = null;
 let expectsAuthToken = false;
@@ -205,7 +205,7 @@ function handleRequest(type, p1, p2, p3) {
 
 	const authToken = (expectsAuthToken) ? extractAuthToken(req) : null;
 
-	logger.debug('gateway handleRequest URL', req.url);
+	logger.debug(`gateway handleRequest URL, ${req.url}`);
 	if (!authToken || is_unauth_app_url(req.url)) {
 		if (type == 'upgrade') {
 			logger.debug(`handleRequest: upgrade_not_supported for unathenticated app at ${req.url}`);
@@ -312,7 +312,7 @@ function startTunnel([cert, requestsHandlerPort]) {
 			requestsHandlerPort, {},
 			null, serverCerts);
 
-		proxyClient.start().then(resolve).catch(e=>{
+		proxyClient.start().then(resolve).catch(e => {
 			logger.error(`Start tunnel error ${BeameLogger.formatError(e)}`);
 			resolve();
 		});
@@ -350,6 +350,13 @@ class GatewayServer {
 	start(cb) {
 		logger.debug(`Starting gateway `);
 		BeameStore.find(this._fqdn, false)
+			.then(cred => {
+				if (cred.expired || cred.revoked) {
+					logger.fatal(`Gateway Server certificate expired or revoked`);
+				}
+
+				return Promise.resolve(cred);
+			})
 			.then(this._startRequestsHandler.bind(this))
 			.then(startTunnel)
 			.then(() => {
@@ -379,6 +386,9 @@ class GatewayServer {
 
 	_startRequestsHandler(cert) {
 		logger.debug('startRequestsHandler');
+
+		new samlManagerRef.samlManager(cert);
+		unauthenticatedApp.initSSOdata();
 		return new Promise((resolve, reject) => {
 
 			let serverCerts = cert.getHttpsServerOptions();

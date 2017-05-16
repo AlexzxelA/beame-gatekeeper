@@ -27,6 +27,7 @@
 const apiConfig        = require('../config/api_config.json');
 const Constants        = require('../constants');
 const beameSDK         = require('beame-sdk');
+const Credential       = beameSDK.Credential;
 const module_name      = "BeameAuthServices";
 const BeameLogger      = beameSDK.Logger;
 const logger           = new BeameLogger(module_name);
@@ -60,12 +61,16 @@ class BeameAuthServices {
 		this._matchingServerFqdn = matchingServerFqdn;
 
 		/** @type {Credential} */
-		this._creds = store.getCredential(authServerFqdn);
+		this._cred = store.getCredential(authServerFqdn);
 
 		this._downloadTokens = {};
 
-		if (!this._creds) {
+		if (!this._cred) {
 			logger.fatal(`Beame Auth Server credential not found`);
+		}
+
+		if(this._cred.expired || this._cred.revoked){
+			logger.fatal(`Beame Auth Server certificate expired or revoked`);
 		}
 
 		dataService = require('./dataServices').getInstance();
@@ -73,8 +78,8 @@ class BeameAuthServices {
 		let subscribe = subscribeForChildCerts || true;
 
 		if (subscribe) {
-			this._creds.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
-				logger.error(`Auth server subscription error  ${BeameLogger.formatError(error)}`);
+			this._cred.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
+				logger.fatal(`Auth server subscription error  ${BeameLogger.formatError(error)}. Please try restart server`);
 			});
 		}
 
@@ -524,7 +529,7 @@ class BeameAuthServices {
 						return;
 					}
 
-					let decryptedData = this._creds.decrypt(token);
+					let decryptedData = this._cred.decrypt(token);
 
 					if (!decryptedData) {
 						reject(`invalid data`);
@@ -578,7 +583,7 @@ class BeameAuthServices {
 
 		let sha = CommonUtils.generateDigest(data2Sign);
 
-		return AuthToken.create(sha, this._creds, bootstrapper.registrationAuthTokenTtl);
+		return AuthToken.create(sha, this._cred, bootstrapper.registrationAuthTokenTtl);
 
 	}
 
@@ -1462,7 +1467,7 @@ class BeameAuthServices {
 						pairing:     bootstrapper.pairingRequired
 					})
 					.then(regToken => {
-						BeameAuthServices._saveCredAction(cred, {
+						Credential.saveCredAction(cred, {
 							action: Constants.CredAction.RegTokenCreated,
 							name:   data.name,
 							email:  data.email,
@@ -1490,7 +1495,7 @@ class BeameAuthServices {
 				}
 
 				const _resolve = (fqdn, message) => {
-					BeameAuthServices._saveCredAction(cred, {
+					Credential.saveCredAction(cred, {
 						action: Constants.CredAction.ChildCreated,
 						fqdn:   fqdn,
 						name:   data.name,
@@ -1552,7 +1557,7 @@ class BeameAuthServices {
 				}
 
 				if (saveAction) {
-					BeameAuthServices._saveCredAction(cred, {
+					Credential.saveCredAction(cred, {
 						action: Constants.CredAction.Download,
 						date:   Date.now()
 					});
@@ -1640,7 +1645,7 @@ class BeameAuthServices {
 							reject(error);
 						}
 						else {
-							BeameAuthServices._saveCredAction(cred, {
+							Credential.saveCredAction(cred, {
 								action: Constants.CredAction.SendByEmail,
 								email,
 								date:   Date.now()
@@ -1690,7 +1695,7 @@ class BeameAuthServices {
 									date: Date.now()
 								});
 
-								BeameAuthServices._saveCredAction(cred, {
+								Credential.saveCredAction(cred, {
 									action: Constants.CredAction.VpnRootCreated,
 									name,
 									date:   Date.now()
@@ -1712,7 +1717,7 @@ class BeameAuthServices {
 									name      = item.name;
 									let index = cred.metadata.vpn.indexOf(item);
 									cred.metadata.vpn.splice(index, 1);
-									BeameAuthServices._saveCredAction(cred, {
+									Credential.saveCredAction(cred, {
 										action: Constants.CredAction.VpnRootDeleted,
 										name,
 										date:   Date.now()
@@ -1834,10 +1839,6 @@ class BeameAuthServices {
 				cred.createAuthTokenForCred(fqdn).then(authToken => {
 
 					cred.renewCert(CommonUtils.parse(authToken), fqdn).then(() => {
-						BeameAuthServices._saveCredAction(cred, {
-							action: Constants.CredAction.Renew,
-							date:   Date.now()
-						});
 						this.getCredDetail(fqdn).then(resolve).catch(reject);
 					}).catch(reject);
 
@@ -1860,7 +1861,7 @@ class BeameAuthServices {
 				cred.createAuthTokenForCred(fqdn).then(authToken => {
 
 					cred.revokeCert(CommonUtils.parse(authToken), null, fqdn).then(() => {
-						BeameAuthServices._saveCredAction(cred, {
+						Credential.saveCredAction(cred, {
 							action: Constants.CredAction.Revoke,
 							date:   Date.now()
 						});
@@ -1909,13 +1910,7 @@ class BeameAuthServices {
 				}
 
 				cred.setDns(data.fqdn, data.dnsValue, !data.dnsValue || !data.dnsValue.length, data.dnsFqdn).then(value => {
-					cred.metadata = cred.beameStoreServices.readMetadataSync();
-					BeameAuthServices._saveCredAction(cred, {
-						action: Constants.CredAction.DnsSaved,
-						fqdn:   data.dnsFqdn || data.fqdn,
-						value:  value,
-						date:   Date.now()
-					});
+
 					this.getCredDetail(fqdn).then(updatedCred => {
 						resolve({message: `Dns record created for ${value}`, value: value, data: updatedCred});
 					}).catch(reject);
@@ -1946,11 +1941,6 @@ class BeameAuthServices {
 
 				cred.deleteDns(data.fqdn, data.dnsFqdn).then(() => {
 					cred.metadata = cred.beameStoreServices.readMetadataSync();
-					BeameAuthServices._saveCredAction(cred, {
-						action: Constants.CredAction.DnsDeleted,
-						fqdn:   data.fqdn || data.dnsFqdn,
-						date:   Date.now()
-					});
 					this.getCredDetail(fqdn).then(updatedCred => {
 						resolve({message: `Dns record deleted for ${data.dnsFqdn}`, data: updatedCred});
 					}).catch(reject);
@@ -1998,16 +1988,6 @@ class BeameAuthServices {
 				});
 			}
 		);
-	}
-
-	static _saveCredAction(cred, token) {
-		if (!cred.metadata.actions) {
-			cred.metadata.actions = [];
-		}
-
-		cred.metadata.actions.push(token);
-
-		cred.beameStoreServices.writeMetadataSync(cred.metadata);
 	}
 
 	//endregion

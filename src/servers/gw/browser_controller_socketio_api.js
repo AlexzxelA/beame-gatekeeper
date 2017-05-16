@@ -18,6 +18,7 @@ const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 var serviceManager      = null;
+const ssoManager       = require('../../samlSessionManager');
 
 
 function assertSignedByGw(session_token) {
@@ -36,7 +37,7 @@ function assertSignedByGw(session_token) {
 
 // TODO: Session renewal?
 const messageHandlers = {
-	'auth':          function (payload, reply) {
+	'auth':          function (payload, reply, cb) {
 		// TODO: validate token and check it belongs to one of the registered users
 		// TODO: return apps list + session token
 		// --- request ---
@@ -54,10 +55,14 @@ const messageHandlers = {
 				BeameAuthServices.loginUser(token.signedBy).then(user => {
 					logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
 					authenticatedUserInfo = user;
+					if(!decryptedUserData){
+						user.persistentId = token.signedBy;
+						decryptedUserData = JSON.stringify(user);
+					}
 					resolve(user);
 				}).catch(error => {
 					logger.error(`loginUser on ${token.signedBy} error ${BeameLogger.formatError(error)}`);
-					reject(error);
+					reject(`error ${BeameLogger.formatError(error)}`);
 				});
 			});
 		}
@@ -72,22 +77,57 @@ const messageHandlers = {
 
 		function respond([apps, token]) {
 			return new Promise(() => {
-				logger.debug('messageHandlers/auth/respond token', token);
-				reply({
-					type:    'authenticated',
-					payload: {
-						serviceName:    bootstrapper.serviceName,
-						pairing:        bootstrapper.pairingRequired,
-						imageRequired:  bootstrapper.registrationImageRequired,
-						success:       true,
-						session_token: token,
-						apps:          apps,
-						//html:          page,
-						url:           `https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`,
-						user:          authenticatedUserInfo,
-						userData:      decryptedUserData
+				if(payload.SAMLRequest){
+					let userIdData;
+					try{
+						userIdData = (typeof decryptedUserData === 'object')?decryptedUserData:JSON.parse(decryptedUserData);
 					}
-				});
+					catch (e){
+						logger.error('Internal app error. User ID not found');
+						userIdData = {};
+					}
+					let ssoManagerX = ssoManager.samlManager.getInstance();
+					let ssoConfig = ssoManagerX.getConfig();
+					ssoConfig.user = {
+						user:           userIdData.name,
+						emails:         userIdData.name,//userIdData.email,
+						name:           {givenName:undefined, familyName:undefined},
+						displayName:    userIdData.nickname,
+						id:             userIdData.name,
+					};
+					ssoConfig.persistentId  = userIdData.persistentId;
+					ssoConfig.SAMLRequest   = payload.SAMLRequest;
+					let ssoSession          = new ssoManager.samlSession(ssoConfig);
+					ssoSession.getSamlHtml((err, html)=>{
+						if(html)reply({
+							type: 'saml',
+							payload: {
+								success: true,
+								samlHtml: html,
+								session_token: token,
+								url: null
+							}
+						});
+					});
+				}
+				else{
+					logger.debug('messageHandlers/auth/respond token', token);
+					reply({
+						type:    'authenticated',
+						payload: {
+							serviceName:    bootstrapper.serviceName,
+							pairing:        bootstrapper.pairingRequired,
+							imageRequired:  bootstrapper.registrationImageRequired,
+							success:       true,
+							session_token: token,
+							apps:          apps,
+							//html:          page,
+							url:           `https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`,
+							user:          authenticatedUserInfo,
+							userData:      decryptedUserData
+						}
+					});
+				}
 			});
 		}
 
@@ -103,13 +143,13 @@ const messageHandlers = {
 							let decryptedData = cred.decryptWithRSA(userData);
 
 							if (decryptedData) {
+								decryptedData.persistentId = token.signedBy;
 								decryptedUserData = decryptedData.toString();
 								resolve(token);
 							}
 							else {
 								reject(`user data decryption failed`);
 							}
-
 
 						}).catch(function (e) {
 							let errMsg = `Failed to decrypt user_id ${e.message}`;
@@ -132,13 +172,13 @@ const messageHandlers = {
 			.then(createSessionToken)
 			.then(respond)
 			.catch(e => {
-				logger.error(`auth error ${e.message}`);
-				console.log(e.message);
+				logger.error(`auth error ${e.message || e}`);
+				console.log(e.message || e);
 				reply({
 					type:    'authenticated',
 					payload: {
 						success: false,
-						error:   e.message
+						error:   e.message || e
 					}
 				});
 			});
@@ -170,16 +210,42 @@ const messageHandlers = {
 				logger.debug(`respond() URL is ${url}`);
 
 				let app = serviceManager.getAppById(payload.app_id);
-
-				reply({
-					type:    'redirect',
-					payload: {
-						success: true,
-						app_id:  payload.app_id,
-						url:     url,
-						external: app ? app.isRasp : false
-					}
-				});
+				if(payload.app_code && payload.app_code.includes('_saml_')){
+					let userIdData = (typeof payload.sessionUserData === 'object')?payload.sessionUserData:JSON.parse(payload.sessionUserData);
+					let ssoManagerX = ssoManager.samlManager.getInstance();
+					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
+					ssoConfig.user = {
+						user:           userIdData.name,
+						emails:         userIdData.name,//userIdData.email,
+						name:           {givenName:undefined, familyName:undefined},
+						displayName:    userIdData.nickname,
+						id:             userIdData.name
+					};
+					let ssoSession = new ssoManager.samlSession(ssoConfig);
+					ssoSession.getSamlHtml((err, html)=>{
+						if(html)reply({
+							type: 'saml',
+							payload: {
+								success: true,
+								app_id: payload.app_id,
+								samlHtml: html,
+								external: app ? app.isRasp : false,
+								url: null
+							}
+						});
+					});
+				}
+				else {
+					reply({
+						type: 'redirect',
+						payload: {
+							success: true,
+							app_id: payload.app_id,
+							url: url,
+							external: app ? app.isRasp : false
+						}
+					});
+				}
 			});
 		}
 
@@ -210,7 +276,6 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise(() => {
-				console.log('*************** Logout with data:', payload);
 				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
 				let type = 'redirect';
 				if(bootstrapper.externalLoginUrl){
@@ -332,8 +397,12 @@ class BrowserControllerSocketioApi {
 	_onConnection(client) {
 		// Browser controller will connect here
 		logger.debug('[GW] handleSocketIoConnect');
-
+		let sessionUserData = null;
 		function reply(data) {
+			if(data.type && data.type === 'authenticated' && data.payload && data.payload.userData){
+				sessionUserData = data.payload.userData;
+				logger.info(`Session user data set to ${data.payload.userData}`);
+			}
 			client.emit('data', JSON.stringify(data));
 		}
 
@@ -371,6 +440,7 @@ class BrowserControllerSocketioApi {
 				if(expectedMessages.indexOf(data.type)<0)
 					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
+			if(sessionUserData)data.payload.sessionUserData = sessionUserData;
 			messageHandlers[data.type] && messageHandlers[data.type](data.payload || data, reply);
 		});
 	}

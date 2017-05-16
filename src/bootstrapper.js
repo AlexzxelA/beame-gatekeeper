@@ -157,6 +157,25 @@ class Bootstrapper {
 		});
 	}
 
+	/**
+	 * Set OCSP cache which override default from SDK
+	 * @param {Number|null} [days]
+	 */
+	setOcspCachePeriod(days) {
+		process.env.BEAME_OCSP_CACHE_PERIOD = (days || this.ocspCachePeriod) * 1000 * 60 * 60 * 24;
+	}
+
+	setHtmlEnvMode() {
+		let htmlMode = this.htmlEnvMode;
+
+		if (htmlMode == Constants.HtmlEnvMode.Production) {
+			process.env.BEAME_INSTA_DOC_ROOT = 'dist';
+		}
+		else {
+			process.env.BEAME_INSTA_DOC_ROOT = 'public';
+		}
+	}
+
 	static getServersToCreate() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
@@ -280,6 +299,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.WhispererSendPinInterval] ? this._config[SettingsProps.WhispererSendPinInterval] : defaults.WhispererSendPinInterval;
 	}
 
+	get ocspCachePeriod() {
+		return this._config && this._config[SettingsProps.OcspCachePeriod] ? this._config[SettingsProps.OcspCachePeriod] : defaults.OcspCachePeriod;
+	}
+
 	get postEmailUrl() {
 		return this._config && this._config[SettingsProps.PostEmailUrl] ? this._config[SettingsProps.PostEmailUrl] : null;
 	}
@@ -352,6 +375,10 @@ class Bootstrapper {
 
 	get envMode() {
 		return this._config[SettingsProps.EnvMode] || Constants.EnvMode.Gatekeeper;
+	}
+
+	get htmlEnvMode() {
+		return this._config[SettingsProps.HtmlEnvMode] || Constants.HtmlEnvMode.Production;
 	}
 
 	get encryptUserData() {
@@ -514,6 +541,7 @@ class Bootstrapper {
 	}
 
 	saveAppConfigFile() {
+
 		return dirServices.saveFileAsync(AppConfigJsonPath, CommonUtils.stringify(this._config, true));
 	}
 

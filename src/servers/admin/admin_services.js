@@ -32,6 +32,8 @@ class AdminServices {
 
 				bootstrapper.setAppConfig = CommonUtils.parse(req.data).AppConfig;
 
+				bootstrapper.setOcspCachePeriod();
+
 				bootstrapper.saveAppConfigFile()
 					.then(resolve)
 					.catch(error => {
@@ -96,6 +98,20 @@ class AdminServices {
 								});
 
 								data.EnvModes = ds;
+
+								callback();
+							},
+							callback =>{
+
+								const options = Constants.HtmlEnvMode;
+
+								let ds = [];
+
+								Object.keys(options).forEach(key=>{
+									ds.push({name:options[key]})
+								});
+
+								data.HtmlEnvModes = ds;
 
 								callback();
 							}

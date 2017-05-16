@@ -18,7 +18,7 @@ const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 const Constants    = require('../../constants');
 const cookieNames = Constants.CookieNames;
-const public_dir   = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const public_dir   = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path    = path.join(public_dir, 'pages', 'beame_auth');
 
 const sns = new (require("../servers/beame_auth/sns"))();

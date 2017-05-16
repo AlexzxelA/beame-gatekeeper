@@ -7,8 +7,6 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
-const WebRootFolder = process.env.BEAME_INSTA_DOC_ROOT || 'public';
-
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
 const SigninPath               = `${GatewayControllerPath}/signin`;
@@ -58,6 +56,11 @@ const EnvMode = {
 	"DelegatedLoginMaster": "DelegatedLoginMaster",
 };
 
+const HtmlEnvMode = {
+	"Development": "Dev",
+	"Production":  "Prod",
+};
+
 /**
  * Registration sources
  * DON'T TOUCH, should by synchronized with backend services
@@ -89,18 +92,7 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
-const CredAction = {
-	"Revoke":          "Revoke",
-	"Renew":           "Renew",
-	"SendByEmail":     "Send by email",
-	"Download":        "Download",
-	"VpnRootCreated":  "Set as VPN Root",
-	"VpnRootDeleted":  "VPN Root Deleted",
-	"ChildCreated":    "Child cred created",
-	"RegTokenCreated": "Reg token created",
-	"DnsSaved":      "Dns Saved",
-	"DnsDeleted":      "Dns deleted"
-};
+const CredAction = require('beame-sdk').Config.CredAction;
 
 /**
  * Sns Message Types
@@ -158,6 +150,7 @@ module.exports = {
 	RegistrationMethod,
 	RegistrationSource,
 	EnvMode,
+	HtmlEnvMode,
 	LoadBalancerURL,
 	BeameLoginURL,
 	CredentialType,
@@ -171,7 +164,6 @@ module.exports = {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"
 	},
-	WebRootFolder,
 	GatewayControllerPath,
 	GwAuthenticatedPath,
 	SigninPath,

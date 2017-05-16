@@ -73,6 +73,18 @@
                         </li>
 
                         <li>
+                            <label>HTML Mode</label>
+                            <input data-role="dropdownlist"
+                                   data-auto-bind="true"
+                                   data-value-primitive="true"
+                                   data-text-field="name"
+                                   data-value-field="name"
+                                   data-bind="value: data.AppConfig.HtmlEnvMode, source: data.HtmlEnvModes"
+                                   class='k-textbox'
+                            />
+                        </li>
+
+                        <li>
                             <label>Allow Public Registration</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.PublicRegistration" />
                         </li>
@@ -127,6 +139,12 @@
                         <li>
                             <label>External login server URL</label>
                             <textarea  data-bind="value:data.AppConfig.ExternalLoginServer"  class='k-textbox' id="ExternalLoginServer" cols="30" rows="2"></textarea>
+                        </li>
+
+                        <li>
+                            <label>OCSP cache period (days)</label>
+                            <input data-role="numerictextbox" data-bind="value:data.AppConfig.OcspCachePeriod"
+                                   id="OcspCachePeriod" type="text" data-spinners="false" data-format="{0:D}"/>
                         </li>
 
                         <li>
@@ -208,49 +226,7 @@
 
 </script>
 
-<script>
-
-	function loadSettings(){
-
-		var loadDash =  function(){
-
-			viewDash  = new kendo.View("home",{
-				model: new kendo.observable({
-					data: settings,
-					onSave:function(){
-
-						$.ajax({
-							type: "POST",
-							url: '/settings/save',
-							data: {data: JSON.stringify(this.data)},
-							success: function(result){
-								alert(result.success ? 'Settings saved' : result.error);
-							},
-							dataType: 'json'
-						});
-
-
-					}
-				})
-			});
-			layout.showIn("#content", viewDash);
-			$("#panelbar").kendoPanelBar({
-				expandMode: "single"
-			});
-
-			setTimeout(function () {
-				$("#panelbar").show();
-			},50);
-
-			$('#save-app-config-btn').kendoButton();
-		};
-
-		if(!settings){
-			getSettings(loadDash);
-        }
-        else{
-			loadDash();
-        }
-
-	}
-</script>
+<!-- Scripts -->
+<!-- build:admin-template -->
+<script src="js/admin/dash.js"></script>
+<!-- endbuild -->

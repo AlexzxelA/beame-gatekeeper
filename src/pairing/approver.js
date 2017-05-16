@@ -61,7 +61,7 @@ class Approver {
 		this._matchingServerFqdn      = matchingServerFqdn;
 		this._callbacks               = callbacks;
 		this._socketDisconnectTimeout = socketDisconnectTimeout;
-		this._creds                   = store.getCredential(this._fqdn);
+		this._cred                    = store.getCredential(this._fqdn);
 		this._serviceName             = serviceName;
 		this._qrData                  = null;
 		this._jsonQrData              = null;
@@ -82,7 +82,7 @@ class Approver {
 					logger.debug(`[${this._sessionId}] connecting to matching server`);
 
 					//for future use of client certificates
-					let opts   = this._creds.getHttpsServerOptions();
+					let opts   = this._cred.getHttpsServerOptions();
 					/** @type {Socket} */
 					let socket = require('socket.io-client')(this._matchingServerFqdn + '/approve', opts);
 					/** @type {Socket} */
@@ -91,7 +91,7 @@ class Approver {
 					socket.on('mobile_matched', this.mobileConnected.bind(this));
 
 					socket.on('connect', () => {
-						let signature = this._creds.sign({fqdn: this._fqdn});
+						let signature = this._cred.sign({fqdn: this._fqdn});
 						socket.emit('id_approver', signature);
 						logger.debug(`[${this._sessionId}] connected to matching server`);
 						resolve();

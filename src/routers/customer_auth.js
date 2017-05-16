@@ -18,7 +18,7 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger('CustomerAuth');
 const utils                = require('../utils');
 
-const public_dir = path.join(__dirname, '..', '..', Constants.WebRootFolder);
+const public_dir = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 
 const base_path = path.join(public_dir, 'pages', 'customer_auth');
 

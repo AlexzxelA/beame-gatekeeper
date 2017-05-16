@@ -16,7 +16,8 @@ var logoutUrl = null,
 	gwloginTarget,
 	gwloginRelay,
 	gw_socket = null,
-	isDirectSession;
+	isDirectSession,
+	samlRequest = getParameterByName('SAMLRequest');
 
 
 function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
@@ -88,7 +89,8 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 				type:    'auth',
 				payload: {
 					token:    authToken,
-					userData: userData
+					userData: userData,
+					SAMLRequest: samlRequest
 				}
 			})
 
@@ -151,7 +153,13 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 					removeLogin();
 				}
 				else {
-					forceReloadWindowOnSessionFailure = true;
+					var e = (payload.error && payload.error!=='undefined')?payload.error:'Login failed';
+					sendEncryptedData(getRelaySocket(), getRelaySocketID(),
+						str2ab(JSON.stringify({'type': 'autheticated', 'payload':{'error':e}})),
+						function () {
+							forceReloadWindowOnSessionFailure = true;
+							window.alert(e);
+						});
 				}
 
 			}
@@ -187,16 +195,29 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 				}, 1000);
 			}
 
-
-			if (payload.html) {
+			if (payload.samlHtml) {
+				setCookie('BeameSSOsession',payload.SSOsessionId, 0.24);
+				var onDataSent = function () {
+					setTimeout(function () {
+						document.write(payload.samlHtml);
+						console.log('onDataSent: page rewritten');
+						document.close();
+					}, 0.1);
+				};
+				var cmdData = {"type":"redirect", "payload":{"success":true, "samlSession":true}};
+				relay_socket?sendEncryptedData(relay_socket, relay_socket.beame_relay_socket_id,
+					str2ab(JSON.stringify(cmdData)), onDataSent()):
+					drctSessionId?passData2Mobile(type || 'gw data', str2ab(JSON.stringify(cmdData), undefined, onDataSent())):window.alert('Invalid app state');
+				return;
+			}
+			else if (payload.html) {
 
 				setIframeHtmlContent(payload.html);
 				// Happens on 'authenticated' type event
 				// Show full screen div with payload.html
 				delete payload.html;
 			}
-
-			if (payload.url) {
+			else if (payload.url) {
 				setIframeUrl(payload.url);
 				// Redirect the main frame to payload.url
 				if(!payload.external) {
@@ -388,12 +409,16 @@ function processInSessionDataFromMobile(rawData, relay_socket) {
 }
 
 function setIframeHtmlContent(html) {
+	console.warn('setIframeHtmlContent >>>>> '+ html.charCodeAt(0) + ' ' + html.charCodeAt(1) + ' ' + html.charCodeAt(2));
 	var iframe    = document.getElementById('ifrm-content'),
 	    iframedoc = iframe.contentDocument || iframe.contentWindow.document;
 
 	iframe.style.display = 'block';
 
 	iframedoc.body.innerHTML = html;
+
+	// iframedoc.getElementsByTagName('form')[0].submit();
+
 }
 
 function setIframeUrl(url) {

@@ -15,6 +15,8 @@ var auth_mode = 'Session',
 		setCookie("usrInData",delegatedUserId,0.24);
 	}
 
+
+
 function onUserAction(accepted){
 	if(accepted && originTmpSocket){
 

@@ -93,14 +93,6 @@ $(document).ready(function () {
 	});
 
 
-	//noinspection ES6ModulesDependencies,NodeModulesDependencies
-	 // || { transports: ['websocket']});
-
-
-
-
-//window.location.host window.location.href
-
 function processDrctMessage(msg) {
 	if(stopAllRunningSessions && DrctTMPSocketOrigin && DrctTMPSocketOrigin.connected){
 		DrctTMPSocketOrigin.disconnect();
@@ -110,18 +102,6 @@ function processDrctMessage(msg) {
 	processMobileData(null, (parsed));
 }
 
-function test(c) {
-	//var c = getCookie('b3am3-1d');
-	//window.alert(c || 'huj');
-	DrctTMPSocketOrigin.emit('beamePing');
-	return c || 'Huuj??';
-}
-
-window.getNotifManagerInstance().subscribe('LOGGED_IN_WINDOW_LOADED', function () {
-	passData2Mobile('authenticatedPageLoaded',str2ab(JSON.stringify(
-		{'type':'authenticatedPageLoaded'}
-	)));
-});
 
 function setQRStatus(status){
 

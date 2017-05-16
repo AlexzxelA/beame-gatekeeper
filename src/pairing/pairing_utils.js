@@ -71,11 +71,11 @@ class PairingUtils {
 						token:   newToken
 					}));
 				}).catch(e => {
-					this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e}));
+					this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e.message}));
 				});
 
 			}).catch(e => {
-				this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e}));
+				this._socket.emit('tokenVerified', JSON.stringify({success: false, error: e.message}));
 			});
 		});
 

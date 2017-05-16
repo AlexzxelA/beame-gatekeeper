@@ -1,0 +1,87 @@
+2017-05-?? Beame <support@beame.io> UNRELEASED
+
+	* Release NPM version 1.0.16
+	* Work on SAML
+	* Vastly expanded web admin functionality
+	* Fix bug in users creation
+	* Improve browser side stability
+	* Raspberry application fix
+	* StrongSwan server and iOS client support
+
+2017-04-19 Beame <support@beame.io>
+
+	* Release NPM version 1.0.15
+	* Use SDK version 2.0.36
+	* Web admin improvements
+
+2017-04-10 Beame <support@beame.io>
+
+	* Release NPM version 1.0.14
+	* Improve installation scripts
+
+2017-04-07 Beame <support@beame.io>
+
+	* Release NPM version 1.0.13
+	* Improve installation scripts
+	* Internal code cleanup
+
+2017-04-06 Beame <support@beame.io>
+
+	* Release NPM version 1.0.12
+	* Fix Central Login bugs
+	* Tweak sound pairing
+	* New web admin design
+
+2017-04-04 Beame <support@beame.io>
+
+	* Release NPM version 1.0.11
+	* Use SDK version 2.0.35
+	* Mac OS X install script
+
+2017-03-31 Beame <support@beame.io>
+
+	* Release NPM version 1.0.10
+	* Use SDK version 2.0.33
+	* Improve systemd installation script
+	* Systemd control script
+	* Browser session recovery
+	* Delegated login
+	* Bug fixes
+
+2017-03-12 Beame <support@beame.io>
+
+	* Release NPM version 1.0.9
+	* Use SDK version 2.0.32
+
+2017-03-12 Beame <support@beame.io>
+
+	* Release NPM version 1.0.8
+	* Use SDK version 2.0.31
+	* Fix startup sequilize bug
+
+2017-03-10 Beame <support@beame.io>
+
+	* Version 1.0.7
+	* Use SDK version 2.0.30
+	* SocketIO to 1.7.3
+	* Improve pairing stability
+	* Improve stability of communication to Beame servers
+	* Fix startup sequilize bug
+	* Work on CLI
+	* Vast code improvements and fixes
+	* WebSocket support
+
+2017-02-19 Beame <support@beame.io>
+
+	* Release NPM version 1.0.6
+	* Development in progress
+
+2017-02-12 Beame <support@beame.io>
+
+	* Release NPM version 1.0.5
+	* Development in progress
+
+2017-02-12 Beame <support@beame.io>
+
+	* Release NPM version 1.0.4
+	* Development in progress
