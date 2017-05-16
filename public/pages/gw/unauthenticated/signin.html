@@ -113,11 +113,9 @@
     </div>
 </div>
 
-
 <script>
     document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
-</script>
-<script>
+
     var head = document.getElementsByTagName('head')[0];
     var js = document.createElement("script");
 
@@ -131,9 +129,10 @@
     else
         console.log(navigator.userAgent);
 </script>
+
 <!-- Scripts -->
-<!-- build:lib -->
-<script src="lib/socket.io-1.4.5.min.js"></script>
+<!-- build:lib-sjak -->
+<script src="lib/socket.io-1.7.3.min.js"></script>
 <script src="lib/angular-1.5.7.min.js"></script>
 <script src="lib/jquery-2.2.4.min.js"></script>
 <script src="lib/kendo-2016.3.1118.qr.min.js"></script>
@@ -155,7 +154,7 @@
 </script>
 
 <!-- Scripts -->
-<!-- build:js -->
+<!-- build:signin-js-foot -->
 <script src="js/crypto.js"></script>
 <script src="js/virt_host_controller.js"></script>
 <script src="js/notification_manager.js"></script>

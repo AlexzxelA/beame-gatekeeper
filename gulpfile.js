@@ -3,37 +3,37 @@
  */
 "use strict";
 
-const gulp          = require('gulp');
-const sass          = require('gulp-sass');
-const rename        = require("gulp-rename");
-const concat        = require('gulp-concat');
-const uglify        = require('gulp-uglify');
-const htmlreplace   = require('gulp-html-replace');
-const cleanCSS      = require('gulp-clean-css');
-const minifyCss     = require('gulp-minify-css');
-const s3            = require('gulp-s3');
-const gzip          = require('gulp-gzip');
-const stripDebug    = require('gulp-strip-debug');
-const strip         = require('gulp-strip-comments');
-const inlinesource  = require('gulp-inline-source');
-const htmlmin       = require('gulp-htmlmin');
-const clean         = require('gulp-rimraf');
-const cloudfront    = require("gulp-cloudfront-invalidate");
-const gulpif        = require('gulp-if');
-const modifyCssUrls = require('gulp-modify-css-urls');
-const ignore = require('gulp-ignore');
+const gulp           = require('gulp');
+const sass           = require('gulp-sass');
+const rename         = require("gulp-rename");
+const concat         = require('gulp-concat');
+const uglify         = require('gulp-uglify');
+const htmlreplace    = require('gulp-html-replace');
+const cleanCSS       = require('gulp-clean-css');
+const minifyCss      = require('gulp-minify-css');
+const s3             = require('gulp-s3');
+const gzip           = require('gulp-gzip');
+const stripDebug     = require('gulp-strip-debug');
+const strip          = require('gulp-strip-comments');
+const inlinesource   = require('gulp-inline-source');
+const htmlmin        = require('gulp-htmlmin');
+const clean          = require('gulp-rimraf');
+const cloudfront     = require("gulp-cloudfront-invalidate");
+const gulpif         = require('gulp-if');
+const modifyCssUrls  = require('gulp-modify-css-urls');
+const ignore         = require('gulp-ignore');
 const injectPartials = require('gulp-inject-partials');
-const minify = require('gulp-minify');
+const minify         = require('gulp-minify');
 
 const bucket_dir = 'insta-server-dev';
 
-const dist_folder_name = 'dist';
+const dist_folder_name  = 'dist';
 const build_folder_name = 'build';
 
 const tools_folder_name = 'tools';
 const tools_bucket_dir  = 'insta-server-meta';
 
-const web_src_root_path  = './apps/';
+const web_src_root_path = './apps/';
 
 const getVersion = () => {
 	const pad2 = (n) => {
@@ -62,18 +62,24 @@ const compilePage = (pagePath, distPath) => {
 
 	gulp.src(pagePath)
 		.pipe(htmlreplace({
-			'css':              `${cdn_folder_path}css/app.min.css`,
-			'js':               `${cdn_folder_path}js/app.min.js`,
-			'lib':              `${cdn_folder_path}js/lib.min.js`,
-			'signin-js-head':   `${cdn_folder_path}js/signin.min.js`,
-			'signup-js-head':   `${cdn_folder_path}js/signup.min.js`,
-			'approval-js-head': `${cdn_folder_path}js/approval.min.js`,
-			'utils-head':       `${cdn_folder_path}js/utils.min.js`,
-			'cef':              `${cdn_folder_path}js/cef.min.js`,
-			'admin-js-head':    `${cdn_folder_path}js/admin.head.min.js`,
-			'admin-js-foot':    `${cdn_folder_path}js/admin.foot.min.js`,
-			'admin-template':   ``,
-			'logo':             `<img src="${cdn_folder_path}img/logo.svg" />`
+			'css':                `${cdn_folder_path}css/app.min.css`,
+			'login-js':           `${cdn_folder_path}js/login.min.js`,
+			'lib-sjak':           `${cdn_folder_path}js/lib-sjak.min.js`,
+			'lib-sjk':            `${cdn_folder_path}js/lib-sjk.min.js`,
+			'lib-jjf':            `${cdn_folder_path}js/lib-jjf.min.js`,
+			'signup-js-head':     `${cdn_folder_path}js/signup.head.min.js`,
+			'signup-js-foot':     `${cdn_folder_path}js/signup.foot.min.js`,
+			'signin-js-head':     `${cdn_folder_path}js/signin.head.min.js`,
+			'signin-js-foot':     `${cdn_folder_path}js/signin.foot.min.js`,
+			'client-approval-js': `${cdn_folder_path}js/clint.approve.min.js`,
+			'direct-signin-js':   `${cdn_folder_path}js/direct.signin.min.js`,
+			'express-signin-js':  `${cdn_folder_path}js/xprs.signin.min.js`,
+			'utils-head':         `${cdn_folder_path}js/utils.min.js`,
+			'cef':                `${cdn_folder_path}js/cef.min.js`,
+			'admin-js-head':      `${cdn_folder_path}js/admin.head.min.js`,
+			'admin-js-foot':      `${cdn_folder_path}js/admin.foot.min.js`,
+			'admin-template':     ``,
+			'logo':               `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
@@ -81,7 +87,7 @@ const compilePage = (pagePath, distPath) => {
 
 };
 
-const gulpUtil = require('gulp-util');
+const gulpUtil  = require('gulp-util');
 const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
@@ -95,13 +101,13 @@ const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 const compileCss = (funcArray, dist_name) => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
-		.pipe(modifyCssUrls({
-			// modify: (url) => {
-			// 	return `/${bucket_dir}/${version}/${url}`;
-			// }
-			prepend: `/${bucket_dir}/${version}`
-			// ,append: '?cache-buster'
-		}))
+		// .pipe(modifyCssUrls({
+		// 	// modify: (url) => {
+		// 	// 	return `/${bucket_dir}/${version}/${url}`;
+		// 	// }
+		// 	//prepend: `/${bucket_dir}/${version}`
+		// 	// ,append: '?cache-buster'
+		// }))
 		.pipe(cleanCSS({compatibility: 'ie10'}))
 		.pipe(gulp.dest(`./${dist_folder_name}/css/`));
 };
@@ -132,7 +138,7 @@ const uploadStaticFile = (src, dist, renameFunc, invalidationPath) => {
 
 	if (invalidationPath && invalidationPath.length) {
 		setTimeout(function () {
-			var cf_settings = {
+			let cf_settings = {
 				distribution:    config.beame_cdn_distribution, // Cloudfront distribution ID
 				paths:           invalidationPath,                 // Paths to invalidate
 				accessKeyId:     key,               // AWS Access Key ID
@@ -201,11 +207,6 @@ gulp.task('compile-js', () => {
 
 
 	compileJs([
-		'./public/js/utils.js',
-		'./public/js/signin.js'
-	], 'signin.min.js', true);
-
-	compileJs([
 		'./public/js/notification_manager.js',
 		'./public/lib/clipboard.min.js',
 		'./public/js/utils.js',
@@ -214,7 +215,7 @@ gulp.task('compile-js', () => {
 
 	compileJs([
 		'./public/lib/jszip-2.4.0.min.js',
-		'./public/lib/lib/jquery.form-3.5.1.min.js',
+		'./public/lib/jquery.form-3.5.1.min.js',
 		'./public/js/admin/admin_foot.js',
 		'./public/js/admin/create.cred.js',
 		'./public/js/admin/cred.detail.js',
@@ -233,23 +234,21 @@ gulp.task('compile-js', () => {
 		[
 			'./public/js/utils.js',
 			'./public/js/signup.js'
-		], 'signup.min.js', true);
+		], 'signup.head.min.js', true);
 
 	compileJs(
 		[
-			'./public/js/utils.js',
-			'./public/js/client_approval.js'
-		], 'approval.min.js', true);
+			'./public/js/crypto.js',
+			'./public/js/virt_host_controller.js',
+			'./public/js/notification_manager.js',
+			'./public/js/user_image.js',
+			'./public/js/qr.js'
+		], 'signup.foot.min.js', true);
 
-	compileJs(
-		[
-			'./public/js/utils.js'
-		], 'utils.min.js', true);
-
-	compileJs(
-		[
-			'./public/js/cef_manager.js'
-		], 'cef.min.js', true);
+	compileJs([
+		'./public/js/utils.js',
+		'./public/js/signin.js'
+	], 'signin.head.min.js', true);
 
 	compileJs(
 		[
@@ -261,7 +260,53 @@ gulp.task('compile-js', () => {
 			'./public/js/qr.js',
 			'./public/js/whisper_generator.js',
 			'./public/js/whisperer.js'
-		], 'app.min.js', true);
+		], 'signin.foot.min.js', true);
+
+
+	compileJs(
+		[
+			'./public/js/utils.js'
+		], 'utils.min.js', true);
+
+	compileJs(
+		[
+			'./public/js/beame_login.js'
+		], 'login.min.js', true);
+
+	compileJs(
+		[
+			'./public/js/cef_manager.js'
+		], 'cef.min.js', true);
+
+	compileJs(
+		[
+			'./public/js/short_crypto.js',
+			'./public/js/virt_host_controller.js',
+			'./public/js/notification_manager.js',
+			'./public/js/user_image.js',
+			'./public/js/session_controller.js',
+			'./public/js/drct_signin.js'
+		], 'direct.signin.min.js', true);
+
+	compileJs(
+		[
+			'./public/js/crypto.js',
+			'./public/js/virt_host_controller.js',
+			'./public/js/notification_manager.js',
+			'./public/js/user_image.js',
+			'./public/js/session_controller.js',
+			'./public/js/xprs_signin.js'
+		], 'xprs.signin.min.js', true);
+
+
+	compileJs(
+		[
+			'./public/js/crypto.js',
+			'./public/js/virt_host_controller.js',
+			'./public/js/notification_manager.js',
+			'./public/js/user_image.js',
+			'./public/js/client_approval.js'
+		], 'clint.approve.min.js', true);
 
 	compileJs(
 		[
@@ -269,7 +314,20 @@ gulp.task('compile-js', () => {
 			'./public/lib/angular-1.5.7.min.js',
 			'./public/lib/jquery-2.2.4.min.js',
 			'./public/lib/kendo-2016.3.1118.qr.min.js'
-		], 'lib.min.js', false);
+		], 'lib-sjak.min.js', false);
+
+	compileJs(
+		[
+			'./public/lib/socket.io-1.7.3.min.js',
+			'./public/lib/jquery-2.2.4.min.js',
+			'./public/lib/kendo-2016.3.1118.qr.min.js'
+		], 'lib-sjk.min.js', false);
+
+	compileJs(
+		[
+			'./public/lib/jquery-2.2.4.min.js',
+			'./public/lib/jquery.form-3.5.1.min.js'
+		], 'lib-jjf.min.js', false);
 });
 
 gulp.task('compile-pages', () => {
@@ -300,9 +358,9 @@ gulp.task('compile-pages', () => {
 });
 
 gulp.task('admin-index', function () {
-	 gulp.src(`./${build_folder_name}/pages/admin/index.html`)
+	gulp.src(`./${build_folder_name}/pages/admin/index.html`)
 		.pipe(injectPartials({
-			prefix:`templates/`
+			prefix: `templates/`
 		}))
 		.pipe(gulp.dest(`./${dist_folder_name}/pages/admin/`));
 });
@@ -318,14 +376,14 @@ gulp.task('compile-static', () => {
 		//.pipe(htmlmin({collapseWhitespace: true}))
 		//.pipe(inlinesource())
 		.pipe(htmlreplace({
-			'admin-template':   ``
+			'admin-template': ``
 		}))
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
 });
 
-gulp.task('compile', ['compile-sass','compile-css', 'compile-js', 'compile-static', 'compile-pages']);
+gulp.task('compile', ['compile-sass', 'compile-css', 'compile-js', 'compile-static', 'compile-pages']);
 
-gulp.task('compile-sass', ['sass','web_sass','rasp_sass']);
+gulp.task('compile-sass', ['sass', 'web_sass', 'rasp_sass']);
 
 gulp.task('upload-to-S3', callback => {
 	let options                      = {headers: {'Cache-Control': 'max-age=315360000, no-transform, public'}, gzippedOnly: true},
