@@ -122,7 +122,7 @@ class samlSession{
 			if(postTarget){
 				if(postTarget.includes('://')){
 					let segments = postTarget.split("/");
-					SPorigin = (segments[0] + "//" + segments[2]).split('?')[0];
+					SPorigin = segments[0] + "//" + segments[2];
 				}
 			}
 			if(!metadata.getNameQualifier())
@@ -132,8 +132,8 @@ class samlSession{
 				inResponseTo:   sessionMeta?sessionMeta.id:null,
 				RelayState:     sessionMeta?sessionMeta.RelayState:null,
 				SAMLRequest:    this._request,
-				destination:    postTarget.split('?')[0],
-				recipient:      postTarget,
+				destination:    SPorigin.split('?')[0]||postTarget.split('?')[0],
+				recipient:      SPorigin||postTarget,
 				nameQualifier:  metadata?metadata.getNameQualifier():null,
 				spNameQualifier:metadata?metadata.getSPNameQualifier():null,
 				persistentId:   this._persistentId,
