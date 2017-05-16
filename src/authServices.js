@@ -61,12 +61,16 @@ class BeameAuthServices {
 		this._matchingServerFqdn = matchingServerFqdn;
 
 		/** @type {Credential} */
-		this._creds = store.getCredential(authServerFqdn);
+		this._cred = store.getCredential(authServerFqdn);
 
 		this._downloadTokens = {};
 
-		if (!this._creds) {
+		if (!this._cred) {
 			logger.fatal(`Beame Auth Server credential not found`);
+		}
+
+		if(this._cred.expired || this._cred.revoked){
+			logger.fatal(`Beame Auth Server certificate expired or revoked`);
 		}
 
 		dataService = require('./dataServices').getInstance();
@@ -74,7 +78,7 @@ class BeameAuthServices {
 		let subscribe = subscribeForChildCerts || true;
 
 		if (subscribe) {
-			this._creds.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
+			this._cred.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
 				logger.fatal(`Auth server subscription error  ${BeameLogger.formatError(error)}. Please try restart server`);
 			});
 		}
@@ -525,7 +529,7 @@ class BeameAuthServices {
 						return;
 					}
 
-					let decryptedData = this._creds.decrypt(token);
+					let decryptedData = this._cred.decrypt(token);
 
 					if (!decryptedData) {
 						reject(`invalid data`);
@@ -579,7 +583,7 @@ class BeameAuthServices {
 
 		let sha = CommonUtils.generateDigest(data2Sign);
 
-		return AuthToken.create(sha, this._creds, bootstrapper.registrationAuthTokenTtl);
+		return AuthToken.create(sha, this._cred, bootstrapper.registrationAuthTokenTtl);
 
 	}
 
