@@ -97,6 +97,7 @@ const messageHandlers = {
 					};
 					ssoConfig.persistentId  = userIdData.persistentId;
 					ssoConfig.SAMLRequest   = payload.SAMLRequest;
+					ssoConfig.RelayState    = payload.RelayState;
 					let ssoSession          = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
 						if(html)reply({
