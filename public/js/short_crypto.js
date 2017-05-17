@@ -224,7 +224,7 @@ function processMobileData(TMPsocketRelay, data, cb) {
 			break;
 		case 'login_token':
 			setQRStatus('Got login token');
-			if(decryptedData.token && decryptedData.uid && decryptedData.userID)
+			if(decryptedData.token && decryptedData.uid)
 				onMessageDecryptedToken(null, decryptedData);
 			//decryptMobileData((encryptedData), null, null, onMessageDecryptedToken);
 			return;
