@@ -72,6 +72,7 @@ class samlSession{
 		this._request   = config.SAMLRequest;
 		this._persistentId = config.persistentId;
 		this._path      = config.path;
+		this._relayState= config.RelayState;
 	}
 
 	initMetadata(metadata, cb){
@@ -130,10 +131,10 @@ class samlSession{
 
 			let a = samlp.auth({
 				inResponseTo:   sessionMeta?sessionMeta.id:null,
-				RelayState:     sessionMeta?sessionMeta.RelayState:null,
+				RelayState:     this._relayState,
 				SAMLRequest:    this._request,
-				destination:    SPorigin.split('?')[0]||postTarget.split('?')[0],
-				recipient:      SPorigin||postTarget,
+				destination:    postTarget.split('?')[0],
+				recipient:      postTarget,
 				nameQualifier:  metadata?metadata.getNameQualifier():null,
 				spNameQualifier:metadata?metadata.getSPNameQualifier():null,
 				persistentId:   this._persistentId,
