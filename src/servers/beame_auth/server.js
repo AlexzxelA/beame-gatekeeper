@@ -103,7 +103,20 @@ class BeameAuthServer {
 					cb && cb(error, null);
 				}
 				else {
-					cb && cb(null, this._server);
+
+					const store = new (beameSDK.BeameStore)();
+
+					let cred = store.getCredential(this._fqdn);
+
+					if (!cred) {
+						logger.fatal(`Auth server credential ${this._fqdn} not found`);
+					}
+
+					cred.subscribeForChildRegistration(this._fqdn).then(() => {
+						cb && cb(null, this._server);
+					}).catch(error => {
+						logger.fatal(`Auth server subscription error  ${BeameLogger.formatError(error)}. Please try restart server`);
+					});
 				}
 			});
 	}

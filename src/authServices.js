@@ -53,9 +53,8 @@ class BeameAuthServices {
 	 *
 	 * @param authServerFqdn
 	 * @param matchingServerFqdn
-	 * @param {Boolean|null} [subscribeForChildCerts]
 	 */
-	constructor(authServerFqdn, matchingServerFqdn, subscribeForChildCerts) {
+	constructor(authServerFqdn, matchingServerFqdn) {
 		this._fqdn = authServerFqdn;
 
 		this._matchingServerFqdn = matchingServerFqdn;
@@ -74,14 +73,6 @@ class BeameAuthServices {
 		}
 
 		dataService = require('./dataServices').getInstance();
-
-		let subscribe = subscribeForChildCerts || true;
-
-		if (subscribe) {
-			this._cred.subscribeForChildRegistration(this._fqdn).then(nop).catch(error => {
-				logger.fatal(`Auth server subscription error  ${BeameLogger.formatError(error)}. Please try restart server`);
-			});
-		}
 
 		if (!beameAuthServices) beameAuthServices = this;
 	}
