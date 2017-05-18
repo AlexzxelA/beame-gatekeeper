@@ -7,6 +7,11 @@ const path = require('path');
 const os   = require('os');
 const home = os.homedir();
 
+const EnvProfile = {
+	Name:        'Dev',
+	FqdnPattern: '.d.'
+};
+
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
 const SigninPath               = `${GatewayControllerPath}/signin`;
@@ -145,6 +150,7 @@ const CookieNames = {
 };
 
 module.exports = {
+	EnvProfile,
 	BeameAuthServerLocalPort,
 	RequestType,
 	RegistrationMethod,

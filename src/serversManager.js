@@ -39,6 +39,14 @@ class ServersManager {
 
 	start() {
 
+		let validationResp = bootstrapper.isConfigurationValid();
+
+		if(!validationResp.valid){
+
+			logger.fatal(validationResp.message);
+
+		}
+
 		const _startMatching  = () => {
 			return new Promise((resolve, reject) => {
 

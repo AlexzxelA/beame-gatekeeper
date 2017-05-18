@@ -36,6 +36,9 @@ class CredentialManager {
 		return new Promise((resolve) => {
 
 				const _onZeroLevelCreated = metadata => {
+
+					this._bootstrapper.setServiceName(`${metadata.name || (metadata.email && metadata.email.substring(0,metadata.email.lastIndexOf('@'))) || ''} Gatekeeper`);
+
 					this._bootstrapper.updateCredsFqdn(metadata.fqdn, Constants.CredentialType.ZeroLevel)
 						.then(this.createServersCredentials.bind(this, metadata.email))
 						.then(() => {
@@ -94,7 +97,6 @@ class CredentialManager {
 					resolve();
 					return;
 				}
-
 
 
 				async.each(Object.keys(servers), (serverType, callback) => {
