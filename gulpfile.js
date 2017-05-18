@@ -23,7 +23,7 @@ const gulpif         = require('gulp-if');
 //const modifyCssUrls  = require('gulp-modify-css-urls');
 const ignore         = require('gulp-ignore');
 const injectPartials = require('gulp-inject-partials');
-const minify         = require('gulp-minifier');
+//const minify         = require('gulp-minifier');
 const minifyInline   = require('gulp-minify-inline-scripts');
 const bucket_dir     = 'insta-server-dev';
 
