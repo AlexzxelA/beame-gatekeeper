@@ -45,7 +45,6 @@ data/beame_server.db
 build
 certs
 bower_components
-dist
 local_config/
 tools
 npm-shrinkwrap.json
