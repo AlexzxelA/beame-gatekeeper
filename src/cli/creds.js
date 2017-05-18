@@ -32,6 +32,14 @@ function startDataService() {
 
 function getCreds(regToken, fqdn, callback) {
 
+
+	let validationResp = bootstrapper.isConfigurationValid();
+
+	if(!validationResp.valid){
+		callback(validationResp.message);
+		return;
+	}
+
 	if (!regToken && !fqdn) {
 		callback(`Registration token or fqdn required`);
 		return;
@@ -64,6 +72,13 @@ getCreds.params = {
 };
 
 function listVpnCreds(fqdn,vpnId,callback) {
+
+	let validationResp = bootstrapper.isConfigurationValid();
+
+	if(!validationResp.valid){
+		callback(validationResp.message);
+		return;
+	}
 
 	AuthServices.vpnCredsList(fqdn,vpnId).then(list => {
 
@@ -104,6 +119,14 @@ listVpnCreds.toText = creds=>{
 };
 
 function list(regex, callback) {
+
+	let validationResp = bootstrapper.isConfigurationValid();
+
+	if(!validationResp.valid){
+		callback(validationResp.message);
+		return;
+	}
+
 	callback(null, beameSDK.creds.list(regex));
 }
 list.params = {'regex': {required: false}};
@@ -115,6 +138,13 @@ function createServersCredentials(callback) {
 createServersCredentials.params = {};
 
 function webToken(type, appId, callback) {
+
+	let validationResp = bootstrapper.isConfigurationValid();
+
+	if(!validationResp.valid){
+		callback(validationResp.message);
+		return;
+	}
 
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 

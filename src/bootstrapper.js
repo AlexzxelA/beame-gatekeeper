@@ -176,6 +176,44 @@ class Bootstrapper {
 		}
 	}
 
+	isConfigurationValid() {
+
+		let responseObj = {
+			valid:   true,
+			message: null
+		};
+
+		try {
+			let sdkProfile    = beameSDK.Config.EnvProfile,
+			    keeperProfile = Constants.EnvProfile,
+			    zeroLevelCred = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel),
+			    parts         = zeroLevelCred.split('.'),
+			    credEnv       = `.${parts[parts.length - 3]}.`;
+
+
+			if (sdkProfile.Name !== keeperProfile.Name) {
+				responseObj.valid   = false;
+				responseObj.message = `Mismatch between SDK and Keeper environments: SDK set to ${sdkProfile.Name} and Gatekeeper to ${keeperProfile.Name}`;
+
+				return responseObj;
+			}
+
+			if (keeperProfile.FqdnPattern != credEnv) {
+				responseObj.valid   = false;
+				responseObj.message = `Mismatch between Keeper and saved credentials pattern: Gatekeeper has ${keeperProfile.FqdnPattern} and Zero Level Cred has ${credEnv} `;
+			}
+
+			return responseObj;
+
+		} catch (e) {
+			responseObj.valid   = false;
+			responseObj.message = BeameLogger.formatError(e);
+
+			return responseObj;
+		}
+
+	}
+
 	static getServersToCreate() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
