@@ -2,7 +2,7 @@
   "name": "beame-gatekeeper",
   "version": "1.0.12",
   "description": "Gateway TLS (SSL) server for authenticated access to your services",
-  "main": "index.js",
+  "main": "main.js",
   "engines": {
     "node": ">= 6.9.1"
   },
