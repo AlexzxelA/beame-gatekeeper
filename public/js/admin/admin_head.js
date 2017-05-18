@@ -98,8 +98,10 @@ $(document).ready(function () {
 });
 
 function showLoader(id){
-	document.getElementById(id || "overlay").style.display = "block";
+	//document.getElementById(id || "overlay").style.display = "block";
+	$('#'+(id || "overlay")).show();
 }
 function hideLoader(id){
-	document.getElementById(id || "overlay").style.display = "none";
+	//document.getElementById(id || "overlay").style.display = "none";
+	$('#'+(id || "overlay")).hide();
 }

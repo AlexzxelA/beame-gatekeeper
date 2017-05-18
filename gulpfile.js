@@ -10,7 +10,7 @@ const concat         = require('gulp-concat');
 const uglify         = require('gulp-uglify');
 const htmlreplace    = require('gulp-html-replace');
 const cleanCSS       = require('gulp-clean-css');
-const minifyCss      = require('gulp-minify-css');
+//const minifyCss      = require('gulp-minify-css');
 const s3             = require('gulp-s3');
 const gzip           = require('gulp-gzip');
 const stripDebug     = require('gulp-strip-debug');
@@ -20,12 +20,12 @@ const htmlmin        = require('gulp-htmlmin');
 const clean          = require('gulp-rimraf');
 const cloudfront     = require("gulp-cloudfront-invalidate");
 const gulpif         = require('gulp-if');
-const modifyCssUrls  = require('gulp-modify-css-urls');
+//const modifyCssUrls  = require('gulp-modify-css-urls');
 const ignore         = require('gulp-ignore');
 const injectPartials = require('gulp-inject-partials');
-const minify         = require('gulp-minify');
-
-const bucket_dir = 'insta-server-dev';
+//const minify         = require('gulp-minifier');
+const minifyInline   = require('gulp-minify-inline-scripts');
+const bucket_dir     = 'insta-server-dev';
 
 const dist_folder_name  = 'dist';
 const build_folder_name = 'build';
@@ -53,6 +53,7 @@ const getVersion = () => {
 const version = process.env.version || getVersion();
 
 //console.log(`version is ${version} ${typeof version}`);
+
 
 const compilePage = (pagePath, distPath) => {
 
@@ -83,6 +84,7 @@ const compilePage = (pagePath, distPath) => {
 		}))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
+		.pipe(minifyInline())
 		.pipe(gulp.dest(distPath));
 
 };
@@ -93,7 +95,14 @@ const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 		.pipe(concat(dist_name))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
-		// .pipe(ignore.exclude([ "**/*.map" ]))
+		// .pipe(minify({
+		// 	minify: true,
+		// 	collapseWhitespace: true,
+		// 	conservativeCollapse: true,
+		// 	minifyJS: true,
+		// 	minifyCSS: true
+		// }))
+		.pipe(ignore.exclude(["**/*.map"]))
 		.pipe(gulpif(optimize, uglify()).on('error', gulpUtil.log))
 		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
 };

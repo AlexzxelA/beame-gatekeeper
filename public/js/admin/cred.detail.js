@@ -201,7 +201,7 @@ function initRegtokenWindow(fqdn, name) {
 	regtokenWnd.kendoWindow({
 		width:   "440px",
 		height:  "450px",
-		title:   "Create Child Credential",
+		title:   "Create Registration Token",
 		visible: false,
 		modal:   true,
 		content: {
@@ -222,7 +222,8 @@ function initRegtokenWindow(fqdn, name) {
 			});
 
 			$('#btn-create-regtoken').off('click').on('click', function (e) {
-				showLoader('wnd-overlay');
+
+				showLoader('wnd-overlay-rt');
 				e.preventDefault();
 
 
@@ -248,8 +249,7 @@ function initRegtokenWindow(fqdn, name) {
 					datatype:    "json",
 					contentType: "application/json; charset=utf-8"
 					, success:   function (response) {
-						hideLoader('wnd-overlay');
-						console.log(response);
+
 						if (response.responseCode == 1) {
 
 							$("#token-info").removeClass('ad-error').addClass('ad-success');
@@ -264,6 +264,7 @@ function initRegtokenWindow(fqdn, name) {
 							$("#token-info").removeClass('ad-success').addClass('ad-error');
 						}
 						$("#token-info").html(response.responseDesc);
+						hideLoader('wnd-overlay-rt');
 					}
 				});
 
@@ -692,9 +693,9 @@ function loadCredDetail(data) {
 		password:   null,
 		sendEmail:  false,
 		createCred: function (e) {
-
-			showLoader('wnd-overlay');
 			e.preventDefault();
+
+
 			var form     = $('#frm-create-child-cred'),
 			    url      = form.attr('action'),
 			    method   = form.attr('method'),
@@ -706,7 +707,14 @@ function loadCredDetail(data) {
 				    password:  this.get("password"),
 				    sendEmail: this.get("sendEmail")
 			    };
-			console.log('form data', formData);
+
+			if(!formData.name && !formData.email){
+				$("#create-child-cred-info").removeClass('ad-success').addClass('ad-error').html('Name or Email required');
+				return;
+			}
+
+			showLoader('wnd-overlay-cred');
+
 			$.ajax({
 				url:         url,
 				cache:       false,
@@ -716,7 +724,7 @@ function loadCredDetail(data) {
 				contentType: "application/json; charset=utf-8"
 				, success:   function (response) {
 
-					hideLoader('wnd-overlay');
+					hideLoader('wnd-overlay-cred');
 					var info = $('#create-child-cred-info');
 					console.log(response);
 					if (response.responseCode == 1) {
@@ -754,20 +762,29 @@ function loadCredDetail(data) {
 			$('#inv-qr').empty();
 		},
 		createInvitation: function (e) {
-
-			showLoader('wnd-overlay');
 			e.preventDefault();
+
+			var email = this.get("email"),
+				user_id = this.get("user_id");
+
+			if(!email && !user_id){
+				showNotification(false,'Email or UserId required');
+				return;
+			}
+
+			showLoader('wnd-overlay-inv');
+
 			var form     = $('#frm-create-invitation'),
 			    fqdn     = this.get("fqdn"),
-			    url = '/cred/invite/' + this.get("fqdn"),
+			    url      = '/cred/invite/' + this.get("fqdn"),
 			    formData = {
 				    fqdn:      fqdn,
 				    name:      this.get("name"),
-				    email:     this.get("email"),
-				    user_id:     this.get("user_id"),
+				    email:     email,
+				    user_id:   user_id  ,
 				    sendEmail: this.get("sendEmail")
 			    };
-			console.log('form data', formData);
+
 
 			$.ajax({
 				url:         url,
@@ -777,8 +794,8 @@ function loadCredDetail(data) {
 				datatype:    "json",
 				contentType: "application/json; charset=utf-8"
 				, success:   function (response) {
-					console.log(response);
-					hideLoader('wnd-overlay');
+
+					hideLoader('wnd-overlay-inv');
 
 					if (response.responseCode == 1) {
 						$('#inv-form-container').hide();
