@@ -1227,6 +1227,7 @@ class BeameAuthServices {
 
 				let list = store.list(null, {
 					hasPrivateKey: true,
+					excludeRevoked: true,
 					anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 				});
 

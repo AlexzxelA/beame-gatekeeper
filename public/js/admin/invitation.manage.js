@@ -127,7 +127,7 @@ function loadInvitations() {
 
 		e.preventDefault();
 
-		showLoader();
+
 
 		var form     = $('#frm-create-invitation'),
 		    url      = form.attr('action'),
@@ -137,7 +137,14 @@ function loadInvitations() {
 			    email:   form.find('input[name="email"]').val(),
 			    user_id: form.find('input[name="user_id"]').val()
 		    };
-		console.log('form data', formData);
+
+		if(!formData.email && !formData.user_id){
+			$("#inv-info").removeClass('ad-success').addClass('ad-error').html('Email or UserId required');
+			return;
+		}
+
+		showLoader();
+
 		$.ajax({
 			url:         url,
 			cache:       false,
@@ -148,10 +155,9 @@ function loadInvitations() {
 			, success:   function (response) {
 
 				hideLoader();
-				rebindInvitations();
-				console.log(response);
+				
 				if (response.responseCode == 1) {
-
+					rebindInvitations();
 					$("#inv-info").removeClass('ad-error').addClass('ad-success');
 				}
 				else {
