@@ -1,8 +1,4 @@
-/**
- * Created by Alexz on 15/11/2016.
- */
 
-"use strict";
 /**
  * Created by filip on 18/07/2016.
  */

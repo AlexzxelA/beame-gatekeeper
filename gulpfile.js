@@ -23,7 +23,7 @@ const gulpif         = require('gulp-if');
 //const modifyCssUrls  = require('gulp-modify-css-urls');
 const ignore         = require('gulp-ignore');
 const injectPartials = require('gulp-inject-partials');
-//const minify         = require('gulp-minifier');
+const minify         = require('gulp-minifier');
 const minifyInline   = require('gulp-minify-inline-scripts');
 const bucket_dir     = 'insta-server-dev';
 
@@ -72,6 +72,7 @@ const compilePage = (pagePath, distPath) => {
 			'signup-js-foot':     `${cdn_folder_path}js/signup.foot.min.js`,
 			'signin-js-head':     `${cdn_folder_path}js/signin.head.min.js`,
 			'signin-js-foot':     `${cdn_folder_path}js/signin.foot.min.js`,
+			'whisperer-js':       `${cdn_folder_path}js/whisperer.min.js`,
 			'client-approval-js': `${cdn_folder_path}js/clint.approve.min.js`,
 			'direct-signin-js':   `${cdn_folder_path}js/direct.signin.min.js`,
 			'express-signin-js':  `${cdn_folder_path}js/xprs.signin.min.js`,
@@ -95,15 +96,16 @@ const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 		.pipe(concat(dist_name))
 		.pipe(gulpif(optimize, strip()))
 		.pipe(gulpif(optimize, stripDebug()))
-		// .pipe(minify({
-		// 	minify: true,
-		// 	collapseWhitespace: true,
-		// 	conservativeCollapse: true,
-		// 	minifyJS: true,
-		// 	minifyCSS: true
-		// }))
 		.pipe(ignore.exclude(["**/*.map"]))
 		.pipe(gulpif(optimize, uglify()).on('error', gulpUtil.log))
+		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
+};
+
+const compileCleanJs = (funcArray, dist_name,innerFolder = '') => {
+	gulp.src(funcArray)
+		.pipe(concat(dist_name))
+		.pipe(strip())
+		.pipe(stripDebug())
 		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
 };
 
@@ -268,8 +270,12 @@ gulp.task('compile-js', () => {
 			'./public/js/session_controller.js',
 			'./public/js/qr.js',
 			'./public/js/whisper_generator.js',
-			'./public/js/whisperer.js'
 		], 'signin.foot.min.js', true);
+
+	compileCleanJs(
+		[
+			'./public/js/whisperer.js'
+		], 'whisperer.min.js');
 
 
 	compileJs(
