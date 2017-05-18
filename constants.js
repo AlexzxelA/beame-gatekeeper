@@ -8,8 +8,8 @@ const os   = require('os');
 const home = os.homedir();
 
 const EnvProfile = {
-	Name:        'Dev',
-	FqdnPattern: '.d.'
+	Name : 'Prod',
+	FqdnPattern: '.p.'
 };
 
 const GatewayControllerPath    = '/beame-gw';
