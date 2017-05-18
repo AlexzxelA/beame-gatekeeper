@@ -16,7 +16,7 @@ default:
 build:
 	-rm -r node_modules
 	$(CHRONIC) npm install
-	export version=$$(date +%Y%m%d%H%M%S) && gulp clean sass web_sass compile
+	export version=$$(date +%Y%m%d%H%M%S) && gulp clean && gulp sass web_sass compile
 	$(CHRONIC) npm prune --production
 	mkdir -p build
 	jq '.build={buildNumber: $(BUILD_NUMBER), commit:"$(GIT_COMMIT)", branch:"$(GIT_BRANCH)", job:"$(JOB_NAME)"}' package.json >package.build.json
