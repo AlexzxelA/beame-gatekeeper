@@ -187,8 +187,8 @@ class Bootstrapper {
 			let sdkProfile    = beameSDK.Config.EnvProfile,
 			    keeperProfile = Constants.EnvProfile,
 			    zeroLevelCred = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel),
-			    parts         = zeroLevelCred.split('.'),
-			    credEnv       = `.${parts[parts.length - 3]}.`;
+			    parts         = zeroLevelCred ? zeroLevelCred.split('.') : null,
+			    credEnv       = parts ? `.${parts[parts.length - 3]}.` : null;
 
 
 			if (sdkProfile.Name !== keeperProfile.Name) {
@@ -197,6 +197,8 @@ class Bootstrapper {
 
 				return responseObj;
 			}
+
+			if(!credEnv) return responseObj;
 
 			if (keeperProfile.FqdnPattern != credEnv) {
 				responseObj.valid   = false;
