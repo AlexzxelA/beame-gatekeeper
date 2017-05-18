@@ -396,7 +396,7 @@ gulp.task('compile-static', () => {
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
 });
 
-gulp.task('compile', ['compile-sass', 'compile-css', 'compile-js', 'compile-static', 'compile-pages']);
+gulp.task('compile', ['compile-sass', 'compile-css', 'compile-static', 'compile-js', 'compile-pages']);
 
 gulp.task('compile-sass', ['sass', 'web_sass', 'rasp_sass']);
 
