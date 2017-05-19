@@ -89,7 +89,9 @@ function processVirtualHostRegistrationError(data, cb) {
 					window.stopAllRunningSessions = true;
 					cb('fatal');
 					break;
-
+				case 'expired':
+					cb('expired');
+					break;
 				case 'hostname':
 					cb('retry');
 					break;

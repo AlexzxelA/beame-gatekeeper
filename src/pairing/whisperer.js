@@ -304,7 +304,7 @@ class Whisperer {
 
 				this._socket.on('close_session', () => {
 					logger.debug('close_session received');
-
+					this._socket.removeAllListeners();
 					this._socket.disconnect();
 					setTimeout(() => {
 						this.disconnectFromMatchingServer();

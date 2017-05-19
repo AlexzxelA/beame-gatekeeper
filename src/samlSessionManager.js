@@ -118,7 +118,10 @@ class samlSession{
 		this.initMetadata(xXx, (metadata)=>{
 			let postTarget =
 				sessionMeta?sessionMeta.assertionConsumerServiceURL:
-				metadata?metadata.getAssertionConsumerService('post'):null;
+				metadata?metadata.getAssertionConsumerService('post')||metadata.getSSOService('post'):null;
+			if(!postTarget){
+				console.log('Failed to parse SP metadata');
+			}
 			let SPorigin    = postTarget;
 			if(postTarget){
 				if(postTarget.includes('://')){
@@ -133,7 +136,7 @@ class samlSession{
 				inResponseTo:   sessionMeta?sessionMeta.id:null,
 				RelayState:     this._relayState,
 				SAMLRequest:    this._request,
-				destination:    postTarget.split('?')[0],
+				destination:    postTarget,//.split('?')[0],
 				recipient:      postTarget,
 				nameQualifier:  metadata?metadata.getNameQualifier():null,
 				spNameQualifier:metadata?metadata.getSPNameQualifier():null,

@@ -69,6 +69,9 @@ const metaFields = [{
 	localName: 'AssertionConsumerService',
 	attributes: ['Binding', 'Location', 'isDefault', 'index']
 },{
+	localName: 'SingleSignOnService',
+	attributes: ['Binding', 'Location']
+},{
 	localName: 'EntityDescriptor',
 	attributes: ['entityID']
 },{
@@ -146,14 +149,14 @@ class SPMetadata
 	 * @return {boolean} Wantassertionssigned
 	 */
 	isWantAssertionsSigned (){
-		return this.meta.spssodescriptor.wantassertionssigned === 'true';
+		return this.meta.spssodescriptor?this.meta.spssodescriptor.wantassertionssigned === 'true':false;
 	};
 	/**
 	 * @desc Get the preference whether it signs request
 	 * @return {boolean} Authnrequestssigned
 	 */
 	isAuthnRequestSigned () {
-		return this.meta.spssodescriptor.authnrequestssigned === 'true';
+		return this.meta.spssodescriptor?this.meta.spssodescriptor.authnrequestssigned === 'true':false;
 	};
 	/**
 	 * @desc Get the support NameQualifier format declared in entity metadata
@@ -173,7 +176,7 @@ class SPMetadata
 		return this.meta.nameidformat;
 	}
 	getEntityID(){
-		return this.meta.entitydescriptor.entityid;
+		return this.meta.entitydescriptor?this.meta.entitydescriptor.entityid:null;
 	}
 	/**
 	 * @desc Get the entity endpoint for assertion consumer service
@@ -181,7 +184,7 @@ class SPMetadata
 	 * @return {string/[string]} URL of endpoint(s)
 	 */
 	getAssertionConsumerService(binding) {
-		if(typeof binding === 'string') {
+		if(typeof binding === 'string' && this.meta.assertionconsumerservice) {
 			let _location;
 			let _binding = namespaceX.binding[binding];
 			let tmpObj = Object.assign(this.meta.assertionconsumerservice,{});
@@ -201,6 +204,30 @@ class SPMetadata
 		}
 		else {
 			return this.meta.assertionconsumerservice;
+		}
+	};
+
+	getSSOService(binding) {
+		if(typeof binding === 'string' && this.meta.singlesignonservice) {
+			let _location;
+			let _binding = namespaceX.binding[binding];
+			let tmpObj = Object.assign(this.meta.singlesignonservice,{});
+			if(tmpObj.length > 0) {
+				tmpObj.forEach((obj) => {
+					if(obj.binding === _binding) {
+						_location = obj.location;
+					}
+				});
+			}
+			else {
+				if(this.meta.singlesignonservice.binding === _binding) {
+					_location = this.meta.singlesignonservice.location;
+				}
+			}
+			return _location;
+		}
+		else {
+			return this.meta.singlesignonservice;
 		}
 	};
 
