@@ -79,11 +79,16 @@ templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Ser
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.GkLogin.path, ADMIN_TEMPLATES.GkLogin.event);
 
 
+function onMenuSelected(e){
+
+	window.getNotifManagerInstance().notify('MenuClicked');
+	$("#menu").find(".k-state-selected").removeClass("k-state-selected");
+	$(e.item).addClass("k-state-selected");
+}
+
 $(document).ready(function () {
 	var menu = $("#menu").kendoMenu({
-		select: function(){
-			window.getNotifManagerInstance().notify('MenuClicked');
-		}
+		select: onMenuSelected
 	});
 	getSettings(function(){
 		var isLogin = settings.AppConfig.EnvMode == "DelegatedLoginMaster";
@@ -95,7 +100,16 @@ $(document).ready(function () {
 		}
 	});
 
+	$.each(
+		$("#menu").find(".k-link"),
+		function (i, data) {
+			if (data.href == location.href) {
+				$(data).addClass("k-state-selected");
+			}
+		}
+	);
 });
+
 
 function showLoader(id){
 	//document.getElementById(id || "overlay").style.display = "block";
