@@ -59,7 +59,8 @@
     "sqlite3": "^3.1.8",
     "uuid": "^3.0.1",
     "xml": "^1.0.1",
-    "xmldom": "^0.1.27"
+    "xmldom": "^0.1.27",
+    "xpath": "0.0.24"
   },
   "devDependencies": {
     "del": "^2.2.2",

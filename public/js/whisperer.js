@@ -16,7 +16,7 @@ var app = angular.module("WhispererWeb", []);
 app.controller("MainCtrl", function ($scope) {
 	tmpHostNdx = 0;
 
-	if(auth_mode == 'Provision') return;
+	if(auth_mode === 'Provision') return;
 
 	var tryDigest = function (scope) {
 		if (!scope.$phase) {
@@ -325,77 +325,91 @@ app.controller("MainCtrl", function ($scope) {
 		activeHosts[sockId] = tmpHost;
 		console.log('Socket <',sockId,'> Connected, ID = ', activeHosts[sockId].sock.id);
 
-		activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
+		var validateCurrentHostAndRun = function (cb) {
+			if(stopAllRunningSessions){
+				destroyTmpHosts();
+			}
+			else cb();
+		};
 
-			processVirtualHostRegistrationError(msg, function (status) {
-				if(status === 'retry'){
-					$scope.socket.emit('pinRequest');
-				}
-				else{
-					activeHosts[sockId].sock.removeAllListeners();
-					activeHosts[sockId] = undefined;
-					tmpHost = undefined;
-				}
+		activeHosts[sockId].sock.on('hostRegisterFailed',function (msg) {
+			validateCurrentHostAndRun(function () {
+				processVirtualHostRegistrationError(msg, function (status) {
+					if(status === 'retry'){
+						$scope.socket.emit('pinRequest');
+					}
+					else{
+						activeHosts[sockId].sock.removeAllListeners();
+						activeHosts[sockId] = undefined;
+						tmpHost = undefined;
+					}
+				});
 			});
+
 		});
 
 		activeHosts[sockId].sock.on('hostRegistered', function (data) {
-			console.log('Virtual host registered:', data);
-			activeHosts[sockId].name = data.Hostname;
-			setBrowserforNewPin(srcData);
+			validateCurrentHostAndRun(function () {
+				console.log('Virtual host registered:', data);
+				activeHosts[sockId].name = data.Hostname;
+				setBrowserforNewPin(srcData);
+			});
 		});
 
 		activeHosts[sockId].sock.on('data', function (data) {
-			if(!activeHosts[sockId]){
-				window.alert('Session inactive: reload');
-				window.location.reload();
-			}
-			else{
-				activeHosts[sockId].ID = data.socketId;
-				activeHosts[sockId].isConnected = true;
-				activeHosts[sockId].connectTimeout = setTimeout(function () {
-					if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
-				}, 3000);
-				// activeHosts[sockId].ID = data.socketId;
-				var type          = data.payload.data.type;
-				console.log(activeHosts[sockId],':',type);
+			validateCurrentHostAndRun(function () {
+				if(!activeHosts[sockId]){
+					window.alert('Session inactive: reload');
+					window.location.reload();
+				}
+				else{
+					activeHosts[sockId].ID = data.socketId;
+					activeHosts[sockId].isConnected = true;
+					activeHosts[sockId].connectTimeout = setTimeout(function () {
+						if(activeHosts[sockId])activeHosts[sockId].isConnected = false;
+					}, 3000);
+					// activeHosts[sockId].ID = data.socketId;
+					var type          = data.payload.data.type;
+					console.log(activeHosts[sockId],':',type);
 
-				if(type == 'direct_mobile'){
-					if(keyPair){
-						events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
-							.then(function (keydata) {
-								var PK = null;
-								if(engineFlag)
-									PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
-								else
-									PK = arrayBufferToBase64String(keydata);
-								var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-								var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+					if(type === 'direct_mobile'){
+						if(keyPair){
+							events2promise(cryptoSubtle.exportKey(exportPKtype, keyPair.publicKey))
+								.then(function (keydata) {
+									var PK = null;
+									if(engineFlag)
+										PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
+									else
+										PK = arrayBufferToBase64String(keydata);
+									var tmp_reg_data = (auth_mode === 'Provision') ? reg_data : "login";
+									var tmp_type = (auth_mode === 'Provision') ? 'PROV' : "LOGIN";
 
-								fullQrData       = JSON.stringify({
-									'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
-									'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
-								});
+									fullQrData       = JSON.stringify({
+										'relay': getRelayFqdn(), 'PK': PK, 'UID': getVUID(), 'appId' : appId,
+										'PIN':   activeHosts[sockId].pin, 'TYPE': tmp_type, 'TIME': Date.now(), 'REG': tmp_reg_data
+									});
 
 
-								activeHosts[sockId].sock.emit('data',
-									{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
-								console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
-							}).catch(function (err) {
-							console.error('Export Public Key Failed', err);
-						});
+									activeHosts[sockId].sock.emit('data',
+										{'socketId': activeHosts[sockId].ID, 'payload':fullQrData});
+									console.log('tmpHost: sending qr data to mobile:', fullQrData);//XXX
+								}).catch(function (err) {
+								console.error('Export Public Key Failed', err);
+							});
+						}
+
 					}
+					else if(type === 'done'){
+						window.getNotifManagerInstance().notify('STOP_PAIRING', null);
+						stopAllRunningSessions = true;
 
+						activeHosts[sockId].sock.removeAllListeners();
+
+						initComRelay(activeHosts[sockId].sock);
+					}
 				}
-				else if(type == 'done'){
-					window.getNotifManagerInstance().notify('STOP_PAIRING', null);
-					stopAllRunningSessions = true;
+			});
 
-					activeHosts[sockId].sock.removeAllListeners();
-
-					initComRelay(activeHosts[sockId].sock);
-				}
-			}
 
 		});
 
@@ -406,16 +420,19 @@ app.controller("MainCtrl", function ($scope) {
 			activeHosts[sockId] = undefined;
 		});
 
-		activeHosts[sockId].sock.emit('register_server',
-			{
-				'payload': {
-					'socketId': null,
-					'hostname': srcData['name'],
-					'signature': srcData['signature'],
-					'type': 'HTTPS',
-					'isVirtualHost': true
-				}
-			});
+		validateCurrentHostAndRun(function () {
+			activeHosts[sockId].sock.emit('register_server',
+				{
+					'payload': {
+						'socketId': null,
+						'hostname': srcData['name'],
+						'signature': srcData['signature'],
+						'type': 'HTTPS',
+						'isVirtualHost': true
+					}
+				});
+		});
+
 
 	}
 
@@ -427,6 +444,7 @@ app.controller("MainCtrl", function ($scope) {
 			if(activeHosts[tmpHostX] && activeHosts[tmpHostX].sock){
 				console.log('Done, deleting host <', index, '> :', activeHosts[tmpHostX].name);
 				activeHosts[tmpHostX].sock.emit('cut_client',{'socketId':activeHosts[tmpHostX].ID});
+				activeHosts[tmpHostX].sock.removeAllListeners();
 				activeHosts[tmpHostX] = undefined;
 			}
 		});
@@ -535,6 +553,7 @@ app.controller("MainCtrl", function ($scope) {
 	var closeSession = function(){
 		console.log('Audio: close_session received');
 		$scope.socket.emit('close_session');
+		$scope.socket.removeAllListeners();
 		$scope.stopPlaying();
 		$scope.showPopup('Audio stopped');
 	};
@@ -556,8 +575,8 @@ function sendQrDataToWhisperer(relay, uid, socket) {
 					PK = jwk2pem(JSON.parse(atob(arrayBufferToBase64String(keydata))));
 				else
 					PK = arrayBufferToBase64String(keydata);
-				var tmp_reg_data = (auth_mode == 'Provision') ? reg_data : "login";
-				var tmp_type = (auth_mode == 'Provision') ? 'PROV' : "LOGIN";
+				var tmp_reg_data = (auth_mode === 'Provision') ? reg_data : "login";
+				var tmp_type = (auth_mode === 'Provision') ? 'PROV' : "LOGIN";
 
 				TmpQrData       = JSON.stringify({
 					'relay': relay, 'PK': PK, 'UID': uid,

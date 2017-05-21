@@ -3572,6 +3572,21 @@ p + p {
       padding-left: 0;
       padding-bottom: 40px; } }
 
+.k-menu {
+  background-color: #3f51b5; }
+  .k-menu .k-item {
+    border-left: none;
+    border-right: none; }
+    .k-menu .k-item.k-state-hover {
+      background-color: inherit; }
+    .k-menu .k-item a {
+      color: white; }
+      .k-menu .k-item a:hover {
+        background-color: inherit; }
+  .k-menu .k-state-selected {
+    border-bottom: solid orange 3px !important;
+    background-color: inherit; }
+
 .metrotable {
   table-layout: fixed;
   width: 100%; }

@@ -362,7 +362,7 @@ class QrMessaging {
 		if (this._edge) {
 			let fqdn     = this._fqdn,
 			    cred     = store.getCredential(fqdn),
-			    token    = authToken.create(this._browserHost, cred, 60),
+			    token    = authToken.create(this._browserHost, cred, 5),
 			    tokenStr = CommonUtils.stringify({
 				    'imageRequired': bootstrapper.registrationImageRequired,
 				    'data':          this._edge,

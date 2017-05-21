@@ -18,7 +18,8 @@ var logoutUrl = null,
 	gw_socket = null,
 	isDirectSession,
 	samlRequest = getParameterByName('SAMLRequest'),
-	relayState = getParameterByName('RelayState');
+	relayState = getParameterByName('RelayState'),
+	reinitSessionSockets = null;
 
 
 function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
@@ -61,25 +62,14 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 		});
 
 		gw_socket.on('virtHostRecovery', function (data) {
-			console.log('recovering virtual host:', getVUID());
+			if(reinitSessionSockets){
+				clearInterval(reinitSessionSockets);
+				reinitSessionSockets = null;
+			}
+			console.log('recovering virtual host:', getVUID(),' : ',data);
 			var parsedData = JSON.parse(data);
-			relay_socket   = io.connect(RelayFqdn);
-			relay_socket.on('connect', function () {
-				relay_socket.emit('register_server',
-					{
-						'payload': {
-							'socketId':      null,
-							'hostname':      parsedData.data,
-							'signature':     parsedData.signature,
-							'type':          'HTTPS',
-							'isVirtualHost': true
-						}
-					});
-			});
-			relay_socket.on('hostRegistered', function (data) {
-				console.log('Virtual host recovered');
-				restartMobileRelaySocket(relay_socket, gw_socket, data.Hostname);
-			});
+			parsedData && connectRelaySocket(getRelayFqdn(), parsedData.signature, getVUID(), 5);
+
 		});
 
 		gw_socket.once('connect', function () {
@@ -242,6 +232,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 
 	window.getNotifManagerInstance().subscribe('RELAY_CONNECTION_RECOVERED', function (newSocket) {
 		restartMobileRelaySocket(newSocket, gw_socket);
+		gw_socket.emit(JSON.stringify({type:'beamePing',id:'1'}));
 	});
 	//window.getNotifManagerInstance().subscribe('SHOW_USER_IMAGE', onUserImageReceived);
 
@@ -274,8 +265,14 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 		});
 
 		relaySocket.on('disconnect', function () {//connection dropped by network, trying to reconnect
-			console.log('mobile socket:: disconnected. Reconnecting..', RelayFqdn);
-			connectRelaySocket(null, null, null, 10);//default is 10 retries for 2 seconds. 2 + 10 * 20 seconds
+			console.log('mobile socket:: disconnected from GW. Reconnecting..', RelayFqdn);
+			if(!reinitSessionSockets){
+				reinitSessionSockets = setInterval(function () {
+					gw_socket.connected && gw_socket.emit('browser_connected', getVUID());
+				}, 1500);
+			}
+			// gw_socket.emit('browser_connected', getVUID());
+			// connectRelaySocket(null, null, null, 10);//default is 10 retries for 2 seconds. 2 + 10 * 20 seconds
 		});
 
 		virtHostAlive = virtHostTimeout;

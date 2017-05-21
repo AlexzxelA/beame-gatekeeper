@@ -99,7 +99,8 @@ class CredentialManager {
 				}
 
 
-				async.each(Object.keys(servers), (serverType, callback) => {
+				//noinspection JSUnresolvedFunction
+			async.each(Object.keys(servers), (serverType, callback) => {
 
 					const _updateServerFqdn = (fqdn, type, cb) => {
 						this._bootstrapper.updateCredsFqdn(fqdn, type).then(() => {

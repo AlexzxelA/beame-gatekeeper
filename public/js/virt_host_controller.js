@@ -7,7 +7,7 @@ const audioOnlySession = false;
 const activateVirtHostRecovery = false;
 const virtHostTimeout = 5;
 const wait4MobileTimeout = 30000;
-const connectionRetryDelay = 2000;
+const connectionRetryDelay = 3000;
 var vUID = null,
 	virtRelaySocket = null,
 	virtHostConnected = false,
@@ -28,7 +28,8 @@ var vUID = null,
 	waitingForMobileConnection = null,
 	extVirtualHost = null,
 	sessionRecovery = false,
-	sessionXdata = null;
+	sessionXdata = null,
+	sessionOriginSock = null;
 
 var sessionValidationActive   = null,
 	sessionValidationComplete = false;
@@ -64,7 +65,7 @@ function validateSession(imageRequired) {
 function registerVirtualHost(signature, socket) {
 	var hostname = extVirtualHost,
 		connectReq = function () {
-		if(hostname)
+		if(hostname && !sessionRecovery)
 			sendClientRequest(hostname, socket);
 		else
 			sendConnectRequest(signature, socket);
@@ -111,22 +112,25 @@ function setOriginSocket(type, socket) {
 }
 
 function sendConnectRequest(signature, socket) {
+	console.log('sendConnectRequest',vUID,' : ', signature);
 	socket.emit('register_server',
 		{
 			'payload': {
-				'socketId':      null,
-				'hostname':      vUID,
-				'signature':     signature,
-				'type':          'HTTPS',
-				'isVirtualHost': true
+				'socketId':         null,
+				'hostname':         vUID,
+				'signature':        signature,
+				'type':             'HTTPS',
+				'isVirtualHost':    true,
+				'recovery':         sessionRecovery
 			}
 		});
 }
 
 
 function connectRelaySocket(relay, sign, extUid, retries) {
+	if(sign)sessionXdata = sign;
 	if(retries){
-		if(connectToRelayRetry){//connect in progress
+		if(sessionRecovery){//connect in progress
 			console.log('Already reconnecting:', connectToRelayCounter);
 			return;
 		}
@@ -135,37 +139,40 @@ function connectRelaySocket(relay, sign, extUid, retries) {
 	}
 	else{
 		sessionRecovery = false;
-		sessionXdata = sign;
 	}
 
-
+	var connectionInit = function () {
+		if(!RelayFqdn || (relay && RelayFqdn.indexOf(relay) < 0)){
+			if(relay.indexOf('https')<0){
+				RelayFqdn   = "https://" + relay + "/control";
+				RelayPath   = "https://" + relay;
+			}
+			else{
+				RelayFqdn   = relay;
+				RelayPath   = relay;
+			}
+		}
+		TmpSocketID = null;
+		virtRelaySocket = io.connect(RelayFqdn);//, {transports: ['websocket']});
+		virtRelaySocket.on('connect',function () {
+			virtHostConnected = true;
+			registerVirtualHost(sign || sessionXdata, virtRelaySocket);
+			if(extVirtualHost)vUID = extVirtualHost;
+			initComRelay(sign || sessionXdata);
+		});
+	};
 
 	if(extUid)extVirtualHost = extUid;
 	if(virtRelaySocket){
+		virtRelaySocket.removeAllListeners();
 		if(virtRelaySocket.connected)
 			virtRelaySocket.emit('cut_client',{'socketId':TmpSocketID});
-		virtRelaySocket.removeAllListeners();
 		virtRelaySocket = undefined;
-	}
-	if(!RelayFqdn || (relay && RelayFqdn.indexOf(relay) < 0)){
-		if(relay.indexOf('https')<0){
-			RelayFqdn   = "https://" + relay + "/control";
-			RelayPath   = "https://" + relay;
-		}
-		else{
-			RelayFqdn   = relay;
-			RelayPath   = relay;
-		}
-	}
-	virtRelaySocket = io.connect(RelayFqdn);//, {transports: ['websocket']});
-	virtRelaySocket.on('connect',function () {
-		virtHostConnected = true;
-		registerVirtualHost(sign || sessionXdata, virtRelaySocket);
-		if(extVirtualHost)vUID = extVirtualHost;
-		initComRelay(sign || sessionXdata);
-	});
 
-	return 0;
+		connectionInit();
+	}
+	else connectionInit();
+
 }
 
 function getRelayFqdn() {
@@ -199,6 +206,11 @@ function getRelaySocketID() {
 }
 
 function initComRelay(sign) {
+
+	virtRelaySocket.on('hostRegistered', function (data) {
+		notifyOrigin(data);
+	});
+
 	virtRelaySocket.on('disconnect', function () {
 		setQRStatus && setQRStatus('Virtual host disconnected');
 		console.log('relay disconnected, ID = ', virtRelaySocket.id);
@@ -258,24 +270,30 @@ function initComRelay(sign) {
 			controlWindowStatus();
 		}
 		else{
+			sessionRecovery = false;
+			console.log('Host Recovered:',vUID);
 			window.getNotifManagerInstance().notify('RELAY_CONNECTION_RECOVERED', virtRelaySocket);
 		}
 	}
 
-	virtRelaySocket.on('hostRegistered', function (data) {
-		notifyOrigin(data);
-	});
-
 	virtRelaySocket.on('hostRegisterFailed',function (msg) {
 
 		processVirtualHostRegistrationError(msg, function (status) {
-			if(!sessionRecovery){
+			if(!sessionRecovery || status==='expired'){
 				if(status !== 'retry'){
 				// 	TMPsocketOriginQR && TMPsocketOriginQR.emit('browser_connected', getVUID());
 				// }
 				// else{
 					virtRelaySocket.removeAllListeners();
-					virtRelaySocket = undefined;
+
+					if(status === 'expired' && sessionOriginSock){
+						sessionRecovery = false;
+						clearInterval(connectToRelayRetry);
+						connectToRelayRetry = null;
+						if(virtRelaySocket.connected)
+							virtRelaySocket.emit('cut_client',{'socketId':TmpSocketID});
+						sessionOriginSock.emit('browser_connected', getVUID());
+					}
 				}
 			}
 		});
@@ -312,6 +330,7 @@ function controlWindowStatus() {
 }
 
 function keepVirtHostAlive(srcSock) {
+	sessionOriginSock = srcSock;
 	if(virtHostAlive == virtHostTimeout && activateVirtHostRecovery){
 		--virtHostAlive;
 		setTimeout(function () {
