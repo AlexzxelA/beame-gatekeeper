@@ -1687,6 +1687,8 @@ class BeameAuthServices {
 									date: Date.now()
 								});
 
+								cred.beameStoreServices.writeMetadataSync(cred.metadata);
+
 								Credential.saveCredAction(cred, {
 									action: Constants.CredAction.VpnRootCreated,
 									name,
@@ -1709,6 +1711,9 @@ class BeameAuthServices {
 									name      = item.name;
 									let index = cred.metadata.vpn.indexOf(item);
 									cred.metadata.vpn.splice(index, 1);
+
+									cred.beameStoreServices.writeMetadataSync(cred.metadata);
+
 									Credential.saveCredAction(cred, {
 										action: Constants.CredAction.VpnRootDeleted,
 										name,
@@ -1853,10 +1858,6 @@ class BeameAuthServices {
 				cred.createAuthTokenForCred(fqdn).then(authToken => {
 
 					cred.revokeCert(CommonUtils.parse(authToken), null, fqdn).then(() => {
-						Credential.saveCredAction(cred, {
-							action: Constants.CredAction.Revoke,
-							date:   Date.now()
-						});
 						this.getCredDetail(fqdn).then(resolve).catch(reject);
 					}).catch(reject);
 
