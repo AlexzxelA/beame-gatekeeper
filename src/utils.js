@@ -12,7 +12,6 @@ const beameSDK   = require('beame-sdk');
 const CommonUtils          = beameSDK.CommonUtils;
 const BeameStore = new beameSDK.BeameStore();
 const AuthToken  = beameSDK.AuthToken;
-const Constants = require('../constants');
 
 /**
  *
@@ -123,7 +122,7 @@ function  clearSessionCookie (res){
 function generateUID(length) {
 	let text     = "",
 	    possible = "_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef.ghijklmnopqrstuvwxyz0123456789.";
-	for (var i = 0; i < length; i++) {
+	for (let i = 0; i < length; i++) {
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
 	}
 	return text;
