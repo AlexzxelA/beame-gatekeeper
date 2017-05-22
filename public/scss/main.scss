@@ -232,6 +232,10 @@ p + p {
   color: $blue;
 }
 
+.text-black {
+  color: $black;
+}
+
 // Bgs
 
 .bg-white {
@@ -438,79 +442,6 @@ p + p {
 
   }
 
-}
-
-//admin form
-.config-list {
-  font-size: 13px
-}
-
-.config-list > li {
-  padding: 5px 0
-}
-
-.config-list > li > label {
-  width: 210px;
-  display: inline-flex
-}
-
-.admin-main-wrapper {
-  width: 100%
-}
-
-.admin-form-main {
-  padding: 5px;
-  margin: 0;
-  max-width: 640px;
-  text-align: left;
-  .lbl-info {
-    width: 100%;
-    display: block;
-    margin: 7px 0;
-  }
-
-  .button {
-    max-width: 200px;
-    display: inline-block;
-  }
-}
-
-.overflow{text-overflow: ellipsis;
-  overflow-x: hidden;
-  width: 100%;
-  display: block;
-}
-
-.info-div-base{margin-bottom: 10px;display: block !important;}
-
-.ad-success {
-  color: green;
-  @extend .info-div-base;
-
-}
-
-.ad-error {
-  color: red;
-  @extend .info-div-base;
-}
-
-.invisible-msg {
-  display: none;
-}
-.inline{
-  display:inline-block;;
-}
-.btn-row {
-  border-bottom: dotted 1px #ededed;
-  padding: 10px 0;
-  margin: 5px 0
-}
-.add-dns-form{
-  .secondary-label{
-    font-size: 13px;
-    display: inline-block;
-    padding-top: 15px;
-  }
 }
 
 
