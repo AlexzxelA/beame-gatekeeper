@@ -5,7 +5,7 @@
 <script type="text/x-kendo-template" id="tmpl-vpn">
     <h4>Vpn Settings</h4>
     <div id="vpn-settings-container">
-        <form id="frm-create-vpn" class="form-main admin-form-main add-dns-form">
+        <form id="frm-create-vpn" class="form-main admin-form-main">
             <input name="vpn_name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
             <div style="height: 40px" data-bind="visible:showOptions">
                 <label class="secondary-label" >Use Existing cred</label> <input type="radio"  name="vpn-method-radio" data-bind="attr:{value:vpnMethods.Existing}, checked:selectedVpnMethod, click:onVpnMethodChanged" />
