@@ -105,6 +105,10 @@ Table
       @extend %grad-milk;
     }
   }
+  td:nth-child(3), td:nth-child(4) {
+    padding-top: .4rem;
+    padding-bottom: 0;
+  }
 
 }
 
@@ -329,6 +333,42 @@ input.k-input, input.form-input {
   }
 }
 
+a.btn-clear, .btn-clear, button.btn-clear {
+  box-shadow: none;
+  background-color: transparent;
+  border: none;
+  &:hover, &:focus, &:active {
+    box-shadow: none;
+    background-color: transparent;
+    border: none;
+  }
+}
+
+.search-complex {
+  position: relative;
+  display: flex;
+  width: 100%;
+  .search-complex-addon, .search-complex-input, .search-complex-btn {
+    white-space: nowrap;
+    box-shadow: none;
+    border-color: rgba(0, 0, 0, 0.1);
+    &:hover, &:active, &:focus {
+      box-shadow: none;
+    }
+  }
+  .search-complex-input {
+    width: 100%;
+    padding-left: .25rem;
+    padding-right: .25rem;
+  }
+  .search-complex-addon {
+    border-width: 1px 0 1px 1px;
+  }
+  .search-complex-btn {
+    border-width: 1px 1px 1px 0;
+  }
+}
+
 /* -------------------------
 Helpers
 ------------------------- */
@@ -371,4 +411,12 @@ Helpers
   position: absolute;
   top: 0;
   right: 0;
+}
+
+.float-l {
+  float: left !important;
+}
+
+.float-r {
+  float: right !important;
 }

@@ -3481,6 +3481,11 @@ p + p {
     visibility: visible;
     color: red; }
 
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both; }
+
 @media screen and (min-width: 1500px) {
   .main-wrapper {
     width: 100%;
@@ -3598,6 +3603,10 @@ Table
 
 .metrotable-dns th:nth-child(3), .metrotable-dns th:nth-child(4) {
   width: 40px; }
+
+.metrotable-dns td:nth-child(3), .metrotable-dns td:nth-child(4) {
+  padding-top: .4rem;
+  padding-bottom: 0; }
 
 .metrotable-history th:nth-child(1), .metrotable-history th:nth-child(2), .metrotable-history th:nth-child(3) {
   width: 15%; }
@@ -3767,6 +3776,34 @@ input.k-input, input.form-input {
   .add-dns-form .k-combobox {
     width: 100%; }
 
+a.btn-clear, .btn-clear, button.btn-clear {
+  box-shadow: none;
+  background-color: transparent;
+  border: none; }
+  a.btn-clear:hover, a.btn-clear:focus, a.btn-clear:active, .btn-clear:hover, .btn-clear:focus, .btn-clear:active, button.btn-clear:hover, button.btn-clear:focus, button.btn-clear:active {
+    box-shadow: none;
+    background-color: transparent;
+    border: none; }
+
+.search-complex {
+  position: relative;
+  display: flex;
+  width: 100%; }
+  .search-complex .search-complex-addon, .search-complex .search-complex-input, .search-complex .search-complex-btn {
+    white-space: nowrap;
+    box-shadow: none;
+    border-color: rgba(0, 0, 0, 0.1); }
+    .search-complex .search-complex-addon:hover, .search-complex .search-complex-addon:active, .search-complex .search-complex-addon:focus, .search-complex .search-complex-input:hover, .search-complex .search-complex-input:active, .search-complex .search-complex-input:focus, .search-complex .search-complex-btn:hover, .search-complex .search-complex-btn:active, .search-complex .search-complex-btn:focus {
+      box-shadow: none; }
+  .search-complex .search-complex-input {
+    width: 100%;
+    padding-left: .25rem;
+    padding-right: .25rem; }
+  .search-complex .search-complex-addon {
+    border-width: 1px 0 1px 1px; }
+  .search-complex .search-complex-btn {
+    border-width: 1px 1px 1px 0; }
+
 /* -------------------------
 Helpers
 ------------------------- */
@@ -3801,6 +3838,12 @@ Helpers
   position: absolute;
   top: 0;
   right: 0; }
+
+.float-l {
+  float: left !important; }
+
+.float-r {
+  float: right !important; }
 
 .wnd-default {
   display: none;
