@@ -3792,9 +3792,10 @@ a.btn-clear, .btn-clear, button.btn-clear {
   .search-complex .search-complex-addon, .search-complex .search-complex-input, .search-complex .search-complex-btn {
     white-space: nowrap;
     box-shadow: none;
-    border-color: rgba(0, 0, 0, 0.1); }
+    border: 1px solid rgba(0, 0, 0, 0.1); }
     .search-complex .search-complex-addon:hover, .search-complex .search-complex-addon:active, .search-complex .search-complex-addon:focus, .search-complex .search-complex-input:hover, .search-complex .search-complex-input:active, .search-complex .search-complex-input:focus, .search-complex .search-complex-btn:hover, .search-complex .search-complex-btn:active, .search-complex .search-complex-btn:focus {
-      box-shadow: none; }
+      box-shadow: none;
+      outline: none; }
   .search-complex .search-complex-input {
     width: 100%;
     padding-left: .25rem;

@@ -351,9 +351,10 @@ a.btn-clear, .btn-clear, button.btn-clear {
   .search-complex-addon, .search-complex-input, .search-complex-btn {
     white-space: nowrap;
     box-shadow: none;
-    border-color: rgba(0, 0, 0, 0.1);
+    border:1px solid rgba(0, 0, 0, 0.1);
     &:hover, &:active, &:focus {
       box-shadow: none;
+      outline: none;
     }
   }
   .search-complex-input {
