@@ -1,17 +1,24 @@
-
 <script type="text/x-kendo-template" id="tmpl-creds">
-    <h4>Creds tree</h4>
-    <div id="creds-tree-container" style="display: inline-block; width:39%;vertical-align: top">
-        <label>Exclude revoked:<input type="checkbox" id="chk-exclude-revoke" onchange="rebindTree()"/></label>
-        <br/>
-        <label>Find <input type="text" id="inp-find-cred"/> <input type="button" value="Search" class="k-button" onclick="findCreds()"/></label>
-        <a style="display: inline-block;" id="btn-refresh-tree"></a>
-        <a style="display: inline-block;" id="btn-refresh-store">Refresh store</a>
-        <br/>
-        <div id="creds-tree"></div>
+    <div class="row pt-3">
+        <div class="medium-3 column">
+            <h4>Creds tree</h4>
+            <div id="creds-tree-container">
+                <label>Exclude revoked:
+                    <input type="checkbox" id="chk-exclude-revoke" onchange="rebindTree()"/>
+                </label>
+                <label>Find
+                    <input type="text" id="inp-find-cred"/>
+                    <input type="button" value="Search" class="k-button" onclick="findCreds()"/>
+                </label>
+                <a id="btn-refresh-tree"></a>
+                <a id="btn-refresh-store">Refresh store</a>
+                <div id="creds-tree"></div>
+            </div>
+        </div>
+        <div class="medium-9 column" id="cred-detail" style="visibility: hidden;"></div>
     </div>
-    <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
+
 <script id="treeview-template" type="text/kendo-ui-template">
     # if (item.revoked) { #
     <div class="revoked" data-fqdn="#: item.fqdn#">
@@ -21,7 +28,7 @@
             <div data-fqdn="#: item.fqdn#">
                 #}#
                 <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span><span
-                class="cred-name">#: item.name #</span>
+                    class="cred-name">#: item.name #</span>
             </div>
 
 </script>

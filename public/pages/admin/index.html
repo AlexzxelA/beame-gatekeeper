@@ -10,6 +10,7 @@
     <!-- Styles -->
     <!-- build:css -->
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/public/css/app.css">
     <!-- endbuild -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -24,45 +25,44 @@
     <!-- endbuild -->
 
 
-
 </head>
 <body>
 <div class="admin-main-wrapper">
 
-    <div class="row">
-        <div class="column large-6 large-offset-1 end">
-            <div class="logo"><a href="//www.beame.io/">
-                <!-- build:logo -->
-                <img src="../../img/logo.svg">
-                <!-- endbuild -->
-            </a>
+    <div id="toolbar">
+
+        <!-- Top Menu -->
+        <div class="bg-main-admin">
+            <div class="row">
+                <div class="medium-3 column">
+                    <a class="mt-half d-inline-block" href="//www.beame.io/"><img width="120" height="18" src="../../img/beame-logo-white.svg"></a>
+                </div>
+                <div class="medium-9 column">
+                    <ul id="menu">
+                        <li><a id="showDash" href="#">Dashboard</a></li>
+                        <li><a id="showCreds" href="#/creds">Creds</a></li>
+                        <li><a id="showUsers" href="#/users">Users</a></li>
+                        <li><a id="showRegs" href="#/regs">Registrations</a></li>
+                        <li><a id="showInvs" href="#/inv">Invitations</a></li>
+                        <li><a id="showRegtoken" href="#/tkn">Reg Token</a></li>
+                        <li><a id="showPfx" href="#/pfx">Create Cert</a></li>
+                        <li><a id="showSrv" href="#/srvc">Services</a></li>
+                        <li id="li-gk-login"><a id="showGkLogins" href="#/gk-login">GK Logins</a></li>
+                        <li><a id="btn-logout" href="/beame-gw/logout">Logout</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
+        <!-- End Top Menu-->
 
-    <div class="row">
-
-
-        <div id="toolbar">
-            <nav>
-                <ul id="menu">
-                    <li><a id="showDash" href="#">Dashboard</a></li>
-                    <li><a id="showCreds" href="#/creds">Creds</a></li>
-                    <li><a id="showUsers" href="#/users">Users</a></li>
-                    <li><a id="showRegs" href="#/regs">Registrations</a></li>
-                    <li><a id="showInvs" href="#/inv">Invitations</a></li>
-                    <li><a id="showRegtoken" href="#/tkn">Reg Token</a></li>
-                    <li><a id="showPfx" href="#/pfx">Create Cert</a></li>
-                    <li><a id="showSrv" href="#/srvc">Services</a></li>
-                    <li id="li-gk-login"><a id="showGkLogins" href="#/gk-login">GK Logins</a></li>
-                    <li style="float: right"><a id="btn-logout" href="/beame-gw/logout">Logout</a></li>
-                </ul>
-            </nav>
-            <div id="app-wrapper"></div>
-        </div>
+        <!-- Content -->
+        <div id="app-wrapper"></div>
+        <!-- End Content -->
 
     </div>
+
 </div>
+
 <div id="overlay" class="overlay">
     <div>
         <h3>Processing Request</h3>

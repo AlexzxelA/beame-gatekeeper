@@ -29,6 +29,7 @@ function showNotification(success,message,hideAfter){
 	}).data("kendoNotification");
 
 	notification.show({message:message}, success ? "success" : "error");
+
 }
 
 function closeWnd() {
