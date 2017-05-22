@@ -775,6 +775,12 @@ p + p {
   }
 }
 
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
 // Stuff
 
 // TODO check and kill it later

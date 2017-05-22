@@ -1,19 +1,26 @@
 <script type="text/x-kendo-template" id="tmpl-creds">
     <div class="row">
         <div class="medium-3 column">
-            <h4>Creds tree</h4>
+            <div class="clearfix mb-2">
+                <h5 class="text-black mb-0 d-inline-block">Creds Tree</h5>
+                <a class="float-r btn-clear small text-gray-light" id="btn-refresh-store">Refresh store</a>
+            </div>
+
             <div id="creds-tree-container">
-                <label>Exclude revoked:
-                    <input type="checkbox" id="chk-exclude-revoke" onchange="rebindTree()"/>
+                <div class="search-complex">
+                    <a class="search-complex-addon" id="btn-refresh-tree"></a>
+                    <input type="text" class="search-complex-input" id="inp-find-cred" placeholder="Search"/>
+                    <input type="button" value="Find" class="k-button search-complex-btn" onclick="findCreds()"/>
+
+                </div>
+                <label class="d-block mb-2 mt-half">
+                    <input type="checkbox" id="chk-exclude-revoke"
+                           onchange="rebindTree()"/>&nbsp;<small>Exclude revoked</small>
                 </label>
-                <label>Find
-                    <input type="text" id="inp-find-cred"/>
-                    <input type="button" value="Search" class="k-button" onclick="findCreds()"/>
-                </label>
-                <a id="btn-refresh-tree"></a>
-                <a id="btn-refresh-store">Refresh store</a>
+
                 <div id="creds-tree"></div>
             </div>
+
         </div>
         <div class="medium-9 column" id="cred-detail" style="visibility: hidden;"></div>
     </div>
