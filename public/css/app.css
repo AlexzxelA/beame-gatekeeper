@@ -3530,7 +3530,10 @@ Wrappers
 
 .container-admin {
   max-width: 1440px;
-  margin: 0 auto; }
+  margin: 0 auto;
+  padding-left: 0.9375rem;
+  padding-right: 0.9375rem;
+  padding-top: 3rem; }
 
 /* -------------------------
 Top Menu
