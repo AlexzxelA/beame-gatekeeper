@@ -38,6 +38,10 @@ var ADMIN_TEMPLATES = {
 		path:  "templates/admin/services.tmpl.html",
 		event: "serviceLoaded"
 	},
+	Vpn: {
+		path:  "templates/admin/vpn.tmpl.html",
+		event: "vpnLoaded"
+	},
 	GkLogin: {
 		path:  "templates/admin/gk-login.tmpl.html",
 		event: "loginsLoaded"
@@ -76,6 +80,7 @@ templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Cred.path, ADMIN_TEMPLATES.Cred.e
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.CredDetail.path, ADMIN_TEMPLATES.CredDetail.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Creds.path, ADMIN_TEMPLATES.Creds.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
+templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Vpn.path, ADMIN_TEMPLATES.Vpn.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.GkLogin.path, ADMIN_TEMPLATES.GkLogin.event);
 
 
@@ -99,12 +104,16 @@ $(document).ready(function () {
 
 		}
 	});
-
+	var selectedMenuSet = false,
+		hash = window.location.hash.substr(1);
 	$.each(
 		$("#menu").find(".k-link"),
 		function (i, data) {
-			if (data.href == location.href) {
+			console.log('huj');
+			if (!selectedMenuSet && (data.href == location.href || !hash)) {
 				$(data).addClass("k-state-selected");
+				selectedMenuSet = true;
+
 			}
 		}
 	);

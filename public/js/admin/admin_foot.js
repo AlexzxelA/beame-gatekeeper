@@ -1,7 +1,7 @@
 /**
  * Created by zenit1 on 13/05/2017.
  */
-var settings = null, viewDash, viewUsers,viewCreds, viewRegs, viewInvs,viewToken, viewPfx, viewService , viewGkLogin,layout;
+var settings = null, viewDash, viewUsers,viewCreds, viewRegs, viewInvs,viewToken, viewPfx, viewService ,viewVpn, viewGkLogin,layout;
 
 function initAdminRouters() {
 
@@ -14,6 +14,7 @@ function initAdminRouters() {
 	viewToken  = new kendo.View("#reg-token");
 	viewPfx  = new kendo.View("#tmpl-create-pfx");
 	viewCreds  = new kendo.View("#tmpl-creds");
+	viewVpn  = new kendo.View("#tmpl-vpn");
 	viewService  = new kendo.View("#services");
 	viewGkLogin  = new kendo.View("#gk-login");
 
@@ -69,6 +70,11 @@ function initAdminRouters() {
 		loadServices();
 	};
 
+	var initVpn = function () {
+		layout.showIn("#content", viewVpn);
+		loadVpn();
+	};
+
 	var initGkLogins = function () {
 		layout.showIn("#content", viewGkLogin);
 		loadGkLogins();
@@ -89,16 +95,17 @@ function initAdminRouters() {
 	$("#showInvs").on("click", function () {
 		initInvitations();
 	});
-
 	$("#showRegtoken").on("click", function () {
 		initRegToken();
 	});
-
 	$("#showPfx").on("click", function () {
 		initPfx();
 	});
 	$("#showSrv").on("click", function () {
 		initServices();
+	});
+	$("#showVpn").on("click", function () {
+		initVpn();
 	});
 	$("#showGkLogins").on("click", function () {
 		initGkLogins();
@@ -140,6 +147,10 @@ function initAdminRouters() {
 
 	router.route("/srvc", function () {
 		subscribe(ADMIN_TEMPLATES.Service.event, initServices);
+	});
+
+	router.route("/vpn", function () {
+		subscribe(ADMIN_TEMPLATES.Vpn.event, initVpn);
 	});
 
 	router.route("/gk-login", function () {

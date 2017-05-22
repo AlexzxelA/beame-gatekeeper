@@ -99,18 +99,6 @@
 
         </div>
 
-
-        <div class="btn-row" data-bind="visible:showValidCertForms">
-            <h5>VPN Actions</h5>
-            <input type="button" name="btn-set-vpn" data-bind="disabled:commonButtonDisabled,click:opneVPN" value="Set VPN" class="k-button">
-            <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
-                <div id="ios-profile-info">&nbsp;</div>
-                <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
-                <input type="button" name="btn-qr" data-bind="disabled:commonButtonDisabled,click: showIosProfileQr" value="Show Profile QR" class="k-button">
-            </form>
-
-        </div>
-
         <div data-bind="visible:data.actions.length">
             <h5>History</h5>
             <table class="metrotable">
@@ -131,34 +119,6 @@
     </section>
 
 
-</script>
-
-<script id="vpn-detail" type="text/x-kendo-template">
-    <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
-    <form id="frm-vpn-detail" method="post" action="/cred/set-vpn/create" class="admin-form-main" style="width:400px">
-        <div id="frm-vpn-detail_info" class="invisible-msg">&nbsp;</div>
-        <input type="hidden" name="vpn_id" data-bind="value:vpnId">
-        <input name="name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
-        <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
-        <input type="submit" name="btn-set-vpn" value="Set VPN" class="k-button">
-        <input type="button" name="btn-set-vpn" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN" class="k-button">
-    </form>
-
-    <form id="frm-vpn-delete" method="post" action="/cred/set-vpn/delete">
-        <input name="vpn_id" type="hidden" data-bind="value:vpnId">
-        <input name="name" type="hidden" data-bind="value:name"/>
-        <input name="fqdn" type="hidden" data-bind="value:data.fqdn"/>
-    </form>
-
-
-    <div id="wnd-overlay" class="overlay" style="max-height: 100% !important">
-        <div>
-            <h3>Processing Request</h3>
-            <svg class="spinner" viewBox="0 0 50 50">
-                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-            </svg>
-        </div>
-    </div>
 </script>
 
 <script id="history-row-template" type="text/x-kendo-template">
@@ -442,8 +402,6 @@
 <div id="qr-window" class="wnd-default">
     <div id="download-qr" style="margin: auto;width: 300px"></div>
 </div>
-
-<div id="vpn-window" class="wnd-default"></div>
 
 <div id="cert-window" class="wnd-default"></div>
 

@@ -68,7 +68,7 @@ class BeameAuthServices {
 			logger.fatal(`Beame Auth Server credential not found`);
 		}
 
-		if(this._cred.expired || this._cred.revoked){
+		if (this._cred.expired || this._cred.revoked) {
 			logger.fatal(`Beame Auth Server certificate expired or revoked`);
 		}
 
@@ -1226,9 +1226,9 @@ class BeameAuthServices {
 		return new Promise((resolve) => {
 
 				let list = store.list(null, {
-					hasPrivateKey: true,
+					hasPrivateKey:  true,
 					excludeRevoked: true,
-					anyParent:     Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
+					anyParent:      Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel)
 				});
 
 				const _isContains = (cred) => {
@@ -1430,6 +1430,154 @@ class BeameAuthServices {
 
 	}
 
+	getVpnSettings() {
+		return new Promise((resolve) => {
+				let responseObj = {
+					fqdn:                     null,
+					vpn_id:                   null,
+					name:                     null,
+					download_ios_profile_url: null,
+					error:                    null
+				};
+				try {
+
+					let zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
+					let list          = store.list(null, {
+						anyParent:      zeroLevelFqdn,
+						excludeRevoked: true
+					});
+					let existing      = list.filter(x => x.metadata.vpn);
+
+					if (existing.length) {
+
+						//TODO add multiple vpn support
+
+						let exist = existing.filter(x => x.metadata.vpn.length);
+
+						if (exist.length) {
+							let cred = exist[0];
+
+							if (cred.metadata.vpn && cred.metadata.vpn.length) {
+
+								responseObj.fqdn   = cred.fqdn;
+								responseObj.vpn_id = cred.metadata.vpn[0].id;
+								responseObj.name   = cred.metadata.vpn[0].name;
+
+								this._getIosProfileDownloadUrl(cred).then(url => {
+									responseObj.download_ios_profile_url = url;
+									resolve(responseObj);
+								}).catch((e) => {
+									logger.error(`Get ios profile url error for ${fqdn}`, e);
+									resolve(responseObj);
+								})
+							}
+							else {
+								resolve(responseObj);
+							}
+						}
+						else {
+							resolve(responseObj);
+						}
+
+					}
+					else {
+						resolve(responseObj);
+					}
+
+
+				} catch (e) {
+					responseObj.error = BeameLogger.formatError(e);
+					resolve(responseObj);
+				}
+			}
+		);
+	}
+
+	setCredVpnStatus(fqdn, id, name, action) {
+
+		return new Promise((resolve, reject) => {
+
+				store.find(fqdn).then(cred => {
+
+					const _resolve = () => {
+						this.getCredDetail(fqdn).then(resolve).catch(reject);
+					};
+
+					switch (action) {
+						case 'create':
+							if (!cred.metadata.vpn) {
+								cred.metadata.vpn = [];
+							}
+
+							if (cred.metadata.vpn.some(x => x.id === id)) {
+								let item = cred.metadata.vpn.find(x => x.id === id);
+
+								if (item) {
+
+									item.name = name;
+
+									cred.beameStoreServices.writeMetadataSync(cred.metadata);
+								}
+								_resolve();
+							}
+							else {
+								cred.metadata.vpn.push({
+									id:   uuid.v4(),
+									name,
+									date: Date.now()
+								});
+
+								cred.beameStoreServices.writeMetadataSync(cred.metadata);
+
+								Credential.saveCredAction(cred, {
+									action: Constants.CredAction.VpnRootCreated,
+									name,
+									date:   Date.now()
+								});
+
+								_resolve();
+							}
+							break;
+						case 'delete':
+							if (!cred.metadata.vpn) {
+								_resolve();
+								return;
+							}
+
+							if (cred.metadata.vpn.some(x => x.id === id)) {
+								let item = cred.metadata.vpn.find(x => x.id === id);
+
+								if (item) {
+									name      = item.name;
+									let index = cred.metadata.vpn.indexOf(item);
+									cred.metadata.vpn.splice(index, 1);
+
+									cred.beameStoreServices.writeMetadataSync(cred.metadata);
+
+									Credential.saveCredAction(cred, {
+										action: Constants.CredAction.VpnRootDeleted,
+										name,
+										date:   Date.now()
+									});
+								}
+
+								_resolve();
+							}
+							else {
+								_resolve();
+							}
+
+							break;
+						default:
+							_resolve();
+					}
+
+
+				}).catch(reject);
+			}
+		);
+	}
+
 	createRegToken(data) {
 		return new Promise((resolve, reject) => {
 
@@ -1500,36 +1648,26 @@ class BeameAuthServices {
 					}).catch(reject);
 				};
 
-				if (data.save_creds) {
-					logger.debug('************* CREATE LOCAL CREDS');
-					cred.createEntityWithLocalCreds(data.fqdn, data.name, data.email, null, data.password)
-						.then(meta => {
+				cred.createEntityWithLocalCreds(data.fqdn, data.name, data.email, null, data.password)
+					.then(meta => {
 
-							store.find(meta.fqdn, false).then(newCred => {
+						store.find(meta.fqdn, false).then(newCred => {
 
 
-								if (sendEmail) {
-									this.sendPfx(newCred.fqdn, email).then(() => {
-										_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created and sent by email`);
-									}).catch(err => {
-										_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
-									})
-								}
-								else {
-									_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created`);
-								}
+							if (sendEmail) {
+								this.sendPfx(newCred.fqdn, email).then(() => {
+									_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created and sent by email`);
+								}).catch(err => {
+									_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created. Sending by email failed with ${BeameLogger.formatError(err)}`);
+								})
+							}
+							else {
+								_resolve(newCred.fqdn, `Credential ${newCred.fqdn} created`);
+							}
 
-							}).catch(reject);
-						})
-						.catch(reject)
-				}
-				else {
-					logger.debug('************* CREATE VIRTUAL CREDS');
-					cred.createVirtualEntity(data.fqdn, data.name, data.email, data.password)
-						.then(resolve)
-						.catch(reject);
-				}
-
+						}).catch(reject);
+					})
+					.catch(reject)
 			}
 		);
 	}
@@ -1649,91 +1787,6 @@ class BeameAuthServices {
 				};
 
 				store.find(fqdn, false).then(_sendEmail).catch(reject);
-			}
-		);
-	}
-
-	setCredVpnStatus(fqdn, id, name, action) {
-
-		return new Promise((resolve, reject) => {
-
-				store.find(fqdn).then(cred => {
-
-					const _resolve = () => {
-						this.getCredDetail(fqdn).then(resolve).catch(reject);
-					};
-
-					switch (action) {
-						case 'create':
-							if (!cred.metadata.vpn) {
-								cred.metadata.vpn = [];
-							}
-
-							if (cred.metadata.vpn.some(x => x.id === id)) {
-								let item = cred.metadata.vpn.find(x => x.id === id);
-
-								if (item) {
-
-									item.name = name;
-
-									cred.beameStoreServices.writeMetadataSync(cred.metadata);
-								}
-								_resolve();
-							}
-							else {
-								cred.metadata.vpn.push({
-									id:   uuid.v4(),
-									name,
-									date: Date.now()
-								});
-
-								cred.beameStoreServices.writeMetadataSync(cred.metadata);
-
-								Credential.saveCredAction(cred, {
-									action: Constants.CredAction.VpnRootCreated,
-									name,
-									date:   Date.now()
-								});
-
-								_resolve();
-							}
-							break;
-						case 'delete':
-							if (!cred.metadata.vpn) {
-								_resolve();
-								return;
-							}
-
-							if (cred.metadata.vpn.some(x => x.id === id)) {
-								let item = cred.metadata.vpn.find(x => x.id === id);
-
-								if (item) {
-									name      = item.name;
-									let index = cred.metadata.vpn.indexOf(item);
-									cred.metadata.vpn.splice(index, 1);
-
-									cred.beameStoreServices.writeMetadataSync(cred.metadata);
-
-									Credential.saveCredAction(cred, {
-										action: Constants.CredAction.VpnRootDeleted,
-										name,
-										date:   Date.now()
-									});
-								}
-
-								_resolve();
-							}
-							else {
-								_resolve();
-							}
-
-							break;
-						default:
-							_resolve();
-					}
-
-
-				}).catch(reject);
 			}
 		);
 	}

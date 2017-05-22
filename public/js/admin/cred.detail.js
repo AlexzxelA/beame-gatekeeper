@@ -1,8 +1,8 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
-var credDetailViewModel, vpnDetailViewModel, createCredViewModel,createInvitationViewModel,
-    qrWnd,vpnWnd,certWnd,credWnd,invWnd,regtokenWnd;
+var credDetailViewModel,  createCredViewModel,createInvitationViewModel,
+    qrWnd,certWnd,credWnd,invWnd,regtokenWnd;
 
 function showNotification(success,message,hideAfter){
 
@@ -78,65 +78,6 @@ function bindEmailEvent() {
 				$("#send_pfx_form_info").html(response.responseDesc);
 			}
 		});
-	});
-}
-
-function setVpn() {
-	showLoader('wnd-overlay');
-
-	var handleSendCredResponse = function (response) {
-		hideLoader('wnd-overlay');
-
-		if (response.responseCode == 1) {
-			response.responseDesc = 'Vpn settings saved';
-			$("#frm-vpn-detail_info").removeClass('ad-error').addClass('ad-success');
-			if (response.data) {
-				if (credDetailViewModel) {
-					credDetailViewModel.set("data", response.data);
-				}
-
-
-				vpnDetailViewModel.set("data", response.data);
-				vpnDetailViewModel.init();
-			}
-		}
-		else {
-			$("#frm-vpn-detail_info").removeClass('ad-success').addClass('ad-error');
-
-		}
-		$("#frm-vpn-detail_info").html(response.responseDesc);
-	};
-
-
-	$(this).ajaxSubmit({
-		error:   handleSendCredResponse,
-		success: handleSendCredResponse
-	});
-
-	return false;
-}
-
-function initVpnWindow() {
-	var template = kendo.template($("#vpn-detail").html());
-	vpnWnd.empty();
-	vpnWnd.kendoWindow({
-		width:   "450px",
-		height:  "400px",
-		title:   "Set VPN",
-		visible: false,
-		modal:   true,
-		content: {
-			template: template
-		},
-		actions: [
-			"Close"
-		],
-		open:    function () {
-			vpnDetailViewModel.init();
-			kendo.bind($("#vpn-window"), vpnDetailViewModel);
-			$('#frm-vpn-detail').submit(setVpn);
-			$('#frm-vpn-delete').submit(setVpn);
-		}
 	});
 }
 
@@ -343,7 +284,6 @@ function handleDnsResponse(response) {
 function loadCredDetail(data) {
 
 		qrWnd       = $("#qr-window");
-		vpnWnd      = $('#vpn-window');
 		certWnd     = $('#cert-window');
 		credWnd     = $('#create-child-cred-window');
 		invWnd      = $('#create-invitation-window');
@@ -365,13 +305,10 @@ function loadCredDetail(data) {
 			this.set('commonButtonDisabled', this.data.revoked);
 			this.set('renewButtonDisabled', this.data.revoked || !this.data.isLocal);
 			this.set('emailFormVisible', !this.data.revoked && this.data.pwd);
-			this.set('iosVpnProfileVisible', this.data.vpn_server_fqdn);
 			this.set('showValidCertForms', !this.data.revoked);
 			this.set('showDns', !this.data.revoked && data.isLocal);
 
 			bindEmailEvent();
-
-			$('#ios-profile-form').attr('action', this.iosProfileLink());
 
 			this.initDnsModel();
 		},
@@ -380,7 +317,6 @@ function loadCredDetail(data) {
 		commonButtonDisabled: false,
 		renewButtonDisabled:  false,
 		emailFormVisible:     true,
-		iosVpnProfileVisible: false,
 		showValidCertForms:   true,
 		showDns:              true,
 		data:                 data,
@@ -398,24 +334,10 @@ function loadCredDetail(data) {
 			}
 			this.operQrWnd(this.data.download_cred_url);
 		},
-		showIosProfileQr: function () {
-			if (!this.data.download_ios_profile_url) {
-				alert('Ios Profile download url not defined');
-				return;
-			}
-			this.operQrWnd(this.data.download_ios_profile_url);
-		},
 		operQrWnd:        function (url) {
 			initQrWindow(url);
 			closeWnd();
 			qrWnd.data("kendoWindow").center().open();
-		},
-		iosProfileLink:   function () {
-			return "/cred/ios-profile/" + this.data.fqdn;
-		},
-		opneVPN:          function () {
-			initVpnWindow();
-			vpnWnd.data("kendoWindow").center().open();
 		},
 		openCredWnd:      function () {
 			initCredWindow();
@@ -658,29 +580,6 @@ function loadCredDetail(data) {
 
 	credDetailViewModel.init(true);
 	kendo.bind($("#cred-form-container"), credDetailViewModel);
-
-	vpnDetailViewModel = kendo.observable({
-		init:      function () {
-			var vpns = this.data.vpn;
-			if (!vpns || !vpns.length) {
-				this.set('vpnId', null);
-				this.set('name', null);
-				return;
-			}
-
-			var vpn = vpns[0];
-
-			this.set('vpnId', vpn.id);
-			this.set('name', vpn.name);
-		},
-		vpnId:     null,
-		name:      null,
-		data:      data,
-		deleteVpn: function () {
-			this.set('name', null);
-			$('#frm-vpn-delete').submit();
-		}
-	});
 
 	createCredViewModel = kendo.observable({
 		init:       function () {

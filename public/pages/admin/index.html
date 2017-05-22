@@ -7,6 +7,24 @@
     <link href="//kendo.cdn.telerik.com/2017.1.223/styles/kendo.common.min.css" rel="stylesheet"/>
     <link href="//kendo.cdn.telerik.com/2017.1.223/styles/kendo.material.min.css" rel="stylesheet"/>
 
+    <script>
+        var cssInt = setInterval(function(){
+	        for (var i = 0; i < document.styleSheets.length; i++) {
+		        if (document.styleSheets[i].href !== null) {
+			        var s = document.styleSheets[i].href;
+			        if (s.indexOf("kendo") !== -1) {
+				        var menuContainer = document.getElementById('menu-container');
+				        if(menuContainer){
+				        	menuContainer.style.visibility= 'visible';
+				        	clearInterval(cssInt);
+                        }
+			        }
+		        }
+	        }
+        },15);
+    </script>
+
+
     <!-- Styles -->
     <!-- build:css -->
     <link rel="stylesheet" href="css/app.css">
@@ -40,7 +58,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="menu-container" style="visibility: hidden">
 
 
         <div id="toolbar">
@@ -54,6 +72,7 @@
                     <li><a id="showRegtoken" href="#/tkn">Reg Token</a></li>
                     <li><a id="showPfx" href="#/pfx">Create Cert</a></li>
                     <li><a id="showSrv" href="#/srvc">Services</a></li>
+                    <li><a id="showVpn" href="#/vpn">VPN</a></li>
                     <li id="li-gk-login"><a id="showGkLogins" href="#/gk-login">GK Logins</a></li>
                     <li style="float: right"><a id="btn-logout" href="/beame-gw/logout">Logout</a></li>
                 </ul>
