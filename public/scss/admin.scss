@@ -13,6 +13,11 @@ Wrappers
 
 }
 
+.container-admin {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
 /* -------------------------
 Top Menu
 ------------------------- */
@@ -105,7 +110,7 @@ Table
     width: 15%;
   }
   th:nth-child(6) {
-    width: 8%;
+    width: 10%;
   }
   td:nth-child(2), td:nth-child(4), td:nth-child(5) {
     font-size: 75%;
@@ -114,8 +119,7 @@ Table
     }
   }
   td:nth-child(6) {
-    width: 10%;
-    font-size: 70%;
+    font-size: 60%;
   }
 }
 

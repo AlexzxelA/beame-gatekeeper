@@ -3528,6 +3528,10 @@ Wrappers
   .admin-main-wrapper .row {
     max-width: 1440px; }
 
+.container-admin {
+  max-width: 1440px;
+  margin: 0 auto; }
+
 /* -------------------------
 Top Menu
 ------------------------- */
@@ -3596,14 +3600,13 @@ Table
   width: 15%; }
 
 .metrotable-history th:nth-child(6) {
-  width: 8%; }
+  width: 10%; }
 
 .metrotable-history td:nth-child(2), .metrotable-history td:nth-child(4), .metrotable-history td:nth-child(5) {
   font-size: 75%; }
 
 .metrotable-history td:nth-child(6) {
-  width: 10%;
-  font-size: 70%; }
+  font-size: 60%; }
 
 /* -------------------------
 Notifications
