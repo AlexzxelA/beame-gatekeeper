@@ -1,17 +1,31 @@
-
 <script type="text/x-kendo-template" id="tmpl-creds">
-    <h4>Creds tree</h4>
-    <div id="creds-tree-container" style="display: inline-block; width:39%;vertical-align: top">
-        <label>Exclude revoked:<input type="checkbox" id="chk-exclude-revoke" onchange="rebindTree()"/></label>
-        <br/>
-        <label>Find <input type="text" id="inp-find-cred"/> <input type="button" value="Search" class="k-button" onclick="findCreds()"/></label>
-        <a style="display: inline-block;" id="btn-refresh-tree"></a>
-        <a style="display: inline-block;" id="btn-refresh-store">Refresh store</a>
-        <br/>
-        <div id="creds-tree"></div>
+    <div class="row">
+        <div class="medium-3 column">
+            <div class="clearfix mb-2">
+                <h5 class="text-black mb-0 d-inline-block">Creds Tree</h5>
+                <a class="float-r btn-clear small text-gray-light" id="btn-refresh-store">Refresh store</a>
+            </div>
+
+            <div id="creds-tree-container">
+                <div class="search-complex">
+                    <a class="search-complex-addon" id="btn-refresh-tree"></a>
+                    <input type="text" class="search-complex-input" id="inp-find-cred" placeholder="Search"/>
+                    <input type="button" value="Find" class="k-button search-complex-btn" onclick="findCreds()"/>
+
+                </div>
+                <label class="d-block mb-2 mt-half">
+                    <input type="checkbox" id="chk-exclude-revoke"
+                           onchange="rebindTree()"/>&nbsp;<small>Exclude revoked</small>
+                </label>
+
+                <div id="creds-tree"></div>
+            </div>
+
+        </div>
+        <div class="medium-9 column" id="cred-detail" style="visibility: hidden;"></div>
     </div>
-    <div id="cred-detail" style="display:inline-block; visibility: hidden; width:59%;border:solid 1px #cacaca; vertical-align: top;padding: 5px;background-color: #fff"></div>
 </script>
+
 <script id="treeview-template" type="text/kendo-ui-template">
     # if (item.revoked) { #
     <div class="revoked" data-fqdn="#: item.fqdn#">
@@ -21,7 +35,7 @@
             <div data-fqdn="#: item.fqdn#">
                 #}#
                 <span title="#: item.isLocal ? 'Local' : 'Remote' #">(#: item.isLocal ? 'L' : 'R' #)</span><span
-                class="cred-name">#: item.name #</span>
+                    class="cred-name">#: item.name #</span>
             </div>
 
 </script>

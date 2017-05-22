@@ -62,6 +62,10 @@ Using "Visual C++ 2015 x64 Native Build Tools Command Prompt" under `C:\Program 
 
     npm install -g beame-gatekeeper
 
+## Managing StrongSwan VPN using Beame Gatekeeper
+
+[Managing StrongSwan VPN using Beame Gatekeeper](doc/strongswan.md)
+
 ## What to do next?
 
 Please read [User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf). It describes what and how you can do with Beame-Gatekeeper.

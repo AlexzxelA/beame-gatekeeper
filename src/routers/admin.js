@@ -68,8 +68,7 @@ class AdminRouter {
 
 		this._router.post('/cred/create', (req, res) => {
 
-			let data        = req.body;
-			data.save_creds = true; //data.save_creds === "on";
+			let data = req.body;
 
 			logger.info(`Create pfx  with ${CommonUtils.data}`);
 
@@ -79,7 +78,7 @@ class AdminRouter {
 					"responseCode": RESPONSE_SUCCESS_CODE,
 					"responseDesc": resp.message,
 					"data":         resp.data,
-					"newFqdn": resp.fqdn
+					"newFqdn":      resp.fqdn
 				});
 			}
 
@@ -271,7 +270,7 @@ class AdminRouter {
 			const _resolve = (resp) => {
 				return res.json({
 					"responseCode": RESPONSE_SUCCESS_CODE,
-					"data": resp
+					"data":         resp
 				});
 			};
 
@@ -283,7 +282,7 @@ class AdminRouter {
 				});
 			};
 
-			this._getInvitation(fqdn,data,data.sendEmail)
+			this._getInvitation(fqdn, data, data.sendEmail)
 				.then(_resolve)
 				.catch(_sendError);
 
@@ -308,22 +307,44 @@ class AdminRouter {
 
 		this._router.post('/cred/set-vpn/:action', (req, res) => {
 
-			let fqdn   = req.body.fqdn,
-			    name   = req.body.name,
-			    id     = req.body.vpn_id,
-			    action = req.params.action;
+			let fqdn       = req.body.fqdn,
+			    name       = req.body.vpn_name,
+			    id         = req.body.vpn_id,
+			    createCred = req.body.createCred,
+			    data       = CommonUtils.parse(req.body.cred),
+			    action     = req.params.action;
 
-			beameAuthServices.setCredVpnStatus(fqdn, id, name, action).then(data => {
-				res.json({
-					"responseCode": RESPONSE_SUCCESS_CODE,
-					data
-				});
-			}).catch(e => {
-				res.json({
-					"responseCode": RESPONSE_ERROR_CODE,
-					"responseDesc": BeameLogger.formatError(e)
-				});
-			})
+			const _setVpn = (vpn_fqdn) => {
+
+				beameAuthServices.setCredVpnStatus(vpn_fqdn, id, name, action).then(data => {
+					res.json({
+						"responseCode": RESPONSE_SUCCESS_CODE,
+						data
+					});
+				}).catch(e => {
+					res.json({
+						"responseCode": RESPONSE_ERROR_CODE,
+						"responseDesc": BeameLogger.formatError(e)
+					});
+				})
+			};
+
+			if (createCred) {
+				data.fqdn = fqdn;
+				beameAuthServices.createCred(data)
+					.then(newCred => {
+						_setVpn(newCred.fqdn);
+					})
+					.catch(err => {
+						res.json({
+							"responseCode": RESPONSE_ERROR_CODE,
+							"responseDesc": BeameLogger.formatError(err)
+						});
+					})
+			}
+			else {
+				_setVpn(fqdn);
+			}
 		});
 
 		this._router.post('/send/pfx', (req, res) => {
@@ -394,7 +415,11 @@ class AdminRouter {
 
 		});
 
-
+		this._router.get('/vpn/settings', (req, res) => {
+			beameAuthServices.getVpnSettings().then(data => {
+				res.json(data);
+			})
+		});
 		//endregion
 
 		//region grids actions
@@ -759,7 +784,7 @@ class AdminRouter {
 
 	_getInvitation(fqdn, data, sendByEmail) {
 		return new Promise((resolve, reject) => {
-			this.encryptUserData(data).then((data)=>{
+			this.encryptUserData(data).then((data) => {
 				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
 				data.hash     = CommonUtils.generateDigest(data4hash);
 
@@ -774,26 +799,26 @@ class AdminRouter {
 
 	encryptUserData(data) {
 		return new Promise((resolve, reject) => {
-			if (bootstrapper.encryptUserData) {
+				if (bootstrapper.encryptUserData) {
 
-				BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
+					BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
 
-					let data2encrypt = CommonUtils.stringify(data,false);//TODO - check final length to be < 214 bytes if QR is overloaded
-					data.user_id     = cred.encryptWithRSA(data2encrypt);
+						let data2encrypt = CommonUtils.stringify(data, false);//TODO - check final length to be < 214 bytes if QR is overloaded
+						data.user_id     = cred.encryptWithRSA(data2encrypt);
+						resolve(data);
+
+					}).catch(function (e) {
+						let errMsg = `Failed to encrypt user_id ${e.message}`;
+						logger.error(errMsg);
+						reject(errMsg)
+					});
+				}
+				else {
 					resolve(data);
-
-				}).catch(function (e) {
-					let errMsg = `Failed to encrypt user_id ${e.message}`;
-					logger.error(errMsg);
-					reject(errMsg)
-				});
+				}
 			}
-			else{
-				resolve(data);
-			}
-		}
-	);
-}
+		);
+	}
 }
 
 module.exports = AdminRouter;
