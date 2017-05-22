@@ -69,3 +69,8 @@ Using "Visual C++ 2015 x64 Native Build Tools Command Prompt" under `C:\Program 
 ## What to do next?
 
 Please read [User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf). It describes what and how you can do with Beame-Gatekeeper.
+
+### How to solve the GPIO access denied issue on Raspbian 
+
+sudo usermod -a -G gpio beame-gatekeeper
+
