@@ -54,7 +54,8 @@ class AdminServices {
 					"DbConfig":  null,
 					"Creds":     null,
 					"RegMethods":null,
-					"EnvModes"  :null
+					"EnvModes"  :null,
+					"Version":   bootstrapper.version
 				};
 
 				try {
@@ -117,6 +118,8 @@ class AdminServices {
 							}
 						],
 						() => {
+
+
 							resolve(data);
 						});
 				} catch (e) {
