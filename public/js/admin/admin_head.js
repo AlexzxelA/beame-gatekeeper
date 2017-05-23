@@ -109,7 +109,6 @@ $(document).ready(function () {
 	$.each(
 		$("#menu").find(".k-link"),
 		function (i, data) {
-			console.log('huj');
 			if (!selectedMenuSet && (data.href == location.href || !hash)) {
 				$(data).addClass("k-state-selected");
 				selectedMenuSet = true;

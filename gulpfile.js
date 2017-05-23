@@ -235,6 +235,7 @@ gulp.task('compile-js', () => {
 		'./public/js/admin/invitation.manage.js',
 		'./public/js/admin/service.manage.js',
 		'./public/js/admin/user.manage.js',
+		'./public/js/admin/vpn.manage.js',
 		'./public/js/admin/registration.manage.js',
 		'./public/js/admin/registration.token.js',
 		'./public/js/admin/dash.js'
