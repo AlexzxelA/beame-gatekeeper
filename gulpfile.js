@@ -287,6 +287,11 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/jwk-bundle.js'
+		], 'jwk-bundle.js', false);
+
+	compileJs(
+		[
 			'./public/js/beame_login.js'
 		], 'login.min.js', true);
 
