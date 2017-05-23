@@ -4,7 +4,7 @@
 var credDetailViewModel,  createCredViewModel,createInvitationViewModel,
     qrWnd,certWnd,credWnd,invWnd,regtokenWnd;
 
-function showNotification(success,message,hideAfter){
+function showNotification(success,message){
 
 	var wWidth = $(window).width(),
 	    wHeight = $(window).height(),
@@ -12,13 +12,13 @@ function showNotification(success,message,hideAfter){
 
 	newLeft = Math.floor(wWidth / 2 - 300 / 2);
 
+    var notificationDelay = success ? 5000 : 0;
+
 	var notification = $("#d-notif").kendoNotification({
 		position: {
 			top: 50,
 			left: newLeft
 		},
-		autoHideAfter: 0,
-		button: true,
         hideOnClick: true,
 		templates: [{
 			type: "error",
@@ -29,7 +29,13 @@ function showNotification(success,message,hideAfter){
 		}]
 	}).data("kendoNotification");
 
+    notification.setOptions({ autoHideAfter: notificationDelay });
+
 	notification.show({message:message}, success ? "success" : "error");
+
+	$(".js-close-notification").click(function(){
+        notification.hide();
+    });
 
 }
 
@@ -61,23 +67,20 @@ function bindEmailEvent() {
 			data:        JSON.stringify(formData),
 			type:        method,
 			datatype:    "json",
-			contentType: "application/json; charset=utf-8"
-			, success:   function (response) {
+			contentType: "application/json; charset=utf-8",
+			success:   function (response) {
 
 				hideLoader();
-				if (response.responseCode == 1) {
-					response.responseDesc = 'Email sent to ' + ( $('#frm-send-pfx-email input[name="email"]').val());
-					$("#send_pfx_form_info").removeClass('ad-error').addClass('ad-success');
-					if (response.data && credDetailViewModel) {
-						credDetailViewModel.set("data", response.data);
-					}
 
-				}
-				else {
-					$("#send_pfx_form_info").removeClass('ad-success').addClass('ad-error');
-
-				}
-				$("#send_pfx_form_info").html(response.responseDesc);
+                if (response.responseCode == 1) {
+                    showNotification(response, 'Email is sent ' + formData.email );
+                    if (response.data && credDetailViewModel) {
+                        credDetailViewModel.set("data", response.data);
+                    }
+                }
+                else {
+                    showNotification(false, 'Error: ' + response.data);
+                }
 			}
 		});
 	});
@@ -375,7 +378,7 @@ function loadCredDetail(data) {
 
 					hideLoader();
 
-					if (response.responseCode == 1) {
+					if (response.responseCode === 1) {
 						$("#cred-info").removeClass('ad-error').addClass('ad-success');
 						reinitModel(response,true);
 					}
@@ -610,7 +613,7 @@ function loadCredDetail(data) {
 			    };
 
 			if(!formData.name && !formData.email){
-				$("#create-child-cred-info").removeClass('ad-success').addClass('ad-error').html('Name or Email required');
+                showNotification(false, 'Name or Email required' );
 				return;
 			}
 
@@ -626,22 +629,24 @@ function loadCredDetail(data) {
 				, success:   function (response) {
 
 					hideLoader('wnd-overlay-cred');
-					var info = $('#create-child-cred-info');
+
 					console.log(response);
-					if (response.responseCode == 1) {
 
-						info.removeClass('ad-error').addClass('ad-success');
-						setTimeout(function(){
-							console.log('huy');
-							reinitModel(response,false);
-						},300);
-						window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn,data:formData,newFqdn:response.newFqdn})
-					}
-					else {
-						info.removeClass('ad-success').addClass('ad-error');
+                    if (response.responseCode == 1) {
 
-					}
-					info.html(response.responseDesc);
+                        setTimeout(function () {
+                            console.log('huy');
+                            reinitModel(response, false);
+                        }, 300);
+
+                        window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn,data:formData,newFqdn:response.newFqdn})
+
+                        showNotification(response, response.responseDesc);
+                    }
+                    else {
+                        showNotification(false, 'Error: ' + response.responseDesc);
+                    }
+
 				}
 			});
 		}

@@ -137,7 +137,7 @@ Notifications
 /* Success and errors templates */
 .k-notification-success.k-group,
 .k-notification-error.k-group {
-  opacity: .92;
+  opacity: .95 !important;
 }
 
 .notif-success,
@@ -326,6 +326,18 @@ a.btn-clear, .btn-clear, button.btn-clear {
   font-size: 1rem;
   font-weight: bold;
   display: block;
+}
+
+.btn-cross {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: $white;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  outline: none;
 }
 
 .search-complex {

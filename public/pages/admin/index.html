@@ -8,7 +8,7 @@
     <link href="//kendo.cdn.telerik.com/2017.1.223/styles/kendo.material.min.css" rel="stylesheet"/>
 
     <script>
-        var cssInt = setInterval(function(){
+        /*var cssInt = setInterval(function(){
 	        for (var i = 0; i < document.styleSheets.length; i++) {
 		        if (document.styleSheets[i].href !== null) {
 			        var s = document.styleSheets[i].href;
@@ -21,9 +21,11 @@
 			        }
 		        }
 	        }
-        },15);
+        },15);*/
+        window.addEventListener("load", function(){
+            document.getElementById('menu-container').setAttribute('style', '');
+        });
     </script>
-
 
     <!-- Styles -->
     <!-- build:css -->
@@ -80,6 +82,8 @@
     </div>
 
 </div>
+
+<div id="d-notif" style="width: 340px;height: 100px;"></div>
 
 <div id="overlay" class="overlay">
     <div>
