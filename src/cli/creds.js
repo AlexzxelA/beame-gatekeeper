@@ -34,13 +34,6 @@ function startDataService() {
 function getCreds(regToken, fqdn, callback) {
 
 
-	let validationResp = bootstrapper.isConfigurationValid();
-
-	if (!validationResp.valid) {
-		callback(validationResp.message);
-		return;
-	}
-
 	if (!regToken && !fqdn) {
 		callback(`Registration token or fqdn required`);
 		return;
@@ -54,6 +47,18 @@ function getCreds(regToken, fqdn, callback) {
 	}
 
 	bootstrapper.initAll()
+		.then(()=>{
+
+			let validationResp = bootstrapper.isConfigurationValid();
+
+			if (!validationResp.valid) {
+				callback(validationResp.message);
+				return;
+			}
+
+			return Promise.resolve();
+
+		})
 		.then(() => {
 			credentialManager.createInitialCredentials(regToken, fqdn).then(metadata => {
 				console.log('');

@@ -5,7 +5,7 @@
 
 const path = require('path');
 const os   = require('os');
-const home = os.homedir();
+const home = process.env.BEAME_FILES_HOME_DIR || os.homedir();
 
 const EnvProfile = {
 	Name:        'Dev',
