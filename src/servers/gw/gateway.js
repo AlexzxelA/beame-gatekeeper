@@ -24,6 +24,8 @@ const unauthenticatedApp = require('./unauthenticatedApp');
 const authenticatedApp   = require('./authenticatedApp');
 const configApp          = require('./configApp');
 const COOKIE_NAME        = 'X-Beame-GW-Service-Token';
+const Bootstrapper         = require('../../bootstrapper');
+const bootstrapper         = Bootstrapper.getInstance();
 
 let adminApp         = null;
 let expectsAuthToken = false;
@@ -341,6 +343,8 @@ class GatewayServer {
 		serviceManager = _serviceManager;
 
 		adminApp = new (require('../admin/server'))(null, null, serviceManager).app;
+
+		bootstrapper.appId = CommonUtils.generateDigest(fqdn,"MD5");
 	}
 
 	/**
