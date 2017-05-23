@@ -20,8 +20,6 @@ const BeameLogger            = beameSDK.Logger;
 const logger                 = new BeameLogger(module_name);
 const BeameAuthServices      = require('../../authServices');
 const BeameInstaSocketServer = require('../../beameInstaSocketServer');
-const Bootstrapper         = require('../../bootstrapper');
-const bootstrapper         = Bootstrapper.getInstance();
 
 class BeameAuthServer {
 
@@ -65,9 +63,7 @@ class BeameAuthServer {
 				callback => {
 					const httpServer = http.createServer(this._app);
 
-					httpServer.listen(0,()=>{
-						bootstrapper.beameAuthServerLocalPort = httpServer.address().port;
-					});
+					httpServer.listen(Constants.BeameAuthServerLocalPort);
 
 					let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, this._callbacks);
 
