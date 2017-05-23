@@ -23,7 +23,6 @@ const RegistrationImageRequired    = false;
 const EncryptUserData              = false;
 const PairingRequired              = true;
 const UseBeameAuthOnLocal          = true;
-const StartRaspberryApp            = false;
 const AllowDirectSignin            = true;
 const RunAuthServerOnZeroLevelCred = true;
 
@@ -77,7 +76,6 @@ const ConfigProps = {
 		PairingRequired:               "PairingRequired",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
-		StartRaspberryApp:             "StartRaspberryApp",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		EmailSendCertUrl:              "EmailSendCertUrl",
@@ -171,7 +169,6 @@ module.exports = {
 	PairingRequired,
 	RegistrationImageRequired,
 	EncryptUserData,
-	StartRaspberryApp,
 	AllowDirectSignin,
 	RunAuthServerOnZeroLevelCred,
 	DisableDemoServers,

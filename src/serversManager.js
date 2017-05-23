@@ -36,7 +36,6 @@ class ServersManager {
 		bootstrapper.setOcspCachePeriod();
 	}
 
-
 	start() {
 
 		let validationResp = bootstrapper.isConfigurationValid();
@@ -214,7 +213,27 @@ class ServersManager {
 
 		const isDemoServersDisabled = bootstrapper.isCentralLogin || defaults.DisableDemoServers;
 
-		//TODO check app-state too
+		const ServiceManager = require('./serviceManager');
+		const serviceManager = ServiceManager.getInstance();
+
+		const _onDemoAppStarted = (cb,err,data) => {
+			if(!err){
+				serviceManager.updateAppUrl(data.code,data.url);
+				cb();
+			}
+			else{
+				cb(err);
+			}
+		};
+
+		const _startDemoApp = (app,cb) =>{
+
+			if (isDemoServersDisabled) {
+				cb();
+				return;
+			}
+			app.start(_onDemoAppStarted.bind(this,cb));
+		};
 
 		//noinspection JSUnresolvedFunction
 		async.parallel([
@@ -231,49 +250,19 @@ class ServersManager {
 
 				},
 				callback => {
-					if (isDemoServersDisabled) {
-						callback();
-						return;
-					}
-					let chatApp = new (require('../apps/chat'))();
-					chatApp.start();
-					callback();
-				},
-				// callback => {
-				// 	if (isCentralLogin) {
-				// 		callback();
-				// 		return;
-				// 	}
-				// 	let fileApp = new (require('../apps/files'))();
-				// 	fileApp.start();
-				// 	callback();
-				// },
-				callback => {
-					if (isDemoServersDisabled) {
-						callback();
-						return;
-					}
-					let mobilePhotoApp = new (require('../apps/photo'))();
-					mobilePhotoApp.start();
-					callback();
+					_startDemoApp( new (require('../apps/chat'))(),callback);
 				},
 				callback => {
-					if (isDemoServersDisabled) {
-						callback();
-						return;
-					}
-					let mobileStreamApp = new (require('../apps/stream'))();
-					mobileStreamApp.start();
-					callback();
+					_startDemoApp( new (require('../apps/files'))(),callback);
 				},
 				callback => {
-					if (isDemoServersDisabled) {
-						callback();
-						return;
-					}
-					let raspberryApp = new (require('../apps/rasp'))();
-					raspberryApp.start();
-					callback();
+					_startDemoApp( new (require('../apps/photo'))(),callback);
+				},
+				callback => {
+					_startDemoApp( new (require('../apps/stream'))(),callback);
+				},
+				callback => {
+					_startDemoApp( new (require('../apps/rasp'))(),callback);
 				}
 
 			],

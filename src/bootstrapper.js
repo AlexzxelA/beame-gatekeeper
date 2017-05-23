@@ -53,6 +53,7 @@ class Bootstrapper {
 		let config                            = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._isDelegatedCentralLoginVerified = false;
+		this._beameAuthServerLocalPort        = 0;
 	}
 
 	/**
@@ -198,7 +199,7 @@ class Bootstrapper {
 				return responseObj;
 			}
 
-			if(!credEnv) return responseObj;
+			if (!credEnv) return responseObj;
 
 			if (keeperProfile.FqdnPattern != credEnv) {
 				responseObj.valid   = false;
@@ -289,6 +290,15 @@ class Bootstrapper {
 	get isCentralLogin() {
 		return this.envMode == Constants.EnvMode.CentralLogin || this.envMode == Constants.EnvMode.DelegatedLoginMaster
 	}
+
+	get beameAuthServerLocalPort() {
+		return this._beameAuthServerLocalPort;
+	}
+
+	set beameAuthServerLocalPort(port) {
+		this._beameAuthServerLocalPort = port;
+	}
+
 
 	//region getters
 	get isDelegatedCentralLoginVerified() {
@@ -427,10 +437,6 @@ class Bootstrapper {
 
 	get useBeameAuthOnLocal() {
 		return this._config[SettingsProps.UseBeameAuthOnLocal];
-	}
-
-	get startRaspberryApp() {
-		return this._config[SettingsProps.StartRaspberryApp];
 	}
 
 	get allowDirectSignin() {

@@ -28,8 +28,6 @@ const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
 const beame_server_folder_name = ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
-const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
-
 
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
@@ -130,11 +128,11 @@ const DbProviders = {
 
 const SetupServices = {
 	"Admin":           {code: "ADMIN"},
-	"MobilePhoto":     {code: "MOBILE_PHOTO", port: 65510},
-	"MobileStream":    {code: "MOBILE_STREAM", port: 65511},
-	"SampleChat":      {code: "SAMPLE_CHAT", port: 65512},
-	"SampleFileShare": {code: "SAMPLE_FILE_SHARE", port: 65513},
-	"RaspberryLight":  {code: "RASPBERRY_LIGHT", port: 65514}
+	"MobilePhoto":     {code: "MOBILE_PHOTO"},
+	"MobileStream":    {code: "MOBILE_STREAM"},
+	"SampleChat":      {code: "SAMPLE_CHAT"},
+	"SampleFileShare": {code: "SAMPLE_FILE_SHARE"},
+	"RaspberryLight":  {code: "RASPBERRY_LIGHT"}
 };
 
 const CookieNames = {
@@ -151,7 +149,6 @@ const CookieNames = {
 
 module.exports = {
 	EnvProfile,
-	BeameAuthServerLocalPort,
 	RequestType,
 	RegistrationMethod,
 	RegistrationSource,

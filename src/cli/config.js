@@ -1,8 +1,9 @@
 'use strict';
 
-const Bootstrapper      = require('../bootstrapper');
-const bootstrapper      = Bootstrapper.getInstance();
-const serviceManager    = new (require('../servers/gw/serviceManager'))();
+const Bootstrapper   = require('../bootstrapper');
+const bootstrapper   = Bootstrapper.getInstance();
+const ServiceManager = require('../serviceManager');
+const serviceManager = ServiceManager.getInstance();
 
 /** @type {DataServices} */
 let dataService = null;

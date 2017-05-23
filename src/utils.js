@@ -8,10 +8,10 @@ const https      = require('https');
 const express    = require('express');
 const path       = require('path');
 
-const beameSDK   = require('beame-sdk');
-const CommonUtils          = beameSDK.CommonUtils;
-const BeameStore = new beameSDK.BeameStore();
-const AuthToken  = beameSDK.AuthToken;
+const beameSDK    = require('beame-sdk');
+const CommonUtils = beameSDK.CommonUtils;
+const BeameStore  = new beameSDK.BeameStore();
+const AuthToken   = beameSDK.AuthToken;
 
 /**
  *
@@ -21,7 +21,6 @@ const AuthToken  = beameSDK.AuthToken;
  */
 function setExpressApp(router, staticDir) {
 	let app = express();
-
 
 
 	app.use(bodyParser.json());
@@ -73,45 +72,46 @@ function signDataWithFqdn(fqdn, data) {
 	});
 }
 let pairingGlobalsRef = null;
-class pairingGlobals{
-	constructor(){
-		this._sessionIdTimeout  = 180;//adjust this value to allow "refresh" on mobile browser
-		this._sessionIdScan     = 60 * 1000;
-		if(!pairingGlobalsRef){
-			pairingGlobalsRef = this;
+class pairingGlobals {
+	constructor() {
+		this._sessionIdTimeout = 180;//adjust this value to allow "refresh" on mobile browser
+		this._sessionIdScan    = 60 * 1000;
+		if (!pairingGlobalsRef) {
+			pairingGlobalsRef      = this;
 			this._directSessionIds = {};
 		}
 	}
 
-	setNewSessionId(key, value){
-		this._directSessionIds[key] = {token:value, time: (Math.floor(Date.now() / 1000) + this._sessionIdTimeout)};
+	setNewSessionId(key, value) {
+		this._directSessionIds[key] = {token: value, time: (Math.floor(Date.now() / 1000) + this._sessionIdTimeout)};
 	}
 
-	getSessionIds(){
+	getSessionIds() {
 		return this._directSessionIds;
 	}
-	 cleanSessionsCache(){
+
+	cleanSessionsCache() {
 		setInterval(function () {
-			if(this._directSessionIds){
-				for(let i = 0; i < this._directSessionIds.length; i++) {
+			if (this._directSessionIds) {
+				for (let i = 0; i < this._directSessionIds.length; i++) {
 					let record = this._directSessionIds[i];
-					if(!record.time || Math.floor(Date.now() / 1000) > record.time){
-						console.log('deleted record:',record);
+					if (!record.time || Math.floor(Date.now() / 1000) > record.time) {
+						console.log('deleted record:', record);
 						delete this._directSessionIds[i];
 					}
 				}
 			}
-		},this._sessionIdScan)
+		}, this._sessionIdScan)
 	}
 
-	static getInstance(){
+	static getInstance() {
 		return pairingGlobalsRef;
 	}
 }
 
-function  clearSessionCookie (res){
-	const Constants         = require('../constants');
-	const cookieNames       = Constants.CookieNames;
+function clearSessionCookie(res) {
+	const Constants   = require('../constants');
+	const cookieNames = Constants.CookieNames;
 
 	res.clearCookie(cookieNames.Proxy);
 	res.clearCookie(cookieNames.RegData);
@@ -128,6 +128,19 @@ function generateUID(length) {
 	return text;
 }
 
+//todo => move to sdk
+function hashToArray(hash) {
+	try {
+		let keys = Object.keys(hash);
+
+		return keys.map((v) => {
+			return hash[v];
+		});
+	} catch (e) {
+		return [];
+	}
+}
+
 module.exports = {
 	clearSessionCookie,
 	setExpressApp,
@@ -135,5 +148,6 @@ module.exports = {
 	createAuthTokenByFqdn,
 	signDataWithFqdn,
 	generateUID,
-	pairingGlobals
+	pairingGlobals,
+	hashToArray
 };
