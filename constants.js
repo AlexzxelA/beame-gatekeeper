@@ -25,7 +25,7 @@ const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const RegisterPath             = `${GatewayControllerPath}/register`;
 const DirectPath               = `${GatewayControllerPath}/direct-signin`;
 const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
-const beame_server_folder_name = ".beame_server";
+const beame_server_folder_name = process.env.BEAME_SERVER_FOLDER || ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
 
 

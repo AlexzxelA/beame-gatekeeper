@@ -16,7 +16,7 @@ const AppId                    = "";
 const sqlite_db_name           = "beame_server.db";
 const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
-const sqlite_db_storage_root   = path.join(home, ".beame_data");
+const sqlite_db_storage_root   = path.join(home,process.env.BEAME_DATA_FOLDER || ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
