@@ -8,8 +8,8 @@ module.exports = {
 				name:      'Raspberry Light',
 				code:      Services.RaspberryLight.code,
 				url:       `http://127.0.0.1:${Services.RaspberryLight.port}`,
-				isActive:  true,
-				isOnline:  true,
+				isActive:  false,
+				isOnline:  false,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}
