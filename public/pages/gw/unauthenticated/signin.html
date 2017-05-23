@@ -139,13 +139,12 @@
 
 <!-- endbuild -->
 
-<script type="text/javascript">
-    if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent))
-        document.write('<script src="lib/bluebird.min.js"><\/script>');
-</script>
+
+<!-- build:safari -->
+<script src="js/safari.js"></script>
+<!-- endbuild -->
 
 
-<!-- Scripts -->
 <!-- build:cef -->
 <script src="js/cef_manager.js"></script>
 <!-- endbuild -->
@@ -153,7 +152,7 @@
     var cefManager = getCefManagerInstance();
 </script>
 
-<!-- Scripts -->
+
 <!-- build:signin-js-foot -->
 <script src="js/crypto.js"></script>
 <script src="js/virt_host_controller.js"></script>

@@ -821,6 +821,33 @@ class SqliteServices {
 		);
 	}
 
+	updateServiceUrl(id,url) {
+		return new Promise((resolve, reject) => {
+				try {
+					let model = this._models.services;
+					//noinspection JSUnresolvedFunction
+					model.findById(id).then(record => {
+						if (!record) {
+							reject(logger.formatErrorMessage(`Service record not found`));
+							return;
+						}
+						record.update({
+							url:      url
+						}).then(entity => {
+							resolve(entity.dataValues);
+						}).catch(onError.bind(this, reject));
+
+					}).catch(onError.bind(this, reject));
+
+				}
+				catch (error) {
+					logger.error(BeameLogger.formatError(error));
+					onError(reject, error);
+				}
+			}
+		);
+	}
+
 	deleteService(id) {
 		return new Promise((resolve, reject) => {
 				logger.debug(`try delete registration ${id}`);

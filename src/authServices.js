@@ -42,8 +42,6 @@ const utils            = require('./utils');
 const uuid             = require('uuid');
 let dataService        = null;
 let beameAuthServices  = null;
-const nop              = function () {
-};
 
 const UniversalLinkUrl = Constants.UniversalLinkUrl;
 

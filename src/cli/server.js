@@ -5,7 +5,8 @@ const path = require('path');
 
 const Bootstrapper   = require('../bootstrapper');
 const bootstrapper   = Bootstrapper.getInstance();
-const serviceManager = new (require('../servers/gw/serviceManager'))();
+const ServiceManager = require('../serviceManager');
+const serviceManager = ServiceManager.getInstance();
 
 const beameSDK    = require('beame-sdk');
 const module_name = "ServerCLI";

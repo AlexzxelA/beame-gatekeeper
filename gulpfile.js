@@ -78,6 +78,7 @@ const compilePage = (pagePath, distPath) => {
 			'express-signin-js':  `${cdn_folder_path}js/xprs.signin.min.js`,
 			'utils-head':         `${cdn_folder_path}js/utils.min.js`,
 			'cef':                `${cdn_folder_path}js/cef.min.js`,
+			'safari':              `${cdn_folder_path}js/safari.js`,
 			'admin-js-head':      `${cdn_folder_path}js/admin.head.min.js`,
 			'admin-js-foot':      `${cdn_folder_path}js/admin.foot.min.js`,
 			'admin-template':     ``,
@@ -235,6 +236,7 @@ gulp.task('compile-js', () => {
 		'./public/js/admin/invitation.manage.js',
 		'./public/js/admin/service.manage.js',
 		'./public/js/admin/user.manage.js',
+		'./public/js/admin/vpn.manage.js',
 		'./public/js/admin/registration.manage.js',
 		'./public/js/admin/registration.token.js',
 		'./public/js/admin/dash.js'
@@ -285,6 +287,11 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/jwk-bundle.js'
+		], 'jwk-bundle.js', false);
+
+	compileJs(
+		[
 			'./public/js/beame_login.js'
 		], 'login.min.js', true);
 
@@ -292,6 +299,11 @@ gulp.task('compile-js', () => {
 		[
 			'./public/js/cef_manager.js'
 		], 'cef.min.js', true);
+
+	compileJs(
+		[
+			'./public/js/safari.js'
+		], 'safari.js', false);
 
 	compileJs(
 		[

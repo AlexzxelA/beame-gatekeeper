@@ -30,7 +30,8 @@ const path = require('path');
 const beameSDK    = require('beame-sdk');
 const BeameStore = new beameSDK.BeameStore();
 
-const serviceManager = new (require('./src/servers/gw/serviceManager'))();
+//init service manager instance
+new (require('./src/serviceManager'))();
 
 function getHelpMessage(fileName) {
 	return fs.readFileSync(path.join(__dirname, 'help-messages', fileName), {'encoding': 'utf-8'});

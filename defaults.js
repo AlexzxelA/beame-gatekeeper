@@ -5,7 +5,7 @@
 
 const path = require('path');
 const os   = require('os');
-const home = os.homedir();
+const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
@@ -16,14 +16,13 @@ const AppId                    = "";
 const sqlite_db_name           = "beame_server.db";
 const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
-const sqlite_db_storage_root   = path.join(home, ".beame_data");
+const sqlite_db_storage_root   = path.join(home,process.env.BEAME_DATA_FOLDER || ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
 const EncryptUserData              = false;
 const PairingRequired              = true;
 const UseBeameAuthOnLocal          = true;
-const StartRaspberryApp            = false;
 const AllowDirectSignin            = true;
 const RunAuthServerOnZeroLevelCred = true;
 
@@ -77,7 +76,6 @@ const ConfigProps = {
 		PairingRequired:               "PairingRequired",
 		RegistrationImageRequired:     "RegistrationImageRequired",
 		EncryptUserData:               "EncryptUserData",
-		StartRaspberryApp:             "StartRaspberryApp",
 		RegistrationMethod:            "RegistrationMethod",
 		PostEmailUrl:                  "PostEmailUrl",
 		EmailSendCertUrl:              "EmailSendCertUrl",
@@ -171,7 +169,6 @@ module.exports = {
 	PairingRequired,
 	RegistrationImageRequired,
 	EncryptUserData,
-	StartRaspberryApp,
 	AllowDirectSignin,
 	RunAuthServerOnZeroLevelCred,
 	DisableDemoServers,

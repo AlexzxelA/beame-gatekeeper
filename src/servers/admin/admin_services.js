@@ -169,7 +169,6 @@ class AdminServices {
 		return dataService.getServices();
 	}
 
-	//noinspection JSMethodCanBeStatic
 	saveService(service) {
 		return new Promise((resolve, reject) => {
 				dataService.saveService(service).then(entity => {
@@ -182,7 +181,6 @@ class AdminServices {
 
 	}
 
-	//noinspection JSMethodCanBeStatic
 	updateService(service) {
 
 		return new Promise((resolve, reject) => {
@@ -196,7 +194,6 @@ class AdminServices {
 
 	}
 
-	//noinspection JSMethodCanBeStatic
 	deleteService(id) {
 		return new Promise((resolve, reject) => {
 				dataService.deleteService(id).then(this._serviceManager.evaluateAppList.bind(this._serviceManager)).then(resolve).catch(reject);

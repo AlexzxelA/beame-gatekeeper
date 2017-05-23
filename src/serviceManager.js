@@ -7,14 +7,16 @@ const module_name   = "ServiceManager";
 const BeameLogger   = beameSDK.Logger;
 const logger        = new BeameLogger(module_name);
 const CommonUtils   = beameSDK.CommonUtils;
-const SetupServices = require('../../../constants').SetupServices;
-const Bootstrapper  = require('../../bootstrapper');
-
+const SetupServices = require('../constants').SetupServices;
+const utils         = require('./utils');
+let serviceManager  = null;
 
 class ServiceManager {
 
 	constructor() {
 		this._appList = {};
+
+		if (!serviceManager) serviceManager = this;
 	}
 
 	listApplications(user) {
@@ -28,12 +30,12 @@ class ServiceManager {
 
 					Object.keys(approvedList).forEach(key => {
 						formattedList[approvedList[key].name] = {
-							app_id: parseInt(key),
-							online: approvedList[key].online,
-							code:   approvedList[key].code,
-							name:   approvedList[key].name,
+							app_id:   parseInt(key),
+							online:   approvedList[key].online,
+							code:     approvedList[key].code,
+							name:     approvedList[key].name,
 							//TODO change to normal manage logic
-							external:approvedList[key].isRasp
+							external: approvedList[key].isRasp
 						};
 					});
 					logger.debug('app list:', formattedList);
@@ -46,48 +48,58 @@ class ServiceManager {
 		);
 	}
 
+	updateAppUrl(code, url) {
+		try {
+
+			if (!url) return;
+
+			let apps = utils.hashToArray(CommonUtils.filterHash(this._appList, (k, v) => v.code == code));
+
+			if (apps.length == 1) {
+				let app           = apps[0];
+				const dataService = require('./dataServices').getInstance();
+				dataService.updateServiceUrl(app.app_id, url);
+			}
+		} catch (e) {
+		}
+	}
+
 	evaluateAppList() {
 
 		return new Promise((resolve, reject) => {
 
-			this._appList = {};
+				this._appList = {};
 
-			const dataService = require('../../dataServices').getInstance();
+				const dataService = require('./dataServices').getInstance();
 
-			const bootstrapper = Bootstrapper.getInstance();
+				dataService.getActiveServices().then(apps => {
 
-			let startRaspberryApps = bootstrapper.startRaspberryApp;
+					if (apps.length) {
+						for (let app of apps) {
 
-			dataService.getActiveServices().then(apps => {
+							if (!app || !app.code) continue;
 
-				if (apps.length) {
-					for (let app of apps) {
+							this._appList[app.id] = {
+								name:   app.name,
+								app_id: app.id,
+								code:   app.code,
+								url:    app.url,
+								online: app.isOnline,
+								//TODO change to normal manage logic
+								isRasp: app.code.startsWith('RASPBERRY_')
+							};
+						}
 
-						if(!app || !app.code) continue;
-
-						if (!startRaspberryApps && app.code.startsWith('RASPBERRY_')) continue;
-
-						this._appList[app.id] = {
-							name:   app.name,
-							app_id: app.id,
-							code:   app.code,
-							url:    app.url,
-							online: app.isOnline,
-							//TODO change to normal manage logic
-							isRasp : app.code.startsWith('RASPBERRY_')
-						};
+						resolve();
+					}
+					else {
+						reject(`no services found`);
 					}
 
-					resolve();
-				}
-				else {
-					reject(`no services found`);
-				}
-
-			}).catch(error => {
-				logger.error(`Get active services error ${BeameLogger.formatError(error)}`);
-				reject(error);
-			})
+				}).catch(error => {
+					logger.error(`Get active services error ${BeameLogger.formatError(error)}`);
+					reject(error);
+				})
 			}
 		);
 	}
@@ -111,9 +123,7 @@ class ServiceManager {
 	}
 
 	getAppById(app_id) {
-		let app = this._appList[app_id];
-
-		return app;
+		return this._appList[app_id];
 	}
 
 	isAdminService(app_id) {
@@ -132,6 +142,11 @@ class ServiceManager {
 		);
 	}
 
+	/** @type {ServiceManager} */
+	static getInstance() {
+
+		return serviceManager;
+	}
 }
 
 module.exports = ServiceManager;

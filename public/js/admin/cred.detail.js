@@ -310,7 +310,7 @@ function loadCredDetail(data) {
 			this.set('commonButtonDisabled', this.data.revoked);
 			this.set('renewButtonDisabled', this.data.revoked || !this.data.isLocal);
 			this.set('emailFormVisible', !this.data.revoked && this.data.pwd);
-			this.set('showValidCertForms', !this.data.revoked);
+			this.set('showValidCertForms', !this.data.revoked && this.data.isLocal);
 			this.set('showDns', !this.data.revoked && data.isLocal);
 
 			bindEmailEvent();

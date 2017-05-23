@@ -5,26 +5,24 @@ const module_name = "ChatApp";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const Service = require('../../constants').SetupServices.SampleChat;
-
-const port = Service.port;
-const host = 'localhost';
-
+const host    = 'localhost';
+const express = require('express');
+const app     = express();
 // Hack attack!
 
 class Server {
 
-	start() {
-		var express = require('express');
-		var app = express();
-		var http = require('http').Server(app);
-		var io = require('socket.io')(http);
+	start(cb) {
+
+		let http = require('http').Server(app);
+		let io = require('socket.io')(http);
 
 		app.use('/', express.static(__dirname + '/public'));
 
-		var numUsers = 0;
+		let numUsers = 0;
 
-		io.on('connection', function (socket) {
-			var addedUser = false;
+		io.on('connection',  (socket) => {
+			let addedUser = false;
 
 			// when the client emits 'new message', this listens and executes
 			socket.on('new message', function (data) {
@@ -81,8 +79,10 @@ class Server {
 			});
 		});
 
-		http.listen(port, host, function(){
-			logger.info(`Listening on ${host}:${port}`);
+		http.listen(0, host, () =>{
+			this._server = http;
+			logger.info(`Listening on ${host}:${this._server.address().port}`);
+			cb && cb(null,{code:Service.code, url:`http://${host}:${this._server.address().port}`})
 		});
 
 		this._app = app;
