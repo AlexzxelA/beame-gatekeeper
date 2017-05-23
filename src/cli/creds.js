@@ -1,6 +1,6 @@
 'use strict';
-const Table = require('cli-table2');
-const colors      = require('colors');
+const Table  = require('cli-table2');
+const colors = require('colors');
 
 const fs   = require('fs');
 const path = require('path');
@@ -10,7 +10,8 @@ const Bootstrapper      = require('../bootstrapper');
 const bootstrapper      = Bootstrapper.getInstance();
 const credentialManager = new (require('../credentialManager'))();
 const AuthServices      = require('../authServices');
-const serviceManager    = new (require('../servers/gw/serviceManager'))();
+const ServiceManager    = require('../serviceManager');
+const serviceManager    = ServiceManager.getInstance();
 const utils             = require('../utils');
 
 const beameSDK    = require('beame-sdk');
@@ -33,13 +34,6 @@ function startDataService() {
 function getCreds(regToken, fqdn, callback) {
 
 
-	let validationResp = bootstrapper.isConfigurationValid();
-
-	if(!validationResp.valid){
-		callback(validationResp.message);
-		return;
-	}
-
 	if (!regToken && !fqdn) {
 		callback(`Registration token or fqdn required`);
 		return;
@@ -53,6 +47,18 @@ function getCreds(regToken, fqdn, callback) {
 	}
 
 	bootstrapper.initAll()
+		.then(()=>{
+
+			let validationResp = bootstrapper.isConfigurationValid();
+
+			if (!validationResp.valid) {
+				callback(validationResp.message);
+				return;
+			}
+
+			return Promise.resolve();
+
+		})
 		.then(() => {
 			credentialManager.createInitialCredentials(regToken, fqdn).then(metadata => {
 				console.log('');
@@ -71,25 +77,25 @@ getCreds.params = {
 	'fqdn':     {required: false, base64: false, json: false}
 };
 
-function listVpnCreds(fqdn,vpnId,callback) {
+function listVpnCreds(fqdn, vpnId, callback) {
 
 	let validationResp = bootstrapper.isConfigurationValid();
 
-	if(!validationResp.valid){
+	if (!validationResp.valid) {
 		callback(validationResp.message);
 		return;
 	}
 
-	AuthServices.vpnCredsList(fqdn,vpnId).then(list => {
+	AuthServices.vpnCredsList(fqdn, vpnId).then(list => {
 
 		list = list.map(item => {
 
 			return {
-				fqdn: item.fqdn,
-				name:item.getMetadataKey("Name"),
-				X509: item.getKey("X509"),
-				certEnd:item.getCertEnd(),
-				expired:item.expired
+				fqdn:    item.fqdn,
+				name:    item.getMetadataKey("Name"),
+				X509:    item.getKey("X509"),
+				certEnd: item.getCertEnd(),
+				expired: item.expired
 			}
 		});
 
@@ -99,21 +105,24 @@ function listVpnCreds(fqdn,vpnId,callback) {
 		callback(e);
 	});
 }
-listVpnCreds.params = {'fqdn': {required: true, base64: false, json: false},'vpnId': {required: true, base64: false, json: false}};
-listVpnCreds.toText = creds=>{
+listVpnCreds.params = {
+	'fqdn':  {required: true, base64: false, json: false},
+	'vpnId': {required: true, base64: false, json: false}
+};
+listVpnCreds.toText = creds => {
 	let table = new Table({
-		head:      ['name', 'fqdn','expires'],
+		head:      ['name', 'fqdn', 'expires'],
 		colWidths: [70, 100, 25]
 	});
 
-	const _setStyle = (value,cred) => {
+	const _setStyle = (value, cred) => {
 		let val = value || '';
 		return cred.expired === true ? colors.red(val) : val;
 	};
 
 	creds.forEach(item => {
 
-		table.push([_setStyle(item.name,item),_setStyle(item.fqdn,item),_setStyle(item.certEnd,item)]);
+		table.push([_setStyle(item.name, item), _setStyle(item.fqdn, item), _setStyle(item.certEnd, item)]);
 	});
 	return table;
 };
@@ -122,7 +131,7 @@ function list(regex, callback) {
 
 	let validationResp = bootstrapper.isConfigurationValid();
 
-	if(!validationResp.valid){
+	if (!validationResp.valid) {
 		callback(validationResp.message);
 		return;
 	}
@@ -141,7 +150,7 @@ function webToken(type, appId, callback) {
 
 	let validationResp = bootstrapper.isConfigurationValid();
 
-	if(!validationResp.valid){
+	if (!validationResp.valid) {
 		callback(validationResp.message);
 		return;
 	}

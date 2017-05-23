@@ -198,7 +198,7 @@ class Bootstrapper {
 				return responseObj;
 			}
 
-			if(!credEnv) return responseObj;
+			if (!credEnv) return responseObj;
 
 			if (keeperProfile.FqdnPattern != credEnv) {
 				responseObj.valid   = false;
@@ -282,6 +282,7 @@ class Bootstrapper {
 		);
 	}
 
+	//region getters and setters
 	get delegatedLoginUrl() {
 		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : (this.allowDirectSignin ? null : Constants.DCLSOfflinePath)) : null;
 	}
@@ -290,7 +291,6 @@ class Bootstrapper {
 		return this.envMode == Constants.EnvMode.CentralLogin || this.envMode == Constants.EnvMode.DelegatedLoginMaster
 	}
 
-	//region getters
 	get isDelegatedCentralLoginVerified() {
 		return this._isDelegatedCentralLoginVerified;
 	}
@@ -392,6 +392,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.AppId] ? this._config[SettingsProps.AppId] : null;
 	}
 
+	set appId(value) {
+		this._config[SettingsProps.AppId] = value;
+	}
+
 	get appData() {
 		return {
 			name:    this.serviceName,
@@ -427,10 +431,6 @@ class Bootstrapper {
 
 	get useBeameAuthOnLocal() {
 		return this._config[SettingsProps.UseBeameAuthOnLocal];
-	}
-
-	get startRaspberryApp() {
-		return this._config[SettingsProps.StartRaspberryApp];
 	}
 
 	get allowDirectSignin() {
@@ -549,12 +549,12 @@ class Bootstrapper {
 							config[prop] = defaults[prop];
 						}
 
-						//noinspection JSUnfilteredForInLoop
-						if (prop == SettingsProps.AppId && !config[prop]) {
-							updateFile   = true;
-							//noinspection JSUnfilteredForInLoop
-							config[prop] = uuid.v4();
-						}
+						// //noinspection JSUnfilteredForInLoop
+						// if (prop == SettingsProps.AppId && !config[prop]) {
+						// 	updateFile   = true;
+						// 	//noinspection JSUnfilteredForInLoop
+						// 	config[prop] = uuid.v4();
+						// }
 					}
 
 					this._config = config;

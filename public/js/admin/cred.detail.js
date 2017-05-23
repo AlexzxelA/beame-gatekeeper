@@ -10,15 +10,16 @@ function showNotification(success,message,hideAfter){
 	    wHeight = $(window).height(),
 	    newTop, newLeft;
 
-	newLeft = Math.floor(wWidth / 2 - 240 / 2);
+	newLeft = Math.floor(wWidth / 2 - 300 / 2);
 
 	var notification = $("#d-notif").kendoNotification({
 		position: {
 			top: 50,
 			left: newLeft
 		},
-		autoHideAfter: hideAfter || 5000,
+		autoHideAfter: 0,
 		button: true,
+        hideOnClick: true,
 		templates: [{
 			type: "error",
 			template: $("#errorTemplate").html()
@@ -110,7 +111,7 @@ function initInvitationWindow() {
 	invWnd.empty();
 	invWnd.kendoWindow({
 		width:   "400px",
-		height:  "450px",
+		height:  "400px",
 		title:   "Create Invitation",
 		visible: false,
 		modal:   true,
@@ -306,7 +307,7 @@ function loadCredDetail(data) {
 			this.set('commonButtonDisabled', this.data.revoked);
 			this.set('renewButtonDisabled', this.data.revoked || !this.data.isLocal);
 			this.set('emailFormVisible', !this.data.revoked && this.data.pwd);
-			this.set('showValidCertForms', !this.data.revoked);
+			this.set('showValidCertForms', !this.data.revoked && this.data.isLocal);
 			this.set('showDns', !this.data.revoked && data.isLocal);
 
 			bindEmailEvent();

@@ -5,12 +5,14 @@
 
 const path = require('path');
 const os   = require('os');
-const home = os.homedir();
+const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const EnvProfile = {
 	Name : 'Prod',
 	FqdnPattern: '.p.'
 };
+
+const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
 
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
@@ -25,10 +27,8 @@ const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
 const RegisterPath             = `${GatewayControllerPath}/register`;
 const DirectPath               = `${GatewayControllerPath}/direct-signin`;
 const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
-const beame_server_folder_name = ".beame_server";
+const beame_server_folder_name = process.env.BEAME_SERVER_FOLDER || ".beame_server";
 const BeameRootPath            = path.join(home, beame_server_folder_name);
-
-const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
 
 
 const ConfigFolder      = "config";
@@ -130,11 +130,11 @@ const DbProviders = {
 
 const SetupServices = {
 	"Admin":           {code: "ADMIN"},
-	"MobilePhoto":     {code: "MOBILE_PHOTO", port: 65510},
-	"MobileStream":    {code: "MOBILE_STREAM", port: 65511},
-	"SampleChat":      {code: "SAMPLE_CHAT", port: 65512},
-	"SampleFileShare": {code: "SAMPLE_FILE_SHARE", port: 65513},
-	"RaspberryLight":  {code: "RASPBERRY_LIGHT", port: 65514}
+	"MobilePhoto":     {code: "MOBILE_PHOTO"},
+	"MobileStream":    {code: "MOBILE_STREAM"},
+	"SampleChat":      {code: "SAMPLE_CHAT"},
+	"SampleFileShare": {code: "SAMPLE_FILE_SHARE"},
+	"RaspberryLight":  {code: "RASPBERRY_LIGHT"}
 };
 
 const CookieNames = {
@@ -150,8 +150,8 @@ const CookieNames = {
 };
 
 module.exports = {
-	EnvProfile,
 	BeameAuthServerLocalPort,
+	EnvProfile,
 	RequestType,
 	RegistrationMethod,
 	RegistrationSource,

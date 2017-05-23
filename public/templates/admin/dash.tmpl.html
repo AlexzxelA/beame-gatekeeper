@@ -3,6 +3,8 @@
     <div style="padding: 10px">
         <h4>Service: <span data-bind="text: data.AppConfig.ServiceName"></span></h4>
 
+        <h5>Version: <span data-bind="text: data.Version"></span></h5>
+
         <h5>AppId: <span data-bind="text: data.AppConfig.AppId"></span></h5>
 
         <ul id="panelbar" style="width: 600px;display: none;">
@@ -106,11 +108,6 @@
                         </li>
 
                         <li>
-                            <label>Start Raspberry app</label>
-                            <input type="checkbox" data-bind="checked:data.AppConfig.StartRaspberryApp" />
-                        </li>
-
-                        <li>
                             <label>Pairing Required</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.PairingRequired" />
                         </li>
@@ -121,7 +118,7 @@
                         </li>
 
                         <li>
-                            <label>External Matching Fqdn</label>
+                            <label for="ExternalMatchingFqdn">External Matching Fqdn</label>
                             <textarea  data-bind="value:data.AppConfig.ExternalMatchingFqdn"  class='k-textbox' id="ExternalMatchingFqdn" cols="30" rows="2"></textarea>
                         </li>
 

@@ -12,19 +12,19 @@ module.exports = {
 				createdAt: new Date(),
 				updatedAt: new Date()
 			},
-			// {
-			// 	name:      'Files sharing app',
-			// 	code:      Services.SampleFileShare.code,
-			// 	url:       `http://127.0.0.1:${Services.SampleFileShare.port}`,
-			// 	isActive:  true,
-			// 	isOnline:  true,
-			// 	createdAt: new Date(),
-			// 	updatedAt: new Date()
-			// },
+			{
+				name:      'Files sharing app',
+				code:      Services.SampleFileShare.code,
+				//url:       `http://127.0.0.1:${Services.SampleFileShare.port}`,
+				isActive:  true,
+				isOnline:  true,
+				createdAt: new Date(),
+				updatedAt: new Date()
+			},
 			{
 				name:      'Simple chat',
 				code:      Services.SampleChat.code,
-				url:       `http://127.0.0.1:${Services.SampleChat.port}`,
+				//url:       `http://127.0.0.1:${Services.SampleChat.port}`,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),
@@ -33,21 +33,21 @@ module.exports = {
 			{
 				name:      'Mobile Photos',
 				code:      Services.MobilePhoto.code,
-				url:       `http://127.0.0.1:${Services.MobilePhoto.port}`,
+				//url:       `http://127.0.0.1:${Services.MobilePhoto.port}`,
 				isActive:  true,
 				isOnline:  true,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			},
-			// {
-			// 	name:      'Mobile Stream',
-			// 	code:      Services.MobileStream.code,
-			// 	url:       `http://127.0.0.1:${Services.MobileStream.port}`,
-			// 	isActive:  true,
-			// 	isOnline:  true,
-			// 	createdAt: new Date(),
-			// 	updatedAt: new Date()
-			// }
+			{
+				name:      'Mobile Stream',
+				code:      Services.MobileStream.code,
+				//url:       `http://127.0.0.1:${Services.MobileStream.port}`,
+				isActive:  false,
+				isOnline:  false,
+				createdAt: new Date(),
+				updatedAt: new Date()
+			}
 		], {});
 
 	},

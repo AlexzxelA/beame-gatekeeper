@@ -247,21 +247,20 @@
 </script>
 
 <script id="tmpl-create-invitation" type="text/x-kendo-template">
-    <h4>Create Invitation</h4>
-    <section id="inv-form-container" style="margin-bottom: 50px">
+    <section id="inv-form-container">
         <form id="frm-create-invitation" method="post" class="form-main admin-form-main">
             <div id="inv-info">&nbsp;</div>
             <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
             <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
             <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>
-            <label class="d-inline-block form-input" style="border: none;box-shadow: none">Send invitation by email <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/></label>
-            <input type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite" class="button">
+            <label class="d-inline-block small"><input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send invitation by email</label>
+            <input class="k-primary btn-bold mt-2" type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite">
         </form>
     </section>
 
-    <div id="inv-qr-container" style="display:none;text-align: center" class="form-main admin-form-main">
-        <input type="button" id="btn-inv-back" value="back" data-bind="click:back">
-        <div id="inv-qr" class="m-auto"></div>
+    <div id="inv-qr-container" style="display:none;" class="form-main admin-form-main text-center">
+        <div id="inv-qr" class="my-2 d-inline-block"></div>
+        <input type="button" class="k-button m-auto btn-bold" id="btn-inv-back" value="Back" data-bind="click:back">
     </div>
 
     <div id="wnd-overlay-inv" class="overlay" style="max-height: 100% !important">

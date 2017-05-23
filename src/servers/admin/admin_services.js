@@ -54,7 +54,8 @@ class AdminServices {
 					"DbConfig":  null,
 					"Creds":     null,
 					"RegMethods":null,
-					"EnvModes"  :null
+					"EnvModes"  :null,
+					"Version":   bootstrapper.version
 				};
 
 				try {
@@ -117,6 +118,8 @@ class AdminServices {
 							}
 						],
 						() => {
+
+
 							resolve(data);
 						});
 				} catch (e) {
@@ -166,7 +169,6 @@ class AdminServices {
 		return dataService.getServices();
 	}
 
-	//noinspection JSMethodCanBeStatic
 	saveService(service) {
 		return new Promise((resolve, reject) => {
 				dataService.saveService(service).then(entity => {
@@ -179,7 +181,6 @@ class AdminServices {
 
 	}
 
-	//noinspection JSMethodCanBeStatic
 	updateService(service) {
 
 		return new Promise((resolve, reject) => {
@@ -193,7 +194,6 @@ class AdminServices {
 
 	}
 
-	//noinspection JSMethodCanBeStatic
 	deleteService(id) {
 		return new Promise((resolve, reject) => {
 				dataService.deleteService(id).then(this._serviceManager.evaluateAppList.bind(this._serviceManager)).then(resolve).catch(reject);

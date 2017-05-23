@@ -74,3 +74,13 @@ Please read [User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technic
 
 sudo usermod -a -G gpio beame-gatekeeper
 
+
+## Environment variables
+
+* `BEAME_GATEKEEPER_DIR` -  defines the base directory relative to which beame-gatekeeper files should be stored, default os.homedir() 
+* `BEAME_SERVER_FOLDER`  - name of beame-gatekeeper config folder , default .beame_server
+* `BEAME_DATA_FOLDER`  - name of beame-gatekeeper data folder , default .beame_data
+* `BEAME_AUTH_SERVER_PORT` - auth server local port, default 65000
+* `BEAME_DISABLE_DEMO_SERVERS` - disable demo apps on server start, default false
+* `BEAME_OCSP_CACHE_PERIOD` - OCSP result cashing period , default 24 hours
+

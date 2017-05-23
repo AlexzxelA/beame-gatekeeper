@@ -233,6 +233,10 @@ class DataServices {
 		return this._dbService.updateService(service);
 	}
 
+	updateServiceUrl(id,url) {
+		return this._dbService.updateServiceUrl(id,url);
+	}
+
 	deleteService(id) {
 		return this._dbService.deleteService(id);
 	}

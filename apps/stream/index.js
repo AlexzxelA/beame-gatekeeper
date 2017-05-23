@@ -5,23 +5,24 @@ const module_name = "MobileStream";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const Service     = require('../../constants').SetupServices.MobileStream;
-
-const port = Service.port;
-const host = 'localhost';
-
-// Hack attack!
+const host        = 'localhost';
+const express     = require('express');
+const app         = express();
 
 class Server {
 
-	start() {
-		var express = require('express');
-		var app     = express();
-		var http    = require('http').Server(app);
+	start(cb) {
+
+		let http = require('http').Server(app);
 
 		app.use(express.static(__dirname + '/public'));
 
-		http.listen(port, host, function () {
-			logger.info(`Listening on ${host}:${port}`);
+		http.listen(0, host, function () {
+			this._server = http;
+
+			logger.info(`Listening on ${host}:${this._server.address().port}`);
+
+			cb && cb(null, {code: Service.code, url: `http://${host}:${this._server.address().port}`})
 		});
 
 		this._app = app;

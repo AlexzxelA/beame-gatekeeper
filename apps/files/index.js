@@ -5,27 +5,26 @@ const module_name = "FilesApp";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const Service     = require('../../constants').SetupServices.SampleFileShare;
-
-const port = Service.port;
-const host = 'localhost';
-
-// Hack attack!
+const host        = 'localhost';
+const express     = require('express');
+const app         = express();
 
 class Server {
 
-	start() {
-		var express = require('express');
-		var app     = express();
-		var http    = require('http').Server(app);
-		var io      = require('socket.io')(http);
+	start(cb) {
 
-		var serveIndex = require('serve-index');
+		let http    = require('http').Server(app);
+		let io      = require('socket.io')(http);
+
+		let serveIndex = require('serve-index');
 
 		app.use(express.static(__dirname + '/public'));
 		app.use('/', serveIndex(__dirname + '/public', {'icons': true}));
 
-		http.listen(port, host, function () {
-			logger.info(`Listening on ${host}:${port}`);
+		http.listen(0, host,  () => {
+			this._server = http;
+			logger.info(`Listening on ${host}:${this._server.address().port}`);
+			cb && cb(null,{code:Service.code, url:`http://${host}:${this._server.address().port}`})
 		});
 
 		this._app  = app;
