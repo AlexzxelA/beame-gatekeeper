@@ -12,7 +12,7 @@ endif
 default:
 	exit 1
 
-.PHONY: build build-s3 build-jenkins clean copy-to-system
+.PHONY: build build-s3 build-jenkins clean copy-to-system test
 build:
 	-rm -r node_modules
 	$(CHRONIC) npm install
@@ -43,4 +43,8 @@ copy-to-system:
 clean:
 	-rm -r build
 
-build-jenkins: clean build
+test:
+	rm -r ~/.beame* || true
+	cd tests && ./test.ngs
+
+build-jenkins: clean test build
