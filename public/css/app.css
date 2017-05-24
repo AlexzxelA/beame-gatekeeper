@@ -3634,10 +3634,36 @@ Notifications
 
 .notif-success,
 .notif-error {
-  width: 300px;
+  width: 400px;
   height: 100%;
-  padding: 1.5rem;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  padding: 1.5rem 1.5rem .5rem; }
+  .notif-success button,
+  .notif-error button {
+    float: right;
+    padding: .25rem .75rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: .9rem;
+    letter-spacing: .5px;
+    color: #fff;
+    outline: none;
+    background-color: rgba(32, 180, 11, 0.3);
+    transition: background-color .15s; }
+    .notif-success button:hover,
+    .notif-error button:hover {
+      background-color: rgba(32, 180, 11, 0.7); }
+
+.notif-error button {
+  background-color: rgba(255, 0, 0, 0.3); }
+  .notif-error button:hover {
+    background-color: rgba(255, 0, 0, 0.7); }
+
+.notif-success img,
+.notif-error img {
+  width: 20px;
+  height: 20px;
+  float: left; }
 
 .notif-success h3,
 .notif-error h3 {
@@ -3649,12 +3675,6 @@ Notifications
   overflow-y: auto;
   line-height: 1.5;
   max-height: 250px; }
-
-.notif-success img,
-.notif-error img {
-  width: 20px;
-  height: 20px;
-  float: left; }
 
 /* -------------------------
 Cards

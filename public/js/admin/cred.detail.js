@@ -10,7 +10,7 @@ function showNotification(success,message){
 	    wHeight = $(window).height(),
 	    newTop, newLeft;
 
-	newLeft = Math.floor(wWidth / 2 - 300 / 2);
+	newLeft = Math.floor(wWidth / 2 - 400 / 2);
 
     var notificationDelay = success ? 3500 : 0;
 
@@ -19,7 +19,7 @@ function showNotification(success,message){
 			top: 50,
 			left: newLeft
 		},
-        hideOnClick: true,
+        hideOnClick: false,
 		templates: [{
 			type: "error",
 			template: $("#errorTemplate").html()
