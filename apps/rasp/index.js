@@ -10,13 +10,31 @@ const host        = 'localhost';
 const http        = require('http');
 const express     = require('express');
 const app         = express();
+const path = require('path');
+
 
 class Server {
 
 	constructor() {
-		this._server = null;
-	}
+		this._server   = null;
+		this._gpio     = null;
+		this._led      = null;
+		this._ledState = 0;
 
+		try {
+			this._gpio = require('onoff').Gpio;
+		} catch (e) {
+			logger.error(`Gpio not supported`);
+		}
+
+		try {
+			this._led      = new this._gpio(14, 'out');
+			this._ledState = this._led.readSync();
+		} catch (e) {
+			logger.error(`Led not connected`);
+		}
+
+	}
 
 	start(cb) {
 
@@ -24,32 +42,32 @@ class Server {
 
 		app.use(express.static(__dirname + '/public'));
 
+		app.get('/', (req, res) =>{
+			res.cookie('beame_led_state', this._ledState);
+			res.sendFile(path.join(__dirname + '/public','rasp.html'));
+		});
+
 		app.post('/switch/:cmd', (req, res) => {
 			let cmd = req.params.cmd;
 
-			let gpio;
-
-			try {
-				const Gpio = require('onoff').Gpio;
-				gpio       = Gpio;
-			} catch (e) {
-				logger.error(`Gpio not supported`);
-			}
-
-			if (!gpio) {
+			if (!this._gpio) {
 				res.status(200).json({message: 'GPIO not supported on current platform', status: 500});
 				return;
 			}
 
-			let led = new gpio(14, 'out');
+			if (!this._led) {
+				res.status(200).json({message: 'Led not connected', status: 500});
+				return;
+			}
+
 			switch (cmd) {
 				case "on":
-					led.writeSync(1);
+					this._led.writeSync(1);
 					res.status(200).json({cmd, status: 200});
 					this._socketioServer.sockets.emit('switch', {cmd});
 					break;
 				case "off":
-					led.writeSync(0);
+					this._led.writeSync(0);
 					res.status(200).json({cmd, status: 200});
 					this._socketioServer.sockets.emit('switch', {cmd});
 					break;
@@ -66,7 +84,7 @@ class Server {
 
 			logger.info(`Listening on ${host}:${this._server.address().port}`);
 
-			 cb && cb(null,{code:Service.code, url:`http://${host}:${this._server.address().port}`})
+			cb && cb(null, {code: Service.code, url: `http://${host}:${this._server.address().port}`})
 
 		});
 
@@ -82,7 +100,7 @@ class Server {
 
 	}
 
-	stop(){
+	stop() {
 		if (this._server) {
 			this._server.close();
 			this._server = null;

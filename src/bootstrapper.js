@@ -176,7 +176,7 @@ class Bootstrapper {
 		}
 	}
 
-	isConfigurationValid() {
+	static isConfigurationValid() {
 
 		let responseObj = {
 			valid:   true,

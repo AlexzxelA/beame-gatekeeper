@@ -49,7 +49,7 @@ function getCreds(regToken, fqdn, callback) {
 	bootstrapper.initAll()
 		.then(()=>{
 
-			let validationResp = bootstrapper.isConfigurationValid();
+			let validationResp = Bootstrapper.isConfigurationValid();
 
 			if (!validationResp.valid) {
 				callback(validationResp.message);
@@ -79,7 +79,7 @@ getCreds.params = {
 
 function listVpnCreds(fqdn, vpnId, callback) {
 
-	let validationResp = bootstrapper.isConfigurationValid();
+	let validationResp = Bootstrapper.isConfigurationValid();
 
 	if (!validationResp.valid) {
 		callback(validationResp.message);
@@ -129,7 +129,7 @@ listVpnCreds.toText = creds => {
 
 function list(regex, callback) {
 
-	let validationResp = bootstrapper.isConfigurationValid();
+	let validationResp = Bootstrapper.isConfigurationValid();
 
 	if (!validationResp.valid) {
 		callback(validationResp.message);
@@ -148,7 +148,7 @@ createServersCredentials.params = {};
 
 function webToken(type, appId, callback) {
 
-	let validationResp = bootstrapper.isConfigurationValid();
+	let validationResp = Bootstrapper.isConfigurationValid();
 
 	if (!validationResp.valid) {
 		callback(validationResp.message);

@@ -38,7 +38,7 @@ class ServersManager {
 
 	start() {
 
-		let validationResp = bootstrapper.isConfigurationValid();
+		let validationResp = Bootstrapper.isConfigurationValid();
 
 		if(!validationResp.valid){
 

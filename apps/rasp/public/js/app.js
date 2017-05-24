@@ -44,11 +44,15 @@ function switchLighter(isOn){
 }
 
 function onRaspLoaded(){
+
 	imgLight = document.getElementById('img-light');
 	raspMsgContainer= document.getElementById('rasp-msg');
 
-
 	toggleSwitch = document.getElementById('switcher');
+
+	var state = getCookie('beame_led_state');
+
+	switchLighter(state == 1);
 
 	toggleSwitch.addEventListener('click', function(){
 		var cmd;
@@ -99,6 +103,20 @@ function removeClass(el, className) {
 		var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
 		el.className=el.className.replace(reg, ' ')
 	}
+}
+function getCookie(cname) {
+	var name = cname + "=";
+	var ca = document.cookie.split(';');
+	for(var i = 0; i <ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') {
+			c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+			return c.substring(name.length,c.length);
+		}
+	}
+	return "";
 }
 
 document.addEventListener("DOMContentLoaded", onRaspLoaded);
