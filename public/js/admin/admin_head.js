@@ -18,14 +18,6 @@ var ADMIN_TEMPLATES = {
 		path:  "templates/admin/invitations.tmpl.html",
 		event: "invitationLoaded"
 	},
-	RegToken:    {
-		path:  "templates/admin/regtoken.tmpl.html",
-		event: "tokenLoaded"
-	},
-	Cred:    {
-		path:  "templates/admin/create.cred.tmpl.html",
-		event: "credLoaded"
-	},
 	CredDetail:    {
 		path:  "templates/admin/cred.detail.tmpl.html",
 		event: "credDetailLoaded"
@@ -75,8 +67,6 @@ templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Dash.path, ADMIN_TEMPLATES.Dash.e
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.User.path, ADMIN_TEMPLATES.User.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Invitation.path, ADMIN_TEMPLATES.Invitation.event);
-templateLoader.loadExtTemplate(ADMIN_TEMPLATES.RegToken.path, ADMIN_TEMPLATES.RegToken.event);
-templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Cred.path, ADMIN_TEMPLATES.Cred.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.CredDetail.path, ADMIN_TEMPLATES.CredDetail.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Creds.path, ADMIN_TEMPLATES.Creds.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Service.path, ADMIN_TEMPLATES.Service.event);
