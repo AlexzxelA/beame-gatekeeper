@@ -3552,8 +3552,8 @@ Top Menu
   .k-menu.k-header .k-item {
     background-color: transparent;
     border-width: 0;
-    margin-left: 1rem;
-    margin-right: 1rem; }
+    margin-left: .75rem;
+    margin-right: .75rem; }
     .k-menu.k-header .k-item.k-state-hover {
       background-color: transparent; }
     .k-menu.k-header .k-item.k-state-selected, .k-menu.k-header .k-item a.k-state-selected {
@@ -3561,10 +3561,12 @@ Top Menu
       background-color: transparent;
       cursor: default; }
     .k-menu.k-header .k-item.k-last {
-      border-left: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: none;
-      padding-left: 1.5rem;
-      margin-left: .5rem; }
+      box-shadow: none; }
+      @media screen and (min-width: 1200px) {
+        .k-menu.k-header .k-item.k-last {
+          border-left: 1px solid rgba(255, 255, 255, 0.3);
+          padding-left: 1.25rem;
+          margin-left: .5rem; } }
     .k-menu.k-header .k-item .k-link {
       color: #fff;
       padding: .6rem 0; }
@@ -3717,6 +3719,12 @@ input.k-input, input.form-input {
   .admin-form-main .button {
     max-width: 200px;
     display: block; }
+  .admin-form-main textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: .5rem;
+    border-color: #F9F9F9;
+    resize: none; }
 
 .overflow {
   text-overflow: ellipsis;
@@ -3828,7 +3836,8 @@ Helpers
   border-right: 1px solid rgba(0, 0, 0, 0.1); }
 
 .m-auto {
-  margin: 0 auto; }
+  margin-right: auto;
+  margin-left: auto; }
 
 .w-100 {
   width: 100%; }

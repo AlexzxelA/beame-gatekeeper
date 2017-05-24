@@ -108,7 +108,7 @@
                             <input type="button" id="btn-create-dns" value="Create DNS Record" class="k-button mt-1 semi text-black">
 
 
-                            <div id="frm-dns-info" class="invisible-msg">&nbsp;</div>
+                            <!--<div id="frm-dns-info" class="invisible-msg">&nbsp;</div>-->
 
                         </form>
                     </div>
@@ -199,7 +199,7 @@
         <label class="d-inline-block small">
             <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send cred by email
         </label>
-        <div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>
+        <!--<div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>-->
         <input type="button" value="Create Certificate" class="k-primary btn-bold mt-2" data-bind="click:createCred">
     </form>
     <div id="wnd-overlay-cred" class="overlay" style="max-height: 100% !important">
@@ -215,7 +215,7 @@
 <script id="tmpl-create-regtoken" type="text/x-kendo-template">
     <form id="frm-create-regtoken" action='/regtoken/create' method="post" class="form-main admin-form-main">
 
-        <label class="lbl-info">Create registration token signed by</label>
+        <!-- <label class="lbl-info">Create registration token signed by</label> -->
         <label class="lbl-info">Fqdn: #: fqdn#</label>
         # if(name) {#
         <label class="lbl-info">Name: #: name#</label>
@@ -225,15 +225,15 @@
         <input name="email" type="email" placeholder="Email" class="form-input"/>
         <input name="user_id" placeholder="External user ID" class="form-input"/>
         <input name="ttl" placeholder="Token TTL in seconds" class="form-input"/>
-
-        <div id="token-info" class="invisible-msg">&nbsp;</div>
-        <input type="button" value="Create Registration Token" class="k-primary" id="btn-create-regtoken">
+        <!--<div id="token-info" class="invisible-msg">&nbsp;</div>-->
+        <input type="button" value="Create Registration Token" class="k-primary btn-bold mt-2" id="btn-create-regtoken">
     </form>
 
     <div id="reg-token-container" style="display:none;" class="form-main admin-form-main">
-        <input type="button" id="btn-regtoken-back" value="back">
-        <input id="copy-btn" type="submit" name="submit" value="Copy to clipboard" class="k-button" data-clipboard-action="copy"/>
-        <textarea id="reg_token" name="reg_token" style="width: 80%;margin: 15px 0 0;" rows="10"></textarea>
+
+        <input class="k-button my-2 m-auto btn-bold" id="copy-btn" type="submit" name="submit" value="Copy to clipboard" data-clipboard-action="copy"/>
+        <textarea id="reg_token" name="reg_token" rows="10"></textarea>
+        <input class="k-button mt-2 m-auto btn-bold" type="button" id="btn-regtoken-back" value="Back">
     </div>
 
     <div id="wnd-overlay-rt" class="overlay" style="max-height: 100% !important">
@@ -249,7 +249,7 @@
 <script id="tmpl-create-invitation" type="text/x-kendo-template">
     <section id="inv-form-container">
         <form id="frm-create-invitation" method="post" class="form-main admin-form-main">
-            <div id="inv-info">&nbsp;</div>
+            <!--<div id="inv-info">&nbsp;</div>-->
             <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
             <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
             <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>

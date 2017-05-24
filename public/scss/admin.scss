@@ -32,8 +32,8 @@ Top Menu
   .k-item {
     background-color: transparent;
     border-width: 0;
-    margin-left: 1rem;
-    margin-right: 1rem;
+    margin-left: .75rem;
+    margin-right: .75rem;
     &.k-state-hover {
       background-color: transparent;
     }
@@ -43,10 +43,12 @@ Top Menu
       cursor: default;
     }
     &.k-last {
-      border-left: 1px solid rgba(255, 255, 255, .3);
       box-shadow: none;
-      padding-left: 1.5rem;
-      margin-left: .5rem;
+      @media screen and (min-width: 1200px) {
+        border-left: 1px solid rgba(255, 255, 255, .3);
+        padding-left: 1.25rem;
+        margin-left: .5rem;
+      }
     }
     .k-link {
       color: $white;
@@ -249,6 +251,13 @@ input.k-input, input.form-input {
     max-width: 200px;
     display: block;
   }
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: .5rem;
+    border-color: $gray-lighter;
+    resize: none;
+  }
 }
 
 .overflow {
@@ -347,7 +356,7 @@ a.btn-clear, .btn-clear, button.btn-clear {
   .search-complex-addon, .search-complex-input, .search-complex-btn {
     white-space: nowrap;
     box-shadow: none;
-    border:1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     &:hover, &:active, &:focus {
       box-shadow: none;
       outline: none;
@@ -365,6 +374,8 @@ a.btn-clear, .btn-clear, button.btn-clear {
     border-width: 1px 1px 1px 0;
   }
 }
+
+
 
 /* -------------------------
 Helpers
@@ -396,7 +407,8 @@ Helpers
 }
 
 .m-auto {
-  margin: 0 auto;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .w-100 {

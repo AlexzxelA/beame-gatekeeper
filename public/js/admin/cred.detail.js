@@ -12,7 +12,7 @@ function showNotification(success,message){
 
 	newLeft = Math.floor(wWidth / 2 - 300 / 2);
 
-    var notificationDelay = success ? 5000 : 0;
+    var notificationDelay = success ? 3500 : 0;
 
 	var notification = $("#d-notif").kendoNotification({
 		position: {
@@ -196,20 +196,21 @@ function initRegtokenWindow(fqdn, name) {
 					contentType: "application/json; charset=utf-8"
 					, success:   function (response) {
 
-						if (response.responseCode == 1) {
+                        if (response.responseCode == 1) {
 
-							$("#token-info").removeClass('ad-error').addClass('ad-success');
+                            $('#reg_token').html(response.token);
+                            reinitModel(response,false);
 
-							$('#reg_token').html(response.token);
-							reinitModel(response,false);
+                            $('#frm-create-regtoken').hide();
+                            $('#reg-token-container').show();
 
-							$('#frm-create-regtoken').hide();
-							$('#reg-token-container').show();
-						}
-						else {
-							$("#token-info").removeClass('ad-success').addClass('ad-error');
-						}
-						$("#token-info").html(response.responseDesc);
+                            showNotification(response, 'The token is ready');
+
+                        }
+                        else {
+                            showNotification(false, response.responseDesc);
+                        }
+
 						hideLoader('wnd-overlay-rt');
 					}
 				});
@@ -266,24 +267,26 @@ function initQrWindow(url) {
 function handleDnsResponse(response) {
 	hideLoader();
 
-	if (response.responseCode == 1) {
 
-		$("#frm-dns-info").removeClass('ad-error').addClass('ad-success');
+    if (response.responseCode == 1) {
 
-		reinitModel(response,true);
+        reinitModel(response,true);
 
-		if (response.data) {
-			credDetailViewModel.set("data", response.data);
-			credDetailViewModel.set('dnsRecords', response.data.dnsRecords || []);
-			credDetailViewModel.set("dnsFqdn", null);
-			credDetailViewModel.set("dnsValue", null);
-			credDetailViewModel.set("availableDnsRecords", credDetailViewModel.getAvailableDnsRecords());
-		}
-	}
-	else {
-		$("#frm-dns-info").removeClass('ad-success').addClass('ad-error');
-	}
-	$("#frm-dns-info").html(response.responseDesc);
+        if (response.data) {
+            credDetailViewModel.set("data", response.data);
+            credDetailViewModel.set('dnsRecords', response.data.dnsRecords || []);
+            credDetailViewModel.set("dnsFqdn", null);
+            credDetailViewModel.set("dnsValue", null);
+            credDetailViewModel.set("availableDnsRecords", credDetailViewModel.getAvailableDnsRecords());
+        }
+
+        showNotification(response, response.responseDesc);
+
+    }
+    else {
+        showNotification(false, 'Error. ' + response.responseDesc);
+    }
+
 }
 
 function loadCredDetail(data) {
@@ -378,15 +381,14 @@ function loadCredDetail(data) {
 
 					hideLoader();
 
-					if (response.responseCode === 1) {
-						$("#cred-info").removeClass('ad-error').addClass('ad-success');
-						reinitModel(response,true);
-					}
-					else {
-						$("#cred-info").removeClass('ad-success').addClass('ad-error');
 
-					}
-					$("#cred-info").html(response.responseDesc);
+                    if (response.responseCode == 1) {
+                        showNotification(response, response.responseDesc);
+                        reinitModel(response,true);
+                    }
+                    else {
+                        showNotification(false, 'Error. ' + response.responseDesc);
+                    }
 				}
 			});
 		},
@@ -404,16 +406,15 @@ function loadCredDetail(data) {
 
 					hideLoader();
 
-					if (response.responseCode == 1) {
-						$("#cred-info").removeClass('ad-error').addClass('ad-success');
-						reinitModel(response,true);
-						$('#creds-tree').find('div[data-fqdn="' + $this.data.fqdn + '"]').addClass('revoked');
-					}
-					else {
-						$("#cred-info").removeClass('ad-success').addClass('ad-error');
+                    if (response.responseCode == 1) {
+                        reinitModel(response,true);
+                        $('#creds-tree').find('div[data-fqdn="' + $this.data.fqdn + '"]').addClass('revoked');
+                        showNotification(response, response.responseDesc);
+                    }
+                    else {
+                        showNotification(false, 'Error. ' + response.responseDesc);
+                    }
 
-					}
-					$("#cred-info").html(response.responseDesc);
 				}
 			});
 		},
@@ -436,6 +437,10 @@ function loadCredDetail(data) {
 					else {
 						showNotification(false,response.responseDesc);
 					}
+
+					console.log('response.data.status ------- ' + response.data.status)
+					console.log('response ------- ' + response)
+					console.log('response.data ------- ' + response.data)
 
 				}
 			});
@@ -674,7 +679,7 @@ function loadCredDetail(data) {
 				user_id = this.get("user_id");
 
 			if(!email && !user_id){
-				showNotification(false,'Email or UserId required');
+				showNotification(false,'Email required');
 				return;
 			}
 
