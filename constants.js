@@ -8,8 +8,8 @@ const os   = require('os');
 const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const EnvProfile = {
-	Name:        'Dev',
-	FqdnPattern: '.d.'
+	Name:        'Prod',
+	FqdnPattern: '.p.'
 };
 
 const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
