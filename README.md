@@ -70,6 +70,11 @@ Using "Visual C++ 2015 x64 Native Build Tools Command Prompt" under `C:\Program 
 
 Please read [User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf). It describes what and how you can do with Beame-Gatekeeper.
 
+### How to solve the GPIO access denied issue on Raspbian 
+
+sudo usermod -a -G gpio beame-gatekeeper
+
+
 ## Environment variables
 
 * `BEAME_GATEKEEPER_DIR` -  defines the base directory relative to which beame-gatekeeper files should be stored, default os.homedir() 
