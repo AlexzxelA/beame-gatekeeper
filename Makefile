@@ -12,7 +12,7 @@ endif
 default:
 	exit 1
 
-.PHONY: build build-s3
+.PHONY: build build-s3 build-jenkins clean copy-to-system
 build:
 	-rm -r node_modules
 	$(CHRONIC) npm install
@@ -35,5 +35,12 @@ build-s3:
 	mv build/$(BUILD_NUMBER)/package.json.new build/$(BUILD_NUMBER)/package.json
 	rm build/*.tar.gz || true
 	tar -C build -czf  ./build/insta-server-$(GIT_BRANCH)-$(BUILD_NUMBER).tar.gz $(BUILD_NUMBER)/
+
+copy-to-system:
 	rm -r ../../System/system/images/insta-server/artifacts/* || true
 	cp ./build/insta-server-$(GIT_BRANCH)-$(BUILD_NUMBER).tar.gz ../../System/system/images/insta-server/artifacts/
+
+clean:
+	-rm -r build
+
+build-jenkins: clean build
