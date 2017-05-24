@@ -140,7 +140,6 @@
                     <h6 class="title-uppercase text-gray-light">Share Cred</h6>
                     <form id="frm-send-pfx-email" action="/send/pfx" data-bind="visible:emailFormVisible" method="post"
                           class="admin-form-main">
-                        <div id="send_pfx_form_info" class="invisible-msg">&nbsp;</div>
                         <input name="email" required type="email" placeholder="Email"
                                data-bind="disabled:commonButtonDisabled,value: data.email" class="form-input"/>
                         <input name="fqdn" required type="hidden" data-bind="value: data.fqdn"/>
@@ -192,15 +191,16 @@
 
 <script id="tmpl-create-child-cred" type="text/x-kendo-template">
     <form id="frm-create-child-cred" action='/cred/create' method="post" class="form-main admin-form-main">
-        <label class="lbl-info">Create child credential for</label>
         <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
         <label class="lbl-info">Name: <span data-bind="text:data.name"></span></label>
         <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
         <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email"/>
         <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password" class="form-input"/>
-        <label class="d-inline-block form-input" style="border: none;box-shadow: none">Send cred by email <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/></label>
+        <label class="d-inline-block small">
+            <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send cred by email
+        </label>
         <div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>
-        <input type="button" value="Create Certificate" class="k-primary" data-bind="click:createCred">
+        <input type="button" value="Create Certificate" class="k-primary btn-bold mt-2" data-bind="click:createCred">
     </form>
     <div id="wnd-overlay-cred" class="overlay" style="max-height: 100% !important">
         <div>
@@ -440,6 +440,7 @@
 
 <script id="errorTemplate" type="text/x-kendo-template">
     <div class="notif-error">
+        <button class="btn-cross js-close-notification">×</button>
         <img src="img/forbidden.png" />
         <h3>#= message #</h3>
     </div>
