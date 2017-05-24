@@ -229,7 +229,6 @@ gulp.task('compile-js', () => {
 		'./public/lib/jszip-2.4.0.min.js',
 		'./public/lib/jquery.form-3.5.1.min.js',
 		'./public/js/admin/admin_foot.js',
-		'./public/js/admin/create.cred.js',
 		'./public/js/admin/cred.detail.js',
 		'./public/js/admin/cred.tree.js',
 		'./public/js/admin/gk.login.js',
@@ -238,7 +237,6 @@ gulp.task('compile-js', () => {
 		'./public/js/admin/user.manage.js',
 		'./public/js/admin/vpn.manage.js',
 		'./public/js/admin/registration.manage.js',
-		'./public/js/admin/registration.token.js',
 		'./public/js/admin/dash.js'
 	], 'admin.foot.min.js', true);
 
