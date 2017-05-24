@@ -63,11 +63,13 @@ class Server {
 			switch (cmd) {
 				case "on":
 					this._led.writeSync(1);
+					this._ledState = 1;
 					res.status(200).json({cmd, status: 200});
 					this._socketioServer.sockets.emit('switch', {cmd});
 					break;
 				case "off":
 					this._led.writeSync(0);
+					this._ledState = 0;
 					res.status(200).json({cmd, status: 200});
 					this._socketioServer.sockets.emit('switch', {cmd});
 					break;
