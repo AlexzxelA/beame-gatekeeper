@@ -136,35 +136,7 @@ class QrMessaging {
 				this._sendWithAck(socket, "edgeError", "Invalid data, please retry");
 			}
 		});
-		// socket.on('userImage', (data) => {
-		// 	logger.info('Got image data:', data);
-		// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
-		// 		this._userImage = selfCred.sign(data);
-		// 	}).catch(function (e) {
-		// 		this._userImage = 'none';
-		// 	});
-		// });
-		//
-		// socket.on('userImageVerify', function (data) {
-		// 	store.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then( selfCred => {
-		// 		if(selfCred.checkSignature(data)){
-		// 			client.emit('userImageStatus','pass')
-		// 		}
-		// 		else{
-		// 			client.emit('userImageStatus','fail');
-		// 		}
-		// 	}).catch(function (e) {
-		// 		client.emit('userImageStatus','fail');
-		// 	});
-		//
-		// });
-		//
-		// socket.on('userImageOK',()=>{
-		// 	logger.info('user image verified:',this._userImage.signature);
-		// 	socket.emit('userImageSign', {'data': {'imageSign': this._userImage.signature,
-		// 		'imageSignedBy':this._userImage.signedBy},
-		// 		'type': 'userImageSign'});
-		// });
+
 
 		socket.on('InfoPacketResponseError', (data) => {
 			logger.error(`Qr Messaging InfoPacketResponseError:`, data);
@@ -320,7 +292,7 @@ class QrMessaging {
 	 * * @returns {Boolean}
 	 */
 	_verifyOTP(OTP) {
-		return (this._otp == OTP || this._otp_prev == OTP);
+		return (this._otp === OTP || this._otp_prev === OTP);
 	}
 
 	_generateOTP(size) {

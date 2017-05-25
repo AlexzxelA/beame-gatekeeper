@@ -42,7 +42,7 @@ $(document).ready(function () {
 	socket.on('connect', function () {
 		setOriginSocket('QR', socket);
 		setQRStatus('Connected to origin');
-		console.log('QR socket connected, ', qrRelayEndpoint);
+		console.log('QR socket connected, ', qrRelayEndpoint,' delegatedUserId:',delegatedUserId);
 		QrTMPsocketOrigin = socket;//remove towards prod
 
 		var UID = getVUID();//generateUID(24) + VirtualPrefix;
@@ -54,7 +54,7 @@ $(document).ready(function () {
 
 			if (!qrRelayEndpoint) {
 				if(dataX.data && (dataX.data.indexOf('signedBy')>0))
-					socket.emit('xprs_browser_connected', {uid:parsed.uid, token:JSON.parse(parsed.token).signedData.data});
+					socket.emit('xprs_browser_connected', {uid:parsed.uid || UID, token:JSON.parse(parsed.token).signedData.data});
 				else
 					socket.emit('browser_connected', UID);
 			}

@@ -227,7 +227,7 @@ test("Config token") with {
     admin_page.assert_has('Probably invalid app_id', 'Config page content')
 }
 
-@exit_hook {
+push(exit_hook, {
     echo("Killing gatekeeper")
     p.kill()
-}
+})

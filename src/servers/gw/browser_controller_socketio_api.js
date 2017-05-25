@@ -89,11 +89,11 @@ const messageHandlers = {
 					let ssoManagerX = ssoManager.samlManager.getInstance();
 					let ssoConfig = ssoManagerX.getConfig();
 					ssoConfig.user = {
-						user:           userIdData.name,
-						emails:         userIdData.name,//userIdData.email,
+						user:           userIdData.email || userIdData.name,
+						emails:         userIdData.email || userIdData.name,//userIdData.email,
 						name:           {givenName:undefined, familyName:undefined},
 						displayName:    userIdData.nickname,
-						id:             userIdData.name,
+						id:             userIdData.email || userIdData.name,
 					};
 					ssoConfig.persistentId  = userIdData.persistentId;
 					ssoConfig.SAMLRequest   = payload.SAMLRequest;
@@ -216,11 +216,11 @@ const messageHandlers = {
 					let ssoManagerX = ssoManager.samlManager.getInstance();
 					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
 					ssoConfig.user = {
-						user:           userIdData.name,
-						emails:         userIdData.name,//userIdData.email,
+						user:           userIdData.email||userIdData.name,
+						emails:         userIdData.email||userIdData.name,//userIdData.email,
 						name:           {givenName:undefined, familyName:undefined},
 						displayName:    userIdData.nickname,
-						id:             userIdData.name
+						id:             userIdData.email||userIdData.name
 					};
 					let ssoSession = new ssoManager.samlSession(ssoConfig);
 					ssoSession.getSamlHtml((err, html)=>{
