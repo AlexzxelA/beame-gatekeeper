@@ -31,9 +31,9 @@ const EnvMode            = Constants.EnvMode.Gatekeeper;
 const HtmlEnvMode        = Constants.HtmlEnvMode.Production;
 
 
-const EmailPostUrl         = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";
-const EmailSendCertUrl     = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/pfx";
-const ExternalMatchingFqdn = "gpqhiai526aemun8.ohkv8odznwh5jpwm.v1.p.beameio.net";
+const EmailPostUrl         = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/invitation";
+const EmailSendCertUrl     = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/pfx";
+const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
 
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
