@@ -17,6 +17,7 @@ function deleteCookie( name ) {
 
 function verifyInputData(relay, cb) {
 	if(delegatedUserId){
+		cb(true);
 		var qrData = 'none';
 		waitingForMobileConnection = setTimeout(function () {
 			window.alert('Timed out waiting for mobile connection');
@@ -40,7 +41,7 @@ function verifyInputData(relay, cb) {
 			console.log('* notifyMobile:',qrData);
 			sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:qrData})));
 			delegatedUserId = undefined;
-			cb(true);
+
 		}).catch(function (e) {
 			setTimeout(function () {
 				sock && sock.emit('notifyMobile', JSON.stringify(Object.assign((JSON.parse(delegatedUserId)), {qrData:'NA', error:e})));

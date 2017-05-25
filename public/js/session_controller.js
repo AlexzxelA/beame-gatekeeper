@@ -423,18 +423,28 @@ function setIframeHtmlContent(html) {
 function setIframeUrl(url) {
 
 	console.log('*********************************SET IFRAME URL', url);
-	var iframe = document.getElementById('ifrm-content');
+	var top = null;
+	if(url.indexOf('choose-app')>0 && false){//prepared to open in new window
+		 top=window.top.open(
+			url,
+			'_blank'
+		);
+		top && top;
+	}
+	if(!top){
+		var iframe = document.getElementById('ifrm-content');
 
+		if (url.indexOf('beame-gw/logout') > 0) {
+			return;
+		}
 
-	if (url.indexOf('beame-gw/logout') > 0) {
-		return;
+		iframe.src = "about:blank";
+
+		iframe.style.display = 'block';
+
+		iframe.src = url;
 	}
 
-	iframe.src = "about:blank";
-
-	iframe.style.display = 'block';
-
-	iframe.src = url;
 }
 
 function removeLogin() {

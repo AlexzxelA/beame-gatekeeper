@@ -141,6 +141,7 @@ function is_unauth_app_url(url) {
 	url.startsWith(Constants.XprsSigninPath) ||
 	url.startsWith(Constants.AppSwitchPath) ||
 	url.startsWith(Constants.RegisterPath) ||
+	url.startsWith(Constants.DirectPath) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/css`) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/img`) ||
 	url.startsWith(`${Constants.GatewayControllerPath}/js`))
