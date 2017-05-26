@@ -15,7 +15,9 @@ _Click on the link below, to see Beame Gatekeeper demo on Youtube_
 
 [More details (PDF)](doc/beame-gatekeeper.pdf) - The purpose of this paper is to describe the particular beame-gatekeeper use case as a tool for remote access to enterprise networks or IoT devices with mobile authentication. It provides an overview of possible product integration options. The document contains technical overview and description of provisioning and login processes.
 
-[User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf) - what you can do with Beame Gatekeeper and how.
+[User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf) - what you can do with Beame Gatekeeper and how.  
+
+Continue with instructions below, to get your own Gatekeeper. Install it as a system service to keep your applications accessible. Or, if you want to just try it out first, install it as a standalone application. Go with the guide and in fast and easy process your Gatekeeper will be up and running.  
 
 ## Get started in three quick steps!
 (if you use Windows, see [Windows System Requirements](#Windows System Requirements) below before Step 1)
@@ -28,10 +30,10 @@ for Mac/Linux: Run `sudo npm install -g beame-gatekeeper` (**please make sure yo
 for Windows: Run `npm install -g beame-gatekeeper` (**please make sure you are using NodeJS 6, version 6.9.X or newer**).
 
 Step 2: 
-Sign up [here!](https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper)
+Sign up [here!](https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper), while Step 1 is in process
 
 Step 3: 
-Run the command in the sign up confirmation email you just got from us. beame-gatekeeper will obtain your very own beame hostname, and issue a valid public certificate for it.
+Once Steps 1 and 2 are done, run the command in the sign up confirmation email you just got from us. beame-gatekeeper will obtain your very own beame hostname, and issue a valid public certificate for it.
 
 The certificate will be ready in moments and you can start using your tunnel right away. Truly a one-stop-shop!
 
