@@ -11,7 +11,7 @@ This instantly makes on-premises software products accessible through HTTPS tunn
 How? We made a new breed of ID - cryptographic identity that lives on your mobile. Now it's easy to put a super-secure cryptographic identity on mobile and IoT devices. We never see any of your secret keys. So the device can prove your identity by providing prove of possession of a secret key. No more databases with sensitive data.
 
 _Click on the link below, to see Beame Gatekeeper demo on Youtube_  
-[![Alt Beame Gatekeeper demo #1](https://img.youtube.com/vi/i1j1E4vMyS0/2.jpg)](https://www.youtube.com/watch?v=i1j1E4vMyS0&feature=youtu.be)
+[![Alt Beame Gatekeeper demo #1](https://github.com/beameio/beame-gatekeeper/blob/dev/img/GKdemo.png)](https://youtu.be/i1j1E4vMyS0)
 
 [More details (PDF)](doc/beame-gatekeeper.pdf) - The purpose of this paper is to describe the particular beame-gatekeeper use case as a tool for remote access to enterprise networks or IoT devices with mobile authentication. It provides an overview of possible product integration options. The document contains technical overview and description of provisioning and login processes.
 
