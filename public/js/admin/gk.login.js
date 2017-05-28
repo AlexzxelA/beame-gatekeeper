@@ -61,24 +61,21 @@ function loadGkLogins() {
 		},
 			{
 				field: "fqdn",
-				title: "Fqdn",
-                filterable: false
+				title: "Fqdn"
+
 			},
 			{
 				field: "name",
-				title: "Name",
-                filterable: false
+				title: "Name"
 			},
 			{
 				field: "serviceId",
-				title: "Id",
-                filterable: false
+				title: "Id"
 			},
 
 			{
 				field: "isActive",
-				title: "Active",
-                filterable: false
+				title: "Active"
 			},
 			{command: ["edit", "destroy"], title: "&nbsp;", width: 120}
 		]

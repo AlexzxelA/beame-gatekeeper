@@ -73,38 +73,31 @@ function loadRegs() {
 		},
 		columns:    [{
 			field:      "id",
-			filterable: false
 		},
 			{
 				field: "name",
 				title: "Name",
-                filterable: false
 			},
 			{
 				field: "email",
 				title: "Email",
-                filterable: false
 			},
 
 			{
 				field: "fqdn",
 				title: "Fqdn",
-                filterable: false
 			},
 			{
 				field: "source",
 				title: "Source",
-                filterable: false
 			},
 			{
 				field: "completed",
 				title: "Completed",
-                filterable: false
 			},
 			{
 				field:  "createdAt",
 				title:  "Add On",
-				filterable: false,
 				format: "{0:MM/dd/yyyy}"
 			},
 			{command: "destroy", title: "&nbsp;", width: 75}

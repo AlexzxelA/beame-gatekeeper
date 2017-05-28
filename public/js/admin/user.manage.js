@@ -62,39 +62,32 @@ function loadUsers() {
 		},
 			{
 				field: "name",
-				title: "Name",
-                filterable: false
+				title: "Name"
 			},
 			{
 				field: "nickname",
-				title: "Nick",
-                filterable: false
+				title: "Nick"
 			},
 			{
 				field: "email",
-				title: "Email",
-                filterable: false
+				title: "Email"
 			},
 
 			{
 				field: "fqdn",
-				title: "Fqdn",
-                filterable: false
+				title: "Fqdn"
 			},
 			{
 				field: "isActive",
-				title: "Active",
-                filterable: false
+				title: "Active"
 			},
 			{
 				field: "isAdmin",
-				title: "Admin",
-                filterable: false
+				title: "Admin"
 			},
 			{
                 field: "lastActiveDate",
                 title: "Last active",
-                filterable: false,
 				format: "{0:MM/dd/yyyy}"
 			},
 			{command: "edit", title: "&nbsp;", width: 120}
