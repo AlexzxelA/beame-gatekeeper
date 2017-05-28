@@ -24,7 +24,7 @@ class ServiceManager {
 		return new Promise((resolve, reject) => {
 				const returnList = () => {
 
-					let approvedList = user.isAdmin ? this._appList : CommonUtils.filterHash(this._appList, (k, v) => v.code !== SetupServices.Admin.code);
+					let approvedList = user.isAdmin ? this._appList : CommonUtils.filterHash(this._appList, (k, v) => v.code !== SetupServices.Admin.code && v.code !== SetupServices.AdminInvitation.code);
 
 					let formattedList = {};
 
@@ -129,7 +129,7 @@ class ServiceManager {
 	isAdminService(app_id) {
 		let app = this._appList[app_id];
 
-		return app && app.code === SetupServices.Admin.code;
+		return app && (app.code === SetupServices.Admin.code || app.code === SetupServices.AdminInvitation.code);
 	}
 
 	appUrlById(app_id) {
