@@ -2,6 +2,18 @@
 
     <ul id="inv-panelbar" style="width: 90%;">
         <li>
+            <h4>Create Invitation</h4>
+            <section id="inv-form-container" style="margin-bottom: 50px">
+                <form id="frm-create-invitation" action='/invitation/send' method="post" class="form-main admin-form-main">
+                    <div id="inv-info">&nbsp;</div>
+                    <input name="name" placeholder="Name" class="form-input"/>
+                    <input name="email" type="email" placeholder="Email" class="form-input"/>
+                    <input name="user_id" placeholder="External user ID" class="form-input"/>
+                    <input type="button" id="btn-create-invitation" name="submit" value="Invite" class="button">
+                </form>
+            </section>
+        </li>
+        <li>
             <h4>Upload Invitations CSV</h4>
             <section id="inv-upload-form-container" style="margin-bottom: 50px">
                 <div id="upload-info">&nbsp;</div>
