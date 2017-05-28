@@ -3655,6 +3655,72 @@ Kendo grids
   padding-top: .4rem; }
 
 /* -------------------------
+Lists
+------------------------- */
+.dash-list.k-panelbar {
+  margin-bottom: 2rem;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.19); }
+  .dash-list.k-panelbar .k-link.k-header {
+    display: block;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    background-color: #fff; }
+    .dash-list.k-panelbar .k-link.k-header .k-icon.k-i-arrow-s, .dash-list.k-panelbar .k-link.k-header .k-icon.k-i-arrow-n {
+      right: 1rem; }
+  .dash-list.k-panelbar .k-state-highlight .k-link.k-header,
+  .dash-list.k-panelbar .k-link.k-header .k-state-selected,
+  .dash-list.k-panelbar .k-link.k-header .k-state-hover,
+  .dash-list.k-panelbar .k-link.k-header .k-state-focused {
+    background-color: #3f51b5 !important;
+    color: #fff !important;
+    font-weight: bold; }
+  .dash-list.k-panelbar .config-list li.k-item {
+    background-color: #fff;
+    font-size: 1rem;
+    padding: 0; }
+    .dash-list.k-panelbar .config-list li.k-item .k-link {
+      margin: 0 auto;
+      box-sizing: border-box;
+      display: block;
+      padding-top: .5rem;
+      padding-bottom: .5rem; }
+      @media screen and (min-width: 1024px) {
+        .dash-list.k-panelbar .config-list li.k-item .k-link {
+          width: 90%; } }
+      .dash-list.k-panelbar .config-list li.k-item .k-link.k-state-selected, .dash-list.k-panelbar .config-list li.k-item .k-link.k-state-hover, .dash-list.k-panelbar .config-list li.k-item .k-link.k-state-focused {
+        background-color: transparent;
+        color: inherit;
+        cursor: default;
+        box-shadow: none;
+        border: none; }
+    .dash-list.k-panelbar .config-list li.k-item label {
+      display: inline-block;
+      width: 35%;
+      padding-right: 1.5rem;
+      text-align: right;
+      font-weight: bold;
+      line-height: 1.35;
+      vertical-align: middle; }
+    .dash-list.k-panelbar .config-list li.k-item .value-custom {
+      display: inline-block;
+      overflow: auto;
+      width: calc(65% - 2rem);
+      background-color: #fff;
+      border-color: #ddd;
+      box-shadow: none;
+      vertical-align: middle;
+      resize: none;
+      line-height: 1.35; }
+      .dash-list.k-panelbar .config-list li.k-item .value-custom .k-dropdown-wrap, .dash-list.k-panelbar .config-list li.k-item .value-custom .k-numeric-wrap {
+        background-color: #fff; }
+        .dash-list.k-panelbar .config-list li.k-item .value-custom .k-dropdown-wrap[class^='k-state-'], .dash-list.k-panelbar .config-list li.k-item .value-custom .k-numeric-wrap[class^='k-state-'] {
+          background-color: #fff; }
+        .dash-list.k-panelbar .config-list li.k-item .value-custom .k-dropdown-wrap .k-icon.k-i-arrow-60-down, .dash-list.k-panelbar .config-list li.k-item .value-custom .k-numeric-wrap .k-icon.k-i-arrow-60-down {
+          top: 8px;
+          right: 4px;
+          margin: 0; }
+
+/* -------------------------
 Notifications
 ------------------------- */
 /* Success and errors templates */

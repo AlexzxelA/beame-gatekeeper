@@ -180,6 +180,90 @@ Kendo grids
 }
 
 /* -------------------------
+Lists
+------------------------- */
+.dash-list.k-panelbar {
+  margin-bottom: 2rem;
+  box-shadow: $box-shadow-main;
+  .k-link.k-header {
+    display: block;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    background-color: $white;
+    .k-icon.k-i-arrow-s, .k-icon.k-i-arrow-n {
+      right: 1rem;
+    }
+  }
+
+  .k-state-highlight .k-link.k-header,
+  .k-link.k-header .k-state-selected,
+  .k-link.k-header .k-state-hover,
+  .k-link.k-header .k-state-focused {
+    background-color: $blue-admin !important;
+    color: $white !important;
+    font-weight: bold;
+  }
+
+  .config-list {
+    li.k-item {
+      background-color: $white;
+      font-size: 1rem;
+      padding: 0;
+      .k-link {
+        @media screen and (min-width: 1024px) {
+          width: 90%;
+        }
+        margin: 0 auto;
+        box-sizing: border-box;
+        display: block;
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+        &.k-state-selected,
+        &.k-state-hover,
+        &.k-state-focused {
+          background-color: transparent;
+          color: inherit;
+          cursor: default;
+          box-shadow: none;
+          border: none;
+        }
+      }
+      & label {
+        display: inline-block;
+        width: 35%;
+        padding-right: 1.5rem;
+        text-align: right;
+        font-weight: bold;
+        line-height: 1.35;
+        vertical-align: middle;
+      }
+      & .value-custom {
+        display: inline-block;
+        overflow: auto;
+        width: calc(65% - 2rem);
+        background-color: $white;
+        border-color: #ddd;
+        box-shadow: none;
+        vertical-align: middle;
+        resize: none;
+        line-height: 1.35;
+        .k-dropdown-wrap, .k-numeric-wrap {
+          background-color: $white;
+          &[class^='k-state-'] {
+            background-color: $white;
+          }
+          .k-icon.k-i-arrow-60-down {
+            top: 8px;
+            right: 4px;
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* -------------------------
 Notifications
 ------------------------- */
 
