@@ -100,33 +100,27 @@ function loadInvitations() {
 		},
 			{
 				field: "name",
-				title: "Name",
-                filterable: false
+				title: "Name"
 			},
 			{
 				field: "email",
-				title: "Email",
-                filterable: false
+				title: "Email"
 			},
 			{
 				field: "userId",
-				title: "UserId",
-                filterable: false
+				title: "UserId"
 			},
 			{
 				field: "fqdn",
-				title: "Fqdn",
-                filterable: false
+				title: "Fqdn"
 			},
 			{
 				field: "status",
-				title: "Status",
-                filterable: false
+				title: "Status"
 			},
 			{
 				field: "createdAt",
                 title: "Add On",
-                filterable: false,
                 format: "{0:MM/dd/yyyy}"
 			},
 			{command: "destroy", title: "&nbsp;", width: 75}

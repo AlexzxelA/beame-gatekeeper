@@ -61,26 +61,22 @@ function loadServices() {
         },
             {
                 field: "code",
-                title: "Code",
-                filterable: false
+                title: "Code"
             },
             {
                 field: "name",
-				title: "Name",
-                filterable: false
+				title: "Name"
 			},
 
 
 			{
 				field: "url",
 				title: "Url",
-				width: "30%",
-                filterable: false
+				width: "30%"
 			},
 			{
 				field: "isActive",
-				title: "Active",
-                filterable: false
+				title: "Active"
 			},
 			{command: ["edit", "destroy"], title: "&nbsp;", width: 120}
 		]
