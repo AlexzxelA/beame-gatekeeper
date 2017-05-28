@@ -253,6 +253,23 @@ function handleRequest(type, p1, p2, p3) {
 		if (type == 'upgrade') {
 			return upgrade_not_supported();
 		}
+
+		const SetupServices = require('../../../constants').SetupServices;
+		let requestedApp = serviceManager.getAppById(authToken.app_id);
+
+		if(requestedApp && requestedApp.code === SetupServices.AdminInvitation.code){
+
+			if (req.url == '/') {
+
+				res.writeHead(302, {
+					'Location': '/invitation'
+				});
+				res.end();
+				return;
+
+			}
+		}
+
 		logger.debug(`Proxying to Admin server`);
 		adminApp(req, res);
 		return;

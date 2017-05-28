@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insta server admin dashboard</title>
+
+    <link href="//kendo.cdn.telerik.com/2017.1.223/styles/kendo.common.min.css" rel="stylesheet"/>
+    <link href="//kendo.cdn.telerik.com/2017.1.223/styles/kendo.material.min.css" rel="stylesheet"/>
+
+
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.all.min.js"></script>
+
+
+</head>
+<body>
+<div class="admin-main-wrapper">
+
+    <div class="bg-main-admin" >
+        <div class="row">
+            <div class="medium-1 column">
+                <a class="mt-half d-inline-block" href="//www.beame.io/"><img width="120" height="20" src="img/beame-logo-white.svg"></a>
+            </div>
+        </div>
+    </div>
+    <!-- End Top Menu-->
+
+    <!-- Content -->
+    <div id="app-wrapper" class="container-admin">
+        <section id="inv-form-container" style="margin-bottom: 50px">
+            <h4>Create Invitation</h4>
+            <form id="frm-create-invitation" action='/cred/invite' method="post" class="form-main admin-form-main">
+                <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
+                <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
+                <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>
+                <label class="d-inline-block small"><input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send invitation by email</label>
+                <input class="k-primary btn-bold mt-2" type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite">
+            </form>
+        </section>
+
+        <div id="inv-qr-container" style="display:none;" class="form-main admin-form-main text-center">
+            <h4>Scan QR with your mobile phone</h4>
+            <div id="inv-qr" class="my-2 d-inline-block"></div>
+            <input type="button" class="k-button m-auto btn-bold" id="btn-inv-back" value="Back" data-bind="click:back">
+        </div>
+    </div>
+    <!-- End Content -->
+
+</div>
+
+<div id="d-notif" style="width: 340px;height: 100px;"></div>
+
+<div id="overlay" class="overlay">
+    <div>
+        <h3>Processing Request</h3>
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+    </div>
+</div>
+
+
+<!-- Scripts -->
+<!-- build:inv-js-foot -->
+<script src="js/admin/invitation.js"></script>
+<!-- endbuild -->
+
+
+
+
+
+
+</body>
+</html>
