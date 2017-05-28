@@ -22,10 +22,15 @@ function onUploadStart(){
 	}, 100);
 
 }
+
+function exportToExcel() {
+    $("#inv-grid").data("kendoGrid").saveAsExcel();
+}
+
 function loadInvitations() {
 
 	$("#inv-grid").kendoGrid({
-		toolbar:    ["excel"],
+		//toolbar:    ["excel"],
 		excel:      {
 			fileName: "Invitations.xlsx",
 			allPages: true
@@ -61,7 +66,7 @@ function loadInvitations() {
 //                serverFiltering: true,
 //                serverSorting:   true
 		},
-		height:     550,
+		//height:     550,
 		filterable: true,
 		sortable:   true,
 		editable:   {
@@ -114,11 +119,11 @@ function loadInvitations() {
 				title: "Status"
 			},
 			{
-				field:  "createdAt",
-				title:  "Add On",
-				format: "{0:MM/dd/yyyy}"
+				field: "createdAt",
+                title: "Add On",
+                format: "{0:MM/dd/yyyy}"
 			},
-			{command: "destroy", title: "&nbsp;", width: 100}
+			{command: "destroy", title: "&nbsp;", width: 75}
 		]
 	});
 

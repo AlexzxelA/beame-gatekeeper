@@ -1,9 +1,14 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
+
+function exportToExcel() {
+    $("#reg-grid").data("kendoGrid").saveAsExcel();
+}
+
 function loadRegs() {
 	$("#reg-grid").kendoGrid({
-		toolbar:    ["excel"],
+		//toolbar:    ["excel"],
 		excel:      {
 			fileName: "Registrations.xlsx",
 			allPages: true
@@ -38,7 +43,7 @@ function loadRegs() {
 //                serverFiltering: true,
 //                serverSorting:   true
 		},
-		height:     550,
+		//height:     550,
 		filterable: true,
 		sortable:   true,
 		editable:   {
@@ -68,35 +73,34 @@ function loadRegs() {
 		},
 		columns:    [{
 			field:      "id",
-			filterable: false
 		},
 			{
 				field: "name",
-				title: "Name"
+				title: "Name",
 			},
 			{
 				field: "email",
-				title: "Email"
+				title: "Email",
 			},
 
 			{
 				field: "fqdn",
-				title: "Fqdn"
+				title: "Fqdn",
 			},
 			{
 				field: "source",
-				title: "Source"
+				title: "Source",
 			},
 			{
 				field: "completed",
-				title: "Completed"
+				title: "Completed",
 			},
 			{
 				field:  "createdAt",
 				title:  "Add On",
 				format: "{0:MM/dd/yyyy}"
 			},
-			{command: "destroy", title: "&nbsp;", width: 100}
+			{command: "destroy", title: "&nbsp;", width: 75}
 		]
 	});
 }

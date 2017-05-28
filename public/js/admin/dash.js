@@ -27,6 +27,9 @@ function loadSettings(){
 			expandMode: "single"
 		});
 
+        var panelBar = $("#panelbar").data("kendoPanelBar");;
+        panelBar.expand($(".isExpandedByDefault"));
+
 		setTimeout(function () {
 			$("#panelbar").show();
 		},50);
