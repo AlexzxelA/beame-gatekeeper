@@ -3625,6 +3625,36 @@ Table
   font-size: 60%; }
 
 /* -------------------------
+Kendo grids
+------------------------- */
+.k-grid.srvc-grid th .k-link {
+  text-transform: uppercase; }
+
+.k-grid.srvc-grid td {
+  overflow-x: auto;
+  border-bottom-width: 1px; }
+  .k-grid.srvc-grid td .k-grid-edit, .k-grid.srvc-grid td .k-grid-delete, .k-grid.srvc-grid td .k-grid-cancel, .k-grid.srvc-grid td .k-grid-update {
+    font-size: 0;
+    min-width: 34px;
+    padding: .5rem;
+    margin-left: .75rem; }
+    .k-grid.srvc-grid td .k-grid-edit .k-icon, .k-grid.srvc-grid td .k-grid-delete .k-icon, .k-grid.srvc-grid td .k-grid-cancel .k-icon, .k-grid.srvc-grid td .k-grid-update .k-icon {
+      margin-right: auto;
+      margin-left: auto; }
+
+.k-grid.srvc-grid .k-pager-numbers {
+  padding-top: .4rem; }
+  .k-grid.srvc-grid .k-pager-numbers li .k-link {
+    color: #3f51b5;
+    line-height: normal; }
+  .k-grid.srvc-grid .k-pager-numbers li .k-state-selected {
+    border-color: transparent;
+    color: #222; }
+
+.k-grid.srvc-grid .k-pager-info {
+  padding-top: .4rem; }
+
+/* -------------------------
 Notifications
 ------------------------- */
 /* Success and errors templates */
@@ -3692,7 +3722,12 @@ Cards
 /* -------------------------
 Texts, titles
 ------------------------- */
-.title-main-bg {
+.title-admin {
+  color: #3f51b5;
+  font-weight: bold;
+  margin-bottom: 0; }
+
+.title-admin-bg {
   padding: 1.5rem 1.5rem 3.5rem;
   background-color: #3f51b5;
   color: #fff;

@@ -133,6 +133,53 @@ Table
 }
 
 /* -------------------------
+Kendo grids
+------------------------- */
+
+.k-grid.srvc-grid {
+
+  th {
+    .k-link {
+      text-transform: uppercase;
+    }
+  }
+  td {
+
+    overflow-x: auto;
+    border-bottom-width: 1px;
+
+    .k-grid-edit, .k-grid-delete, .k-grid-cancel, .k-grid-update {
+      font-size: 0;
+      min-width: 34px;
+      padding: .5rem;
+      margin-left: .75rem;
+
+      .k-icon {
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+    }
+  }
+  .k-pager-numbers {
+    padding-top: .4rem;
+    li {
+      .k-link {
+        color: $blue-admin;
+        line-height: normal;
+      }
+      .k-state-selected {
+        border-color: transparent;
+        color: $black;
+      }
+    }
+  }
+  .k-pager-info {
+    padding-top: .4rem;
+  }
+}
+
+/* -------------------------
 Notifications
 ------------------------- */
 
@@ -214,7 +261,13 @@ Cards
 Texts, titles
 ------------------------- */
 
-.title-main-bg {
+.title-admin {
+  color: $blue-admin;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+.title-admin-bg {
   padding: 1.5rem 1.5rem 3.5rem;
   background-color: $blue-admin;
   color: $white;

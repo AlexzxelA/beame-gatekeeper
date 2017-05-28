@@ -1,9 +1,14 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
+
+function addNewRecord() {
+    $("#srvc-grid").data("kendoGrid").addRow();
+}
+
 function loadServices() {
 	$("#srvc-grid").kendoGrid({
-		toolbar:    ["create"],
+		//toolbar:    ["create"],
 		dataSource: {
 			transport: {
 				read:    {
@@ -39,7 +44,7 @@ function loadServices() {
 			},
 			pageSize:  20
 		},
-		height:     550,
+		//height:     550,
 		filterable: true,
 		sortable:   true,
 		editable:   {
@@ -53,27 +58,31 @@ function loadServices() {
 		columns:    [{
 			field:      "id",
 			filterable: false
-		},
-			{
-				field: "code",
-				title: "Code"
-			},
-			{
-				field: "name",
-				title: "Name"
+        },
+            {
+                field: "code",
+                title: "Code",
+                filterable: false
+            },
+            {
+                field: "name",
+				title: "Name",
+                filterable: false
 			},
 
 
 			{
 				field: "url",
 				title: "Url",
-				width: 200
+				width: "30%",
+                filterable: false
 			},
 			{
 				field: "isActive",
-				title: "Active"
+				title: "Active",
+                filterable: false
 			},
-			{command: ["edit", "destroy"], title: "&nbsp;", width: 200}
+			{command: ["edit", "destroy"], title: "&nbsp;", width: 120}
 		]
 	});
 }
