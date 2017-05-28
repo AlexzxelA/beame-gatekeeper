@@ -83,7 +83,6 @@ Table
 
 .metrotable > tbody > tr > td {
   padding: .75rem .25rem;
-  overflow-y: auto;
   text-align: left;
   font-size: .9rem;
   border-bottom: $line-gray;
@@ -144,10 +143,7 @@ Kendo grids
     }
   }
   td {
-
-    overflow-x: auto;
     border-bottom-width: 1px;
-
     .k-grid-edit, .k-grid-delete, .k-grid-cancel, .k-grid-update {
       font-size: 0;
       min-width: 34px;
@@ -239,7 +235,7 @@ Lists
       }
       & .value-custom {
         display: inline-block;
-        overflow: auto;
+        overflow-y: auto;
         width: calc(65% - 2rem);
         background-color: $white;
         border-color: #ddd;

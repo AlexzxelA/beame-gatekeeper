@@ -3592,7 +3592,6 @@ Table
 
 .metrotable > tbody > tr > td {
   padding: .75rem .25rem;
-  overflow-y: auto;
   text-align: left;
   font-size: .9rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -3631,7 +3630,6 @@ Kendo grids
   text-transform: uppercase; }
 
 .k-grid.srvc-grid td {
-  overflow-x: auto;
   border-bottom-width: 1px; }
   .k-grid.srvc-grid td .k-grid-edit, .k-grid.srvc-grid td .k-grid-delete, .k-grid.srvc-grid td .k-grid-cancel, .k-grid.srvc-grid td .k-grid-update {
     font-size: 0;
@@ -3703,7 +3701,7 @@ Lists
       vertical-align: middle; }
     .dash-list.k-panelbar .config-list li.k-item .value-custom {
       display: inline-block;
-      overflow: auto;
+      overflow-y: auto;
       width: calc(65% - 2rem);
       background-color: #fff;
       border-color: #ddd;
