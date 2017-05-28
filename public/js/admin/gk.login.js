@@ -1,9 +1,14 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
+
+function exportToExcel() {
+    $("#login-grid").data("kendoGrid").saveAsExcel();
+}
+
 function loadGkLogins() {
 	$("#login-grid").kendoGrid({
-		toolbar:    ["create"],
+		//toolbar:    ["create"],
 		dataSource: {
 			transport: {
 				read:    {
@@ -39,7 +44,7 @@ function loadGkLogins() {
 			},
 			pageSize:  20
 		},
-		height:     550,
+		//height:     550,
 		filterable: true,
 		sortable:   true,
 		editable:   {
@@ -56,22 +61,26 @@ function loadGkLogins() {
 		},
 			{
 				field: "fqdn",
-				title: "Fqdn"
+				title: "Fqdn",
+                filterable: false
 			},
 			{
 				field: "name",
-				title: "Name"
+				title: "Name",
+                filterable: false
 			},
 			{
 				field: "serviceId",
-				title: "Id"
+				title: "Id",
+                filterable: false
 			},
 
 			{
 				field: "isActive",
-				title: "Active"
+				title: "Active",
+                filterable: false
 			},
-			{command: ["edit", "destroy"], title: "&nbsp;", width: 200}
+			{command: ["edit", "destroy"], title: "&nbsp;", width: 120}
 		]
 	});
 }

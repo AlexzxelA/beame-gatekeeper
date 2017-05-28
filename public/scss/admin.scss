@@ -136,13 +136,24 @@ Table
 Kendo grids
 ------------------------- */
 
-.k-grid.srvc-grid {
+.grid-customised {
+
+  box-shadow: $box-shadow-main;
+
+  .k-grid-content {
+    min-height: 300px;
+  }
 
   th {
     .k-link {
       text-transform: uppercase;
     }
   }
+
+  th:first-child, td:first-child {
+    width: 50px;
+  }
+
   td {
 
     overflow-x: auto;
