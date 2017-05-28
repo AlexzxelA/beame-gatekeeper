@@ -148,3 +148,7 @@ function logout(){
 	} catch (e) {
 	}
 }
+
+function setPageTitle(title){
+	document.title = title;
+}

@@ -17,7 +17,7 @@ const AuthToken         = beameSDK.AuthToken;
 const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-var serviceManager      = null;
+let serviceManager      = null;
 const ssoManager       = require('../../samlSessionManager');
 
 
@@ -412,7 +412,7 @@ class BrowserControllerSocketioApi {
 		});
 
 		client.on('browser_connected', function (data) {
-			var cred     = store.getCredential(gwServerFqdn),
+			let cred     = store.getCredential(gwServerFqdn),
 			    token    = AuthToken.create(data, cred, 10),
 			    tokenStr = CommonUtils.stringify({
 				    "data":      data,

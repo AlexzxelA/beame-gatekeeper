@@ -3592,7 +3592,7 @@ Table
 
 .metrotable > tbody > tr > td {
   padding: .75rem .25rem;
-  overflow-y: auto;
+  overflow-y: hidden;
   text-align: left;
   font-size: .9rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -3623,6 +3623,102 @@ Table
 
 .metrotable-history td:nth-child(6) {
   font-size: 60%; }
+
+/* -------------------------
+Kendo grids
+------------------------- */
+.k-grid.srvc-grid th .k-link {
+  text-transform: uppercase; }
+
+.k-grid.srvc-grid td {
+  overflow-x: auto;
+  border-bottom-width: 1px; }
+  .k-grid.srvc-grid td .k-grid-edit, .k-grid.srvc-grid td .k-grid-delete, .k-grid.srvc-grid td .k-grid-cancel, .k-grid.srvc-grid td .k-grid-update {
+    font-size: 0;
+    min-width: 34px;
+    padding: .5rem;
+    margin-left: .75rem; }
+    .k-grid.srvc-grid td .k-grid-edit .k-icon, .k-grid.srvc-grid td .k-grid-delete .k-icon, .k-grid.srvc-grid td .k-grid-cancel .k-icon, .k-grid.srvc-grid td .k-grid-update .k-icon {
+      margin-right: auto;
+      margin-left: auto; }
+
+.k-grid.srvc-grid .k-pager-numbers {
+  padding-top: .4rem; }
+  .k-grid.srvc-grid .k-pager-numbers li .k-link {
+    color: #3f51b5;
+    line-height: normal; }
+  .k-grid.srvc-grid .k-pager-numbers li .k-state-selected {
+    border-color: transparent;
+    color: #222; }
+
+.k-grid.srvc-grid .k-pager-info {
+  padding-top: .4rem; }
+
+/* -------------------------
+Lists
+------------------------- */
+.dash-list.k-panelbar {
+  margin-bottom: 2rem;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.19); }
+  .dash-list.k-panelbar .k-link.k-header {
+    display: block;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    background-color: #fff; }
+    .dash-list.k-panelbar .k-link.k-header .k-icon.k-i-arrow-s, .dash-list.k-panelbar .k-link.k-header .k-icon.k-i-arrow-n {
+      right: 1rem; }
+  .dash-list.k-panelbar .k-state-highlight .k-link.k-header,
+  .dash-list.k-panelbar .k-link.k-header .k-state-selected,
+  .dash-list.k-panelbar .k-link.k-header .k-state-hover,
+  .dash-list.k-panelbar .k-link.k-header .k-state-focused {
+    background-color: #3f51b5 !important;
+    color: #fff !important;
+    font-weight: bold; }
+  .dash-list.k-panelbar .config-list li.k-item {
+    background-color: #fff;
+    font-size: 1rem;
+    padding: 0; }
+    .dash-list.k-panelbar .config-list li.k-item .k-link {
+      margin: 0 auto;
+      box-sizing: border-box;
+      display: block;
+      padding-top: .5rem;
+      padding-bottom: .5rem; }
+      @media screen and (min-width: 1024px) {
+        .dash-list.k-panelbar .config-list li.k-item .k-link {
+          width: 90%; } }
+      .dash-list.k-panelbar .config-list li.k-item .k-link.k-state-selected, .dash-list.k-panelbar .config-list li.k-item .k-link.k-state-hover, .dash-list.k-panelbar .config-list li.k-item .k-link.k-state-focused {
+        background-color: transparent;
+        color: inherit;
+        cursor: default;
+        box-shadow: none;
+        border: none; }
+    .dash-list.k-panelbar .config-list li.k-item label {
+      display: inline-block;
+      width: 35%;
+      padding-right: 1.5rem;
+      text-align: right;
+      font-weight: bold;
+      line-height: 1.35;
+      vertical-align: middle; }
+    .dash-list.k-panelbar .config-list li.k-item .value-custom {
+      display: inline-block;
+      overflow: auto;
+      width: calc(65% - 2rem);
+      background-color: #fff;
+      border-color: #ddd;
+      box-shadow: none;
+      vertical-align: middle;
+      resize: none;
+      line-height: 1.35; }
+      .dash-list.k-panelbar .config-list li.k-item .value-custom .k-dropdown-wrap, .dash-list.k-panelbar .config-list li.k-item .value-custom .k-numeric-wrap {
+        background-color: #fff; }
+        .dash-list.k-panelbar .config-list li.k-item .value-custom .k-dropdown-wrap[class^='k-state-'], .dash-list.k-panelbar .config-list li.k-item .value-custom .k-numeric-wrap[class^='k-state-'] {
+          background-color: #fff; }
+        .dash-list.k-panelbar .config-list li.k-item .value-custom .k-dropdown-wrap .k-icon.k-i-arrow-60-down, .dash-list.k-panelbar .config-list li.k-item .value-custom .k-numeric-wrap .k-icon.k-i-arrow-60-down {
+          top: 8px;
+          right: 4px;
+          margin: 0; }
 
 /* -------------------------
 Notifications
@@ -3692,7 +3788,12 @@ Cards
 /* -------------------------
 Texts, titles
 ------------------------- */
-.title-main-bg {
+.title-admin {
+  color: #3f51b5;
+  font-weight: bold;
+  margin-bottom: 0; }
+
+.title-admin-bg {
   padding: 1.5rem 1.5rem 3.5rem;
   background-color: #3f51b5;
   color: #fff;

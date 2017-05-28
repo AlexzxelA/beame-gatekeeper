@@ -6,25 +6,34 @@
 
 beame-gatekeeper allows remote authenticated access to systems using your mobile device as primary ID or secondary authentication factor.
 
-This instantly makes on-premises software products accessible by adding HTTPS server functionality. There is no need for firewalls, nor DNS configuration.
+This instantly makes on-premises software products accessible through HTTPS tunnels. There is no need for firewalls, nor DNS configuration.
 
-How? We made a new breed of ID - cryptographic identity that lives on your mobile. And it's easy to put a super-secure cryptographic identity on mobile and IoT devices. We never hold any of your keys. So now the device can prove it has the right credentials without revealing them. No more sensitive databases.
+How? We made a new breed of ID - cryptographic identity that lives on your mobile ([get Beame Authenticator to your iOS device](https://itunes.apple.com/il/app/beame-authenticator/id1214704177?mt=8)). Now it's easy to put a super-secure cryptographic identity on mobile and IoT devices. We never see any of your secret keys. So the device can prove your identity by providing proof of possession of a secret key. No more databases with sensitive data.
 
-[More details (PDF)](doc/beame-gatekeeper.pdf) - "The purpose of this paper is to describe the particular beame-gatekeeper use case as a tool for remote access to enterprise networks or IoT devices with mobile authentication. It provides an overview of possible product integration options". The document contains technical overview and description of provisioning and login processes.
+_Click on the link below, to see Beame Gatekeeper demo on Youtube_  
+[![Alt Beame Gatekeeper demo #1](https://github.com/beameio/beame-gatekeeper/blob/dev/img/GKdemo.png)](https://youtu.be/Oxk6GB5iMqw)
 
-[User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf) - what you can do with Beame Gatekeeper and how.
+[More details (PDF)](doc/beame-gatekeeper.pdf) - The purpose of this paper is to describe the particular beame-gatekeeper use case as a tool for remote access to enterprise networks or IoT devices with mobile authentication. It provides an overview of possible product integration options. The document contains technical overview and description of provisioning and login processes.
+
+[User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf) - what you can do with Beame Gatekeeper and how.  
+
+Continue with instructions below, to get your own Gatekeeper. Install it as a system service to keep your applications accessible. Or, if you want to just try it out first, install it as a standalone application. Go with the guide and in fast and easy process your Gatekeeper will be up and running.  
 
 ## Get started in three quick steps!
+(if you use Windows, see [Windows System Requirements](#Windows System Requirements) below before Step 1)
 
-Step 1: Sign up super-fast [here!](https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper)
+Step 1:
+First you must install the gatekeeper nodejs application (it takes some time)
 
-(if you use Windows, see [Windows System Requirements](#Windows System Requirements) below before Step 2)
+for Mac/Linux: Run `sudo npm install -g beame-gatekeeper` (**please make sure you are using NodeJS 6, version 6.9.X or newer**). Depending on your configuration you might want to run `npm install -g beame-gatekeeper` instead (if you are using [`n`](https://github.com/tj/n) or other methods for creating per-user NodejS installations).
 
-Step 2 for Mac/Linux: Run `sudo npm install -g beame-gatekeeper` (**please make sure you are using NodeJS 6, version 6.9.X or newer**). Depending on your configuration you might want to run `npm install -g beame-gatekeeper` instead (if you are using [`n`](https://github.com/tj/n) or other methods for creating per-user NodejS installations).
+for Windows: Run `npm install -g beame-gatekeeper` (**please make sure you are using NodeJS 6, version 6.9.X or newer**).
 
-Step 2 for Windows: Run `npm install -g beame-gatekeeper` (**please make sure you are using NodeJS 6, version 6.9.X or newer**).
+Step 2: 
+Sign up [here!](https://ypxf72akb6onjvrq.ohkv8odznwh5jpwm.v1.p.beameio.net/gatekeeper), while Step 1 is in process
 
-Step 3: Run the command in the sign up confirmation email you just got from us. beame-gatekeeper will obtain your very own beame hostname, and issue a valid public certificate for it.
+Step 3: 
+Once Steps 1 and 2 are done, run the command in the sign up confirmation email you just got from us. beame-gatekeeper will obtain your very own beame hostname, and issue a valid public certificate for it.
 
 The certificate will be ready in moments and you can start using your tunnel right away. Truly a one-stop-shop!
 

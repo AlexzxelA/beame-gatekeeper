@@ -78,9 +78,10 @@ const compilePage = (pagePath, distPath) => {
 			'express-signin-js':  `${cdn_folder_path}js/xprs.signin.min.js`,
 			'utils-head':         `${cdn_folder_path}js/utils.min.js`,
 			'cef':                `${cdn_folder_path}js/cef.min.js`,
-			'safari':              `${cdn_folder_path}js/safari.js`,
+			'safari':             `${cdn_folder_path}js/safari.js`,
 			'admin-js-head':      `${cdn_folder_path}js/admin.head.min.js`,
 			'admin-js-foot':      `${cdn_folder_path}js/admin.foot.min.js`,
+			'inv-js-foot':        `${cdn_folder_path}js/admin.invitation.min.js`,
 			'admin-template':     ``,
 			'logo':               `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
@@ -102,7 +103,7 @@ const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 		.pipe(gulp.dest(`./${dist_folder_name}/js/${innerFolder}`));
 };
 
-const compileCleanJs = (funcArray, dist_name,innerFolder = '') => {
+const compileCleanJs = (funcArray, dist_name, innerFolder = '') => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
 		.pipe(strip())
@@ -240,6 +241,10 @@ gulp.task('compile-js', () => {
 		'./public/js/admin/dash.js'
 	], 'admin.foot.min.js', true);
 
+	compileJs(
+		[
+			'./public/js/admin/invitation.js'
+		], 'admin.invitation.min.js', true);
 
 	compileJs(
 		[
@@ -379,6 +384,7 @@ gulp.task('compile-pages', () => {
 
 
 	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
+	compilePage('./public/pages/admin/invitation.html', `./${dist_folder_name}/pages/admin/`);
 	compilePage('./public/pages/admin/offline_reg_forbidden.html', `./${dist_folder_name}/pages/admin/`);
 });
 
