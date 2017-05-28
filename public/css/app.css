@@ -3627,32 +3627,35 @@ Table
 /* -------------------------
 Kendo grids
 ------------------------- */
-.k-grid.srvc-grid th .k-link {
-  text-transform: uppercase; }
-
-.k-grid.srvc-grid td {
-  overflow-x: auto;
-  border-bottom-width: 1px; }
-  .k-grid.srvc-grid td .k-grid-edit, .k-grid.srvc-grid td .k-grid-delete, .k-grid.srvc-grid td .k-grid-cancel, .k-grid.srvc-grid td .k-grid-update {
-    font-size: 0;
-    min-width: 34px;
-    padding: .5rem;
-    margin-left: .75rem; }
-    .k-grid.srvc-grid td .k-grid-edit .k-icon, .k-grid.srvc-grid td .k-grid-delete .k-icon, .k-grid.srvc-grid td .k-grid-cancel .k-icon, .k-grid.srvc-grid td .k-grid-update .k-icon {
-      margin-right: auto;
-      margin-left: auto; }
-
-.k-grid.srvc-grid .k-pager-numbers {
-  padding-top: .4rem; }
-  .k-grid.srvc-grid .k-pager-numbers li .k-link {
-    color: #3f51b5;
-    line-height: normal; }
-  .k-grid.srvc-grid .k-pager-numbers li .k-state-selected {
-    border-color: transparent;
-    color: #222; }
-
-.k-grid.srvc-grid .k-pager-info {
-  padding-top: .4rem; }
+.grid-customised {
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.19); }
+  .grid-customised .k-grid-content {
+    min-height: 300px; }
+  .grid-customised th .k-link {
+    text-transform: uppercase; }
+  .grid-customised th:first-child, .grid-customised td:first-child {
+    width: 50px; }
+  .grid-customised td {
+    overflow-x: auto;
+    border-bottom-width: 1px; }
+    .grid-customised td .k-grid-edit, .grid-customised td .k-grid-delete, .grid-customised td .k-grid-cancel, .grid-customised td .k-grid-update {
+      font-size: 0;
+      min-width: 34px;
+      padding: .5rem;
+      margin-left: .75rem; }
+      .grid-customised td .k-grid-edit .k-icon, .grid-customised td .k-grid-delete .k-icon, .grid-customised td .k-grid-cancel .k-icon, .grid-customised td .k-grid-update .k-icon {
+        margin-right: auto;
+        margin-left: auto; }
+  .grid-customised .k-pager-numbers {
+    padding-top: .4rem; }
+    .grid-customised .k-pager-numbers li .k-link {
+      color: #3f51b5;
+      line-height: normal; }
+    .grid-customised .k-pager-numbers li .k-state-selected {
+      border-color: transparent;
+      color: #222; }
+  .grid-customised .k-pager-info {
+    padding-top: .4rem; }
 
 /* -------------------------
 Lists
