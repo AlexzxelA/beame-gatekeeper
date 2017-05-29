@@ -46,5 +46,18 @@
 
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="js/app.js"></script>
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		try {
+			if (window.parent) {
+				window.parent.setPageTitle('Raspberry light switcher');
+			}
+			else {
+				setPageTitle('Raspberry light switcher');
+			}
+		} catch (e) {
+		}
+	});
+</script>
 </body>
 </html>

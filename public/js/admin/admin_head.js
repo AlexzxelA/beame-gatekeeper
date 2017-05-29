@@ -82,6 +82,17 @@ function onMenuSelected(e){
 }
 
 $(document).ready(function () {
+
+	try {
+		if (window.parent) {
+			window.parent.setPageTitle('Gatekeeper Admin');
+		}
+		else {
+			setPageTitle('Gatekeeper Admin');
+		}
+	} catch (e) {
+	}
+
 	var menu = $("#menu").kendoMenu({
 		select: onMenuSelected
 	});

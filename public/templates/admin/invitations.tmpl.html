@@ -1,25 +1,47 @@
 <script type="text/x-kendo-template" id="inv">
 
-    <ul id="inv-panelbar" style="width: 90%;">
-        <li>
-            <h4>Upload Invitations CSV</h4>
-            <section id="inv-upload-form-container" style="margin-bottom: 50px">
-                <div id="upload-info">&nbsp;</div>
-                <form id="upload-form" action="/invitation/upload" method="post" enctype="multipart/form-data"
-                      class="form-main admin-form-main">
-                    <div>
-                        <input type="file" name="csvdata" accept="text/csv" >
-                    </div>
-                    <div>
-                        <input type="submit" value="Upload" class="button" onclick="onUploadStart()" />
-                    </div>
-                </form>
-            </section>
-        </li>
-    </ul>
+    <div class="card-shadow">
+        <div class="row collapse" id="inv-panelbar">
+            <div class="large-6 columns p-2 line-r">
+                <h3 class="title-admin">Create Invitation</h3>
+                <section id="inv-form-container">
+                    <form id="frm-create-invitation" action='/invitation/send' method="post"
+                          class="form-main admin-form-main">
+                        <div id="inv-info">&nbsp;</div>
+                        <input name="name" placeholder="Name" class="form-input"/>
+                        <input name="email" type="email" placeholder="Email" class="form-input"/>
+                        <input name="user_id" placeholder="External user ID" class="form-input"/>
+                        <input class="k-button px-2 mt-2 semi text-black" type="button" id="btn-create-invitation"
+                               name="submit" value="Send Invite">
+                    </form>
+                </section>
+            </div>
+            <div class="large-6 columns p-2 line-r">
+                <h3 class="title-admin">Upload Invitations CSV</h3>
+                <section id="inv-upload-form-container">
+                    <div id="upload-info">&nbsp;</div>
+                    <form id="upload-form" action="/invitation/upload" method="post" enctype="multipart/form-data"
+                          class="form-main admin-form-main">
+                        <div>
+                            <input type="file" name="csvdata" accept="text/csv">
+                        </div>
+                        <div>
+                            <input class="k-button px-2 mt-2 semi text-black" type="submit" value="Upload" onclick="onUploadStart()"/>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
 
-    <h4>Invitations Report</h4>
-    <div id="inv-grid"></div>
+
+    <div class="clearfix mb-1 mt-5">
+        <h3 class="title-admin d-inline-block">Invitations Report</h3>
+        <button type="button" class="k-button float-r" onclick="exportToExcel()">Export to Excel</button>
+    </div>
+
+    <div id="inv-grid" class="grid-customised"></div>
+
 </script>
 <!-- Scripts -->
 <!-- build:admin-template -->

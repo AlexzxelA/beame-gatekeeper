@@ -16,9 +16,7 @@ const Constants        = require('../../../constants');
 const cookieNames      = Constants.CookieNames;
 const beameSDK         = require('beame-sdk');
 const CommonUtils      = beameSDK.CommonUtils;
-const module_name      = "GwAuthenticatedApp";
-const BeameLogger      = beameSDK.Logger;
-const logger           = new BeameLogger(module_name);
+
 
 const public_dir = path.join(__dirname, '..', '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path  = path.join(public_dir, 'pages', 'gw', 'authenticated');
@@ -30,7 +28,7 @@ authenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 	res.sendFile(path.join(base_path, 'logged-in-home.html'));
 });
 
-authenticatedApp.use(Constants.GwAuthenticatedPath,express.static(path.join(__dirname, '..', '..', '..',process.env.BEAME_INSTA_DOC_ROOT)));
+authenticatedApp.use(Constants.GwAuthenticatedPath,express.static(public_dir));
 
 authenticatedApp.use(bodyParser.json());
 

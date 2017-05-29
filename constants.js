@@ -130,6 +130,7 @@ const DbProviders = {
 
 const SetupServices = {
 	"Admin":           {code: "ADMIN"},
+	"AdminInvitation": {code: "ADMIN_INVITATION"},
 	"MobilePhoto":     {code: "MOBILE_PHOTO"},
 	"MobileStream":    {code: "MOBILE_STREAM"},
 	"SampleChat":      {code: "SAMPLE_CHAT"},

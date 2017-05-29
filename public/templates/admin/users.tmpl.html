@@ -1,6 +1,9 @@
 <script type="text/x-kendo-template" id="user">
-    <h4>Users Report</h4>
-    <div id="user-grid"></div>
+    <div class="clearfix mb-1">
+        <h3 class="title-admin d-inline-block">Users Report</h3>
+        <button type="button" class="k-button float-r" onclick="exportToExcel()">Export to Excel</button>
+    </div>
+    <div id="user-grid" class="grid-customised"></div>
 </script>
 <!-- Scripts -->
 <!-- build:admin-template -->

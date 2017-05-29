@@ -22,10 +22,15 @@ function onUploadStart(){
 	}, 100);
 
 }
+
+function exportToExcel() {
+    $("#inv-grid").data("kendoGrid").saveAsExcel();
+}
+
 function loadInvitations() {
 
 	$("#inv-grid").kendoGrid({
-		toolbar:    ["excel"],
+		//toolbar:    ["excel"],
 		excel:      {
 			fileName: "Invitations.xlsx",
 			allPages: true
@@ -61,7 +66,7 @@ function loadInvitations() {
 //                serverFiltering: true,
 //                serverSorting:   true
 		},
-		height:     550,
+		//height:     550,
 		filterable: true,
 		sortable:   true,
 		editable:   {
@@ -114,12 +119,58 @@ function loadInvitations() {
 				title: "Status"
 			},
 			{
-				field:  "createdAt",
-				title:  "Add On",
-				format: "{0:MM/dd/yyyy}"
+				field: "createdAt",
+                title: "Add On",
+                format: "{0:MM/dd/yyyy}"
 			},
-			{command: "destroy", title: "&nbsp;", width: 100}
+			{command: "destroy", title: "&nbsp;", width: 75}
 		]
 	});
 
+
+	$('#btn-create-invitation').off('click').on('click', function (e) {
+
+		e.preventDefault();
+
+
+
+		var form     = $('#frm-create-invitation'),
+		    url      = form.attr('action'),
+		    method   = form.attr('method'),
+		    formData = {
+			    name:    form.find('input[name="name"]').val(),
+			    email:   form.find('input[name="email"]').val(),
+			    user_id: form.find('input[name="user_id"]').val()
+		    };
+
+		if(!formData.email && !formData.user_id){
+			$("#inv-info").removeClass('ad-success').addClass('ad-error').html('Email or UserId required');
+			return;
+		}
+
+		showLoader();
+
+		$.ajax({
+			url:         url,
+			cache:       false,
+			data:        JSON.stringify(formData),
+			type:        method,
+			datatype:    "json",
+			contentType: "application/json; charset=utf-8"
+			, success:   function (response) {
+
+				hideLoader();
+
+				if (response.responseCode == 1) {
+					rebindInvitations();
+					$("#inv-info").removeClass('ad-error').addClass('ad-success');
+				}
+				else {
+					$("#inv-info").removeClass('ad-success').addClass('ad-error');
+				}
+				$("#inv-info").html(response.responseDesc);
+			}
+		});
+
+	});
 }

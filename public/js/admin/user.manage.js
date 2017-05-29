@@ -1,9 +1,14 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
+
+function exportToExcel() {
+    $("#user-grid").data("kendoGrid").saveAsExcel();
+}
+
 function loadUsers() {
 	$("#user-grid").kendoGrid({
-		toolbar:    ["excel"],
+		//toolbar:    ["excel"],
 		excel:      {
 			fileName: "Users.xlsx",
 			allPages: true
@@ -40,7 +45,7 @@ function loadUsers() {
 //                serverFiltering: true,
 //                serverSorting:   true
 		},
-		height:     550,
+		//height:     550,
 		filterable: true,
 		sortable:   true,
 		editable:   {
@@ -81,11 +86,11 @@ function loadUsers() {
 				title: "Admin"
 			},
 			{
-				field:  "lastActiveDate",
-				title:  "Last active",
+                field: "lastActiveDate",
+                title: "Last active",
 				format: "{0:MM/dd/yyyy}"
 			},
-			{command: "edit", title: "&nbsp;", width: 100}
+			{command: "edit", title: "&nbsp;", width: 120}
 		]
 	});
 }

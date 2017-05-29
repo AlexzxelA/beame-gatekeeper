@@ -83,7 +83,7 @@ Table
 
 .metrotable > tbody > tr > td {
   padding: .75rem .25rem;
-  overflow-y: auto;
+  overflow-y: hidden;
   text-align: left;
   font-size: .9rem;
   border-bottom: $line-gray;
@@ -129,6 +129,148 @@ Table
   }
   td:nth-child(6) {
     font-size: 60%;
+  }
+}
+
+/* -------------------------
+Kendo grids
+------------------------- */
+
+.grid-customised {
+
+  box-shadow: $box-shadow-main;
+
+  .k-grid-content {
+    min-height: 300px;
+  }
+
+  th {
+    .k-link {
+      text-transform: uppercase;
+    }
+  }
+
+  th:first-child, td:first-child {
+    width: 50px;
+  }
+
+  td {
+
+    overflow-x: auto;
+    border-bottom-width: 1px;
+
+    .k-grid-edit, .k-grid-delete, .k-grid-cancel, .k-grid-update {
+      font-size: 0;
+      min-width: 34px;
+      padding: .5rem;
+      margin-left: .75rem;
+
+      .k-icon {
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+    }
+  }
+  .k-pager-numbers {
+    padding-top: .4rem;
+    li {
+      .k-link {
+        color: $blue-admin;
+        line-height: normal;
+      }
+      .k-state-selected {
+        border-color: transparent;
+        color: $black;
+      }
+    }
+  }
+  .k-pager-info {
+    padding-top: .4rem;
+  }
+}
+
+/* -------------------------
+Lists
+------------------------- */
+.dash-list.k-panelbar {
+  margin-bottom: 2rem;
+  box-shadow: $box-shadow-main;
+  .k-link.k-header {
+    display: block;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    background-color: $white;
+    .k-icon.k-i-arrow-s, .k-icon.k-i-arrow-n {
+      right: 1rem;
+    }
+  }
+
+  .k-state-highlight .k-link.k-header,
+  .k-link.k-header .k-state-selected,
+  .k-link.k-header .k-state-hover,
+  .k-link.k-header .k-state-focused {
+    background-color: $blue-admin !important;
+    color: $white !important;
+    font-weight: bold;
+  }
+
+  .config-list {
+    li.k-item {
+      background-color: $white;
+      font-size: 1rem;
+      padding: 0;
+      .k-link {
+        @media screen and (min-width: 1024px) {
+          width: 90%;
+        }
+        margin: 0 auto;
+        box-sizing: border-box;
+        display: block;
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+        &.k-state-selected,
+        &.k-state-hover,
+        &.k-state-focused {
+          background-color: transparent;
+          color: inherit;
+          cursor: default;
+          box-shadow: none;
+          border: none;
+        }
+      }
+      & label {
+        display: inline-block;
+        width: 35%;
+        padding-right: 1.5rem;
+        text-align: right;
+        font-weight: bold;
+        line-height: 1.35;
+        vertical-align: middle;
+      }
+      & .value-custom {
+        display: inline-block;
+        overflow: auto;
+        width: calc(65% - 2rem);
+        background-color: $white;
+        border-color: #ddd;
+        box-shadow: none;
+        vertical-align: middle;
+        resize: none;
+        line-height: 1.35;
+        .k-dropdown-wrap, .k-numeric-wrap {
+          background-color: $white;
+          &[class^='k-state-'] {
+            background-color: $white;
+          }
+          .k-icon.k-i-arrow-60-down {
+            top: 8px;
+            right: 4px;
+            margin: 0;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -214,7 +356,13 @@ Cards
 Texts, titles
 ------------------------- */
 
-.title-main-bg {
+.title-admin {
+  color: $blue-admin;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+.title-admin-bg {
   padding: 1.5rem 1.5rem 3.5rem;
   background-color: $blue-admin;
   color: $white;

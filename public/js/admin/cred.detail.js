@@ -657,7 +657,7 @@ function loadCredDetail(data) {
 		}
 	});
 
-	createInvitationViewModel = kendo.observable({
+	createInvitationViewModel = kendo.observable( {
 		init:       function () {
 			this.set("fqdn", data.fqdn);
 		},

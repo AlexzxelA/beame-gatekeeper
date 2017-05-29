@@ -40,8 +40,11 @@ class AdminRouter {
 
 	_initRoutes() {
 		//region static
-		this._router.get('/', (req, res) => {
+		this._router.get('/invitation', (req, res) => {
+			res.sendFile(path.join(base_path, 'invitation.html'));
+		});
 
+		this._router.get('/', (req, res) => {
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
 		//endregion
@@ -253,7 +256,7 @@ class AdminRouter {
 			})
 		});
 
-		this._router.post('/cred/invite/:fqdn', (req, res) => {
+		this._router.post('/cred/invite/:fqdn*?', (req, res) => {
 
 			if (bootstrapper.registrationImageRequired) {
 				return res.json({
@@ -263,7 +266,7 @@ class AdminRouter {
 			}
 
 			let data = req.body,
-			    fqdn = req.params.fqdn;
+			    fqdn = req.params.fqdn || Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 
 			logger.info(`Save invitation  with ${CommonUtils.data}`);
 
