@@ -739,8 +739,9 @@ class BeameAuthServices {
 	 * @param {String} method
 	 * @param {Object} metadata
 	 * @param {String|null|undefined} [phone_number]
+	 * @param {Boolean} skipRegistrationMethod
 	 */
-	sendCustomerInvitation(method, metadata, phone_number) {
+	sendCustomerInvitation(method, metadata, phone_number, skipRegistrationMethod = false) {
 
 		let existingRegistrationRecord = null, customerFqdn = null;
 
@@ -908,15 +909,6 @@ class BeameAuthServices {
 
 			return new Promise((resolve, reject) => {
 					switch (method) {
-						case Constants.RegistrationMethod.Email:
-							assertEmail()
-								.then(getRegToken)
-								.then(saveInvitation)
-								.then(sendEmail)
-								.then(resolve)
-								.catch(reject);
-							return;
-
 						case Constants.RegistrationMethod.SMS:
 							assertSms()
 								.then(getRegToken)
@@ -926,7 +918,17 @@ class BeameAuthServices {
 								.catch(reject);
 							return;
 						default:
-							reject(`Unknown registration method`);
+							if(method == Constants.RegistrationMethod.Email || skipRegistrationMethod){
+								assertEmail()
+									.then(getRegToken)
+									.then(saveInvitation)
+									.then(sendEmail)
+									.then(resolve)
+									.catch(reject);
+							}
+							else{
+								reject(`${method} registration method not allowed offilne registration`);
+							}
 							return;
 					}
 				}
@@ -1928,7 +1930,8 @@ class BeameAuthServices {
 					return;
 				}
 
-				cred.checkOcspStatus(cred).then(resolve).catch(reject);
+				//update ocsp status if revoked
+				cred.checkOcspStatus(cred, cred.metadata.revoked == true).then(resolve).catch(reject);
 
 			}
 		);
