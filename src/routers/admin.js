@@ -763,44 +763,34 @@ class AdminRouter {
 
 	_sendInvitation(data) {
 		return new Promise((resolve, reject) => {
+				this._encryptUserData(data).then((encryptedData) => {
+					let data4hash = {email: encryptedData.email || 'email', user_id: encryptedData.user_id || 'user_id'};
+					encryptedData.hash     = CommonUtils.generateDigest(data4hash);
 
-				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
-				data.hash     = CommonUtils.generateDigest(data4hash);
+					let method = bootstrapper.registrationMethod;
 
-				let method = bootstrapper.registrationMethod;
+					beameAuthServices.sendCustomerInvitation(method, encryptedData, null, true).then(pincode => {
+						encryptedData.pin = pincode;
+						resolve(encryptedData);
+					}).catch(reject);
 
-				switch (method) {
-					case Constants.RegistrationMethod.Email:
-					case Constants.RegistrationMethod.SMS:
-						beameAuthServices.sendCustomerInvitation(method, data, null).then(pincode => {
-							data.pin = pincode;
-							resolve();
-						}).catch(reject);
-						return;
-					default:
-						reject(`${method} registration method not supports offline registrations`);
-						return;
-				}
+				}).catch(reject);
 			}
 		);
 	}
 
 	_getInvitation(fqdn, data, sendByEmail) {
 		return new Promise((resolve, reject) => {
-			this.encryptUserData(data).then((data) => {
-				let data4hash = {email: data.email || 'email', user_id: data.user_id || 'user_id'};
-				data.hash     = CommonUtils.generateDigest(data4hash);
+			this._encryptUserData(data).then((encryptedData) => {
+				let data4hash = {email: encryptedData.email || 'email', user_id: encryptedData.user_id || 'user_id'};
+				encryptedData.hash     = CommonUtils.generateDigest(data4hash);
 
-				beameAuthServices.getInvitationForCred(fqdn, data, sendByEmail).then(resolve).catch(reject);
-			});
+				beameAuthServices.getInvitationForCred(fqdn, encryptedData, sendByEmail).then(resolve).catch(reject);
+			}).catch(reject);
 		});
 	}
 
-	get router() {
-		return this._router;
-	}
-
-	encryptUserData(data) {
+	_encryptUserData(data) {
 		return new Promise((resolve, reject) => {
 				if (bootstrapper.encryptUserData) {
 
@@ -821,6 +811,10 @@ class AdminRouter {
 				}
 			}
 		);
+	}
+
+	get router() {
+		return this._router;
 	}
 }
 
