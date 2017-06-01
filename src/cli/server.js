@@ -33,6 +33,7 @@ function start(callback) {
 	CommonUtils.validateMachineClock().then(() => {
 		const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
 		const ServersManager     = require('../serversManager');
+		const credentialManager = new (require('../credentialManager'))();
 
 		const assertServersSettings = (settings) => {
 			return new Promise((resolve) => {
@@ -46,6 +47,7 @@ function start(callback) {
 
 		bootstrapper.initAll()
 			.then(startDataService)
+			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))
 			.then(getServersSettings)
 			.then(assertServersSettings)

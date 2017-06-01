@@ -157,6 +157,7 @@
                 <div class="btn-row"  data-bind="visible:showValidCertForms">
                     <h6 class="title-uppercase text-gray-light">Cred Actions</h6>
                     <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredWnd" value="Create Child" class="k-button">
+                    <input type="button" data-bind="disabled:commonButtonDisabled,click:openCredUserWnd" value="Create Child User" class="k-button">
                     <input type="button" data-bind="disabled:commonButtonDisabled,click:openInvitationWnd" value="Create Invitation" class="k-button">
                     <input type="button" data-bind="disabled:commonButtonDisabled,click:openRegtokenWnd" value="Create Registration Token" class="k-button">
                 </div>
@@ -190,11 +191,12 @@
 </script>
 
 <script id="tmpl-create-child-cred" type="text/x-kendo-template">
-    <form id="frm-create-child-cred" action='/cred/create' method="post" class="form-main admin-form-main">
+    <form id="frm-create-child-cred" method="post" class="form-main admin-form-main">
         <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
         <label class="lbl-info">Name: <span data-bind="text:data.name"></span></label>
         <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
         <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email"/>
+        <input name="user_id" placeholder="External user ID" class="form-input" data-bind="value:user_id,visible:showUserId"/>
         <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password" class="form-input"/>
         <label class="d-inline-block small">
             <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send cred by email

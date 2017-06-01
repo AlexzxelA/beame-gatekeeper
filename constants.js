@@ -118,7 +118,8 @@ const CredentialType = {
 	MatchingServer:           "MatchingServer",
 	ExternalMatchingServer:   "ExternalMatchingServer",
 	ExternalLoginServer:      "ExternalLoginServer",
-	CustomerAuthServer:       "CustomerAuthServer"
+	CustomerAuthServer:       "CustomerAuthServer",
+	GatekeeperLoginManager:   "GatekeeperLoginManager"
 };
 
 

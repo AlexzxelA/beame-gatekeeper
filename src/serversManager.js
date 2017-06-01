@@ -40,7 +40,7 @@ class ServersManager {
 
 		let validationResp = Bootstrapper.isConfigurationValid();
 
-		if(!validationResp.valid){
+		if (!validationResp.valid) {
 
 			logger.fatal(validationResp.message);
 
@@ -160,6 +160,28 @@ class ServersManager {
 			);
 		};
 
+		const _startLoginManager = () => {
+			return new Promise((resolve, reject) => {
+					const LoginManagerServer = require('../src/servers/login_manager/server');
+
+					let loginServerFqdn = this._settings.GatekeeperLoginManager.fqdn;
+
+					let login_server = new LoginManagerServer(loginServerFqdn);
+
+					login_server.start((error, app) => {
+						if (!error) {
+							logger.info(`Login Manager server started on https://${loginServerFqdn}`);
+							this._servers[Constants.CredentialType.GatekeeperLoginManager] = app;
+							resolve()
+						}
+						else {
+							reject(error);
+						}
+					});
+				}
+			);
+		};
+
 		const _handleDelegatedLogin = () => {
 			return new Promise((resolve) => {
 					let externalLoginUrl     = bootstrapper.externalLoginUrl,
@@ -216,23 +238,23 @@ class ServersManager {
 		const ServiceManager = require('./serviceManager');
 		const serviceManager = ServiceManager.getInstance();
 
-		const _onDemoAppStarted = (cb,err,data) => {
-			if(!err){
-				serviceManager.updateAppUrl(data.code,data.url);
+		const _onDemoAppStarted = (cb, err, data) => {
+			if (!err) {
+				serviceManager.updateAppUrl(data.code, data.url);
 				cb();
 			}
-			else{
+			else {
 				cb(err);
 			}
 		};
 
-		const _startDemoApp = (app,cb) =>{
+		const _startDemoApp = (app, cb) => {
 
 			if (isDemoServersDisabled) {
 				cb();
 				return;
 			}
-			app.start(_onDemoAppStarted.bind(this,cb));
+			app.start(_onDemoAppStarted.bind(this, cb));
 		};
 
 		//noinspection JSUnresolvedFunction
@@ -241,6 +263,7 @@ class ServersManager {
 					_startMatching()
 						.then(_startBeameAuth.bind(this))
 						.then(_startGateway.bind(this))
+						.then(_startLoginManager.bind(this))
 						.then(_handleDelegatedLogin.bind(this))
 						.then(_registerCustomerAuthServer.bind(this))
 						.then(callback)
@@ -250,19 +273,19 @@ class ServersManager {
 
 				},
 				callback => {
-					_startDemoApp( new (require('../apps/chat'))(),callback);
+					_startDemoApp(new (require('../apps/chat'))(), callback);
 				},
 				callback => {
-					_startDemoApp( new (require('../apps/files'))(),callback);
+					_startDemoApp(new (require('../apps/files'))(), callback);
 				},
 				callback => {
-					_startDemoApp( new (require('../apps/photo'))(),callback);
+					_startDemoApp(new (require('../apps/photo'))(), callback);
 				},
 				callback => {
-					_startDemoApp( new (require('../apps/stream'))(),callback);
+					_startDemoApp(new (require('../apps/stream'))(), callback);
 				},
 				callback => {
-					_startDemoApp( new (require('../apps/rasp'))(),callback);
+					_startDemoApp(new (require('../apps/rasp'))(), callback);
 				}
 
 			],

@@ -655,6 +655,25 @@ class BeameAuthServices {
 		);
 	}
 
+	createUser(data){
+		let User = {
+			name:           data.name,
+			email:          data.email,
+			externalUserId: data.user_id,
+			fqdn:           data.fqdn,
+			isAdmin:        false
+		};
+
+		return new Promise((resolve, reject) => {
+			dataService.saveUser(User).then(() => {
+
+				logger.info(`User created with ${data.fqdn}`);
+				resolve();
+			}).catch(reject);
+			}
+		);
+
+	}
 	//endregion
 
 	//region invitations
@@ -927,7 +946,7 @@ class BeameAuthServices {
 									.catch(reject);
 							}
 							else{
-								reject(`${method} registration method not allowed offilne registration`);
+								reject(`${method} registration method not allowed offline registration`);
 							}
 							return;
 					}

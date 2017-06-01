@@ -119,6 +119,11 @@ const CredsConfigTemplate = {
 		server:   true,
 		internal: true
 	},
+	[Servers.GatekeeperLoginManager]: {
+		fqdn:     "",
+		server:   true,
+		internal: true
+	},
 	[Servers.MatchingServer]:           {
 		fqdn:     "",
 		server:   true,

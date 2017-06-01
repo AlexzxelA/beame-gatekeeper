@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beame.io for Developers</title>
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800"  rel="stylesheet" type="text/css"/>
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.web.min.js"></script>
+
+    <!-- Scripts -->
+    <!-- build:utils-head -->
+    <script src="js/utils.js"></script>
+    <!-- endbuild -->
+
+    <style>
+        .app-item{
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+
+</head>
+<body>
+
+<div style="width: 100%;height: 100%;">
+
+    <span class="logo">
+        <!-- build:logo -->
+        <img src="img/beame-logo-grad.png" width="100" height="16">
+        <!-- endbuild -->
+    </span>
+
+    <div class="row" style="width: 100%;height: 100%;max-width: 100%">
+
+        <div class="column medium-2">
+            <h1>Welcome, <span id="wlcm-user"></span></h1>
+
+            Please choose an application.
+            <ul id="ul-apps">
+            </ul>
+        </div>
+        <div class="column medium-10">
+            <iframe frameborder="0" id="ifrm-content" style="width: 100%;height: 100%;left: 240px;" class="iframe-wide"></iframe>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/x-kendo-template" id="app-template">
+    <li >
+        <h3>#:name#</h3>
+    </li>
+</script>
+
+
+<script>
+
+	function hashToArray(hash) {
+		try {
+			let keys = Object.keys(hash);
+
+			return keys.map((v) => {
+				return hash[v];
+			});
+		} catch (e) {
+			return [];
+		}
+	}
+
+	function onPageLoaded(){
+		var appData = getCookie('beame_service');
+		if(appData){
+			var service = JSON.parse(decodeURIComponent(appData)),
+			    span = document.getElementById('wlcm-app');
+
+			//span.innerHTML = service.name + ', v.' + service.version;
+		}
+
+		$.getJSON('/apps/get',function(hash){
+
+
+			var data = hashToArray(hash);
+			console.log('apps %j', data);
+            for(var i =0;i< data.length;i++){
+	            $("#ul-apps").append("<li class='app-item' data-value=\"" + data[i].app_id + "\">" + data[i].name + "</li>");
+            }
+
+            $("#ul-apps > .app-item").on('click',function(e){
+            	var app_id = $(e.currentTarget).attr('data-value');
+
+	            $.ajax({
+		            url:         'apps/get/' + app_id,
+		            cache:       false,
+		            type:        'Get',
+		            datatype:    "json",
+		            contentType: "application/json; charset=utf-8"
+		            , success:   function (response) {
+                        console.log(response);
+		            	if(response.type=='redirect'){
+		            		var payload = response.payload,
+                                url = payload.url;
+
+				            if(url){
+					            var iframe = document.getElementById('ifrm-content');
+
+					            if (url.indexOf('beame-gw/logout') > 0) {
+						            return;
+					            }
+
+					            iframe.src = "about:blank";
+
+					            iframe.style.display = 'block';
+
+					            iframe.src = url;
+				            }
+                        }
+
+
+
+		            }
+		            ,error:function(e){
+		            	console.error(e);
+                    }
+	            });
+            })
+
+		});
+
+
+
+
+		var userObj = getCookie('beame_userinfo');
+		if (userObj) {
+			try {
+				var user = JSON.parse(userObj);
+				if (user.name) {
+					var h4 = document.getElementById('wlcm-user');
+
+					h4.innerHTML = user.name || user.fqdn;
+				}
+			} catch (e) {
+			}
+		}
+
+//		try{
+//			var tmpIframe = document.createElement("iframe");
+//			tmpIframe.setAttribute("src","beame-call://?0//?"+btoa("{\"type\":\"authenticatedPageLoaded\"}"));
+//			document.body.appendChild(tmpIframe);
+//			tmpIframe.parentNode.removeChild(tmpIframe);
+//			tmpIframe = null;
+//		}
+//		catch (e){
+//			window.alert(e);
+//		}
+	}
+
+	document.addEventListener("DOMContentLoaded", onPageLoaded);
+</script>
+
+</body>
+</html>
