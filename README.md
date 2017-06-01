@@ -15,7 +15,7 @@ _Click on the link below, to see Beame Gatekeeper demo on Youtube_
 
 [More details (PDF)](doc/beame-gatekeeper.pdf) - The purpose of this paper is to describe the particular beame-gatekeeper use case as a tool for remote access to enterprise networks or IoT devices with mobile authentication. It provides an overview of possible product integration options. The document contains technical overview and description of provisioning and login processes.
 
-[User guide (PDF)](https://www.beame.io/pdf/Beame+Gatekeeper+Technical+Presentation.pdf) - what you can do with Beame Gatekeeper and how.  
+[User guide (PDF)](doc/BeameGatekeeperManual.pdf) - how to operate the Gatekeeper.
 
 Continue with instructions below, to get your own Gatekeeper. Install it as a system service to keep your applications accessible. Or, if you want to just try it out first, install it as a standalone application. Go with the guide and in fast and easy process your Gatekeeper will be up and running.  
 

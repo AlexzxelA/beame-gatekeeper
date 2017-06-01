@@ -129,12 +129,12 @@ listVpnCreds.toText = creds => {
 
 function list(regex, callback) {
 
-	let validationResp = Bootstrapper.isConfigurationValid();
-
-	if (!validationResp.valid) {
-		callback(validationResp.message);
-		return;
-	}
+	// let validationResp = Bootstrapper.isConfigurationValid();
+	//
+	// if (!validationResp.valid) {
+	// 	callback(validationResp.message);
+	// 	return;
+	// }
 
 	callback(null, beameSDK.creds.list(regex));
 }
