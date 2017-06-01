@@ -94,9 +94,10 @@ case "$1" in
 		echo "+ Getting info"
 		if ! type jq &>/dev/null;then
 			echo "+ jq not found. Please install jq."
+			exit 2
 		fi
 		echo "--- Most important configuration --------------------------------------------------"
-		gw=$(SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- cat '~/.beame_server/creds/creds.json' | jq .GatewayServer.fqdn -r)
+		gw=$(echo 'cat ~/.beame_server/creds/creds.json' | SHELL=/bin/zsh sudo -H -u "$BEAME_GATEKEEPER_USER" -s -- zsh -s | jq .GatewayServer.fqdn -r)
 		echo "Gatekeeper URL: https://$gw"
 		echo "-----------------------------------------------------------------------------------"
 		;;
