@@ -20,42 +20,42 @@
     <script src="js/utils.js"></script>
     <!-- endbuild -->
 
-    <style>
-        .app-item{
-            cursor: pointer;
-            text-decoration: underline;
-        }
-    </style>
-
 </head>
 <body>
 
-<div style="width: 100%;height: 100%;">
+    <div class="row expanded">
 
-    <span class="logo">
-        <!-- build:logo -->
-        <img src="img/beame-logo-grad.png" width="100" height="16">
-        <!-- endbuild -->
-    </span>
+        <div class="column large-2 py-2">
 
-    <div class="row" style="width: 100%;height: 100%;max-width: 100%">
+            <div class="clearfix">
+                <span class="logo d-inline-block">
+                <!-- build:logo -->
+                <img src="img/beame-logo-grad.png" width="100" height="16">
+                <!-- endbuild -->
+                </span>
+                <a href="#" class="mobile-menu-wrapper-btn">menu</a>
+            </div>
 
-        <div class="column medium-2">
-            <h1>Welcome, <span id="wlcm-user"></span></h1>
+            <div class="mobile-menu-wrapper isShownMob">
+                <p class="word-break semi">Welcome, <span id="wlcm-user"></span></p>
 
-            Please choose an application.
-            <ul id="ul-apps">
-            </ul>
+                <p class="text-gray-light font-md semi pt-half">Apps:</p>
+                <ul class="list-pseudo-links" id="ul-apps">
+                </ul>
+            </div>
+
         </div>
-        <div class="column medium-10">
-            <iframe frameborder="0" id="ifrm-content" style="width: 100%;height: 100%;left: 240px;" class="iframe-wide"></iframe>
+
+        <div class="column large-10 relative iframe-wrapper iframe-wrapper-apps">
+                <iframe frameborder="0" id="ifrm-content" class="iframe-wide"></iframe>
         </div>
+
     </div>
 
-</div>
+
 
 <script type="text/x-kendo-template" id="app-template">
-    <li >
+    <li>
         <h3>#:name#</h3>
     </li>
 </script>
@@ -121,6 +121,11 @@
 
 					            iframe.src = url;
 				            }
+
+                            /* Handle Apps Menu for mobile  */
+                            menuMob.classList.remove('isShownMob');
+                            menuMobBtn.classList.add('isShownMob');
+                            menuMobBtn.textContent = 'menu';
                         }
 
 
@@ -161,6 +166,16 @@
 //			window.alert(e);
 //		}
 	}
+
+	/* Apps Menu for mobile  */
+    var menuMob = document.querySelector('.mobile-menu-wrapper'),
+        menuMobBtn = document.querySelector('.mobile-menu-wrapper-btn');
+
+    menuMobBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        menuMob.classList.toggle('isShownMob');
+        this.textContent = (this.textContent.toLowerCase() === 'menu') ? this.textContent = 'close' : this.textContent = 'menu';
+    });
 
 	document.addEventListener("DOMContentLoaded", onPageLoaded);
 </script>
