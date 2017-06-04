@@ -34,8 +34,8 @@ class ServiceManager {
 							online:   approvedList[key].online,
 							code:     approvedList[key].code,
 							name:     approvedList[key].name,
-							external: approvedList[key].isExternal,
-							mobile: approvedList[key].isMobile
+							external: approvedList[key].external,
+							mobile: approvedList[key].mobile
 						};
 					});
 					logger.debug('app list:', formattedList);

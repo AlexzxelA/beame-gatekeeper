@@ -103,6 +103,7 @@ router.get('/apps/get/:app_id*?', (req, res) => {
 		}
 
 		serviceManager.listApplications(user).then(list=>{
+			list = CommonUtils.filterHash(list, (k, v) => v.mobile === false);
 			res.json(list);
 		}).catch(()=>{
 			res.json([]);
