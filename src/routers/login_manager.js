@@ -135,8 +135,8 @@ router.get('/apps/get/:app_id*?', (req, res) => {
 							success: true,
 							app_id: app_id,
 							url: url,
-							external: app.isExternal,
-							mobile:app.isMobile
+							external: app.external,
+							mobile:app.mobile
 						}
 					});
 				}
