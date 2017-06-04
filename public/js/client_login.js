@@ -20,15 +20,20 @@ function setIframeUrl(url) {
 
 function clientLoginLogout(){
 
-		var logout = getCookie('beame_logout_url');
-		try {
 
+		try {
+			var logout = getCookie('beame_logout_url');
 			var logoutObj = JSON.parse(decodeURIComponent(logout));
 
+			//document.getElementById('ifrm-content').contentWindow.postMessage({event:'logout'},logoutObj.url);
 			window.location.href = logoutObj.url;
+
+			setTimeout(function(){
+				deleteCookie("proxy_enabling_token");
+			},100)
 		}
 		catch(e){
-
+			console.log(e)
 		}
 }
 
@@ -103,8 +108,12 @@ function onPageLoaded(){
 		}
 	}
 
-	window.addEventListener('message', function(event) {
 
+	var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+	var eventer = window[eventMethod];
+	var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+	eventer(messageEvent, function(event) {
 		try {
 			var data = event.data;
 			if(data.event == 'logout'){

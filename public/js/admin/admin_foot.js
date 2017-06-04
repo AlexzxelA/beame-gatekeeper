@@ -159,9 +159,5 @@ function notifyAdminLogout(){
 	} catch (e) {
 
 	}
-	//
-	// setTimeout(function(){window.location.href = '/beame-gw/logout';
-	// },50);
-
 
 }

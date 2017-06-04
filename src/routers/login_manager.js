@@ -67,7 +67,7 @@ router.get('/', (req, res) => {
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 	let user = req.beame_user;
 	res.cookie(cookieNames.UserInfo, CommonUtils.stringify({name: user.name}));
-	res.cookie(cookieNames.Logout, JSON.stringify({url: `https://${gwServerFqdn}`}));
+	res.cookie(cookieNames.Logout, JSON.stringify({url: `https://${gwServerFqdn}${Constants.ClientLogoutPath}`}));
 	res.sendFile(path.join(base_path, 'index.html'));
 });
 

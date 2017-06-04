@@ -20,6 +20,7 @@ const SigninPath               = `${GatewayControllerPath}/signin`;
 const DCLSOfflinePath          = `${GatewayControllerPath}/offline`;
 const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
+const ClientLogoutPath         = `${GatewayControllerPath}/client-logout`;
 const ConfigData               = `${GatewayControllerPath}/config-data`;
 const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
@@ -180,6 +181,7 @@ module.exports = {
 	XprsSigninPath,
 	LoginPath,
 	LogoutPath,
+	ClientLogoutPath,
 	ConfigData,
 	LogoutToLoginPath,
 	AppSwitchPath,

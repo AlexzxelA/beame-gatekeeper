@@ -506,12 +506,19 @@ unauthenticatedApp.post('/beame-gw/tteesstt', (req, res) => {
 // (1) SocketIO session
 // (2) mark proxy enabling token as inactive in case browser does not delete it or it's stolen
 unauthenticatedApp.get(Constants.LogoutPath, (req, res) => {
-	console.log('unauthenticatedApp/get/logout: Logging out');
+	//console.log('unauthenticatedApp/get/logout: Logging out');
 	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 	clearSessionCookie(res);
 	res.append('X-Beame-Debug', 'Redirecting to GW after logging out');
 	res.redirect(`https://${gwServerFqdn}${Constants.SigninPath}`);
 
+});
+
+unauthenticatedApp.get(Constants.ClientLogoutPath, (req, res) => {
+	//console.log('unauthenticatedApp/get/client-logout: Logging out');
+	const gwServerFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+	clearSessionCookie(res);
+	res.redirect(`https://${gwServerFqdn}`);
 });
 
 unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
