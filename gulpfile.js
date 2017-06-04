@@ -65,6 +65,7 @@ const compilePage = (pagePath, distPath) => {
 		.pipe(htmlreplace({
 			'css':                `${cdn_folder_path}css/app.min.css`,
 			'login-js':           `${cdn_folder_path}js/login.min.js`,
+			'client-login-js':    `${cdn_folder_path}js/client_login.min.js`,
 			'lib-sjak':           `${cdn_folder_path}js/lib-sjak.min.js`,
 			'lib-sjk':            `${cdn_folder_path}js/lib-sjk.min.js`,
 			'lib-jjf':            `${cdn_folder_path}js/lib-jjf.min.js`,
@@ -300,6 +301,11 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/client_login.js'
+		], 'client_login.min.js', true);
+
+	compileJs(
+		[
 			'./public/js/cef_manager.js'
 		], 'cef.min.js', true);
 
@@ -386,6 +392,8 @@ gulp.task('compile-pages', () => {
 	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
 	compilePage('./public/pages/admin/invitation.html', `./${dist_folder_name}/pages/admin/`);
 	compilePage('./public/pages/admin/offline_reg_forbidden.html', `./${dist_folder_name}/pages/admin/`);
+
+	compilePage('./public/pages/login_manager/index.html', `./${dist_folder_name}/pages/login_manager/`);
 });
 
 gulp.task('admin-index', function () {

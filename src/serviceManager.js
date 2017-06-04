@@ -34,8 +34,8 @@ class ServiceManager {
 							online:   approvedList[key].online,
 							code:     approvedList[key].code,
 							name:     approvedList[key].name,
-							//TODO change to normal manage logic
-							external: approvedList[key].isRasp
+							external: approvedList[key].external,
+							mobile: approvedList[key].mobile
 						};
 					});
 					logger.debug('app list:', formattedList);
@@ -85,8 +85,8 @@ class ServiceManager {
 								code:   app.code,
 								url:    app.url,
 								online: app.isOnline,
-								//TODO change to normal manage logic
-								isRasp: app.code.startsWith('RASPBERRY_')
+								external: app.isExternal,
+								mobile: app.isMobile
 							};
 						}
 

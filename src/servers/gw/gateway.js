@@ -136,6 +136,7 @@ function sendError(req, res, code, err, extra_headers = {}) {
 function is_unauth_app_url(url) {
 	return (
 	url.startsWith(Constants.LogoutPath) ||
+	url.startsWith(Constants.ClientLogoutPath) ||
 	url.startsWith(Constants.LoginPath) ||
 	url.startsWith(Constants.SigninPath) ||
 	url.startsWith(Constants.XprsSigninPath) ||

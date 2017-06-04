@@ -20,6 +20,7 @@ const SigninPath               = `${GatewayControllerPath}/signin`;
 const DCLSOfflinePath          = `${GatewayControllerPath}/offline`;
 const LoginPath                = `${GatewayControllerPath}/login`;
 const LogoutPath               = `${GatewayControllerPath}/logout`;
+const ClientLogoutPath         = `${GatewayControllerPath}/client-logout`;
 const ConfigData               = `${GatewayControllerPath}/config-data`;
 const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
 const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
@@ -118,7 +119,8 @@ const CredentialType = {
 	MatchingServer:           "MatchingServer",
 	ExternalMatchingServer:   "ExternalMatchingServer",
 	ExternalLoginServer:      "ExternalLoginServer",
-	CustomerAuthServer:       "CustomerAuthServer"
+	CustomerAuthServer:       "CustomerAuthServer",
+	GatekeeperLoginManager:   "GatekeeperLoginManager"
 };
 
 
@@ -139,15 +141,17 @@ const SetupServices = {
 };
 
 const CookieNames = {
-	"Logout":       "beame_logout_url",
-	"Logout2Login": "beame_logout_to_login_url",
-	"Login":        "beame_login_url",
-	"CentralLogin": "beame_central_login_url",
-	"Service":      "beame_service",
-	"RegData":      "beame_reg_data",
-	"Proxy":        "proxy_enabling_token",
-	"UserInfo":     "beame_userinfo",
-	"LoginData":    "usrInData"
+	"Logout":         "beame_logout_url",
+	"Logout2Login":   "beame_logout_to_login_url",
+	"Login":          "beame_login_url",
+	"ClientLogin":    "beame_client_login_url",
+	"CentralLogin":   "beame_central_login_url",
+	"Service":        "beame_service",
+	"RegData":        "beame_reg_data",
+	"Proxy":          "proxy_enabling_token",
+	"UserInfo":       "beame_userinfo",
+	"ClientLoginUrl": "beame_client_login_url",
+	"LoginData":      "usrInData"
 };
 
 module.exports = {
@@ -177,6 +181,7 @@ module.exports = {
 	XprsSigninPath,
 	LoginPath,
 	LogoutPath,
+	ClientLogoutPath,
 	ConfigData,
 	LogoutToLoginPath,
 	AppSwitchPath,

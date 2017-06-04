@@ -33,7 +33,10 @@
         <div class="column medium-12 shadow-main text-center">
             <h1 class="text-purple main-title mb-half">Welcome to Gatekeeper</h1>
             <p>Open the Beame Authenticator App to start</p>
-            <div class="px-3"><a class="button mb-2 mt-7" href="/beame-gw/signin">Sign in</a></div>
+            <div class="px-3">
+                <a class="button mb-2 mt-7" href="/beame-gw/signin">Sign in</a>
+                <a class="button mb-2 mt-7" style="margin-top:10px !important;display: none;" href="#" id="cls-link">Sign in with client certs</a>
+            </div>
             <p>Don't have an account? <a href="/beame-gw/register">Register</a></p>
         </div>
     </div>
@@ -53,7 +56,26 @@
 <div class="ver">1.0.0</div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
+    function onWelcomeLoaded(){
+
+	    var clientLogin = getCookie('beame_client_login_url');
+	    try {
+
+
+		    var clObj = JSON.parse(decodeURIComponent(clientLogin));
+		    if(clObj.url){
+		    	var btn = document.getElementById('cls-link');
+		    	btn.href = clObj.url;
+		    	btn.style.display = 'block';
+            }
+	    }
+	    catch(e){
+
+	    }
+
+	    onStaticPageLoaded();
+    }
+    document.addEventListener("DOMContentLoaded", onWelcomeLoaded);
 </script>
 
 </body>

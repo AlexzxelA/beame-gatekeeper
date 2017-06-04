@@ -805,7 +805,10 @@ class SqliteServices {
 						record.update({
 							url:      service.url,
 							name:     service.name,
-							isActive: service.isActive
+							isActive: service.isActive,
+							isMobile: service.isMobile,
+							isExternal: service.isExternal
+
 						}).then(entity => {
 							resolve(entity.dataValues);
 						}).catch(onError.bind(this, reject));

@@ -86,7 +86,7 @@ function bindEmailEvent() {
 	});
 }
 
-function initCredWindow() {
+function initCredWindow(createUser) {
 	var template = kendo.template($("#tmpl-create-child-cred").html());
 	credWnd.empty();
 	credWnd.kendoWindow({
@@ -103,7 +103,7 @@ function initCredWindow() {
 		],
 		open:    function () {
 
-			createCredViewModel.init();
+			createCredViewModel.init(createUser);
 			kendo.bind($("#create-child-cred-window"), createCredViewModel);
 		}
 	});
@@ -348,7 +348,11 @@ function loadCredDetail(data) {
 			qrWnd.data("kendoWindow").center().open();
 		},
 		openCredWnd:      function () {
-			initCredWindow();
+			initCredWindow(false);
+			credWnd.data("kendoWindow").center().open();
+		},
+		openCredUserWnd:      function () {
+			initCredWindow(true);
 			credWnd.data("kendoWindow").center().open();
 		},
 		openInvitationWnd:      function () {
@@ -592,13 +596,16 @@ function loadCredDetail(data) {
 	kendo.bind($("#cred-form-container"), credDetailViewModel);
 
 	createCredViewModel = kendo.observable({
-		init:       function () {
+		init:       function (createUser) {
 			this.set("fqdn", data.fqdn);
+			this.set("createUser", createUser);
+			this.set("showUserId",createUser);
 		},
 		data:       data,
 		fqdn:       null,
 		email:      null,
 		name:       null,
+		user_id:    null,
 		password:   null,
 		sendEmail:  false,
 		createCred: function (e) {
@@ -606,7 +613,7 @@ function loadCredDetail(data) {
 
 
 			var form     = $('#frm-create-child-cred'),
-			    url      = form.attr('action'),
+			    url      = this.get("createUser") === true ? '/cred/user/create' : '/cred/create' ,
 			    method   = form.attr('method'),
 			    fqdn     = this.get("fqdn"),
 			    formData = {

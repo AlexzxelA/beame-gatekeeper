@@ -98,6 +98,16 @@ class CredentialManager {
 					return;
 				}
 
+				if(!email){
+					let cred = beameStore.getCredential(zeroLevelFqdn);
+
+					if(!cred){
+						reject(`Zero level Credential not found`);
+						return;
+					}
+
+					email = cred.metadata.email;
+				}
 
 				//noinspection JSUnresolvedFunction
 			async.each(Object.keys(servers), (serverType, callback) => {

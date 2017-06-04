@@ -19,6 +19,7 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
+const cookieNames       = Constants.CookieNames;
 
 const BeameAuthServices = require('../authServices');
 const beameAuthServices = BeameAuthServices.getInstance();
@@ -45,6 +46,8 @@ class AdminRouter {
 		});
 
 		this._router.get('/', (req, res) => {
+			res.cookie(cookieNames.ClientLogin, JSON.stringify({url: `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
 		//endregion
@@ -94,6 +97,41 @@ class AdminRouter {
 			}
 
 			beameAuthServices.createCred(data)
+				.then(resolve)
+				.catch(sendError);
+
+		});
+
+		this._router.post('/cred/user/create', (req, res) => {
+
+			let data = req.body, responseMessage = null;
+
+			logger.info(`Create user  with ${CommonUtils.data}`);
+
+			function resolve() {
+
+				return res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": responseMessage.message,
+					"data":         responseMessage.data,
+					"newFqdn":      responseMessage.fqdn
+				});
+			}
+
+			function sendError(e) {
+				logger.error('/regtoken/user/create error', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			}
+
+			beameAuthServices.createCred(data)
+				.then(resp=>{
+					responseMessage = resp;
+					data.fqdn = resp.fqdn;
+					return beameAuthServices.createUser(data);
+				})
 				.then(resolve)
 				.catch(sendError);
 

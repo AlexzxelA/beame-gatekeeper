@@ -144,3 +144,20 @@ function getSettings(cb){
 		cb && cb();
 	})
 }
+
+function notifyAdminLogout(){
+	//e.preventDefault();
+	try {
+		var client_logout = getCookie('beame_client_login_url');
+
+		var clientLoginObj = JSON.parse(decodeURIComponent(client_logout));
+
+		if(window.self != window.top && clientLoginObj.url){
+			deleteCookie("proxy_enabling_token");
+			window.top.postMessage({event:'logout'},clientLoginObj.url);
+		}
+	} catch (e) {
+
+	}
+
+}

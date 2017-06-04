@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beame.io for Developers</title>
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,800"  rel="stylesheet" type="text/css"/>
+    <!-- Styles -->
+    <!-- build:css -->
+    <link rel="stylesheet" href="css/app.css">
+    <!-- endbuild -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.1.223/js/kendo.web.min.js"></script>
+
+    <!-- Scripts -->
+    <!-- build:utils-head -->
+    <script src="js/utils.js"></script>
+    <!-- endbuild -->
+
+</head>
+<body>
+
+    <div class="row expanded">
+
+        <div class="column large-2 py-2">
+
+            <div class="clearfix">
+                <span class="logo d-inline-block">
+                <!-- build:logo -->
+                <img src="img/beame-logo-grad.png" width="100" height="16">
+                <!-- endbuild -->
+                </span>
+                <a href="#" class="mobile-menu-wrapper-btn">menu</a>
+            </div>
+
+            <div class="mobile-menu-wrapper isShownMob">
+                <p class="word-break semi">Welcome, <span id="wlcm-user"></span></p>
+                <ul class="list-pseudo-links" id="ul-apps"></ul>
+            </div>
+
+        </div>
+
+        <div class="column large-10 relative iframe-wrapper iframe-wrapper-apps">
+                <iframe frameborder="0" id="ifrm-content" class="iframe-wide"></iframe>
+        </div>
+
+    </div>
+
+<!-- build:client-login-js -->
+<script src="js/client_login.js"></script>
+<!-- endbuild -->
+
+
+</body>
+</html>
