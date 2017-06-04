@@ -3609,6 +3609,10 @@ p + p {
       padding-left: 0;
       padding-bottom: 40px; } }
 
+.app-item-logout {
+  text-decoration: underline;
+  margin-top: 15px; }
+
 /* -------------------------
 Wrappers
 ------------------------- */

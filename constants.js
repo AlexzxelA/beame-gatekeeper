@@ -149,7 +149,6 @@ const CookieNames = {
 	"Proxy":          "proxy_enabling_token",
 	"UserInfo":       "beame_userinfo",
 	"ClientLoginUrl": "beame_client_login_url",
-	"GwAuthUrl":      "beame_gw_auth_url",
 	"LoginData":      "usrInData"
 };
 

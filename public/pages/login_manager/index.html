@@ -38,8 +38,7 @@
 
             <div class="mobile-menu-wrapper isShownMob">
                 <p class="word-break semi">Welcome, <span id="wlcm-user"></span></p>
-                <ul class="list-pseudo-links" id="ul-apps">
-                </ul>
+                <ul class="list-pseudo-links" id="ul-apps"></ul>
             </div>
 
         </div>
@@ -50,143 +49,10 @@
 
     </div>
 
+<!-- build:client-login-js -->
+<script src="js/client_login.js"></script>
+<!-- endbuild -->
 
-
-<script type="text/x-kendo-template" id="app-template">
-    <li>
-        <h3>#:name#</h3>
-    </li>
-</script>
-
-
-<script>
-
-	function hashToArray(hash) {
-		try {
-			let keys = Object.keys(hash);
-
-			return keys.map((v) => {
-				return hash[v];
-			});
-		} catch (e) {
-			return [];
-		}
-	}
-	function setIframeUrl(url) {
-		if (url) {
-			var iframe = document.getElementById('ifrm-content');
-
-			if (url.indexOf('beame-gw/logout') > 0) {
-				return;
-			}
-
-			iframe.src = "about:blank";
-
-			iframe.style.display = 'block';
-
-			iframe.src = url;
-		}
-	}
-	function onPageLoaded(){
-		var appData = getCookie('beame_service');
-		if(appData){
-			var service = JSON.parse(decodeURIComponent(appData)),
-			    span = document.getElementById('wlcm-app');
-
-			//span.innerHTML = service.name + ', v.' + service.version;
-		}
-
-		$.getJSON('/apps/get',function(hash){
-
-
-			var data = hashToArray(hash);
-			console.log('apps %j', data);
-            for(var i =0;i< data.length;i++){
-	            $("#ul-apps").append("<li class='app-item' data-value=\"" + data[i].app_id + "\">" + data[i].name + "</li>");
-            }
-
-            $("#ul-apps > .app-item").on('click',function(e){
-            	var app_id = $(e.currentTarget).attr('data-value');
-
-	            $.ajax({
-		            url:         'apps/get/' + app_id,
-		            cache:       false,
-		            type:        'Get',
-		            datatype:    "json",
-		            contentType: "application/json; charset=utf-8"
-		            , success:   function (response) {
-                        console.log(response);
-		            	if(response.type=='redirect'){
-		            		var payload = response.payload,
-                                url = payload.url;
-
-				            setIframeUrl(url);
-                            /* Handle Apps Menu for mobile  */
-                            menuMob.classList.remove('isShownMob');
-                            menuMobBtn.classList.add('isShownMob');
-                            menuMobBtn.textContent = 'menu';
-                        }
-		            }
-		            ,error:function(e){
-		            	console.error(e);
-                    }
-	            });
-            })
-
-		});
-
-
-
-
-		var userObj = getCookie('beame_userinfo');
-		if (userObj) {
-			try {
-				console.log('userObj',userObj);
-				var user = JSON.parse(decodeURIComponent(userObj));
-				if (user.name) {
-					var h4 = document.getElementById('wlcm-user');
-
-					h4.innerHTML = user.name || user.fqdn;
-				}
-			} catch (e) {
-			}
-		}
-
-//		var welcomeAuth = getCookie('beame_gw_auth_url');
-//		try {
-//			console.log('welcomeAuth',welcomeAuth);
-//			var wuObj = JSON.parse(decodeURIComponent(welcomeAuth));
-//
-//			setIframeUrl(wuObj.url);
-//		}
-//		catch(e){
-//
-//		}
-
-//		try{
-//			var tmpIframe = document.createElement("iframe");
-//			tmpIframe.setAttribute("src","beame-call://?0//?"+btoa("{\"type\":\"authenticatedPageLoaded\"}"));
-//			document.body.appendChild(tmpIframe);
-//			tmpIframe.parentNode.removeChild(tmpIframe);
-//			tmpIframe = null;
-//		}
-//		catch (e){
-//			window.alert(e);
-//		}
-	}
-
-	/* Apps Menu for mobile  */
-    var menuMob = document.querySelector('.mobile-menu-wrapper'),
-        menuMobBtn = document.querySelector('.mobile-menu-wrapper-btn');
-
-    menuMobBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        menuMob.classList.toggle('isShownMob');
-        this.textContent = (this.textContent.toLowerCase() === 'menu') ? this.textContent = 'close' : this.textContent = 'menu';
-    });
-
-	document.addEventListener("DOMContentLoaded", onPageLoaded);
-</script>
 
 </body>
 </html>

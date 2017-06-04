@@ -144,3 +144,20 @@ function getSettings(cb){
 		cb && cb();
 	})
 }
+
+function notifyAdminLogout(){
+	//e.preventDefault();
+	try {
+		if(window.self != window.top){
+			window.top.postMessage({event:'logout'});
+		}
+	} catch (e) {
+
+	}
+
+	setTimeout(function(){
+		window.location.href = '/beame-gw/logout';
+	},50);
+
+
+}

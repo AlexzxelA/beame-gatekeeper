@@ -30,9 +30,9 @@ function assertValidCertMiddleware(req, res, next) {
 		//noinspection JSUnresolvedFunction,JSUnresolvedVariable
 		let cert    = req.connection.getPeerCertificate(),
 		    subject = cert ? cert.subject : null,
-			fqdn = subject ? subject.CN : null;
+		    fqdn    = subject ? subject.CN : null;
 
-		if(!cert){
+		if (!cert) {
 			res.status(403).end('Cert required');
 			return;
 		}
@@ -64,28 +64,11 @@ router.use(assertValidCertMiddleware);
 
 
 router.get('/', (req, res) => {
-	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 	let user = req.beame_user;
-	res.cookie(cookieNames.UserInfo,CommonUtils.stringify({name:user.name}));
-
-	const _createSessionToken = () => {
-		return new Promise((resolve, reject) => {
-			utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({isAdmin: user.isAdmin}), bootstrapper.browserSessionTtl)
-				.then(resolve)
-				.catch(e => reject(e));
-		});
-	};
-
-	const _respond = () =>{
-		res.sendFile(path.join(base_path, 'index.html'));
-	};
-
-	_createSessionToken()
-		.then(token=>{
-			res.cookie(cookieNames.GwAuthUrl,JSON.stringify({url:`https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`}));
-			_respond();
-		}).catch(_respond);
-
+	res.cookie(cookieNames.UserInfo, CommonUtils.stringify({name: user.name}));
+	res.cookie(cookieNames.Logout, JSON.stringify({url: `https://${gwServerFqdn}`}));
+	res.sendFile(path.join(base_path, 'index.html'));
 });
 
 router.get('/apps/get/:app_id*?', (req, res) => {
@@ -93,26 +76,26 @@ router.get('/apps/get/:app_id*?', (req, res) => {
 	const serviceManager = (require('../serviceManager')).getInstance();
 
 	let app_id = req.params.app_id,
-	    user = req.beame_user;
+	    user   = req.beame_user;
 
-	if(!app_id){
+	if (!app_id) {
 		//get list
-		if(!user){
+		if (!user) {
 			res.json([]);
 			return;
 		}
 
-		serviceManager.listApplications(user).then(list=>{
-			list = CommonUtils.filterHash(list, (k, v) => v.mobile === false);
+		serviceManager.listApplications(user).then(list => {
+			list = utils.hashToArray(CommonUtils.filterHash(list, (k, v) => v.mobile === false));
 			res.json(list);
-		}).catch(()=>{
+		}).catch(() => {
 			res.json([]);
 		});
 	}
-	else{
+	else {
 		//chose app
 
-		const  makeProxyEnablingToken = () => {
+		const makeProxyEnablingToken = () => {
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
 				JSON.stringify({app_id: app_id, isAdmin: !!user.isAdmin}),
@@ -120,24 +103,24 @@ router.get('/apps/get/:app_id*?', (req, res) => {
 			);
 		};
 
-		const respond = (token) =>{
+		const respond = (token) => {
 			return new Promise(() => {
 				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
 				logger.debug(`respond() URL is ${url}`);
 
 				let app = serviceManager.getAppById(app_id);
-				if(app.code && app.code.includes('_saml_')){
+				if (app.code && app.code.includes('_saml_')) {
 					//TODO add saml logic
 				}
 				else {
 					res.json({
-						type: 'redirect',
+						type:    'redirect',
 						payload: {
-							success: true,
-							app_id: app_id,
-							url: url,
+							success:  true,
+							app_id:   app_id,
+							url:      url,
 							external: app.external,
-							mobile:app.mobile
+							mobile:   app.mobile
 						}
 					});
 				}
@@ -146,7 +129,7 @@ router.get('/apps/get/:app_id*?', (req, res) => {
 
 		makeProxyEnablingToken()
 			.then(respond)
-			.catch(e=>{
+			.catch(e => {
 				res.status(500).send(BeameLogger.formatError(e));
 			})
 
