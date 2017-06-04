@@ -66,16 +66,17 @@
 		    } catch (e) {
 		    }
 	    }
-
-	    try{
-		    var tmpIframe = document.createElement("iframe");
-		    tmpIframe.setAttribute("src","beame-call://?0//?"+btoa("{\"type\":\"authenticatedPageLoaded\"}"));
-		    document.body.appendChild(tmpIframe);
-		    tmpIframe.parentNode.removeChild(tmpIframe);
-		    tmpIframe = null;
-        }
-        catch (e){
-	        window.alert(e);
+        if(getCookie('b3am3-1d')){
+	        try{
+		        var tmpIframe = document.createElement("iframe");
+		        tmpIframe.setAttribute("src","beame-call://?0//?"+btoa("{\"type\":\"authenticatedPageLoaded\"}"));
+		        document.body.appendChild(tmpIframe);
+		        tmpIframe.parentNode.removeChild(tmpIframe);
+		        tmpIframe = null;
+	        }
+	        catch (e){
+		        window.alert(e);
+	        }
         }
     }
 
