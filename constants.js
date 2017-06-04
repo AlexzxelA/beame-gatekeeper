@@ -140,15 +140,17 @@ const SetupServices = {
 };
 
 const CookieNames = {
-	"Logout":       "beame_logout_url",
-	"Logout2Login": "beame_logout_to_login_url",
-	"Login":        "beame_login_url",
-	"CentralLogin": "beame_central_login_url",
-	"Service":      "beame_service",
-	"RegData":      "beame_reg_data",
-	"Proxy":        "proxy_enabling_token",
-	"UserInfo":     "beame_userinfo",
-	"LoginData":    "usrInData"
+	"Logout":         "beame_logout_url",
+	"Logout2Login":   "beame_logout_to_login_url",
+	"Login":          "beame_login_url",
+	"CentralLogin":   "beame_central_login_url",
+	"Service":        "beame_service",
+	"RegData":        "beame_reg_data",
+	"Proxy":          "proxy_enabling_token",
+	"UserInfo":       "beame_userinfo",
+	"ClientLoginUrl": "beame_client_login_url",
+	"GwAuthUrl":      "beame_gw_auth_url",
+	"LoginData":      "usrInData"
 };
 
 module.exports = {

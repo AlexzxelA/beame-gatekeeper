@@ -98,6 +98,9 @@ unauthenticatedApp.get('/', (req, res) => {
 	}
 
 	setBeameCookie(cookieNames.Service, res);
+
+	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
 

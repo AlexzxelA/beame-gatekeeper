@@ -65,7 +65,27 @@ router.use(assertValidCertMiddleware);
 
 router.get('/', (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
-	res.sendFile(path.join(base_path, 'index.html'));
+	let user = req.beame_user;
+	res.cookie(cookieNames.UserInfo,CommonUtils.stringify({name:user.name}));
+
+	const _createSessionToken = () => {
+		return new Promise((resolve, reject) => {
+			utils.createAuthTokenByFqdn(gwServerFqdn, JSON.stringify({isAdmin: user.isAdmin}), bootstrapper.browserSessionTtl)
+				.then(resolve)
+				.catch(e => reject(e));
+		});
+	};
+
+	const _respond = () =>{
+		res.sendFile(path.join(base_path, 'index.html'));
+	};
+
+	_createSessionToken()
+		.then(token=>{
+			res.cookie(cookieNames.GwAuthUrl,JSON.stringify({url:`https://${gwServerFqdn}${Constants.GwAuthenticatedPath}?proxy_enable=${encodeURIComponent(token)}`}));
+			_respond();
+		}).catch(_respond);
+
 });
 
 router.get('/apps/get/:app_id*?', (req, res) => {
