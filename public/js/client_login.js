@@ -20,17 +20,11 @@ function setIframeUrl(url) {
 
 function clientLoginLogout(){
 
-
 		try {
+
 			var logout = getCookie('beame_logout_url');
 			var logoutObj = JSON.parse(decodeURIComponent(logout));
-
-			//document.getElementById('ifrm-content').contentWindow.postMessage({event:'logout'},logoutObj.url);
 			window.location.href = logoutObj.url;
-
-			setTimeout(function(){
-				deleteCookie("proxy_enabling_token");
-			},100)
 		}
 		catch(e){
 			console.log(e)
