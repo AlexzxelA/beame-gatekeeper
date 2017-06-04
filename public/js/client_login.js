@@ -104,8 +104,14 @@ function onPageLoaded(){
 	}
 
 	window.addEventListener('message', function(event) {
-		console.log('MESSSSSSSSSSSSSAGE');
-		console.log(event);
+
+		try {
+			var data = event.data;
+			if(data.event == 'logout'){
+				clientLoginLogout();
+			}
+		} catch (e) {
+		}
 	});
 }
 

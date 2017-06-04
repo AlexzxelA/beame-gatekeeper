@@ -148,16 +148,20 @@ function getSettings(cb){
 function notifyAdminLogout(){
 	//e.preventDefault();
 	try {
-		if(window.self != window.top){
-			window.top.postMessage({event:'logout'});
+		var client_logout = getCookie('beame_client_login_url');
+
+		var clientLoginObj = JSON.parse(decodeURIComponent(client_logout));
+
+		if(window.self != window.top && clientLoginObj.url){
+			deleteCookie("proxy_enabling_token");
+			window.top.postMessage({event:'logout'},clientLoginObj.url);
 		}
 	} catch (e) {
 
 	}
-
-	setTimeout(function(){
-		window.location.href = '/beame-gw/logout';
-	},50);
+	//
+	// setTimeout(function(){window.location.href = '/beame-gw/logout';
+	// },50);
 
 
 }

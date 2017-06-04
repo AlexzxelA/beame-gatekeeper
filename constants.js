@@ -143,6 +143,7 @@ const CookieNames = {
 	"Logout":         "beame_logout_url",
 	"Logout2Login":   "beame_logout_to_login_url",
 	"Login":          "beame_login_url",
+	"ClientLogin":    "beame_client_login_url",
 	"CentralLogin":   "beame_central_login_url",
 	"Service":        "beame_service",
 	"RegData":        "beame_reg_data",

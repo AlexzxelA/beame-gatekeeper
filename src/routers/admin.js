@@ -19,6 +19,7 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
+const cookieNames       = Constants.CookieNames;
 
 const BeameAuthServices = require('../authServices');
 const beameAuthServices = BeameAuthServices.getInstance();
@@ -45,6 +46,8 @@ class AdminRouter {
 		});
 
 		this._router.get('/', (req, res) => {
+			res.cookie(cookieNames.ClientLogin, JSON.stringify({url: `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
 		//endregion
