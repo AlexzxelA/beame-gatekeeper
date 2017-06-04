@@ -38,7 +38,9 @@ function loadServices() {
 						name:     {type: "string"},
 						code:     {type: "string"},
 						url:      {type: "string"},
-						isActive: {type: "boolean", defaultValue: true}
+						isActive: {type: "boolean", defaultValue: true},
+						isMobile: {type: "boolean", defaultValue: false},
+						isExternal: {type: "boolean", defaultValue: false}
 					}
 				}
 			},
@@ -73,6 +75,14 @@ function loadServices() {
 				field: "url",
 				title: "Url",
 				width: "30%"
+			},
+			{
+				field: "isMobile",
+				title: "Mobile"
+			},
+			{
+				field: "isExternal",
+				title: "External"
 			},
 			{
 				field: "isActive",

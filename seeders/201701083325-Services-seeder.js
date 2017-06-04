@@ -10,6 +10,7 @@ module.exports = {
 				url:       `http://127.0.0.1:${Services.RaspberryLight.port}`,
 				isActive:  false,
 				isOnline:  false,
+				isExternal:true,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}

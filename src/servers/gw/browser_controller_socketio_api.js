@@ -230,7 +230,8 @@ const messageHandlers = {
 								success: true,
 								app_id: payload.app_id,
 								samlHtml: html,
-								external: app ? app.isRasp : false,
+								external: app.external,
+								mobile:app.mobile,
 								url: null
 							}
 						});
@@ -243,7 +244,8 @@ const messageHandlers = {
 							success: true,
 							app_id: payload.app_id,
 							url: url,
-							external: app ? app.isRasp : false
+							external: app.external,
+							mobile:app.mobile
 						}
 					});
 				}

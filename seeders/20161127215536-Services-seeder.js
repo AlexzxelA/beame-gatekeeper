@@ -36,6 +36,7 @@ module.exports = {
 				//url:       `http://127.0.0.1:${Services.MobilePhoto.port}`,
 				isActive:  true,
 				isOnline:  true,
+				isMobile:  true,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			},
@@ -45,6 +46,7 @@ module.exports = {
 				//url:       `http://127.0.0.1:${Services.MobileStream.port}`,
 				isActive:  false,
 				isOnline:  false,
+				isMobile:  true,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}
@@ -54,7 +56,7 @@ module.exports = {
 
 	down: function (queryInterface) {
 
-		 return queryInterface.bulkDelete('Services', null, {});
+		return queryInterface.bulkDelete('Services', null, {});
 
 	}
 };
