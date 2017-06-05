@@ -5,14 +5,15 @@ module.exports = {
 	up: function (queryInterface) {
 		return queryInterface.bulkInsert('Services', [
 			{
-				name:      'Raspberry Light',
-				code:      Services.RaspberryLight.code,
-				url:       `http://127.0.0.1:${Services.RaspberryLight.port}`,
-				isActive:  false,
-				isOnline:  false,
-				isExternal:true,
-				createdAt: new Date(),
-				updatedAt: new Date()
+				name:       'Raspberry Light',
+				code:       Services.RaspberryLight.code,
+				url:        `http://127.0.0.1:${Services.RaspberryLight.port}`,
+				isActive:   false,
+				isOnline:   false,
+				isExternal: true,
+				isMobile:   false,
+				createdAt:  new Date(),
+				updatedAt:  new Date()
 			}
 		], {});
 
@@ -20,7 +21,7 @@ module.exports = {
 
 	down: function (queryInterface) {
 
-		 return queryInterface.bulkDelete('Services', null, {});
+		return queryInterface.bulkDelete('Services', null, {});
 
 	}
 };
