@@ -86,30 +86,31 @@ const messageHandlers = {
 						logger.error('Internal app error. User ID not found');
 						userIdData = {};
 					}
-					let ssoManagerX = ssoManager.samlManager.getInstance();
-					let ssoConfig = ssoManagerX.getConfig();
-					ssoConfig.user = {
-						user:           userIdData.email || userIdData.name,
-						emails:         userIdData.email || userIdData.name,//userIdData.email,
-						name:           {givenName:undefined, familyName:undefined},
-						displayName:    userIdData.nickname,
-						id:             userIdData.email || userIdData.name,
-					};
-					ssoConfig.persistentId  = userIdData.persistentId;
-					ssoConfig.SAMLRequest   = payload.SAMLRequest;
-					ssoConfig.RelayState    = payload.RelayState;
-					let ssoSession          = new ssoManager.samlSession(ssoConfig);
-					ssoSession.getSamlHtml((err, html)=>{
-						if(html)reply({
-							type: 'saml',
-							payload: {
-								success: true,
-								samlHtml: html,
-								session_token: token,
-								url: null
-							}
-						});
-					});
+					utils.produceSAMLresponse(userIdData, payload, token, reply);
+					// let ssoManagerX = ssoManager.samlManager.getInstance();
+					// let ssoConfig = ssoManagerX.getConfig();
+					// ssoConfig.user = {
+					// 	user:           userIdData.email || userIdData.name,
+					// 	emails:         userIdData.email || userIdData.name,//userIdData.email,
+					// 	name:           {givenName:undefined, familyName:undefined},
+					// 	displayName:    userIdData.nickname,
+					// 	id:             userIdData.email || userIdData.name,
+					// };
+					// ssoConfig.persistentId  = userIdData.persistentId;
+					// ssoConfig.SAMLRequest   = payload.SAMLRequest;
+					// ssoConfig.RelayState    = payload.RelayState;
+					// let ssoSession          = new ssoManager.samlSession(ssoConfig);
+					// ssoSession.getSamlHtml((err, html)=>{
+					// 	if(html)reply({
+					// 		type: 'saml',
+					// 		payload: {
+					// 			success: true,
+					// 			samlHtml: html,
+					// 			session_token: token,
+					// 			url: null
+					// 		}
+					// 	});
+					// });
 				}
 				else{
 					logger.debug('messageHandlers/auth/respond token', token);
@@ -213,29 +214,31 @@ const messageHandlers = {
 				let app = serviceManager.getAppById(payload.app_id);
 				if(payload.app_code && payload.app_code.includes('_saml_')){
 					let userIdData = (typeof payload.sessionUserData === 'object')?payload.sessionUserData:JSON.parse(payload.sessionUserData);
-					let ssoManagerX = ssoManager.samlManager.getInstance();
-					let ssoConfig = ssoManagerX.getConfig(payload.app_code);
-					ssoConfig.user = {
-						user:           userIdData.email||userIdData.name,
-						emails:         userIdData.email||userIdData.name,//userIdData.email,
-						name:           {givenName:undefined, familyName:undefined},
-						displayName:    userIdData.nickname,
-						id:             userIdData.email||userIdData.name
-					};
-					let ssoSession = new ssoManager.samlSession(ssoConfig);
-					ssoSession.getSamlHtml((err, html)=>{
-						if(html)reply({
-							type: 'saml',
-							payload: {
-								success: true,
-								app_id: payload.app_id,
-								samlHtml: html,
-								external: app.external,
-								mobile:app.mobile,
-								url: null
-							}
-						});
-					});
+					utils.produceSAMLresponse(userIdData, payload, null, reply);
+
+					// let ssoManagerX = ssoManager.samlManager.getInstance();
+					// let ssoConfig = ssoManagerX.getConfig(payload.app_code);
+					// ssoConfig.user = {
+					// 	user:           userIdData.email||userIdData.name,
+					// 	emails:         userIdData.email||userIdData.name,//userIdData.email,
+					// 	name:           {givenName:undefined, familyName:undefined},
+					// 	displayName:    userIdData.nickname,
+					// 	id:             userIdData.email||userIdData.name
+					// };
+					// let ssoSession = new ssoManager.samlSession(ssoConfig);
+					// ssoSession.getSamlHtml((err, html)=>{
+					// 	if(html)reply({
+					// 		type: 'saml',
+					// 		payload: {
+					// 			success: true,
+					// 			app_id: payload.app_id,
+					// 			samlHtml: html,
+					// 			external: app.external,
+					// 			mobile:app.mobile,
+					// 			url: null
+					// 		}
+					// 	});
+					// });
 				}
 				else {
 					reply({
