@@ -7,11 +7,38 @@ const bodyParser = require('body-parser');
 const https      = require('https');
 const express    = require('express');
 const path       = require('path');
-
+const ssoManager  = require('./samlSessionManager');
 const beameSDK    = require('beame-sdk');
 const CommonUtils = beameSDK.CommonUtils;
 const BeameStore  = new beameSDK.BeameStore();
 const AuthToken   = beameSDK.AuthToken;
+
+function produceSAMLresponse(userIdData , payload, token, cb) {
+	let ssoManagerX = ssoManager.samlManager.getInstance();
+	let ssoConfig = ssoManagerX.getConfig(payload && payload.app_code);
+	ssoConfig.user = {
+		user:           userIdData.email || userIdData.name,
+		emails:         userIdData.email || userIdData.name,//userIdData.email,
+		name:           {givenName:undefined, familyName:undefined},
+		displayName:    userIdData.nickname,
+		id:             userIdData.email || userIdData.name,
+	};
+	ssoConfig.persistentId  = userIdData.persistentId;
+	ssoConfig.SAMLRequest   = payload && payload.SAMLRequest;
+	ssoConfig.RelayState    = payload && payload.RelayState;
+	let ssoSession          = new ssoManager.samlSession(ssoConfig);
+	ssoSession.getSamlHtml((err, html)=>{
+		if(html)cb({
+			type: 'saml',
+			payload: {
+				success: true,
+				samlHtml: html,
+				session_token: token,
+				url: null
+			}
+		});
+	});
+}
 
 /**
  *
@@ -109,6 +136,44 @@ class pairingGlobals {
 	}
 }
 
+let clientCertGlobalsRef = null;
+class clientCertGlobals {
+	constructor() {
+		this._sessionIdTimeout = 180;//adjust this value to allow "refresh" on mobile browser
+		this._sessionIdScan    = 60 * 1000;
+		if (!clientCertGlobalsRef) {
+			clientCertGlobalsRef      = this;
+			this._sessionIds = {};
+		}
+	}
+
+	setNewSessionId(key, value) {
+		this._sessionIds[key] = {token: value, time: (Math.floor(Date.now() / 1000) + this._sessionIdTimeout)};
+	}
+
+	getSessionIds() {
+		return this._sessionIds;
+	}
+
+	cleanSessionsCache() {
+		setInterval(function () {
+			if (this._sessionIds) {
+				for (let i = 0; i < this._directSessionIds.length; i++) {
+					let record = this._sessionIds[i];
+					if (!record.time || Math.floor(Date.now() / 1000) > record.time) {
+						console.log('deleted record:', record);
+						delete this._sessionIds[i];
+					}
+				}
+			}
+		}, this._sessionIdScan)
+	}
+
+	static getInstance() {
+		return clientCertGlobalsRef;
+	}
+}
+
 function clearSessionCookie(res) {
 	const Constants   = require('../constants');
 	const cookieNames = Constants.CookieNames;
@@ -148,6 +213,8 @@ module.exports = {
 	createAuthTokenByFqdn,
 	signDataWithFqdn,
 	generateUID,
+	produceSAMLresponse,
 	pairingGlobals,
+	clientCertGlobals,
 	hashToArray
 };

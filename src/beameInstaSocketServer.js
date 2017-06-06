@@ -69,13 +69,18 @@ class BeameInstaSocketServer {
 		this._loginRelayFqdn = null;
 
 		this._pairingGlobals = null;
+
+		this._clientCertGlobals = null;
 	}
 
 
 	start() {
 		new Utils.pairingGlobals();
+		new Utils.clientCertGlobals();
 		this._pairingGlobals = Utils.pairingGlobals.getInstance();
+		this._clientCertGlobals = Utils.clientCertGlobals.getInstance();
 		this._pairingGlobals.cleanSessionsCache();
+		this._clientCertGlobals.cleanSessionsCache();
 		new relayManager();
 		relayManagerInstance = relayManager.getInstance();
 
