@@ -109,7 +109,10 @@ router.get('/apps/get/:app_id*?', (req, res) => {
 				logger.debug(`respond() URL is ${url}`);
 
 				let app = serviceManager.getAppById(app_id);
-				if (app.code && app.code.includes('_saml_')) {
+				if(app.code && app.code.includes('_saml_')){
+					utils.produceSAMLresponse(user, {app_code: app.code}, null, function (response) {
+						res.json(response);
+					});
 					//TODO add saml logic
 				}
 				else {
