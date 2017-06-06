@@ -202,7 +202,7 @@
             <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send cred by email
         </label>
         <!--<div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>-->
-        <input type="button" value="Create Certificate" class="k-primary btn-bold mt-2" data-bind="click:createCred">
+        <input type="button" value="Create Certificate" class="k-button btn-bold mt-2" data-bind="click:createCred">
     </form>
     <div id="wnd-overlay-cred" class="overlay" style="max-height: 100% !important">
         <div>
@@ -228,7 +228,7 @@
         <input name="user_id" placeholder="External user ID" class="form-input"/>
         <input name="ttl" placeholder="Token TTL in seconds" class="form-input"/>
         <!--<div id="token-info" class="invisible-msg">&nbsp;</div>-->
-        <input type="button" value="Create Registration Token" class="k-primary btn-bold mt-2" id="btn-create-regtoken">
+        <input type="button" value="Create Registration Token" class="k-button btn-bold mt-2" id="btn-create-regtoken">
     </form>
 
     <div id="reg-token-container" style="display:none;" class="form-main admin-form-main">
@@ -256,7 +256,7 @@
             <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
             <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>
             <label class="d-inline-block small"><input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send invitation by email</label>
-            <input class="k-primary btn-bold mt-2" type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite">
+            <input class="k-button btn-bold mt-2" type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite">
         </form>
     </section>
 
@@ -428,14 +428,14 @@
 
 <script id="tmpl-edit-dns-row" type="text/x-kendo-template">
     <tr>
-        <td style="width: 42%">#: fqdn#</td>
-        <td style="width: 48%">
-            <input type="text" class="k-textbox" data-bind="value:value" name="value" style="width:98%;"/>
+        <td>#: fqdn#</td>
+        <td>
+            <input type="text" class="k-textbox" data-bind="value:value" name="value" />
         </td>
-        <td style="width: 5%">
+        <td>
             <a class="k-button k-update-button dns-update" href="\\#"><span class="k-icon k-i-check"></span></a>
         </td>
-        <td style="width: 5%"><a class="k-button k-cancel-button" href="\\#"><span class="k-icon k-i-cancel"></span></a>
+        <td><a class="k-button k-cancel-button" href="\\#"><span class="k-icon k-i-cancel"></span></a>
         </td>
     </tr>
 </script>
@@ -457,7 +457,7 @@
 </script>
 
 <div id="qr-window" class="wnd-default">
-    <div id="download-qr" style="margin: auto;width: 300px"></div>
+    <div id="download-qr"></div>
 </div>
 
 <div id="cert-window" class="wnd-default"></div>

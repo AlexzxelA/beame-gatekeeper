@@ -3681,7 +3681,7 @@ Table
 
 .metrotable > tbody > tr > td {
   padding: .75rem .25rem;
-  overflow-y: hidden;
+  overflow: hidden;
   text-align: left;
   font-size: .9rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -3725,7 +3725,6 @@ Kendo grids
   .grid-customised th:first-child, .grid-customised td:first-child {
     width: 50px; }
   .grid-customised td {
-    overflow-x: auto;
     border-bottom-width: 1px; }
     .grid-customised td .k-grid-edit, .grid-customised td .k-grid-delete, .grid-customised td .k-grid-cancel, .grid-customised td .k-grid-update {
       font-size: 0;
@@ -3924,6 +3923,8 @@ input.k-input, input.form-input {
   margin: 0;
   max-width: 640px;
   text-align: left; }
+  .admin-form-main.admin-form-100 {
+    max-width: 100%; }
   .admin-form-main .lbl-info {
     width: 100%;
     display: block;
@@ -4025,6 +4026,14 @@ a.btn-clear, .btn-clear, button.btn-clear {
     border-width: 1px 0 1px 1px; }
   .search-complex .search-complex-btn {
     border-width: 1px 1px 1px 0; }
+
+/* -------------------------
+Windows
+------------------------- */
+.k-widget.k-window {
+  border-width: 0; }
+  .k-widget.k-window .k-window-titlebar.k-header {
+    border-width: 0; }
 
 /* -------------------------
 Helpers

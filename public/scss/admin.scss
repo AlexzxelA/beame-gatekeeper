@@ -83,7 +83,7 @@ Table
 
 .metrotable > tbody > tr > td {
   padding: .75rem .25rem;
-  overflow-y: hidden;
+  overflow: hidden;
   text-align: left;
   font-size: .9rem;
   border-bottom: $line-gray;
@@ -156,7 +156,6 @@ Kendo grids
 
   td {
 
-    overflow-x: auto;
     border-bottom-width: 1px;
 
     .k-grid-edit, .k-grid-delete, .k-grid-cancel, .k-grid-update {
@@ -411,6 +410,9 @@ input.k-input, input.form-input {
   margin: 0;
   max-width: 640px;
   text-align: left;
+  &.admin-form-100 {
+    max-width: 100%;
+  }
   .lbl-info {
     width: 100%;
     display: block;
@@ -542,6 +544,17 @@ a.btn-clear, .btn-clear, button.btn-clear {
   }
   .search-complex-btn {
     border-width: 1px 1px 1px 0;
+  }
+}
+
+/* -------------------------
+Windows
+------------------------- */
+
+.k-widget.k-window {
+  border-width: 0;
+  .k-window-titlebar.k-header {
+    border-width: 0;
   }
 }
 
