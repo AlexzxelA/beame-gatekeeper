@@ -40,8 +40,22 @@ function assertValidCertMiddleware(req, res, next) {
 		store.find(fqdn, true).then(cred => {
 
 			BeameAuthServices.loginUser(cred.fqdn).then(user => {
-				req.beame_user = user;
-				next();
+				let doNext = () => {req.beame_user = user; next();};
+				let query = req.query;
+				if(query && query.SAMLRequest && user && user.email){
+					try {
+						utils.produceSAMLresponse(user, query, null, function (response) {
+							res.end(response.payload.samlHtml);
+						});
+					}
+					catch (e){
+						doNext();
+					}
+				}
+				else{
+					doNext();
+				}
+
 			}).catch(error => {
 				res.status(403).end(`${BeameLogger.formatError(error)}`);
 			});
