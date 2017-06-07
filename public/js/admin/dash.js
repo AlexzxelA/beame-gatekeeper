@@ -23,11 +23,8 @@ function loadSettings(){
 			})
 		});
 		layout.showIn("#content", viewDash);
-		// $("#panelbar").kendoPanelBar({
-		// 	expandMode: "single"
-		// });
 
-		$("#panelbar").kendoTabStrip({
+		$("#config-tabstrip").kendoTabStrip({
 			animation:  {
 				open: {
 					effects: "fadeIn"
@@ -35,11 +32,8 @@ function loadSettings(){
 			}
 		});
 
-        // var panelBar = $("#panelbar").data("kendoPanelBar");;
-        // panelBar.expand($(".isExpandedByDefault"));
-
 		setTimeout(function () {
-			$("#panelbar").show();
+			$("#config-tabstrip").show();
 		},50);
 
 		$('#save-app-config-btn').kendoButton();
