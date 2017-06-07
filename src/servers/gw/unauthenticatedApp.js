@@ -66,6 +66,7 @@ unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
@@ -497,6 +498,7 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 			console.log('switch app error', e);
 		});
 });
+
 unauthenticatedApp.post('/beame-gw/tteesstt', (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
 	console.log('SAMLResponse: ' + req.body.SAMLResponse.charCodeAt(0) +' >>>:'+ req.body.SAMLResponse);
