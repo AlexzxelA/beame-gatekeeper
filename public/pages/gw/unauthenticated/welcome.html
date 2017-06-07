@@ -65,7 +65,7 @@
 		    var clObj = JSON.parse(decodeURIComponent(clientLogin));
 		    if(clObj.url){
 		    	var btn = document.getElementById('cls-link');
-		    	btn.href = clObj.url;
+		    	btn.href = (clObj.url + location.search);
 		    	btn.style.display = 'block';
             }
 	    }
