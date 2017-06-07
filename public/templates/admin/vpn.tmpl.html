@@ -1,35 +1,64 @@
 <div id="vpn-qr-window" class="wnd-default">
-    <div id="download-vpn-qr" style="margin: auto;width: 300px"></div>
+    <div id="download-vpn-qr"></div>
 </div>
 
 <script type="text/x-kendo-template" id="tmpl-vpn">
-    <h4>Vpn Settings</h4>
-    <div id="vpn-settings-container">
-        <form id="frm-create-vpn" class="form-main admin-form-main">
-            <input name="vpn_name" required type="text" placeholder="VPN ID" data-bind="value:name" class="form-input"/>
-            <div style="height: 40px" data-bind="visible:showOptions">
-                <label class="secondary-label" >Use Existing cred</label> <input type="radio"  name="vpn-method-radio" data-bind="attr:{value:vpnMethods.Existing}, checked:selectedVpnMethod, click:onVpnMethodChanged" />
-                <label class="secondary-label" style="margin-left: 50px">Or create new</label>  <input type="radio" value="1" name="vpn-method-radio" data-bind="attr:{value:vpnMethods.New}, checked:selectedVpnMethod, click:onVpnMethodChanged" />
-            </div>
-            <input id="vpn_fqdn" name="vpn_fqdn" placeholder="Signing Credential" required style="width: 100%;"/>
-            <div data-bind="visible:showNew">
-                <input name="name" placeholder="Name" class="form-input"/>
-                <input name="email" type="email" placeholder="Email" class="form-input"/>
-                <input name="user_id" placeholder="External user ID" class="form-input"/>
+
+    <div class="row">
+
+        <div class="large-8 large-centered columns">
+
+            <h3 class="title-admin mb-half">VPN Settings</h3>
+
+
+            <div class="card-shadow p-2 mt-2" id="vpn-settings-container">
+
+                <form id="frm-create-vpn" class="form-main admin-form-main admin-form-100">
+
+                    <input name="vpn_name" required type="text" placeholder="Specify a VPN ID" data-bind="value:name"
+                           class="form-input mb-2"/>
+
+                    <div class="mb-half" data-bind="visible:showOptions">
+                        <label class="secondary-label">
+                            <input type="radio" name="vpn-method-radio"
+                                   data-bind="attr:{value:vpnMethods.Existing}, checked:selectedVpnMethod, click:onVpnMethodChanged"/>&nbsp;&nbsp;Use
+                            Existing cred
+                        </label>
+                        <label class="secondary-label ml-3">
+                            <input type="radio" value="1" name="vpn-method-radio"
+                                   data-bind="attr:{value:vpnMethods.New}, checked:selectedVpnMethod, click:onVpnMethodChanged"/>&nbsp;&nbsp;Or
+                            create new
+                        </label>
+                    </div>
+
+                    <input class="w-100" id="vpn_fqdn" name="vpn_fqdn" placeholder="Signing Credential" required/>
+
+                    <div class="mt-1" data-bind="visible:showNew">
+                        <input name="name" placeholder="Name" class="form-input"/>
+                        <input name="email" type="email" placeholder="Email" class="form-input"/>
+                        <input name="user_id" placeholder="External user ID" class="form-input"/>
+                    </div>
+
+                    <div style="margin-top:15px ">
+                        <input type="submit" data-bind="click:saveVpn" value="Set VPN" class="k-button">
+                        <input type="button" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN"
+                               class="k-button">
+                    </div>
+
+                </form>
+
+                <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank"
+                      data-bind="visible:iosVpnProfileVisible">
+                    <div id="ios-profile-info">&nbsp;</div>
+                    <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
+                    <input type="button" name="btn-qr" data-bind="click: showIosProfileQr" value="Show Profile QR"
+                           class="k-button">
+                </form>
             </div>
 
-            <div style="margin-top:15px ">
-                <input type="submit" data-bind="click:saveVpn" value="Set VPN" class="k-button">
-                <input type="button" data-bind="enabled: vpnId,click:deleteVpn" value="Delete VPN" class="k-button">
-            </div>
 
-        </form>
+        </div>
 
-        <form id="ios-profile-form" method="get" style="margin: 15px 0" target="_blank" data-bind="visible:iosVpnProfileVisible">
-            <div id="ios-profile-info">&nbsp;</div>
-            <input type="submit" class="k-button" id="btn-ios-profile" value="Download IOS VPN  profile"/>
-            <input type="button" name="btn-qr" data-bind="click: showIosProfileQr" value="Show Profile QR" class="k-button">
-        </form>
     </div>
 
 

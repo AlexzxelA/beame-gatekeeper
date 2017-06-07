@@ -1,52 +1,40 @@
+<style>
+    .k-textbox,.k-numerictextbox{
+        width: 300px;
+    }
+</style>
 <script type="text/x-kendo-template" id="home">
 
     <div class="row">
 
         <div class="large-8 large-centered columns">
 
-            <h3 class="title-admin mb-half">Dashboard</h3>
+            <h3 class="title-admin mb-half" >Service&nbsp;&nbsp;<span class="semi"
+                                                                      data-bind="text: data.AppConfig.ServiceName"></span></h3>
 
-            <div class="d-inline-block pr-2">Service&nbsp;&nbsp;<span class="semi" data-bind="text: data.AppConfig.ServiceName"></span></div>
+            <!--<div class="d-inline-block pr-2">Service&nbsp;&nbsp;<span class="semi"-->
+                                                                      <!--data-bind="text: data.AppConfig.ServiceName"></span>-->
+            <!--</div>-->
 
-            <div class="d-inline-block pr-2">Version&nbsp;&nbsp;<span class="semi" data-bind="text: data.Version"></span></div>
+            <div class="d-inline-block pr-2">Version&nbsp;&nbsp;<span class="semi"
+                                                                      data-bind="text: data.Version"></span></div>
 
-            <div class="d-inline-block">AppId&nbsp;&nbsp;<span class="semi" data-bind="text: data.AppConfig.AppId"></span></div>
+            <div class="d-inline-block">AppId&nbsp;&nbsp;<span class="semi"
+                                                               data-bind="text: data.AppConfig.AppId"></span></div>
 
-            <ul class="dash-list mt-2" id="panelbar" style="display: none;">
-
-                <li>
-                    Creds
-
-                    <ul class="config-list">
-                        <li class="mt-2">
-                            <label>Zero Level</label>
-                            <span class="value-custom" data-bind="text:data.Creds.ZeroLevel.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Gateway Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.GatewayServer.fqdn"></span>
-                        </li>
-
-                        <li>
-                        <label>Client Login Server</label>
-                        <span class="value-custom" data-bind="text:data.Creds.GatekeeperLoginManager.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Beame Authorization Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.BeameAuthorizationServer.fqdn"></span>
-                        </li>
-
-                        <li class="mb-2">
-                            <label>Matching Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.MatchingServer.fqdn"></span>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="isExpandedByDefault">
-                    AppConfig
+            <div id="panelbar" style="display: none; margin-top:15px ;">
+                <ul>
+                    <li class="k-state-active">
+                        Application
+                    </li>
+                    <li>
+                        Credentials
+                    </li>
+                    <li>
+                        Database
+                    </li>
+                </ul>
+                <div>
                     <ul class="config-list">
                         <li class="mt-2">
                             <label>Service name</label>
@@ -222,10 +210,36 @@
                         </li>
 
                     </ul>
+                </div>
+                <div>
+                    <ul class="config-list">
+                        <li class="mt-2">
+                            <label>Zero Level</label>
+                            <span class="value-custom" data-bind="text:data.Creds.ZeroLevel.fqdn"></span>
+                        </li>
 
-                </li>
-                <li>
-                    Db Config
+                        <li>
+                            <label>Gateway Server</label>
+                            <span class="value-custom" data-bind="text:data.Creds.GatewayServer.fqdn"></span>
+                        </li>
+
+                        <li>
+                            <label>Client Login Server</label>
+                            <span class="value-custom" data-bind="text:data.Creds.GatekeeperLoginManager.fqdn"></span>
+                        </li>
+
+                        <li>
+                            <label>Beame Authorization Server</label>
+                            <span class="value-custom" data-bind="text:data.Creds.BeameAuthorizationServer.fqdn"></span>
+                        </li>
+
+                        <li class="mb-2">
+                            <label>Matching Server</label>
+                            <span class="value-custom" data-bind="text:data.Creds.MatchingServer.fqdn"></span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
                     <ul class="config-list">
                         <li class="mt-2">
                             <label>Storage</label>
@@ -238,9 +252,238 @@
                             <span data-bind="text: data.DbConfig.username"></span>
                         </li>
                     </ul>
-                </li>
+                </div>
+            </div>
 
-            </ul>
+            <!--<ul class="dash-list mt-2" id="panelbar" style="display: none;">-->
+
+                <!--<li>-->
+                    <!--Creds-->
+
+                    <!--<ul class="config-list">-->
+                        <!--<li class="mt-2">-->
+                            <!--<label>Zero Level</label>-->
+                            <!--<span class="value-custom" data-bind="text:data.Creds.ZeroLevel.fqdn"></span>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Gateway Server</label>-->
+                            <!--<span class="value-custom" data-bind="text:data.Creds.GatewayServer.fqdn"></span>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Client Login Server</label>-->
+                            <!--<span class="value-custom" data-bind="text:data.Creds.GatekeeperLoginManager.fqdn"></span>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Beame Authorization Server</label>-->
+                            <!--<span class="value-custom" data-bind="text:data.Creds.BeameAuthorizationServer.fqdn"></span>-->
+                        <!--</li>-->
+
+                        <!--<li class="mb-2">-->
+                            <!--<label>Matching Server</label>-->
+                            <!--<span class="value-custom" data-bind="text:data.Creds.MatchingServer.fqdn"></span>-->
+                        <!--</li>-->
+                    <!--</ul>-->
+                <!--</li>-->
+
+                <!--<li class="isExpandedByDefault">-->
+                    <!--AppConfig-->
+                    <!--<ul class="config-list">-->
+                        <!--<li class="mt-2">-->
+                            <!--<label>Service name</label>-->
+                            <!--<input type="text" class='k-textbox value-custom'-->
+                                   <!--data-bind="value: data.AppConfig.ServiceName"-->
+                                   <!--id="ServiceName"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Registration method</label>-->
+                            <!--&lt;!&ndash;<input data-role="dropdownlist"&ndash;&gt;-->
+                            <!--&lt;!&ndash;data-auto-bind="true"&ndash;&gt;-->
+                            <!--&lt;!&ndash;data-value-primitive="true"&ndash;&gt;-->
+                            <!--&lt;!&ndash;data-text-field="name"&ndash;&gt;-->
+                            <!--&lt;!&ndash;data-value-field="name"&ndash;&gt;-->
+                            <!--&lt;!&ndash;data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"&ndash;&gt;-->
+                            <!--&lt;!&ndash;class='k-textbox'&ndash;&gt;-->
+                            <!--&lt;!&ndash;/>&ndash;&gt;-->
+                            <!--<input data-role="dropdownlist" data-auto-bind="true" data-value-primitive="true"-->
+                                   <!--data-text-field="name" data-value-field="name"-->
+                                   <!--data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"-->
+                                   <!--class="k-textbox value-custom">-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Environment Mode</label>-->
+                            <!--<input data-role="dropdownlist"-->
+                                   <!--data-auto-bind="true"-->
+                                   <!--data-value-primitive="true"-->
+                                   <!--data-text-field="name"-->
+                                   <!--data-value-field="name"-->
+                                   <!--data-bind="value: data.AppConfig.EnvMode, source: data.EnvModes"-->
+                                   <!--class='k-textbox value-custom'-->
+                            <!--/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>HTML Mode</label>-->
+                            <!--<input data-role="dropdownlist"-->
+                                   <!--data-auto-bind="true"-->
+                                   <!--data-value-primitive="true"-->
+                                   <!--data-text-field="name"-->
+                                   <!--data-value-field="name"-->
+                                   <!--data-bind="value: data.AppConfig.HtmlEnvMode, source: data.HtmlEnvModes"-->
+                                   <!--class='k-textbox value-custom'-->
+                            <!--/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Allow Public Registration</label>-->
+                            <!--<input type="checkbox" data-bind="checked:data.AppConfig.PublicRegistration"/>-->
+                        <!--</li>-->
+
+
+                        <!--<li>-->
+                            <!--<label>Use Image Authentication</label>-->
+                            <!--<input type="checkbox" data-bind="checked:data.AppConfig.RegistrationImageRequired"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Encrypt User Data</label>-->
+                            <!--<input type="checkbox" data-bind="checked:data.AppConfig.EncryptUserData"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Beame Auth server on local</label>-->
+                            <!--<input type="checkbox" data-bind="checked:data.AppConfig.UseBeameAuthOnLocal"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Pairing Required</label>-->
+                            <!--<input type="checkbox" data-bind="checked:data.AppConfig.PairingRequired"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Allow Direct Signin</label>-->
+                            <!--<input type="checkbox" data-bind="checked:data.AppConfig.AllowDirectSignin"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label for="ExternalMatchingFqdn">External Matching Fqdn</label>-->
+                            <!--<textarea data-bind="value:data.AppConfig.ExternalMatchingFqdn"-->
+                                      <!--class='k-textbox value-custom'-->
+                                      <!--id="ExternalMatchingFqdn" cols="30" rows="1"></textarea>-->
+                        <!--</li>-->
+
+
+                        <!--<li>-->
+                            <!--<label>Email post url</label>-->
+                            <!--<textarea data-bind="value:data.AppConfig.PostEmailUrl" class='k-textbox value-custom'-->
+                                      <!--id="PostEmailUrl" cols="30" rows="1"></textarea>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Email send cert url</label>-->
+                            <!--<textarea data-bind="value:data.AppConfig.EmailSendCertUrl" class='k-textbox value-custom'-->
+                                      <!--id="EmailSendCertUrl" cols="30" rows="1"></textarea>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>External login server URL</label>-->
+                            <!--<textarea data-bind="value:data.AppConfig.ExternalLoginServer"-->
+                                      <!--class='k-textbox value-custom'-->
+                                      <!--id="ExternalLoginServer" cols="30" rows="1"></textarea>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>OCSP cache period (days)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.OcspCachePeriod"-->
+                                   <!--id="OcspCachePeriod" type="text" data-spinners="false" data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Customer Invitation Ttl (sec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.CustomerInvitationTtl"-->
+                                   <!--id="CustomerInvitationTtl" type="text" data-spinners="false"-->
+                                   <!--data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Browser Session Ttl (sec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.BrowserSessionTtl"-->
+                                   <!--id="BrowserSessionTtl" type="text" data-spinners="false" data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Proxy Initiating Ttl (sec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.ProxyInitiatingTtl"-->
+                                   <!--id="ProxyInitiatingTtl" type="text" data-spinners="false" data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Proxy Session Ttl (sec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.ProxySessionTtl"-->
+                                   <!--id="ProxySessionTtl" type="text" data-spinners="false" data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Registration Token Ttl (sec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.RegistrationAuthTokenTtl"-->
+                                   <!--id="RegistrationAuthTokenTtl" type="text" data-spinners="false"-->
+                                   <!--data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+
+                        <!--<li>-->
+                            <!--<label>Session Record Delete Timeout (millisec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.SessionRecordDeleteTimeout"-->
+                                   <!--id="SessionRecordDeleteTimeout" type="text" data-spinners="false"-->
+                                   <!--data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>Whisperer Send PinInterval (millisec)</label>-->
+                            <!--<input class="value-custom pt-half" data-role="numerictextbox"-->
+                                   <!--data-bind="value:data.AppConfig.WhispererSendPinInterval"-->
+                                   <!--id="WhispererSendPinInterval" type="text" data-spinners="false"-->
+                                   <!--data-format="{0:D}"/>-->
+                        <!--</li>-->
+
+                        <!--<li>-->
+                            <!--<label>&nbsp;</label>-->
+                            <!--<button id="save-app-config-btn" class="k-primary bold d-inline-block px-2 my-2"-->
+                                    <!--data-bind="events: { click: onSave }">Save-->
+                            <!--</button>-->
+                        <!--</li>-->
+
+                    <!--</ul>-->
+
+                <!--</li>-->
+                <!--<li>-->
+                    <!--Db Config-->
+                    <!--<ul class="config-list">-->
+                        <!--<li class="mt-2">-->
+                            <!--<label>Storage</label>-->
+                            <!--<span data-bind="text: data.DbConfig.storage"></span>-->
+                        <!--</li>-->
+
+
+                        <!--<li class="mb-2">-->
+                            <!--<label>Username</label>-->
+                            <!--<span data-bind="text: data.DbConfig.username"></span>-->
+                        <!--</li>-->
+                    <!--</ul>-->
+                <!--</li>-->
+
+            <!--</ul>-->
 
         </div>
 

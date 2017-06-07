@@ -23,12 +23,20 @@ function loadSettings(){
 			})
 		});
 		layout.showIn("#content", viewDash);
-		$("#panelbar").kendoPanelBar({
-			expandMode: "single"
+		// $("#panelbar").kendoPanelBar({
+		// 	expandMode: "single"
+		// });
+
+		$("#panelbar").kendoTabStrip({
+			animation:  {
+				open: {
+					effects: "fadeIn"
+				}
+			}
 		});
 
-        var panelBar = $("#panelbar").data("kendoPanelBar");;
-        panelBar.expand($(".isExpandedByDefault"));
+        // var panelBar = $("#panelbar").data("kendoPanelBar");;
+        // panelBar.expand($(".isExpandedByDefault"));
 
 		setTimeout(function () {
 			$("#panelbar").show();
