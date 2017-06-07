@@ -4083,3 +4083,14 @@ Helpers
 .wnd-default {
   display: none;
   text-align: center; }
+
+.k-panelbar .k-tabstrip-items .k-state-active, .k-tabstrip-items .k-state-active {
+  border-bottom-color: #ffa500;
+  border-bottom-width: 4px !important;
+  margin-bottom: 0 !important; }
+
+.k-panelbar .k-tabstrip > .k-content, .k-tabstrip > .k-content {
+  margin: 0; }
+
+.k-tabstrip-items {
+  padding: 0; }
