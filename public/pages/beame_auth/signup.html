@@ -12,27 +12,16 @@
     <link rel="stylesheet" href="css/app.css">
     <!-- endbuild -->
 
-    <script>
-        var head = document.getElementsByTagName('head')[0];
-        var js = document.createElement("script");
 
-        js.type = "text/javascript";
-
-        if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
-        {
-            js.src = "js/jwk-bundle.js";
-            head.appendChild(js);
-            console.log('jwk-bundle loaded');
-        }
-        else
-            console.log(navigator.userAgent);
-    </script>
     <!-- Scripts -->
     <!-- build:signup-js-head -->
     <script src="js/utils.js"></script>
     <script src="js/signup.js"></script>
     <!-- endbuild -->
 
+    <script>
+		loadGwBundle();
+    </script>
 </head>
 <body >
 
