@@ -60,13 +60,17 @@ const setBeameCookie = (type, res) => {
 
 };
 
+const setClientLoginManagerCookie = (res) =>{
+	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+};
+
 unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
-	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+	setClientLoginManagerCookie(res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
@@ -100,7 +104,7 @@ unauthenticatedApp.get('/', (req, res) => {
 
 	setBeameCookie(cookieNames.Service, res);
 
-	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+	setClientLoginManagerCookie(res);
 
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
@@ -572,7 +576,7 @@ unauthenticatedApp.post('/beame-sso', (req, res) => {
 		samlp.parseRequest(req, (error, SAMLRequest)=>{
 			console.log(SAMLRequest);
 		});
-		res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+		setClientLoginManagerCookie(res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
@@ -586,7 +590,7 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 		samlp.parseRequest(req, (error, SAMLRequest)=>{
 			console.log(SAMLRequest);
 		});
-		res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+		setClientLoginManagerCookie(res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
