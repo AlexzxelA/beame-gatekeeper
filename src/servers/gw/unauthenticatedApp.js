@@ -572,6 +572,7 @@ unauthenticatedApp.post('/beame-sso', (req, res) => {
 		samlp.parseRequest(req, (error, SAMLRequest)=>{
 			console.log(SAMLRequest);
 		});
+		res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
@@ -585,6 +586,7 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 		samlp.parseRequest(req, (error, SAMLRequest)=>{
 			console.log(SAMLRequest);
 		});
+		res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
