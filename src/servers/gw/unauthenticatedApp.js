@@ -96,15 +96,13 @@ unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 unauthenticatedApp.get('/', (req, res) => {
 
 	let isCentralLogin = bootstrapper.isCentralLogin;
-
+	setClientLoginManagerCookie(res);
 	if (isCentralLogin) {
 		loadLoginPage(res);
 		return;
 	}
 
 	setBeameCookie(cookieNames.Service, res);
-
-	setClientLoginManagerCookie(res);
 
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
