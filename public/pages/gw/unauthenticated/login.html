@@ -101,8 +101,20 @@
 
     </div>
 
+    <div class="text-right my-1 mr-half">
+        <a class="button mb-2" style="visibility: hidden;margin: 0 !important;" href="#" id="cls-link">Sign in with client certs</a>
+        <div style="margin-top: 5px">
+            <span class="vbottom lh-1 text-gray-light">By:</span>
+            <a href="/">
+                <!-- build:logo -->
+                <img src="../img/beame-logo-gray.png" width="100" height="16">
+                <!-- endbuild -->
+            </a>
+        </div>
 
+    </div>
 </div>
+
 
 <div id="overlay" class="overlay overlay-white">
     <div>
@@ -112,11 +124,6 @@
         </svg>
     </div>
 </div>
-
-
-<script>
-	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
-</script>
 
 <!-- Scripts -->
 <!-- build:lib-sjk -->
@@ -144,6 +151,29 @@
 <!-- endbuild -->
 
 <script>
+	function onLoginLoaded(){
+
+		var clientLogin = getCookie('beame_client_login_url');
+		try {
+
+
+			var clObj = JSON.parse(decodeURIComponent(clientLogin));
+			if(clObj.url){
+				var btn = document.getElementById('cls-link');
+				btn.href = (clObj.url + location.search);
+				btn.style.visibility = 'visible';
+			}
+		}
+		catch(e){
+
+		}
+
+		onStaticPageLoaded();
+	}
+
+	document.addEventListener("DOMContentLoaded", onLoginLoaded);
+
+
 	var head = document.getElementsByTagName('head')[0];
 	var js = document.createElement("script");
 
