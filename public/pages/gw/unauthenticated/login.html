@@ -153,20 +153,7 @@
 <script>
 	function onLoginLoaded(){
 
-		var clientLogin = getCookie('beame_client_login_url');
-		try {
-
-
-			var clObj = JSON.parse(decodeURIComponent(clientLogin));
-			if(clObj.url){
-				var btn = document.getElementById('cls-link');
-				btn.href = (clObj.url + location.search);
-				btn.style.visibility = 'visible';
-			}
-		}
-		catch(e){
-
-		}
+		setClientCertLoginBtn();
 
 		onStaticPageLoaded();
 	}
@@ -174,20 +161,10 @@
 	document.addEventListener("DOMContentLoaded", onLoginLoaded);
 
 
-	var head = document.getElementsByTagName('head')[0];
-	var js = document.createElement("script");
-
-	js.type = "text/javascript";
-
-	if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
-	{
-		js.src = "js/jwk-bundle.js";
-		head.appendChild(js);
-		console.log('jwk-bundle loaded');
-	}
-	else
-		console.log(navigator.userAgent);
+	loadGwBundle();
 </script>
-
+<head>
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+</head>
 </body>
 </html>

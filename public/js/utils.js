@@ -152,3 +152,38 @@ function logout(){
 function setPageTitle(title){
 	document.title = title;
 }
+
+function setClientCertLoginBtn(){
+	var clientLogin = getCookie('beame_client_login_url');
+	try {
+
+
+		var clObj = JSON.parse(decodeURIComponent(clientLogin));
+		if(clObj.url){
+			var btn = document.getElementById('cls-link');
+			btn.href = (clObj.url + location.search);
+			btn.style.visibility = 'visible';
+		}
+	}
+	catch(e){
+
+	}
+
+}
+
+function loadGwBundle(){
+
+	var head = document.getElementsByTagName('head')[0];
+	var js = document.createElement("script");
+
+	js.type = "text/javascript";
+
+	if (engineFlag)
+	{
+		js.src = "js/jwk-bundle.js";
+		head.appendChild(js);
+		console.log('jwk-bundle loaded');
+	}
+	else
+		console.log(navigator.userAgent);
+}
