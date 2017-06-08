@@ -13,7 +13,7 @@ class CouchbaseServices {
 	/**
 	 * @param {DataServicesSettings} options
 	 */
-	constructor() {
+	constructor(options) {
 		this._options = options;
 		logger.debug(`Couchbase services started`);
 	}
