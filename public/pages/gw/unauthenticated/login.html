@@ -101,8 +101,20 @@
 
     </div>
 
+    <div class="text-right my-1 mr-half">
+        <a class="" style="visibility: hidden;float: left; font-size: 13px;text-decoration: underline" href="#" id="cls-link">login with client cert</a>
+        <div style="float: right">
+            <span class="vbottom lh-1 text-gray-light">By:</span>
+            <a href="/">
+                <!-- build:logo -->
+                <img src="../img/beame-logo-gray.png" width="100" height="16">
+                <!-- endbuild -->
+            </a>
+        </div>
 
+    </div>
 </div>
+
 
 <div id="overlay" class="overlay overlay-white">
     <div>
@@ -112,11 +124,6 @@
         </svg>
     </div>
 </div>
-
-
-<script>
-	document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
-</script>
 
 <!-- Scripts -->
 <!-- build:lib-sjk -->
@@ -144,20 +151,20 @@
 <!-- endbuild -->
 
 <script>
-	var head = document.getElementsByTagName('head')[0];
-	var js = document.createElement("script");
+	function onLoginLoaded(){
 
-	js.type = "text/javascript";
+		setClientCertLoginBtn();
 
-	if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
-	{
-		js.src = "js/jwk-bundle.js";
-		head.appendChild(js);
-		console.log('jwk-bundle loaded');
+		onStaticPageLoaded();
 	}
-	else
-		console.log(navigator.userAgent);
-</script>
 
+	document.addEventListener("DOMContentLoaded", onLoginLoaded);
+
+
+	loadGwBundle();
+</script>
+<head>
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+</head>
 </body>
 </html>

@@ -60,12 +60,17 @@ const setBeameCookie = (type, res) => {
 
 };
 
+const setClientLoginManagerCookie = (res) =>{
+	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+};
+
 unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setClientLoginManagerCookie(res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
 });
@@ -91,15 +96,13 @@ unauthenticatedApp.get(Constants.LoginPath, (req, res) => {
 unauthenticatedApp.get('/', (req, res) => {
 
 	let isCentralLogin = bootstrapper.isCentralLogin;
-
+	setClientLoginManagerCookie(res);
 	if (isCentralLogin) {
 		loadLoginPage(res);
 		return;
 	}
 
 	setBeameCookie(cookieNames.Service, res);
-
-	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
 
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
@@ -497,6 +500,7 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 			console.log('switch app error', e);
 		});
 });
+
 unauthenticatedApp.post('/beame-gw/tteesstt', (req, res) => {
 	// XXX: validate proxy_enable (make sure it's allowed to sign)
 	console.log('SAMLResponse: ' + req.body.SAMLResponse.charCodeAt(0) +' >>>:'+ req.body.SAMLResponse);
@@ -570,6 +574,7 @@ unauthenticatedApp.post('/beame-sso', (req, res) => {
 		samlp.parseRequest(req, (error, SAMLRequest)=>{
 			console.log(SAMLRequest);
 		});
+		setClientLoginManagerCookie(res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
@@ -583,6 +588,7 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 		samlp.parseRequest(req, (error, SAMLRequest)=>{
 			console.log(SAMLRequest);
 		});
+		setClientLoginManagerCookie(res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){

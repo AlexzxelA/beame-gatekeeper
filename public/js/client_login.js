@@ -69,6 +69,12 @@ function onPageLoaded(){
 				contentType: "application/json; charset=utf-8"
 				, success:   function (response) {
 					console.log(response);
+					var payload = response.payload;
+					if (payload.samlHtml) {
+						document.write(payload.samlHtml);
+						console.log('onDataSent: page rewritten');
+						document.close();
+					}
 					if(response.type=='redirect'){
 						var payload = response.payload,
 						    url = payload.url;

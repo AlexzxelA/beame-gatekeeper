@@ -109,21 +109,8 @@
 <!-- endbuild -->
 
 <script>
-    var head = document.getElementsByTagName('head')[0];
-    var js = document.createElement("script");
-
-    js.type = "text/javascript";
-
-    if (!navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Firefox'))
-    {
-        js.src = "js/jwk-bundle.js";
-        head.appendChild(js);
-        console.log('jwk-bundle loaded');
-    }
-    else
-        console.log(navigator.userAgent);
+	loadGwBundle();
 </script>
-
 <!-- Scripts -->
 <!-- build:cef -->
 <script src="js/cef_manager.js"></script>
@@ -141,6 +128,8 @@
 <script src="js/session_controller.js"></script>
 <script src="js/xprs_signin.js"></script>
 <!-- endbuild -->
-
+<head>
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+</head>
 </body>
 </html>

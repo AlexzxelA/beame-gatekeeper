@@ -148,7 +148,7 @@ class clientCertGlobals {
 	}
 
 	setNewSessionId(key, value) {
-		this._sessionIds[key] = {token: value, time: (Math.floor(Date.now() / 1000) + this._sessionIdTimeout)};
+		this._sessionIds[key] = {param: value, time: (Math.floor(Date.now() / 1000) + this._sessionIdTimeout)};
 	}
 
 	getSessionIds() {
