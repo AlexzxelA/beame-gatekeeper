@@ -21,7 +21,7 @@ Continue with instructions below, to get your own Gatekeeper. Install it as a sy
 
 ## Installing Beame Gatekeeper
 
-* [Installing Beame Gatekeeper on Linux, Mac OS or RaspberryPi](doc/install-unix.md)
+* [Installing Beame Gatekeeper on Linux, Mac OS or Raspberry Pi](doc/install-unix.md)
 * [Installing Beame Gatekeeper on Windows](doc/install-windows.md)
 
 ## Managing StrongSwan VPN using Beame Gatekeeper
