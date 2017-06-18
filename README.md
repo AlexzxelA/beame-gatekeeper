@@ -15,12 +15,12 @@ Beame-Gatekeeper is a framework that provides services/tools:
 
 Here's a typical usecase for the Gatekeeper (Web-camera connected on local network is accessed from arbitrary laptop through Browser, with mobile authentication & control):
 
-![Use-case](https://github.com/beameio/beame-gatekeeper/blob/dev/img/IoT.png)
+![Use-case](https://raw.githubusercontent.com/beameio/beame-gatekeeper/dev/img/IoT.png)
 
 How is it different? We created a new breed of ID - _cryptographic identity_ that lives on a mobile ([get Beame Authenticator to your iOS device](https://itunes.apple.com/il/app/beame-authenticator/id1214704177?mt=8)). Now it's easy to put a super-secure cryptographic identity on mobile and IoT devices. So the device can prove your identity by providing proof of possession of a secret key through the Gatekeeper framework. Keys created and stored on target. The Gatekeeper does not hold databases with sensitive data.
 
 _Click on the link below, to see Beame Gatekeeper demo on Youtube_  
-[![Alt Beame Gatekeeper demo #1](https://github.com/beameio/beame-gatekeeper/blob/dev/img/GKdemo.png)](https://www.youtube.com/watch?v=K_XNFKzJV_M)
+[![Alt Beame Gatekeeper demo #1](https://raw.githubusercontent.com/beameio/beame-gatekeeper/dev/img/GKdemo.png)](https://www.youtube.com/watch?v=K_XNFKzJV_M)
 
 [More details (PDF)](doc/beame-gatekeeper.pdf) - The purpose of this paper is to describe the particular beame-gatekeeper use case as a tool for remote access to enterprise networks or IoT devices with mobile authentication. It provides an overview of possible product integration options. The document contains technical overview and description of provisioning and login processes.
 
