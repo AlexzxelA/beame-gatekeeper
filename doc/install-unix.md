@@ -2,6 +2,14 @@
 
 # Installing Beame Gatekeeper on Linux/Mac
 
+## Install Git
+
+    # On Debian based Linux:
+    apt install git
+    
+    # On Mac:
+    brew install git
+
 ## Install Beame Gatekeeper
 
 **Please make sure you are using NodeJS 6, version 6.9.X or newer**
