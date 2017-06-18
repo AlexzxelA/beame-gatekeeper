@@ -4,11 +4,20 @@
 
 ## What is Beame Gatekeeper?
 
-beame-gatekeeper allows remote authenticated access to systems using your mobile device as primary ID or secondary authentication factor.
+Beame-Gatekeeper is a framework that provides services/tools:
+* To create and manage X.509 digital certificates in public domain
+* HTTPS tunnels to expose applications running on local network to global internet 
+* Crypto library to create/manage keys, encrypt/decrypt sign/verify data, create/validate authentication tokens
+* X.509 based identity manager for custom MFA
+* SSO SAML Identity Provider (IDP)
+* User management (invite/create/delete user) with trust-groups capability
+* Administrating tools for full Gatekeeper managemnt (html-based console)
 
-This instantly makes on-premises software products accessible through HTTPS tunnels. There is no need for firewalls, nor DNS configuration.
+Here's a typical usecase for the Gatekeeper (Web-camera connected on local network is accessed from arbitrary laptop through Browser, with mobile authentication & control):
 
-How? We made a new breed of ID - cryptographic identity that lives on your mobile ([get Beame Authenticator to your iOS device](https://itunes.apple.com/il/app/beame-authenticator/id1214704177?mt=8)). Now it's easy to put a super-secure cryptographic identity on mobile and IoT devices. We never see any of your secret keys. So the device can prove your identity by providing proof of possession of a secret key. No more databases with sensitive data.
+![Use-case](https://github.com/beameio/beame-gatekeeper/blob/dev/img/IoT.png)
+
+How is it different? We created a new breed of ID - _cryptographic identity_ that lives on a mobile ([get Beame Authenticator to your iOS device](https://itunes.apple.com/il/app/beame-authenticator/id1214704177?mt=8)). Now it's easy to put a super-secure cryptographic identity on mobile and IoT devices. So the device can prove your identity by providing proof of possession of a secret key through the Gatekeeper framework. Keys created and stored on target. The Gatekeeper does not hold databases with sensitive data.
 
 _Click on the link below, to see Beame Gatekeeper demo on Youtube_  
 [![Alt Beame Gatekeeper demo #1](https://github.com/beameio/beame-gatekeeper/blob/dev/img/GKdemo.png)](https://www.youtube.com/watch?v=K_XNFKzJV_M)
