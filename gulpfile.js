@@ -314,6 +314,11 @@ gulp.task('compile-js', () => {
 			'./public/js/safari.js'
 		], 'safari.js', false);
 
+		compileJs(
+		[
+			'./public/js/zendesk-widget.js'
+		], 'zendesk-widget.js', false);
+
 	compileJs(
 		[
 			'./public/js/short_crypto.js',
