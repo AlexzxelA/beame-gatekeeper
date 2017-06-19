@@ -7,45 +7,55 @@ function addNewRecord() {
 }
 
 function loadServices() {
+	function dataSource_error(e) {
+
+		showNotification(false,e.xhr.responseText);
+	}
+
+
+	var ds = new kendo.data.DataSource({
+		transport: {
+			read:    {
+				url: "/service/list"
+			},
+			create:  {
+				url:      "/service/create",
+				method:   "POST",
+				dataType: "json"
+			},
+			update:  {
+				url:      "/service/update",
+				method:   "POST",
+				dataType: "json"
+			},
+			destroy: {
+				url:      "/service/destroy",
+				method:   "POST",
+				dataType: "json"
+			}
+		},
+		schema:    {
+			model: {
+				id:     "id",
+				fields: {
+					id:       {type: "number", "editable": false},
+					name:     {type: "string"},
+					code:     {type: "string"},
+					url:      {type: "string"},
+					isActive: {type: "boolean", defaultValue: true},
+					isMobile: {type: "boolean", defaultValue: false},
+					isExternal: {type: "boolean", defaultValue: false}
+				}
+			}
+		},
+		pageSize:  20
+	});
+
+	ds.bind("error", dataSource_error);
+
 	$("#srvc-grid").kendoGrid({
 		//toolbar:    ["create"],
-		dataSource: {
-			transport: {
-				read:    {
-					url: "/service/list"
-				},
-				create:  {
-					url:      "/service/create",
-					method:   "POST",
-					dataType: "json"
-				},
-				update:  {
-					url:      "/service/update",
-					method:   "POST",
-					dataType: "json"
-				},
-				destroy: {
-					url:      "/service/destroy",
-					method:   "POST",
-					dataType: "json"
-				}
-			},
-			schema:    {
-				model: {
-					id:     "id",
-					fields: {
-						id:       {type: "number", "editable": false},
-						name:     {type: "string"},
-						code:     {type: "string"},
-						url:      {type: "string"},
-						isActive: {type: "boolean", defaultValue: true},
-						isMobile: {type: "boolean", defaultValue: false},
-						isExternal: {type: "boolean", defaultValue: false}
-					}
-				}
-			},
-			pageSize:  20
-		},
+		dataSource: ds,
 		//height:     550,
 		filterable: true,
 		sortable:   true,
