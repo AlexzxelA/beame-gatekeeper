@@ -28,7 +28,7 @@ const RunAuthServerOnZeroLevelCred = true;
 
 const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
-const HtmlEnvMode        = Constants.HtmlEnvMode.Production;
+const HtmlEnvMode        = Constants.HtmlEnvMode.Development;
 
 
 const EmailPostUrl         = "https://p3wiktq9ccu6bsqv.tl5h1ipgobrdqsj6.v1.p.beameio.net/send/invitation";

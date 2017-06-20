@@ -10,40 +10,6 @@ function hideLoader(id) {
 	$('#' + (id || "overlay")).hide();
 }
 
-function showNotification(success,message){
-
-	var wWidth = $(window).width(),
-	    wHeight = $(window).height(),
-	    newTop, newLeft;
-
-	newLeft = Math.floor(wWidth / 2 - 400 / 2);
-
-	var notificationDelay = success ? 3500 : 0;
-
-	var notification = $("#d-notif").kendoNotification({
-		position: {
-			top: 50,
-			left: newLeft
-		},
-		hideOnClick: false,
-		templates: [{
-			type: "error",
-			template: $("#errorTemplate").html()
-		}, {
-			type: "success",
-			template: $("#successTemplate").html()
-		}]
-	}).data("kendoNotification");
-
-	notification.setOptions({ autoHideAfter: notificationDelay });
-
-	notification.show({message:message}, success ? "success" : "error");
-
-	$(".js-close-notification").click(function(){
-		notification.hide();
-	});
-
-}
 
 $(document).ready(function(){
 

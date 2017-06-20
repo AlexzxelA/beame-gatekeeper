@@ -756,75 +756,91 @@ class SqliteServices {
 		);
 	}
 
+
+	_validateService(query) {
+		return new Promise((resolve, reject) => {
+				try {
+
+					this._models.services.findAll({
+						where: query
+					}).then(records => {
+						records.length ? reject(`Check service code and url, it should be unique`) : resolve();
+					}).catch(reject)
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
+
 	saveService(service) {
 		return new Promise((resolve, reject) => {
-				let condition = {
-					where: Sequelize.and(
-						{code: service.code},
-						Sequelize.or(
-							{url: service.url}
-						)
-					)
-				};
-				let model     = this._models.services;
 
-				try {
-					//noinspection JSUnresolvedFunction
-					model.findOne(condition).then(record => {
-						if (record) {
-							reject(`Record for code ${service.code} or url ${service.url} already registered`);
-							return;
-						}
+				let query = Sequelize.or(
+					{code: service.code},
+					{url: service.url}
+				);
 
-						delete service.id;
+				this._validateService(query).then(() => {
+					delete service.id;
 
-						model.create(service).then(entity => {
-							resolve(entity.dataValues);
-						}).catch(onError.bind(this, reject));
-
+					this._models.services.create(service).then(entity => {
+						resolve(entity.dataValues);
 					}).catch(onError.bind(this, reject));
+				}).catch(reject);
 
-				}
-				catch (error) {
-					onError(reject, error)
-				}
 			}
 		);
 	}
 
 	updateService(service) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.services;
-					//noinspection JSUnresolvedFunction
-					model.findById(service.id).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`Service record not found`));
-							return;
-						}
-						record.update({
-							url:      service.url,
-							name:     service.name,
-							isActive: service.isActive,
-							isMobile: service.isMobile,
-							isExternal: service.isExternal
 
-						}).then(entity => {
-							resolve(entity.dataValues);
+				let $this = this;
+
+				const _update = () => {
+					try {
+						let model = this._models.services;
+						//noinspection JSUnresolvedFunction
+						model.findById(service.id).then(record => {
+							if (!record) {
+								reject(logger.formatErrorMessage(`Service record not found`));
+								return;
+							}
+							record.update({
+								url:        service.url,
+								name:       service.name,
+								isActive:   service.isActive,
+								isMobile:   service.isMobile,
+								isExternal: service.isExternal
+
+							}).then(entity => {
+								resolve(entity.dataValues);
+							}).catch(onError.bind(this, reject));
+
 						}).catch(onError.bind(this, reject));
 
-					}).catch(onError.bind(this, reject));
+					}
+					catch (error) {
+						logger.error(BeameLogger.formatError(error));
+						onError(reject, error);
+					}
+				};
 
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				let query = Sequelize.and({
+					id: {$not: service.id}
+				}, Sequelize.or(
+					{code: service.code},
+					{url: service.url}
+				));
+
+				this._validateService(query).then(_update.bind($this)).catch(reject);
+
 			}
 		);
 	}
 
-	updateServiceUrl(id,url) {
+	updateServiceUrl(id, url) {
 		return new Promise((resolve, reject) => {
 				try {
 					let model = this._models.services;
@@ -835,7 +851,7 @@ class SqliteServices {
 							return;
 						}
 						record.update({
-							url:      url
+							url: url
 						}).then(entity => {
 							resolve(entity.dataValues);
 						}).catch(onError.bind(this, reject));
@@ -1114,7 +1130,7 @@ class SqliteServices {
 						record.update({
 							hook:     hook.hook,
 							isActive: hook.isActive,
-							path: hook.path
+							path:     hook.path
 						}).then(entity => {
 							resolve(entity.dataValues);
 						}).catch(onError.bind(this, reject));
@@ -1138,6 +1154,7 @@ class SqliteServices {
 			}
 		);
 	}
+
 	//endregion
 }
 

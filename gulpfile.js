@@ -230,6 +230,7 @@ gulp.task('compile-js', () => {
 	compileJs([
 		'./public/lib/jszip-2.4.0.min.js',
 		'./public/lib/jquery.form-3.5.1.min.js',
+		'./public/js/admin/notification.js',
 		'./public/js/admin/admin_foot.js',
 		'./public/js/admin/cred.detail.js',
 		'./public/js/admin/cred.tree.js',
@@ -244,6 +245,7 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/admin/notification.js',
 			'./public/js/admin/invitation.js'
 		], 'admin.invitation.min.js', true);
 
