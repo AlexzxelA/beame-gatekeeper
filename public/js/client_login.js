@@ -4,7 +4,8 @@
 
 function setIframeUrl(url) {
 	if (url) {
-		var iframe = document.getElementById('ifrm-content');
+		var iframe = document.getElementById('ifrm-content'),
+		    card = document.getElementById('iframe-neighbor');
 
 		if (url.indexOf('beame-gw/logout') > 0) {
 			return;
@@ -13,8 +14,11 @@ function setIframeUrl(url) {
 		iframe.src = "about:blank";
 
 		iframe.style.display = 'block';
+		card.style.display = 'none';
 
 		iframe.src = url;
+
+
 	}
 }
 

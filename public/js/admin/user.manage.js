@@ -48,6 +48,7 @@ function loadUsers() {
 		//height:     550,
 		filterable: true,
 		sortable:   true,
+		resizable: true,
 		editable:   {
 			mode:         "inline",
 			confirmation: true

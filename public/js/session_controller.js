@@ -416,8 +416,6 @@ function setIframeHtmlContent(html) {
 
 	iframedoc.body.innerHTML = html;
 
-	// iframedoc.getElementsByTagName('form')[0].submit();
-
 }
 
 function setIframeUrl(url) {
@@ -432,7 +430,8 @@ function setIframeUrl(url) {
 		top && top;
 	}
 	if(!top){
-		var iframe = document.getElementById('ifrm-content');
+		var iframe = document.getElementById('ifrm-content'),
+		    card = document.getElementById('iframe-neighbor');
 
 		if (url.indexOf('beame-gw/logout') > 0) {
 			return;
@@ -441,6 +440,7 @@ function setIframeUrl(url) {
 		iframe.src = "about:blank";
 
 		iframe.style.display = 'block';
+		card.style.display = 'none';
 
 		iframe.src = url;
 	}
