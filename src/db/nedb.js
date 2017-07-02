@@ -24,10 +24,16 @@ class NeDB {
 	}
 
 	start() {
-		this._loadCollections()
-			.then(() => {
-				logger.info(`NeDB started successfully`)
-			})
+		return new Promise((resolve, reject) => {
+			this._loadCollections()
+				.then(() => {
+					logger.info(`NeDB started successfully`);
+					resolve();
+				})
+				.catch(reject)
+			}
+		);
+
 	}
 
 	_seedServices(){
