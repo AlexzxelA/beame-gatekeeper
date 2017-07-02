@@ -14,13 +14,6 @@ class NeDB {
 	constructor(db_folder_path) {
 		this._db_folder_path = db_folder_path;
 		this._db             = {};
-
-		//db.users         = new Datastore({filename: path.join(db_folder_path, 'users.db'), autoload: true});
-		// db.services      = new Datastore({filename: path.join(db_folder_path, 'services.db'), autoload: true});
-		// db.sessions      = new Datastore({filename: path.join(db_folder_path, 'sessions.db'), autoload: true});
-		// db.registrations = new Datastore({filename: path.join(db_folder_path, 'registrations.db'), autoload: true});
-		// db.gk_logins     = new Datastore({filename: path.join(db_folder_path, 'gk_logins.db'), autoload: true});
-
 	}
 
 	start() {
