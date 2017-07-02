@@ -4,11 +4,13 @@
 "use strict";
 
 const Datastore   = require('nedb');
+const async       = require('async');
 const path        = require('path');
 const beameSDK    = require('beame-sdk');
 const module_name = "NeDBServices";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
+
 
 const Collections = {
 	user:          {
@@ -93,17 +95,61 @@ class NeDB {
 	_loadCollections() {
 		let $this = this;
 		return new Promise((resolve, reject) => {
-				this._loadCollection(Collections.user.name, Collections.user.indices)
-					.then(this._loadCollection.bind($this, Collections.sessions.name, Collections.sessions.indices))
-					.then(this._loadCollection.bind($this, Collections.services.name, Collections.services.indices))
-					.then(this._loadCollection.bind($this, Collections.registrations.name, Collections.registrations.indices))
-					.then(this._loadCollection.bind($this, Collections.gk_logins.name, Collections.gk_logins.indices))
-					.then(() => {
-						logger.info(`All collections loaded`)
-					})
-					.catch(err => {
-						reject(err);
-					});
+
+				async.parallel([
+					cb => {
+						this._loadCollection(Collections.user.name, Collections.user.indices)
+							.then(() => {
+								cb(null);
+							})
+							.catch(err => {
+								cb(err);
+							})
+					},
+					cb => {
+						this._loadCollection(Collections.registrations.name, Collections.registrations.indices)
+							.then(() => {
+								cb(null);
+							})
+							.catch(err => {
+								cb(err);
+							})
+					},
+					cb => {
+						this._loadCollection(Collections.services.name, Collections.services.indices)
+							.then(() => {
+								cb(null);
+							})
+							.catch(err => {
+								cb(err);
+							})
+					},
+					cb => {
+						this._loadCollection(Collections.gk_logins.name, Collections.gk_logins.indices)
+							.then(() => {
+								cb(null);
+							})
+							.catch(err => {
+								cb(err);
+							})
+					},
+					cb => {
+						this._loadCollection(Collections.sessions.name, Collections.sessions.indices)
+							.then(() => {
+								cb(null);
+							})
+							.catch(err => {
+								cb(err);
+							})
+					}
+				], err => {
+					if (err) {
+						reject(err)
+					} else {
+						logger.info(`All collections loaded`);
+						resolve()
+					}
+				});
 			}
 		);
 	}
