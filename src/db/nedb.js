@@ -25,18 +25,18 @@ class NeDB {
 
 	start() {
 		return new Promise((resolve, reject) => {
-			this._loadCollections()
-				.then(() => {
-					logger.info(`NeDB started successfully`);
-					resolve();
-				})
-				.catch(reject)
+				this._loadCollections()
+					.then(() => {
+						logger.info(`NeDB started successfully`);
+						resolve();
+					})
+					.catch(reject)
 			}
 		);
 
 	}
 
-	_seedServices(){
+	_seedServices() {
 		return new Promise((resolve, reject) => {
 
 			}
@@ -46,12 +46,20 @@ class NeDB {
 	_loadCollections() {
 		let $this = this;
 		return new Promise((resolve, reject) => {
-				this._loadCollection('users', [{fieldName: 'fqdn', unique: true}, {fieldName: 'isAdmin',unique: false}])
-					.then(this._loadCollection.bind($this, 'services', [{fieldName: 'url',unique: true}, {fieldName: 'code', unique: true}]))
-					.then(this._loadCollection.bind($this, 'registrations', [{fieldName: 'fqdn', unique: true}]))
-					.then(this._loadCollection.bind($this, 'gk_logins', [{fieldName: 'fqdn',unique: true}, {fieldName: 'serviceId', unique: true}]))
+				this._loadCollection('users', [{fieldName: 'fqdn', unique: true}, {fieldName: 'isAdmin', unique: false}])
 					.then(this._loadCollection.bind($this, 'sessions'))
-					.then(resolve)
+					.then(this._loadCollection.bind($this, 'services', [{
+						fieldName: 'url',
+						unique:    true
+					}, {fieldName: 'code', unique: true}]))
+					.then(this._loadCollection.bind($this, 'registrations', [{fieldName: 'fqdn', unique: true}]))
+					.then(this._loadCollection.bind($this, 'gk_logins', [{
+						fieldName: 'fqdn',
+						unique:    true
+					}, {fieldName: 'serviceId', unique: true}]))
+					.then(() => {
+						logger.info(`All collections loaded`)
+					})
 					.catch(err => {
 						reject(err);
 					});
@@ -63,7 +71,13 @@ class NeDB {
 		return new Promise((resolve, reject) => {
 				try {
 					this._db[name].ensureIndex(index, err => {
-						err ? reject(err) : resolve()
+						if (err) {
+							reject(err)
+						}
+						else {
+							logger.info(`Index for ${name} created`);
+							resolve()
+						}
 					})
 				} catch (e) {
 					reject(e);
@@ -81,23 +95,35 @@ class NeDB {
 		return new Promise((resolve, reject) => {
 
 				const _resolve = () => {
-					logger.info(`Collection ${name} created`);
+					logger.info(`Collection ${name} created fully`);
 					resolve()
 				};
 
 				try {
-					this._db[name] = new Datastore({filename: path.join(this._db_folder_path, `${name}.db`),autoload: true});
-					if (indices.length) {
-						let array = [];
-						for (let ind in indices) {
-							array.push(this._addIndex(name, indices[ind]))
-						}
 
-						Promise.all(array).then(_resolve).catch(reject)
-					}
-					else {
-						_resolve()
-					}
+					this._db[name] = new Datastore({filename: path.join(this._db_folder_path, `${name}.db`)});
+					this._db[name].loadDatabase(err => {
+						if (err) {
+							reject(err);
+							return;
+						}
+						logger.info(`${name} collection loaded`);
+						if (indices.length) {
+							Promise.all(indices.map(data => {
+									return this._addIndex(name, data).then(() => {
+										return Promise.resolve()
+									});
+								}
+							)).then(() => {
+								_resolve()
+							}).catch(reject);
+
+						}
+						else {
+							_resolve()
+						}
+					});
+
 				} catch (e) {
 					reject(e)
 				}
