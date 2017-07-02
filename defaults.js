@@ -9,7 +9,7 @@ const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
-const db_provider = Constants.DbProviders.Sqlite;
+const db_provider = Constants.DbProviders.NeDB;
 
 const ServiceName              = "ServiceName";
 const AppId                    = "";

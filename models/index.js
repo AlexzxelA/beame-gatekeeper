@@ -6,13 +6,13 @@ const beameSDK     = require('beame-sdk');
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger('Sequelize');
 
-var fs        = require('fs');
-var path      = require('path');
-var Sequelize = require('sequelize');
-var basename  = path.basename(module.filename);
-var db        = {};
+const fs        = require('fs');
+const path      = require('path');
+const Sequelize = require('sequelize');
+const basename  = path.basename(module.filename);
+let db        = {};
 
-var sequelize = new Sequelize(config["database"], config["username"], config["password"], {
+const sequelize = new Sequelize(config["database"], config["username"], config["password"], {
 	dialect: 'sqlite',
 	pool:    {
 		max:  5,
@@ -30,7 +30,7 @@ fs
 		return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
 	})
 	.forEach(function (file) {
-		var model      = sequelize['import'](path.join(__dirname, file));
+		let model      = sequelize['import'](path.join(__dirname, file));
 		db[model.name] = model;
 	});
 

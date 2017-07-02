@@ -37,8 +37,8 @@
   "dependencies": {
     "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git",
     "async": "^2.1.2",
-    "beame-sdk": "https://github.com/beameio/beame-sdk.git#dev",
     "beame-cli": "0.0.3",
+    "beame-sdk": "https://github.com/beameio/beame-sdk.git#dev",
     "body-parser": "^1.15.2",
     "cookie": "0.3.1",
     "csv-parse": "^1.2.0",
@@ -47,6 +47,7 @@
     "formidable": "^1.1.1",
     "http-proxy": "^1.15.1",
     "minimist": "^1.2.0",
+    "nedb": "^1.8.0",
     "onoff": "^1.1.1",
     "request": "^2.78.0",
     "samlp": "https://github.com/beameio/node-samlp",
