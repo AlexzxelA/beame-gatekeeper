@@ -10,6 +10,35 @@ const module_name = "NeDBServices";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 
+const Collections = {
+	user:          {
+		name:    'user',
+		indices: [{fieldName: 'fqdn', unique: true}, {fieldName: 'isAdmin', unique: false}]
+	},
+	services:      {
+		name:    'services',
+		indices: [{
+			fieldName: 'url',
+			unique:    true
+		}, {fieldName: 'code', unique: true}]
+	},
+	registrations: {
+		name:    'registrations',
+		indices: [{fieldName: 'fqdn', unique: true}]
+	},
+	gk_logins:     {
+		name:    'gk_logins',
+		indices: [{
+			fieldName: 'fqdn',
+			unique:    true
+		}, {fieldName: 'serviceId', unique: true}]
+	},
+	sessions:      {
+		name:    'sessions',
+		indices: []
+	},
+};
+
 class NeDB {
 	constructor(db_folder_path) {
 		this._db_folder_path = db_folder_path;
@@ -29,27 +58,46 @@ class NeDB {
 
 	}
 
+	//region seeders
 	_seedServices() {
 		return new Promise((resolve, reject) => {
+				let services = require('../../nedb/seeders/services');
 
+				const _saveServices = (srv) => {
+
+					this._upsertDocument(`services`, {services: srv}).then(() => {
+						return Promise.resolve();
+					}).catch(e => {
+						return Promise.reject(e);
+					});
+				};
+
+				return this.getServices().then(existing_services => {
+					if (!existing_services.length) return _saveServices(services);
+
+					for (let i = 0; i < services.length; i++) {
+						if (existing_services.some(x => x.code == services[i].code)) continue;
+
+						existing_services.push(services[i]);
+					}
+
+					return _saveServices(existing_services);
+				});
 			}
 		);
 	}
 
+	//endregion
+
+	//region collections
 	_loadCollections() {
 		let $this = this;
 		return new Promise((resolve, reject) => {
-				this._loadCollection('users', [{fieldName: 'fqdn', unique: true}, {fieldName: 'isAdmin', unique: false}])
-					.then(this._loadCollection.bind($this, 'sessions'))
-					.then(this._loadCollection.bind($this, 'services', [{
-						fieldName: 'url',
-						unique:    true
-					}, {fieldName: 'code', unique: true}]))
-					.then(this._loadCollection.bind($this, 'registrations', [{fieldName: 'fqdn', unique: true}]))
-					.then(this._loadCollection.bind($this, 'gk_logins', [{
-						fieldName: 'fqdn',
-						unique:    true
-					}, {fieldName: 'serviceId', unique: true}]))
+				this._loadCollection(Collections.user.name, Collections.user.indices)
+					.then(this._loadCollection.bind($this, Collections.sessions.name, Collections.sessions.indices))
+					.then(this._loadCollection.bind($this, Collections.services.name, Collections.services.indices))
+					.then(this._loadCollection.bind($this, Collections.registrations.name, Collections.registrations.indices))
+					.then(this._loadCollection.bind($this, Collections.gk_logins.name, Collections.gk_logins.indices))
 					.then(() => {
 						logger.info(`All collections loaded`)
 					})
@@ -122,6 +170,11 @@ class NeDB {
 				}
 			}
 		);
+	}
+
+	//endregion
+
+	_findDoc() {
 	}
 }
 
