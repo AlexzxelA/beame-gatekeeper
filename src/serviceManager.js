@@ -83,9 +83,9 @@ class ServiceManager {
 
 							if (!app || !app.code) continue;
 
-							this._appList[app.id] = {
+							this._appList[app.id || app._id] = {
 								name:   app.name,
-								app_id: app.id,
+								app_id: app.id || app._id,
 								code:   app.code,
 								url:    app.url,
 								online: app.isOnline,

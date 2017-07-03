@@ -13,8 +13,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	},
 	{
 		name:       'Admin Invitations',
@@ -23,8 +22,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	},
 	{
 		name:       'Raspberry Light',
@@ -33,8 +31,7 @@ module.exports = [
 		isOnline:   false,
 		isExternal: true,
 		isMobile:   false,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	},
 	{
 		name:       'Files sharing app',
@@ -43,8 +40,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	},
 	{
 		name:       'Simple chat',
@@ -53,8 +49,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	},
 	{
 		name:       'Mobile Photos',
@@ -63,8 +58,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   true,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	},
 	{
 		name:       'Mobile Stream',
@@ -73,7 +67,6 @@ module.exports = [
 		isOnline:   false,
 		isExternal: false,
 		isMobile:   true,
-		createdAt:  new Date(),
-		updatedAt:  new Date()
+		url:        null
 	}
 ];

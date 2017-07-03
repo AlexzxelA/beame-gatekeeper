@@ -45,6 +45,10 @@ class DataServices {
 				this._dbService = new (require('./db/couchbase'))(this._options);
 				break;
 
+			case DbProviders.NeDB:
+				this._dbService = new (require('./db/nedb'))(Bootstrapper.neDbRootPath, this._options);
+				break;
+
 			default:
 				logger.error(`Unknown Db Provider ${this._dbProvider}`);
 				return;
@@ -233,8 +237,8 @@ class DataServices {
 		return this._dbService.updateService(service);
 	}
 
-	updateServiceUrl(id,url) {
-		return this._dbService.updateServiceUrl(id,url);
+	updateServiceUrl(id, url) {
+		return this._dbService.updateServiceUrl(id, url);
 	}
 
 	deleteService(id) {
@@ -298,6 +302,7 @@ class DataServices {
 	deleteHook(id) {
 		return this._dbService.deleteHook(id);
 	}
+
 	//endregion
 
 	/**

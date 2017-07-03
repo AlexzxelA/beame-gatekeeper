@@ -48,6 +48,7 @@ bower_components
 dist
 local_config/
 tools
+data/
 npm-shrinkwrap.json
 #apps/photo/public/css
 #apps/stream/public/css

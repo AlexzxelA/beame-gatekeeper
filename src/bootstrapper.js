@@ -10,6 +10,7 @@ const packageJson       = require('../package.json');
 const defaults          = require('../defaults');
 const SqliteProps       = defaults.ConfigProps.Sqlite;
 const SettingsProps     = defaults.ConfigProps.Settings;
+const NeDBProps = defaults.ConfigProps.NeDB;
 const utils             = require('./utils');
 const beameSDK          = require('beame-sdk');
 const module_name       = "Bootstrapper";
@@ -116,6 +117,16 @@ class Bootstrapper {
 						this._ensureSqliteDir()
 							.then(this._migrateSqliteSchema.bind(this))
 							.then(this._runSqliteSeeders.bind(this))
+							.then(() => {
+								logger.info(`Beame-gatekeeper ${provider} DB updated successfully`);
+								resolve();
+								if (exit) {
+									process.exit(0);
+								}
+							}).catch(_onConfigError);
+						return;
+					case DbProviders.NeDB:
+						this._ensureNedbDir()
 							.then(() => {
 								logger.info(`Beame-gatekeeper ${provider} DB updated successfully`);
 								resolve();
@@ -412,6 +423,9 @@ class Bootstrapper {
 		return this._config[SettingsProps.PublicRegistration];
 	}
 
+	static get neDbRootPath(){
+		return defaults.nedb_storage_root;
+	}
 	//noinspection JSUnusedGlobalSymbols
 	get pairingRequired() {
 		return this._config[SettingsProps.PairingRequired];
@@ -784,6 +798,9 @@ class Bootstrapper {
 					case DbProviders.Sqlite:
 						this._ensureSqliteConfigJson().then(resolve).catch(_onConfigError);
 						return;
+					case DbProviders.NeDB:
+						resolve();
+						return;
 					//TODO implement Couchbase connector
 					// case DbProviders.Couchbase:
 					// 	break;
@@ -899,6 +916,13 @@ class Bootstrapper {
 		return this._ensureConfigDir(SqliteProps.StorageRoot);
 	}
 
+	//endregion
+
+	//region NeDB
+	_ensureNedbDir() {
+
+		return this._ensureConfigDir(NeDBProps.StorageRoot);
+	}
 	//endregion
 
 	//endregion

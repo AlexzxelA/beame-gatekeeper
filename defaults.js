@@ -16,7 +16,9 @@ const AppId                    = "";
 const sqlite_db_name           = "beame_server.db";
 const sqlite_db_admin_username = "admin";
 const sqlite_env_name          = "production";
-const sqlite_db_storage_root   = path.join(home,process.env.BEAME_DATA_FOLDER || ".beame_data");
+const sqlite_db_storage_root   = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
+
+const nedb_storage_root = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
@@ -98,6 +100,9 @@ const ConfigProps = {
 		StorageRoot:    "sqlite_db_storage_root",
 		EnvName:        "sqlite_env_name"
 	},
+	NeDB:     {
+		StorageRoot: "nedb_storage_root"
+	},
 	BeameDir: {
 		BeameFolderRootPath: "beame_server_folder_path",
 		BeameFolderName:     "beame_server_folder_name"
@@ -119,7 +124,7 @@ const CredsConfigTemplate = {
 		server:   true,
 		internal: true
 	},
-	[Servers.GatekeeperLoginManager]: {
+	[Servers.GatekeeperLoginManager]:   {
 		fqdn:     "",
 		server:   true,
 		internal: true
@@ -182,6 +187,8 @@ module.exports = {
 	SqliteConfigTemplate,
 
 	db_provider,
+
+	nedb_storage_root,
 
 	sqlite_db_name,
 	sqlite_db_storage_root,
