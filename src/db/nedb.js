@@ -296,6 +296,7 @@ class NeDB {
 								reject(err)
 							}
 							else {
+								logger.info(`Doc ${JSON.stringify(doc)} inserted into ${collection}`);
 								resolve(newDoc)
 							}
 						})
@@ -364,7 +365,7 @@ class NeDB {
 						name:           data.name,
 						externalUserId: data.user_id
 					}).then(doc => {
-						if (doc && doc.completed === true) {
+						if (doc && doc.completed) {
 							reject(`Record for email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
 							return;
 						}

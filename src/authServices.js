@@ -150,6 +150,7 @@ class BeameAuthServices {
 							data.fqdn = payload.fqdn;
 
 							dataService.saveRegistration(data).then(() => {
+								logger.info(`Registration ${payload.fqdn} saved`);
 								resolve(payload);
 							}).catch(reject);
 						}
