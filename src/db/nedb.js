@@ -10,34 +10,37 @@ const beameSDK    = require('beame-sdk');
 const module_name = "NeDBServices";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
-
+const CommonUtils = beameSDK.CommonUtils;
 
 const Collections = {
 	user:          {
 		name:    'user',
-		indices: [{fieldName: 'fqdn', unique: true}, {fieldName: 'isAdmin', unique: false}]
+		indices: [{fieldName: 'id', unique: true}, {fieldName: 'fqdn', unique: true}, {
+			fieldName: 'isAdmin',
+			unique:    false
+		}]
 	},
 	services:      {
 		name:    'services',
-		indices: [{
+		indices: [{fieldName: 'id', unique: true}, {
 			fieldName: 'code',
 			unique:    true
 		}]
 	},
 	registrations: {
 		name:    'registrations',
-		indices: [{fieldName: 'fqdn', unique: true}]
+		indices: [{fieldName: 'id', unique: true}, {fieldName: 'fqdn', unique: true}]
 	},
 	gk_logins:     {
 		name:    'gk_logins',
-		indices: [{
+		indices: [{fieldName: 'id', unique: true}, {
 			fieldName: 'fqdn',
 			unique:    true
 		}, {fieldName: 'serviceId', unique: true}]
 	},
 	sessions:      {
 		name:    'sessions',
-		indices: []
+		indices: [{fieldName: 'id', unique: true}]
 	},
 };
 
@@ -65,6 +68,21 @@ class NeDB {
 			}
 		);
 
+	}
+
+	_getUniqueId(collection) {
+		return new Promise((resolve, reject) => {
+				this._updateDoc(
+					collection,
+					{_id: '__autoid__'},
+					{$inc: {value: 1}},
+					{upsert: true, returnUpdatedDocs: true}
+				).then(doc => {
+					resolve(doc.value);
+				}).catch(reject);
+
+			}
+		);
 	}
 
 	//region seeders
@@ -209,6 +227,7 @@ class NeDB {
 							reject(err);
 							return;
 						}
+						this._db[name].insert({_id: '__autoid__', value: -1});
 						logger.info(`${name} collection loaded`);
 						if (indices.length) {
 							Promise.all(indices.map(data => {
@@ -267,16 +286,20 @@ class NeDB {
 
 	_insertDoc(collection, doc) {
 		return new Promise((resolve, reject) => {
-				logger.info(`Inserting ${JSON.stringify(doc)} into ${collection}`);
-				this._db[collection]
-					.insert(doc, (err, newDoc) => {
-						if (err) {
-							reject(err)
-						}
-						else {
-							resolve(newDoc)
-						}
-					})
+
+				this._getUniqueId(collection).then(id => {
+					logger.info(`Inserting ${JSON.stringify(doc)} into ${collection}`);
+					doc.id = id;
+					this._db[collection]
+						.insert(doc, (err, newDoc) => {
+							if (err) {
+								reject(err)
+							}
+							else {
+								resolve(newDoc)
+							}
+						})
+				}).catch(reject)
 			}
 		);
 	}
@@ -284,22 +307,26 @@ class NeDB {
 	_updateDoc(collection, query, update, options = {}) {
 		return new Promise((resolve, reject) => {
 				options['returnUpdatedDocs'] = true;
-				this._db[collection].update(query, update, options, (err, numReplaced, returnUpdatedDocs) => {
-					if (err) {
-						reject(err)
-					} else {
-						this._db[collection].persistence.compactDatafile();
-						resolve(returnUpdatedDocs);
-					}
-				});
+				try {
+					this._db[collection].update(query, update, options, (err, numReplaced, returnUpdatedDocs) => {
+						if (err) {
+							reject(err)
+						} else {
+							this._db[collection].persistence.compactDatafile();
+							resolve(returnUpdatedDocs);
+						}
+					});
+				} catch (e) {
+					console.log(e)
+				}
 			}
 		);
 	}
 
-	_removeDoc(collection, query) {
+	_removeDoc(collection, query, options = {}) {
 		return new Promise((resolve, reject) => {
-				this._db[collection](query, {}, (err, numRemoved) => {
-					err || numRemoved != 1 ? reject(err || `Unexpected error`) : resolve()
+				this._db[collection].remove(query, options, (err, numRemoved) => {
+					err ? reject(err || `Unexpected error`) : resolve()
 					// numRemoved = 1
 				});
 			}
@@ -312,21 +339,13 @@ class NeDB {
 	getRegistrations() {
 		return new Promise((resolve) => {
 				logger.debug(`try fetch registrations`);
-				let model = this._models.registrations;
 
-				//noinspection JSUnresolvedFunction
-				model.findAll({order: 'id DESC'}).then(models => {
-						let records = models.map(item => {
-							return item.dataValues
-						});
-						resolve(records);
-					}
-				).catch(
-					error => {
-						logger.error(error);
-						resolve([]);
-					}
-				);
+				this._findDocs(Collections.registrations.name, {}).then(docs => {
+					resolve(docs)
+				}).catch(e => {
+					logger.error(`Fetch registrations error ${BeameLogger.formatError(e)}`)
+					resolve([])
+				})
 			}
 		);
 	}
@@ -338,32 +357,33 @@ class NeDB {
 	saveRegistration(data) {
 		return new Promise((resolve, reject) => {
 
-				let model = this._models.registrations;
-
 				try {
 					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							email:          data.email,
-							name:           data.name,
-							externalUserId: data.user_id
-						}
-					}).then(record => {
-						if (record) {
+					this._findDoc(Collections.registrations.name, {
+						email:          data.email,
+						name:           data.name,
+						externalUserId: data.user_id
+					}).then(doc => {
+						if (doc && doc.completed === true) {
 							reject(`Record for email ${data.email}, name ${data.name}, userId ${data.user_id} already registered`);
 							return;
 						}
 
-						model.create({
-							name:           data.name,
-							email:          data.email,
-							externalUserId: data.user_id,
-							pin:            data.pin,
-							fqdn:           data.fqdn || null,
-							hash:           data.hash
-						}).then(record => {
-							resolve(record.dataValues);
-						}).catch(onError.bind(this, reject));
+						if (doc) {
+							resolve(doc);
+						} else {
+							this._insertDoc(Collections.registrations.name, {
+								name:             data.name,
+								email:            data.email,
+								externalUserId:   data.user_id,
+								pin:              data.pin,
+								fqdn:             data.fqdn || null,
+								hash:             data.hash,
+								completed:        false,
+								certReceived:     false,
+								userDataReceived: false
+							})
+						}
 
 					}).catch(onError.bind(this, reject));
 
@@ -382,18 +402,15 @@ class NeDB {
 	isRegistrationExists(data) {
 		return new Promise((resolve, reject) => {
 
-				let model = this._models.registrations;
-
 				try {
-					//noinspection JSUnresolvedFunction
-					model.findOne({
+					this._findDoc(Collections.registrations.name, {
 						where: {
 							email:          data.email,
 							name:           data.name,
 							externalUserId: data.user_id
 						}
-					}).then(record => {
-						resolve(record ? record.dataValues : null);
+					}).then(doc => {
+						resolve(doc);
 					}).catch(onError.bind(this, reject));
 
 				}
@@ -406,11 +423,10 @@ class NeDB {
 
 	deleteRegistration(id) {
 		return new Promise((resolve, reject) => {
-				logger.debug(`try delete registration ${id}`);
-				let model = this._models.registrations;
-				model.destroy({where: {id: id}}).then(resolve).catch(reject);
+				this._removeDoc(Collections.registrations.name, {id: id}).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
@@ -418,33 +434,9 @@ class NeDB {
 	 * @returns {Promise.<Registration>}
 	 */
 	markRegistrationAsCompleted(fqdn) {
-		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.registrations;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							fqdn: fqdn
-						}
-					}).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`Registration record not found`));
-							return;
-						}
-
-						record.update({completed: true}).then(record => {
-							resolve(record.dataValues);
-						}).catch(onError.bind(this, reject));
-
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
-			}
-		);
+		return this._updateDoc(Collections.registrations.name, {fqdn: fqdn}, {
+			$set: {completed: true}
+		})
 	}
 
 	updateRegistrationFqdn(hash, fqdn) {
@@ -459,15 +451,14 @@ class NeDB {
 	updateRegistrationHash(id, sign) {
 		return new Promise((resolve, reject) => {
 				try {
-					let registration = this._models.registrations;
-					//noinspection JSUnresolvedFunction
-					registration.findById(id).then(record => {
+
+					this._findDoc(Collections.registrations.name, {id: id}).then(record => {
 						if (!record) {
 							reject(logger.formatErrorMessage(`Registration record not found`));
 							return;
 						}
 
-						var signObj = CommonUtils.parse(sign);
+						let signObj = CommonUtils.parse(sign);
 
 						if (signObj == null) {
 							onError(reject, new Error(`invalid auth token`));
@@ -479,12 +470,11 @@ class NeDB {
 						    hash       = signedData.data,
 						    valid_till = signedData.valid_till;
 
-						record.update({hash: hash, hashValidTill: valid_till}).then(reg => {
-							resolve(reg.dataValues);
-						}).catch(onError.bind(this, reject));
+						this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+							$set: {hash: hash, hashValidTill: valid_till}
+						}).then(resolve).catch(onError.bind(this, reject));
 
 					}).catch(onError.bind(this, reject));
-
 				}
 				catch (error) {
 					logger.error(BeameLogger.formatError(error));
@@ -496,62 +486,53 @@ class NeDB {
 
 	updateRegistrationPin(id, pin) {
 		return new Promise((resolve, reject) => {
-				try {
-					let registration = this._models.registrations;
-					//noinspection JSUnresolvedFunction
-					registration.findById(id).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`Registration record not found`));
-							return;
-						}
-						record.update({pin: pin}).then(() => {
-							resolve();
-						}).catch(onError.bind(this, reject));
+				this._findDoc(Collections.registrations.name, {id: id}).then(record => {
+					if (!record) {
+						reject(logger.formatErrorMessage(`Registration record not found`));
+						return;
+					}
 
-					}).catch(onError.bind(this, reject));
+					this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+						$set: {pin: pin}
+					}).then(resolve).catch(onError.bind(this, reject));
 
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				}).catch(onError.bind(this, reject));
 			}
 		);
 	}
 
 	updateRegistrationCertFlag(id) {
 		return new Promise((resolve, reject) => {
-				let registration = this._models.registrations;
-				//noinspection JSUnresolvedFunction
-				registration.findById(id).then(record => {
+				this._findDoc(Collections.registrations.name, {id: id}).then(record => {
 					if (!record) {
-						reject(logger.formatErrorMessage(`Registration recorc not found`));
+						reject(logger.formatErrorMessage(`Registration record not found`));
 						return;
 					}
-					record.update({certReceived: true}).then(rec => {
-						resolve(rec.dataValues);
-					}).catch(onError.bind(this, reject));
+
+					this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+						$set: {certReceived: true}
+					}).then(resolve).catch(onError.bind(this, reject));
 
 				}).catch(onError.bind(this, reject));
-
 			}
 		);
 	}
 
 	updateRegistrationUserDataFlag(id) {
 		return new Promise((resolve, reject) => {
-				let registration = this._models.registrations;
-				//noinspection JSUnresolvedFunction
-				registration.findById(id).then(record => {
+
+				this._findDoc(Collections.registrations.name, {id: id}).then(record => {
 					if (!record) {
 						reject(logger.formatErrorMessage(`Registration record not found`));
 						return;
 					}
-					record.update({userDataReceived: true}).then(rec => {
-						resolve(rec.dataValues);
-					}).catch(onError.bind(this, reject));
+
+					this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+						$push: {userDataReceived: true}
+					}).then(resolve).catch(onError.bind(this, reject));
 
 				}).catch(onError.bind(this, reject));
+
 
 			}
 		);
@@ -562,41 +543,23 @@ class NeDB {
 	 * @returns {Promise}
 	 */
 	findRegistrationRecordByHash(hash) {
-		return new Promise((resolve) => {
-				let model = this._models.registrations;
-				//noinspection JSUnresolvedFunction
-				model.findOne({
-					where: {
-						hash: hash
-					}
-				}).then(record => {
-					resolve(record ? record.dataValues : null);
-
-				}).catch(error => {
-					logger.error(BeameLogger.formatError(error));
-					resolve(null);
-				});
+		return new Promise((resolve, reject) => {
+				this._findDoc(Collections.registrations.name, {
+					hash: hash
+				}).then(resolve).catch(reject);
 			}
 		);
+
 	}
 
 	findRegistrationRecordByFqdn(fqdn) {
-		return new Promise((resolve) => {
-				let model = this._models.registrations;
-				//noinspection JSUnresolvedFunction
-				model.findOne({
-					where: {
-						fqdn: fqdn
-					}
-				}).then(record => {
-					resolve(record ? record.dataValues : null);
-
-				}).catch(error => {
-					logger.error(BeameLogger.formatError(error));
-					resolve(null);
-				});
+		return new Promise((resolve, reject) => {
+				this._findDoc(Collections.registrations.name, {
+					fqdn: fqdn
+				}).then(resolve).catch(reject);
 			}
 		);
+
 	}
 
 	//endregion
@@ -604,14 +567,10 @@ class NeDB {
 	//region session
 	deleteSessionById(id) {
 		return new Promise((resolve, reject) => {
-				logger.debug(`try delete session by id ${id}`);
-				let model = this._models.sessions;
-				model.destroy({where: {id: id}}).then(resolve).catch(error => {
-					logger.error(`delete session with id ${id} error ${BeameLogger.formatError(error)}`, error);
-					reject(error);
-				});
+				this._removeDoc(Collections.sessions.name, {id: id}).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
@@ -620,29 +579,11 @@ class NeDB {
 	 * @returns {Promise}
 	 */
 	deleteSessionByPin(pin) {
-		return new Promise((resolve) => {
-				logger.debug(`try delete session by pin ${pin}`);
-
-
-				let model = this._models.sessions;
-
-				//noinspection JSUnresolvedFunction
-				model.findAll({where: {pin: pin}}).then(records => {
-					if (records.length == 1) {
-						return this.deleteSessionById(records[0].dataValues.id);
-					}
-
-					let ids = records.map(item => item.dataValues.id);
-
-					return this._setSessionTtl(ids);
-
-				}).catch(error => {
-					logger.error(`deleteSessionByPin ${pin} error ${BeameLogger.formatError(error)}`);
-					resolve();
-				});
-
+		return new Promise((resolve, reject) => {
+				this._removeDoc(Collections.sessions.name, {pin: pin}, {multi: true}).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
@@ -676,22 +617,18 @@ class NeDB {
 	saveSession(data) {
 		return new Promise((resolve, reject) => {
 
-				let model = this._models.sessions;
-
 				try {
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							email:          data.email,
-							name:           data.name,
-							externalUserId: data.user_id
-						}
+					this._findDoc(Collections.sessions.name, {
+						email:          data.email,
+						name:           data.name,
+						externalUserId: data.user_id
+
 					}).then(record => {
 						if (record) {
-							this.deleteSessionById(record.id)
+							this.deleteSessionById(record._id)
 						}
 
-						model.create({
+						this._insertDoc(Collections.sessions.name, {
 							name:           data.name,
 							email:          data.email,
 							externalUserId: data.user_id,
@@ -728,11 +665,7 @@ class NeDB {
 						return;
 					}
 
-					let model = this._models.users;
-
-					model.create(user).then(entity => {
-						resolve(entity.dataValues);
-					}).catch(onError.bind(this, reject));
+					this._insertDoc(Collections.user.name, user).then(resolve).catch(onError.bind(this, reject));
 
 				}).catch(reject);
 			}
@@ -745,14 +678,10 @@ class NeDB {
 	 */
 	findUser(fqdn) {
 		return new Promise((resolve, reject) => {
-				let model = this._models.users;
-
-				//noinspection JSUnresolvedFunction
-				model.findOne({where: {fqdn: fqdn}}).then(item => {
-					item ? resolve(item.dataValues) : resolve(null);
-				}).catch(reject);
+				this._findDoc(Collections.user.name, {fqdn: fqdn}).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
@@ -761,17 +690,10 @@ class NeDB {
 	 */
 	searchUsers(predicate) {
 		return new Promise((resolve, reject) => {
-				let model = this._models.users;
-
-				//noinspection JSUnresolvedFunction
-				model.findAll({where: predicate}).then(users => {
-					let records = users.map(item => {
-						return item.dataValues
-					});
-					resolve(records);
-				}).catch(reject);
+				this._findDocs(Collections.user.name, predicate).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
@@ -780,29 +702,10 @@ class NeDB {
 	 */
 	updateLoginInfo(fqdn) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.users;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							fqdn: fqdn
-						}
-					}).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`User record not found`));
-							return;
-						}
-						record.update({lastActiveDate: new Date()}).then(resolve).catch(onError.bind(this, reject));
-
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lastActiveDate: new Date()}}).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
@@ -811,27 +714,7 @@ class NeDB {
 	 */
 	updateUserActiveStatus(fqdn, isActive) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.users;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							fqdn: fqdn
-						}
-					}).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`User record not found`));
-							return;
-						}
-						record.update({isActive: isActive}).then(resolve).catch(onError.bind(this, reject));
-
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lisActive: isActive}}).then(resolve).catch(reject)
 			}
 		);
 	}
@@ -841,119 +724,52 @@ class NeDB {
 	 */
 	markUserAsDeleted(fqdn) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.users;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							fqdn: fqdn
-						}
-					}).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`User record not found`));
-							return;
-						}
-						record.update({isDeleted: true, isActive: false}).then(resolve).catch(onError.bind(this, reject));
-
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				this._updateDoc(Collections.user.name, {fqdn: fqdn}, {
+					$set: {
+						isDeleted: true,
+						isActive:  false
+					}
+				}).then(resolve).catch(reject)
 			}
 		);
+
 	}
 
 	/**
 	 *
-	 * @param {User} user
+	 * @param {Object} user
 	 */
 	updateUser(user) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.users;
-					//noinspection JSUnresolvedFunction
-					model.findById(user.id).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`User record not found`));
-							return;
-						}
-						record.update({
-							isAdmin:  user.isAdmin,
-							isActive: user.isActive
-						}).then(entity => {
-							resolve(entity.dataValues);
-						}).catch(onError.bind(this, reject));
-
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				this._updateDoc(Collections.user.name, {_id: user._id}, {
+					$set: {
+						isAdmin:  user.isAdmin,
+						isActive: user.isActive
+					}
+				}).then(resolve).catch(reject);
 			}
 		);
+
 	}
 
 	/**
 	 *
-	 * @param {User} user
+	 * @param {Object} user
 	 */
 	updateUserProfile(user) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.users;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							fqdn: user.fqdn
-						}
-					}).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`User record not found`));
-							return;
-						}
-						record.update({
-							name:     user.name,
-							nickname: user.nickname
-						}).then(entity => {
-							resolve(entity.dataValues);
-						}).catch(onError.bind(this, reject));
-
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				this._updateDoc(Collections.user.name, {_id: user._id}, {
+					$set: {
+						name:     user.name,
+						nickname: user.nickname
+					}
+				}).then(resolve).catch(reject);
 			}
 		);
 	}
 
 	getUsers() {
-		return new Promise((resolve) => {
-				logger.debug(`try fetch users`);
-				let model = this._models.users;
-
-				//noinspection JSUnresolvedFunction
-				model.findAll({order: 'id DESC'}).then(models => {
-						let records = models.map(item => {
-							return item.dataValues
-						});
-						resolve(records);
-					}
-				).catch(
-					error => {
-						logger.error(error);
-						resolve([]);
-					}
-				);
-			}
-		);
+		return this._findDocs(Collections.user.name, {})
 	}
 
 	//endregion

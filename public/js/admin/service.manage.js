@@ -36,9 +36,9 @@ function loadServices() {
 		},
 		schema:    {
 			model: {
-				id:     "_id",
+				id:     "id",
 				fields: {
-					id:       {type: "string", "editable": false},
+					id:       {type: "number", "editable": false},
 					name:     {type: "string"},
 					code:     {type: "string"},
 					url:      {type: "string"},
