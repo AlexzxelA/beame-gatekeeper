@@ -306,7 +306,7 @@ class AdminRouter {
 			let data = req.body,
 			    fqdn = req.params.fqdn || Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 
-			logger.info(`Save invitation  with ${CommonUtils.data}`);
+			logger.info(`Save invitation  with ${CommonUtils.stringify(data)}`);
 
 			const _resolve = (resp) => {
 				return res.json({
@@ -675,7 +675,7 @@ class AdminRouter {
 
 			let data = req.body;
 
-			logger.info(`Save invitation  with ${CommonUtils.data}`);
+			logger.info(`Save invitation  with ${CommonUtils.stringify(data)}`);
 
 			function resolve() {
 				return res.json({

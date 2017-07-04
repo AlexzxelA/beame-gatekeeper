@@ -12,6 +12,7 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const CommonUtils = beameSDK.CommonUtils;
 
+const inc_id_field_name = '__autoid__';
 const Collections = {
 	user:          {
 		name:    'user',
@@ -74,7 +75,7 @@ class NeDB {
 		return new Promise((resolve, reject) => {
 				this._updateDoc(
 					collection,
-					{_id: '__autoid__'},
+					{_id:inc_id_field_name},
 					{$inc: {value: 1}},
 					{upsert: true, returnUpdatedDocs: true}
 				).then(doc => {
@@ -227,7 +228,7 @@ class NeDB {
 							reject(err);
 							return;
 						}
-						this._db[name].insert({_id: '__autoid__', value: -1});
+						this._db[name].insert({_id: inc_id_field_name, value: 0});
 						logger.info(`${name} collection loaded`);
 						if (indices.length) {
 							Promise.all(indices.map(data => {
@@ -269,10 +270,10 @@ class NeDB {
 		);
 	}
 
-	_findDocs(collection, query) {
+	_findDocs(collection, query = {}, sort = {}) {
 		return new Promise((resolve, reject) => {
-				this._db[collection]
-					.find(query, (err, docs) => {
+				query._id = {$ne:inc_id_field_name};
+				this._db[collection].find(query).sort(sort).exec((err, docs) => {
 						if (err) {
 							reject(err)
 						}
@@ -327,7 +328,13 @@ class NeDB {
 	_removeDoc(collection, query, options = {}) {
 		return new Promise((resolve, reject) => {
 				this._db[collection].remove(query, options, (err, numRemoved) => {
-					err ? reject(err || `Unexpected error`) : resolve()
+					if (err) {
+						reject(err || `Unexpected error`)
+					} else {
+						logger.info(`${numRemoved} records removed from ${collection}`);
+						this._db[collection].persistence.compactDatafile();
+						resolve()
+					}
 					// numRemoved = 1
 				});
 			}
@@ -344,7 +351,7 @@ class NeDB {
 				this._findDocs(Collections.registrations.name, {}).then(docs => {
 					resolve(docs)
 				}).catch(e => {
-					logger.error(`Fetch registrations error ${BeameLogger.formatError(e)}`)
+					logger.error(`Fetch registrations error ${BeameLogger.formatError(e)}`);
 					resolve([])
 				})
 			}
@@ -382,8 +389,10 @@ class NeDB {
 								hash:             data.hash,
 								completed:        false,
 								certReceived:     false,
-								userDataReceived: false
-							})
+								userDataReceived: false,
+								hashValidTill:    null
+							}).then(resolve)
+								.catch(reject)
 						}
 
 					}).catch(onError.bind(this, reject));
@@ -580,11 +589,7 @@ class NeDB {
 	 * @returns {Promise}
 	 */
 	deleteSessionByPin(pin) {
-		return new Promise((resolve, reject) => {
-				this._removeDoc(Collections.sessions.name, {pin: pin}, {multi: true}).then(resolve).catch(reject)
-			}
-		);
-
+		return this._removeDoc(Collections.sessions.name, {pin: pin}, {multi: true})
 	}
 
 	/**
@@ -665,7 +670,10 @@ class NeDB {
 						reject(`User with FQDN ${user.fqdn} already exists`);
 						return;
 					}
-
+					user.isDeleted      = false;
+					user.isActive       = true;
+					user.lastActiveDate = new Date();
+					user.nickname       = null;
 					this._insertDoc(Collections.user.name, user).then(resolve).catch(onError.bind(this, reject));
 
 				}).catch(reject);
@@ -770,14 +778,14 @@ class NeDB {
 	}
 
 	getUsers() {
-		return this._findDocs(Collections.user.name, {})
+		return this._findDocs(Collections.user.name, {}, {id:-1})
 	}
 
 	//endregion
 
 	//region services
 	getServices() {
-		return this._findDocs(Collections.services.name, {})
+		return this._findDocs(Collections.services.name, {}, {id:1})
 	}
 
 	getActiveServices() {
@@ -837,7 +845,7 @@ class NeDB {
 					this._updateDoc(Collections.services.name, {_id: service._id}, update).then(resolve).catch(reject);
 				};
 
-				let query = {_id: {$ne: service._id}, $and: [{$or: [{code: service.code}, {url: service.url}]}]};
+				let query = service.url && service.url.length ? {_id: {$ne: service._id}, $and: [{$or: [{code: service.code}, {url: service.url}]}]}: {_id: {$ne: service._id},code: service.code};
 
 				this._validateService(query).then(_update.bind($this)).catch(reject);
 
@@ -845,7 +853,7 @@ class NeDB {
 		);
 	}
 
-	updateServiceUrl(_id, url) {
+	updateServiceUrl(id, url) {
 		return new Promise((resolve, reject) => {
 
 				let $this = this;
@@ -858,10 +866,10 @@ class NeDB {
 						}
 					};
 
-					this._updateDoc(Collections.services.name, {_id: _id}, update, {upsert: false}).then(resolve).catch(reject);
+					this._updateDoc(Collections.services.name, {id: id}, update, {upsert: false}).then(resolve).catch(reject);
 				};
 
-				let query = {_id: {$ne: _id}, $and: [{url: url}]};
+				let query = {id: {$ne: id}, url: url};
 
 				this._validateService(query).then(_update.bind($this)).catch(reject);
 
@@ -869,8 +877,8 @@ class NeDB {
 		);
 	}
 
-	deleteService(_id) {
-		return this._removeDoc(Collections.services.name, {_id: _id});
+	deleteService(id) {
+		return this._removeDoc(Collections.services.name, {id: id});
 	}
 
 	//endregion
