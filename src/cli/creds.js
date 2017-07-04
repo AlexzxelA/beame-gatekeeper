@@ -220,11 +220,20 @@ admin.toText = (url) => {
 		"--------------------------------------------------\n"
 };
 
+
+function getGwFqdn(callback) {
+	 let fqdn =  Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+	 fqdn ? callback(null,fqdn) : callback(`Gateway FQDN not found`)
+}
+getGwFqdn.toText = (url) => url;
+
 module.exports = {
 	getCreds,
 	list,
 	listVpnCreds,
 	createServersCredentials,
 	webToken,
-	admin
+	admin,
+	getGwFqdn
 };
