@@ -462,8 +462,8 @@ class NeDB {
 		return new Promise((resolve, reject) => {
 				try {
 
-					this._findDoc(Collections.registrations.name, {id: id}).then(record => {
-						if (!record) {
+					this._findDoc(Collections.registrations.name, {id: id}).then(doc => {
+						if (!doc) {
 							reject(logger.formatErrorMessage(`Registration record not found`));
 							return;
 						}
@@ -480,7 +480,7 @@ class NeDB {
 						    hash       = signedData.data,
 						    valid_till = signedData.valid_till;
 
-						this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+						this._updateDoc(Collections.registrations.name, {_id: doc._id}, {
 							$set: {hash: hash, hashValidTill: valid_till}
 						}).then(resolve).catch(onError.bind(this, reject));
 
@@ -496,13 +496,13 @@ class NeDB {
 
 	updateRegistrationPin(id, pin) {
 		return new Promise((resolve, reject) => {
-				this._findDoc(Collections.registrations.name, {id: id}).then(record => {
-					if (!record) {
+				this._findDoc(Collections.registrations.name, {id: id}).then(doc => {
+					if (!doc) {
 						reject(logger.formatErrorMessage(`Registration record not found`));
 						return;
 					}
 
-					this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+					this._updateDoc(Collections.registrations.name, {_id: doc._id}, {
 						$set: {pin: pin}
 					}).then(resolve).catch(onError.bind(this, reject));
 
@@ -513,13 +513,13 @@ class NeDB {
 
 	updateRegistrationCertFlag(id) {
 		return new Promise((resolve, reject) => {
-				this._findDoc(Collections.registrations.name, {id: id}).then(record => {
-					if (!record) {
+				this._findDoc(Collections.registrations.name, {id: id}).then(doc => {
+					if (!doc) {
 						reject(logger.formatErrorMessage(`Registration record not found`));
 						return;
 					}
 
-					this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+					this._updateDoc(Collections.registrations.name, {_id: doc._id}, {
 						$set: {certReceived: true}
 					}).then(resolve).catch(onError.bind(this, reject));
 
@@ -531,13 +531,13 @@ class NeDB {
 	updateRegistrationUserDataFlag(id) {
 		return new Promise((resolve, reject) => {
 
-				this._findDoc(Collections.registrations.name, {id: id}).then(record => {
-					if (!record) {
+				this._findDoc(Collections.registrations.name, {id: id}).then(doc => {
+					if (!doc) {
 						reject(logger.formatErrorMessage(`Registration record not found`));
 						return;
 					}
 
-					this._updateDoc(Collections.registrations.name, {_id: record._id}, {
+					this._updateDoc(Collections.registrations.name, {_id: doc._id}, {
 						$push: {userDataReceived: true}
 					}).then(resolve).catch(onError.bind(this, reject));
 
@@ -553,23 +553,13 @@ class NeDB {
 	 * @returns {Promise}
 	 */
 	findRegistrationRecordByHash(hash) {
-		return new Promise((resolve, reject) => {
-				this._findDoc(Collections.registrations.name, {
-					hash: hash
-				}).then(resolve).catch(reject);
-			}
-		);
-
+		return this._findDoc(Collections.registrations.name, {
+			hash: hash
+		});
 	}
 
 	findRegistrationRecordByFqdn(fqdn) {
-		return new Promise((resolve, reject) => {
-				this._findDoc(Collections.registrations.name, {
-					fqdn: fqdn
-				}).then(resolve).catch(reject);
-			}
-		);
-
+		return this._findDoc(Collections.registrations.name, {fqdn: fqdn});
 	}
 
 	//endregion
@@ -675,11 +665,7 @@ class NeDB {
 	 * @returns {Promise.<User>}
 	 */
 	findUser(fqdn) {
-		return new Promise((resolve, reject) => {
-				this._findDoc(Collections.user.name, {fqdn: fqdn}).then(resolve).catch(reject)
-			}
-		);
-
+		return this._findDoc(Collections.user.name, {fqdn: fqdn});
 	}
 
 	/**
@@ -687,11 +673,7 @@ class NeDB {
 	 * @param {Object} predicate
 	 */
 	searchUsers(predicate) {
-		return new Promise((resolve, reject) => {
-				this._findDocs(Collections.user.name, predicate).then(resolve).catch(reject)
-			}
-		);
-
+		return this._findDocs(Collections.user.name, predicate);
 	}
 
 	/**
@@ -699,11 +681,7 @@ class NeDB {
 	 * @param fqdn
 	 */
 	updateLoginInfo(fqdn) {
-		return new Promise((resolve, reject) => {
-				this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lastActiveDate: new Date()}}).then(resolve).catch(reject)
-			}
-		);
-
+		return this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lastActiveDate: new Date()}});
 	}
 
 	/**
@@ -711,25 +689,19 @@ class NeDB {
 	 * @param {Boolean} isActive
 	 */
 	updateUserActiveStatus(fqdn, isActive) {
-		return new Promise((resolve, reject) => {
-				this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lisActive: isActive}}).then(resolve).catch(reject)
-			}
-		);
+		return this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lisActive: isActive}});
 	}
 
 	/**
 	 * @param {String} fqdn
 	 */
 	markUserAsDeleted(fqdn) {
-		return new Promise((resolve, reject) => {
-				this._updateDoc(Collections.user.name, {fqdn: fqdn}, {
+		return this._updateDoc(Collections.user.name, {fqdn: fqdn}, {
 					$set: {
 						isDeleted: true,
 						isActive:  false
 					}
-				}).then(resolve).catch(reject)
-			}
-		);
+				});
 
 	}
 
@@ -738,16 +710,12 @@ class NeDB {
 	 * @param {Object} user
 	 */
 	updateUser(user) {
-		return new Promise((resolve, reject) => {
-				this._updateDoc(Collections.user.name, {_id: user._id}, {
+		return this._updateDoc(Collections.user.name, {_id: user._id}, {
 					$set: {
 						isAdmin:  user.isAdmin,
 						isActive: user.isActive
 					}
-				}).then(resolve).catch(reject);
-			}
-		);
-
+				});
 	}
 
 	/**
@@ -755,15 +723,12 @@ class NeDB {
 	 * @param {Object} user
 	 */
 	updateUserProfile(user) {
-		return new Promise((resolve, reject) => {
-				this._updateDoc(Collections.user.name, {_id: user._id}, {
+		return this._updateDoc(Collections.user.name, {_id: user._id}, {
 					$set: {
 						name:     user.name,
 						nickname: user.nickname
 					}
-				}).then(resolve).catch(reject);
-			}
-		);
+				});
 	}
 
 	getUsers() {
