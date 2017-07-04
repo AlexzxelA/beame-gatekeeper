@@ -13,7 +13,7 @@ const logger      = new BeameLogger(module_name);
 const CommonUtils = beameSDK.CommonUtils;
 
 const inc_id_field_name = '__autoid__';
-const Collections = {
+const Collections       = {
 	user:          {
 		name:    'user',
 		indices: [{fieldName: 'id', unique: true}, {fieldName: 'fqdn', unique: true}, {
@@ -75,7 +75,7 @@ class NeDB {
 		return new Promise((resolve, reject) => {
 				this._updateDoc(
 					collection,
-					{_id:inc_id_field_name},
+					{_id: inc_id_field_name},
 					{$inc: {value: 1}},
 					{upsert: true, returnUpdatedDocs: true}
 				).then(doc => {
@@ -272,15 +272,15 @@ class NeDB {
 
 	_findDocs(collection, query = {}, sort = {}) {
 		return new Promise((resolve, reject) => {
-				query._id = {$ne:inc_id_field_name};
+				query._id = {$ne: inc_id_field_name};
 				this._db[collection].find(query).sort(sort).exec((err, docs) => {
-						if (err) {
-							reject(err)
-						}
-						else {
-							resolve(docs)
-						}
-					})
+					if (err) {
+						reject(err)
+					}
+					else {
+						resolve(docs)
+					}
+				})
 			}
 		);
 	}
@@ -309,6 +309,9 @@ class NeDB {
 	_updateDoc(collection, query, update, options = {}) {
 		return new Promise((resolve, reject) => {
 				options['returnUpdatedDocs'] = true;
+				if (CommonUtils.isObjectEmpty(query)) {
+					query = {_id: {$ne: inc_id_field_name}}
+				}
 				try {
 					this._db[collection].update(query, update, options, (err, numReplaced, returnUpdatedDocs) => {
 						if (err) {
@@ -432,10 +435,7 @@ class NeDB {
 	}
 
 	deleteRegistration(id) {
-		return new Promise((resolve, reject) => {
-				this._removeDoc(Collections.registrations.name, {id: id}).then(resolve).catch(reject)
-			}
-		);
+		return this._removeDoc(Collections.registrations.name, {id: id});
 
 	}
 
@@ -576,11 +576,7 @@ class NeDB {
 
 	//region session
 	deleteSessionById(id) {
-		return new Promise((resolve, reject) => {
-				this._removeDoc(Collections.sessions.name, {id: id}).then(resolve).catch(reject)
-			}
-		);
-
+		return this._removeDoc(Collections.sessions.name, {id: id});
 	}
 
 	/**
@@ -622,37 +618,30 @@ class NeDB {
 	 */
 	saveSession(data) {
 		return new Promise((resolve, reject) => {
+				this._findDoc(Collections.sessions.name, {
+					email:          data.email,
+					name:           data.name,
+					externalUserId: data.user_id
 
-				try {
-					this._findDoc(Collections.sessions.name, {
-						email:          data.email,
+				}).then(record => {
+					if (record) {
+						this.deleteSessionById(record._id)
+					}
+
+					this._insertDoc(Collections.sessions.name, {
 						name:           data.name,
-						externalUserId: data.user_id
+						email:          data.email,
+						externalUserId: data.user_id,
+						pin:            data.pin
+					}).then(session => {
 
-					}).then(record => {
-						if (record) {
-							this.deleteSessionById(record._id)
-						}
+						this._setSessionTtl([session.id]);
 
-						this._insertDoc(Collections.sessions.name, {
-							name:           data.name,
-							email:          data.email,
-							externalUserId: data.user_id,
-							pin:            data.pin
-						}).then(session => {
-
-							this._setSessionTtl([session.id]);
-
-							resolve(session.id);
-
-						}).catch(onError.bind(this, reject));
+						resolve(session.id);
 
 					}).catch(onError.bind(this, reject));
 
-				}
-				catch (error) {
-					onError(reject, error)
-				}
+				}).catch(onError.bind(this, reject));
 			}
 		);
 	}
@@ -778,14 +767,14 @@ class NeDB {
 	}
 
 	getUsers() {
-		return this._findDocs(Collections.user.name, {}, {id:-1})
+		return this._findDocs(Collections.user.name, {}, {id: -1})
 	}
 
 	//endregion
 
 	//region services
 	getServices() {
-		return this._findDocs(Collections.services.name, {}, {id:1})
+		return this._findDocs(Collections.services.name, {}, {id: 1})
 	}
 
 	getActiveServices() {
@@ -845,7 +834,10 @@ class NeDB {
 					this._updateDoc(Collections.services.name, {_id: service._id}, update).then(resolve).catch(reject);
 				};
 
-				let query = service.url && service.url.length ? {_id: {$ne: service._id}, $and: [{$or: [{code: service.code}, {url: service.url}]}]}: {_id: {$ne: service._id},code: service.code};
+				let query = service.url && service.url.length ? {
+					_id:  {$ne: service._id},
+					$and: [{$or: [{code: service.code}, {url: service.url}]}]
+				} : {_id: {$ne: service._id}, code: service.code};
 
 				this._validateService(query).then(_update.bind($this)).catch(reject);
 
@@ -885,190 +877,88 @@ class NeDB {
 
 	//region gkLogins
 	getGkLogins() {
-		return new Promise((resolve) => {
-				let model = this._models.gklogins;
-
-				//noinspection JSUnresolvedFunction
-				try {
-					model.findAll({order: 'id DESC'}).then(models => {
-							let records = models.map(item => {
-								return item.dataValues
-							});
-							resolve(records);
-						}
-					).catch(
-						error => {
-							logger.error(error);
-							resolve([]);
-						}
-					);
-				} catch (e) {
-					logger.error(e);
-					resolve([]);
-				}
-			}
-		);
+		return this._findDocs(Collections.gk_logins.name, {}, {id: -1})
 	}
 
 	getActiveGkLogins() {
-		return new Promise((resolve) => {
-				let model = this._models.gklogins;
-
-				//noinspection JSUnresolvedFunction
-				model.findAll({where: {isActive: true}}).then(models => {
-						let records = models.map(item => {
-							return item.dataValues
-						});
-						resolve(records);
-					}
-				).catch(
-					error => {
-						logger.error(error);
-						resolve([]);
-					}
-				);
-			}
-		);
+		return this._findDocs(Collections.gk_logins.name, {isActive: true});
 	}
 
 	getOnlineGkLogins() {
-		return new Promise((resolve) => {
-				let model = this._models.gklogins;
-
-				//noinspection JSUnresolvedFunction
-				model.findAll({where: {isActive: true, isOnline: true}}).then(models => {
-						let records = models.map(item => {
-							return item.dataValues
-						});
-						resolve(records);
-					}
-				).catch(
-					error => {
-						logger.error(error);
-						resolve([]);
-					}
-				);
-			}
-		);
+		return this._findDocs(Collections.gk_logins.name, {isActive: true, isOnline: true});
 	}
 
 	setAllGkLoginOffline() {
-		try {
-			this._sequelize.query('UPDATE GkLogins SET isOnline = 0');
-			return Promise.resolve();
-		} catch (e) {
-			return Promise.reject(e);
-		}
+		return this._updateDoc(Collections.gk_logins.name, {}, {isOnline: false}, {multi: true});
 	}
 
 	findLogin(fqdn) {
-		return new Promise((resolve) => {
-				let model = this._models.gklogins;
-
-				//noinspection JSUnresolvedFunction
-				model.findOne({where: {fqdn: fqdn}}).then(item => {
-						item ? resolve(item.dataValues) : resolve(null);
-					}
-				).catch(
-					error => {
-						logger.error(error);
-						resolve([]);
-					}
-				);
-			}
-		);
+		return this._findDoc(Collections.gk_logins.name, {fqdn: fqdn});
 	}
 
 	saveGkLogin(login) {
-		return new Promise((resolve, reject) => {
+		login.isActive = true;
+		login.isOnline = false;
 
-				let model = this._models.gklogins;
+		return this._insertDoc(Collections.gk_logins.name, login);
 
-				try {
-
-					delete login.id;
-
-					//noinspection JSUnresolvedFunction
-					model.create(login).then(entity => {
-						resolve(entity.dataValues);
-					}).catch(onError.bind(this, reject));
-
-				}
-				catch (error) {
-					onError(reject, error)
-				}
-			}
-		);
 	}
 
 	updateGkLogin(login) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.gklogins;
-					//noinspection JSUnresolvedFunction
-					model.findById(login.id).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`Gk Login record not found`));
-							return;
+				let query = {_id: login._id};
+				this._findDoc(Collections.gk_logins.name, query).then(doc => {
+					if (!doc) {
+						reject(logger.formatErrorMessage(`Gk Login record not found`));
+						return;
+					}
+					let update = {
+						$set: {
+							name:      login.name,
+							serviceId: login.serviceId,
+							isActive:  login.isActive,
+							isOnLine:  login.isOnline
 						}
-						record.update({
-							name:     login.name,
-							isActive: login.isActive,
-							isOnLine: login.isOnline
-						}).then(entity => {
-							resolve(entity.dataValues);
-						}).catch(onError.bind(this, reject));
+					};
 
-					}).catch(onError.bind(this, reject));
+					this._updateDoc(Collections.gk_logins.name, query, update)
+						.then(resolve)
+						.catch(reject)
 
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				}).catch(onError.bind(this, reject));
 			}
 		);
 	}
 
 	updateGkLoginState(fqdn, serviceId, isOnline) {
 		return new Promise((resolve, reject) => {
-				try {
-					let model = this._models.gklogins;
-					//noinspection JSUnresolvedFunction
-					model.findOne({
-						where: {
-							fqdn: fqdn
-						}
-					}).then(record => {
-						if (!record) {
-							reject(logger.formatErrorMessage(`Gk Login record not found`));
-							return;
-						}
-						record.update({
+
+				this._findDoc(Collections.gk_logins.name, {
+					fqdn: fqdn
+				}).then(doc => {
+					if (!doc) {
+						reject(logger.formatErrorMessage(`Gk Login record not found`));
+						return;
+					}
+					let update = {
+						$set: {
 							serviceId: serviceId,
 							isOnline:  isOnline
-						}).then(entity => {
-							resolve(entity.dataValues);
-						}).catch(onError.bind(this, reject));
+						}
+					};
 
-					}).catch(onError.bind(this, reject));
+					this._updateDoc(Collections.gk_logins.name, {_id: doc._id}, update)
+						.then(resolve)
+						.catch(reject)
 
-				}
-				catch (error) {
-					logger.error(BeameLogger.formatError(error));
-					onError(reject, error);
-				}
+				}).catch(onError.bind(this, reject));
 			}
 		);
+
 	}
 
 	deleteGkLogin(id) {
-		return new Promise((resolve, reject) => {
-				logger.debug(`try delete gk login ${id}`);
-				let model = this._models.gklogins;
-				model.destroy({where: {id: id}}).then(resolve).catch(reject);
-			}
-		);
+		return this._removeDoc(Collections.gk_logins.name, {id: id});
 	}
 
 	//endregion

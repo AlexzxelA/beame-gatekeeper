@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/beameio/beame-gatekeeper#readme",
   "dependencies": {
-    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git",
+    "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git#dev",
     "async": "^2.1.2",
     "beame-cli": "0.0.3",
     "beame-sdk": "https://github.com/beameio/beame-sdk.git#dev",

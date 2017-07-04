@@ -8,7 +8,7 @@ function exportToExcel() {
 
 function loadGkLogins() {
 	$("#login-grid").kendoGrid({
-		//toolbar:    ["create"],
+		toolbar:    ["create"],
 		dataSource: {
 			transport: {
 				read:    {
@@ -37,7 +37,7 @@ function loadGkLogins() {
 						id:       {type: "number", "editable": false},
 						fqdn:     {type: "string",unique:true},
 						name:     {type: "string"},
-						serviceId:     {type: "string"},
+						serviceId:{type: "string"},
 						isActive: {type: "boolean", defaultValue: true}
 					}
 				}

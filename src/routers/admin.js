@@ -559,53 +559,6 @@ class AdminRouter {
 		});
 		//endregion
 
-		//region hooks
-		this._router.get('/hooks/list', (req, res) => {
-			hookServices.getHooks().then(
-				array => {
-					res.status(200).json(array);
-				}
-			).catch(error => {
-				logger.error(error);
-				res.json([]);
-			});
-		});
-
-		this._router.post('/hook/create', (req, res) => {
-			let hook = req.body;
-			hookServices.saveHook(hook).then(
-				array => {
-					res.status(200).json(array);
-				}
-			).catch(error => {
-				res.status(400).send(error);
-			});
-		});
-
-		this._router.post('/hook/update', (req, res) => {
-			let hook = req.body;
-			hookServices.updateHook(hook).then(
-				array => {
-					res.status(200).json(array);
-				}
-			).catch(error => {
-				res.status(400).send(error);
-			});
-		});
-
-		this._router.post('/hook/destroy', (req, res) => {
-			let data = req.body,
-			    id   = parseInt(data.id);
-
-			hookServices.deleteHook(id).then(() => {
-				res.status(200).json({});
-			}).catch(error => {
-				res.status(400).send(error);
-			});
-
-		});
-		//endregion
-
 		//region gk logins
 		this._router.get('/login/list', (req, res) => {
 			centralLoginServices.getGkLogins().then(

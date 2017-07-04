@@ -217,7 +217,7 @@ class CentralLoginServices {
 					logger.error(`Notify to ${login.fqdn} failed`, error);
 				});
 
-				this._dataService.deleteGkLogin(login.id).then(resolve).catch(reject);
+				this._dataService.deleteGkLogin(parseInt(login.id)).then(resolve).catch(reject);
 			}
 		);
 
