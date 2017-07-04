@@ -65,8 +65,7 @@ class AdminServices {
 								callback();
 							},
 							callback => {
-								data.DbConfig = bootstrapper.sqliteConfig;
-								delete  data.DbConfig.password;
+								data.DbConfig = bootstrapper.nedb_storage_root;
 								callback();
 
 							},

@@ -5,7 +5,7 @@
 "use strict";
 
 const beameSDK    = require('beame-sdk');
-const module_name = "SqliteServices";
+const module_name = "CouchbaseServices";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 

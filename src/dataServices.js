@@ -37,9 +37,6 @@ class DataServices {
 		}
 
 		switch (this._dbProvider) {
-			case DbProviders.Sqlite:
-				this._dbService = new (require('./db/sqlite'))(this._options);
-				break;
 
 			case DbProviders.Couchbase:
 				this._dbService = new (require('./db/couchbase'))(this._options);
