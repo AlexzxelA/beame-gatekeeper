@@ -769,7 +769,8 @@ class Bootstrapper {
 
 				switch (provider) {
 					case DbProviders.NeDB:
-						resolve();
+						const nedb = new (require('./db/nedb'))(Bootstrapper.neDbRootPath, {});
+						nedb.start().then(resolve).catch(reject);
 						return;
 					//TODO implement Couchbase connector
 					// case DbProviders.Couchbase:
