@@ -15,7 +15,7 @@ const CommonUtils = beameSDK.CommonUtils;
 const inc_id_field_name = '__autoid__';
 const Collections       = {
 	user:          {
-		name:    'user',
+		name:    'users',
 		indices: [{fieldName: 'id', unique: true}, {fieldName: 'fqdn', unique: true}, {
 			fieldName: 'isAdmin',
 			unique:    false
