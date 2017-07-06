@@ -121,7 +121,7 @@ function startGatewaySession(authToken, userData, relaySocket, uid, isDirect) {
 		gw_socket.on('data', function (data) {
 			data = JSON.parse(data);
 			console.log('GW data type', data);
-			var type = data.type, payload = data.payload, user = payload.user;
+			var type = data.type, payload = data.payload, user = payload.users;
 
 			if (type === 'authenticated') {
 				if (payload.success) {

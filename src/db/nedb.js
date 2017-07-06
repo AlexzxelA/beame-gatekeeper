@@ -14,7 +14,7 @@ const CommonUtils = beameSDK.CommonUtils;
 
 const inc_id_field_name = '__autoid__';
 const Collections       = {
-	user:          {
+	users:         {
 		name:    'users',
 		indices: [{fieldName: 'id', unique: true}, {fieldName: 'fqdn', unique: true}, {
 			fieldName: 'isAdmin',
@@ -129,7 +129,7 @@ class NeDB {
 
 				async.parallel([
 					cb => {
-						this._loadCollection(Collections.user.name, Collections.user.indices)
+						this._loadCollection(Collections.users.name, Collections.users.indices)
 							.then(() => {
 								cb(null);
 							})
@@ -410,7 +410,7 @@ class NeDB {
 
 	/**
 	 * @param {RegistrationData} data
-	 * @returns {Promise.<Registration|null>}
+	 * @returns {Promise.<Object|null>}
 	 */
 	isRegistrationExists(data) {
 		return new Promise((resolve, reject) => {
@@ -441,7 +441,7 @@ class NeDB {
 
 	/**
 	 * @param {String} fqdn
-	 * @returns {Promise.<Registration>}
+	 * @returns {Promise.<Object>}
 	 */
 	markRegistrationAsCompleted(fqdn) {
 		return this._updateDoc(Collections.registrations.name, {fqdn: fqdn}, {
@@ -653,7 +653,7 @@ class NeDB {
 					user.isActive       = true;
 					user.lastActiveDate = new Date();
 					user.nickname       = null;
-					this._insertDoc(Collections.user.name, user).then(resolve).catch(onError.bind(this, reject));
+					this._insertDoc(Collections.users.name, user).then(resolve).catch(onError.bind(this, reject));
 
 				}).catch(reject);
 			}
@@ -665,7 +665,7 @@ class NeDB {
 	 * @returns {Promise.<User>}
 	 */
 	findUser(fqdn) {
-		return this._findDoc(Collections.user.name, {fqdn: fqdn});
+		return this._findDoc(Collections.users.name, {fqdn: fqdn});
 	}
 
 	/**
@@ -673,7 +673,7 @@ class NeDB {
 	 * @param {Object} predicate
 	 */
 	searchUsers(predicate) {
-		return this._findDocs(Collections.user.name, predicate);
+		return this._findDocs(Collections.users.name, predicate);
 	}
 
 	/**
@@ -681,7 +681,7 @@ class NeDB {
 	 * @param fqdn
 	 */
 	updateLoginInfo(fqdn) {
-		return this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lastActiveDate: new Date()}});
+		return this._updateDoc(Collections.users.name, {fqdn: fqdn}, {$set: {lastActiveDate: new Date()}});
 	}
 
 	/**
@@ -689,14 +689,14 @@ class NeDB {
 	 * @param {Boolean} isActive
 	 */
 	updateUserActiveStatus(fqdn, isActive) {
-		return this._updateDoc(Collections.user.name, {fqdn: fqdn}, {$set: {lisActive: isActive}});
+		return this._updateDoc(Collections.users.name, {fqdn: fqdn}, {$set: {lisActive: isActive}});
 	}
 
 	/**
 	 * @param {String} fqdn
 	 */
 	markUserAsDeleted(fqdn) {
-		return this._updateDoc(Collections.user.name, {fqdn: fqdn}, {
+		return this._updateDoc(Collections.users.name, {fqdn: fqdn}, {
 					$set: {
 						isDeleted: true,
 						isActive:  false
@@ -710,7 +710,7 @@ class NeDB {
 	 * @param {Object} user
 	 */
 	updateUser(user) {
-		return this._updateDoc(Collections.user.name, {_id: user._id}, {
+		return this._updateDoc(Collections.users.name, {_id: user._id}, {
 					$set: {
 						isAdmin:  user.isAdmin,
 						isActive: user.isActive
@@ -723,7 +723,7 @@ class NeDB {
 	 * @param {Object} user
 	 */
 	updateUserProfile(user) {
-		return this._updateDoc(Collections.user.name, {_id: user._id}, {
+		return this._updateDoc(Collections.users.name, {_id: user._id}, {
 					$set: {
 						name:     user.name,
 						nickname: user.nickname
@@ -732,7 +732,7 @@ class NeDB {
 	}
 
 	getUsers() {
-		return this._findDocs(Collections.user.name, {}, {id: -1})
+		return this._findDocs(Collections.users.name, {}, {id: -1})
 	}
 
 	//endregion
