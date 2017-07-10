@@ -25,7 +25,6 @@ const BeameAuthServices = require('../authServices');
 const beameAuthServices = BeameAuthServices.getInstance();
 
 const centralLoginServices = require('../centralLoginServices').getInstance();
-const hookServices         = require('../hooksServices').getInstance();
 
 const RESPONSE_SUCCESS_CODE = 1;
 const RESPONSE_ERROR_CODE   = 0;
