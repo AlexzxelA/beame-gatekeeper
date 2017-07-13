@@ -17,6 +17,7 @@ const utils             = require('../utils');
 const beameSDK    = require('beame-sdk');
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger('CLI-creds');
+const CommonUtils  = beameSDK.CommonUtils;
 
 function getHelpMessage(fileName) {
 	return fs.readFileSync(path.join(__dirname, '..', '..', 'help-messages', fileName), {'encoding': 'utf-8'});
@@ -39,11 +40,20 @@ function getCreds(regToken, fqdn, callback) {
 		return;
 	}
 
-	let current_fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
+	let zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
 
-	if (current_fqdn) {
-		callback(`Zero level credential already registered on ${current_fqdn}`);
-		return;
+	if (zeroLevelFqdn) {
+
+		let servers = Bootstrapper.getServersToCreate();
+
+		if (CommonUtils.isObjectEmpty(servers)) {
+			logger.info(`All servers credentials exists`);
+			callback(null, `All servers credentials exists`);
+			return;
+		}
+
+		// callback(`Zero level credential already registered on ${current_fqdn}`);
+		// return;
 	}
 
 	bootstrapper.initAll()
@@ -60,7 +70,7 @@ function getCreds(regToken, fqdn, callback) {
 
 		})
 		.then(() => {
-			credentialManager.createInitialCredentials(regToken, fqdn).then(metadata => {
+			credentialManager.createInitialCredentials(zeroLevelFqdn ? null : regToken, zeroLevelFqdn || fqdn).then(metadata => {
 				console.log('');
 				console.log(`Certificate created! Certificate FQDN is ${metadata.fqdn}`);
 				console.log('');
@@ -220,11 +230,20 @@ admin.toText = (url) => {
 		"--------------------------------------------------\n"
 };
 
+
+function getGwFqdn(callback) {
+	 let fqdn =  Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
+
+	 fqdn ? callback(null,fqdn) : callback(`Gateway FQDN not found`)
+}
+getGwFqdn.toText = (url) => url;
+
 module.exports = {
 	getCreds,
 	list,
 	listVpnCreds,
 	createServersCredentials,
 	webToken,
-	admin
+	admin,
+	getGwFqdn
 };

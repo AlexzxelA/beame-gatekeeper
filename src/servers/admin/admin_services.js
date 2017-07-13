@@ -9,7 +9,7 @@ const module_name  = "BeameAdminServices";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const CommonUtils  = beameSDK.CommonUtils;
-const Constants = require('../../../constants');
+const Constants    = require('../../../constants');
 const Bootstrapper = require('../../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 let dataService    = null;
@@ -42,7 +42,7 @@ class AdminServices {
 						bootstrapper.setAppConfig = old;
 
 						return bootstrapper.saveAppConfigFile();
-				});
+					});
 			}
 		);
 	}
@@ -50,12 +50,12 @@ class AdminServices {
 	getSettings() {
 		return new Promise((resolve, reject) => {
 				let data = {
-					"AppConfig": null,
-					"DbConfig":  null,
-					"Creds":     null,
-					"RegMethods":null,
-					"EnvModes"  :null,
-					"Version":   bootstrapper.version
+					"AppConfig":  null,
+					"DbConfig":   null,
+					"Creds":      null,
+					"RegMethods": null,
+					"EnvModes":   null,
+					"Version":    bootstrapper.version
 				};
 
 				try {
@@ -65,8 +65,10 @@ class AdminServices {
 								callback();
 							},
 							callback => {
-								data.DbConfig = bootstrapper.sqliteConfig;
-								delete  data.DbConfig.password;
+								data.DbConfig = {
+									provider: bootstrapper.dbProvider,
+									storage:  Bootstrapper.neDbRootPath
+								};
 								callback();
 
 							},
@@ -74,42 +76,42 @@ class AdminServices {
 								data.Creds = bootstrapper.creds;
 								callback();
 							},
-							callback =>{
+							callback => {
 
 								const options = Constants.RegistrationMethod;
 
 								let ds = [];
 
-								Object.keys(options).forEach(key=>{
-									ds.push({name:options[key]})
+								Object.keys(options).forEach(key => {
+									ds.push({name: options[key]})
 								});
 
 								data.RegMethods = ds;
 
 								callback();
 							},
-							callback =>{
+							callback => {
 
 								const options = Constants.EnvMode;
 
 								let ds = [];
 
-								Object.keys(options).forEach(key=>{
-									ds.push({name:options[key]})
+								Object.keys(options).forEach(key => {
+									ds.push({name: options[key]})
 								});
 
 								data.EnvModes = ds;
 
 								callback();
 							},
-							callback =>{
+							callback => {
 
 								const options = Constants.HtmlEnvMode;
 
 								let ds = [];
 
-								Object.keys(options).forEach(key=>{
-									ds.push({name:options[key]})
+								Object.keys(options).forEach(key => {
+									ds.push({name: options[key]})
 								});
 
 								data.HtmlEnvModes = ds;

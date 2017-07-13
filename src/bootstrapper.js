@@ -8,8 +8,8 @@ const path = require('path');
 
 const packageJson       = require('../package.json');
 const defaults          = require('../defaults');
-const SqliteProps       = defaults.ConfigProps.Sqlite;
 const SettingsProps     = defaults.ConfigProps.Settings;
+const NeDBProps         = defaults.ConfigProps.NeDB;
 const utils             = require('./utils');
 const beameSDK          = require('beame-sdk');
 const module_name       = "Bootstrapper";
@@ -26,8 +26,6 @@ const AppConfigFileName           = Constants.AppConfigFileName;
 const CredsFileName               = Constants.CredsFileName;
 const CustomerAuthServersFileName = Constants.CustomerAuthServersFileName;
 
-
-const SqliteDbConfigFileName = Constants.SqliteDbConfigFileName;
 const BeameRootPath          = Constants.BeameRootPath;
 
 const CredsFolderPath             = Constants.CredsFolderPath;
@@ -37,7 +35,7 @@ const CustomerAuthServersJsonPath = Constants.CustomerAuthServersJsonPath;
 
 const ConfigFolderPath     = Constants.ConfigFolderPath;
 const AppConfigJsonPath    = Constants.AppConfigJsonPath;
-const SqliteConfigJsonPath = Constants.SqliteConfigJsonPath;
+
 
 const _onConfigError = error => {
 	logger.error(error);
@@ -112,10 +110,8 @@ class Bootstrapper {
 				}
 
 				switch (provider) {
-					case DbProviders.Sqlite:
-						this._ensureSqliteDir()
-							.then(this._migrateSqliteSchema.bind(this))
-							.then(this._runSqliteSeeders.bind(this))
+					case DbProviders.NeDB:
+						this._ensureNedbDir()
 							.then(() => {
 								logger.info(`Beame-gatekeeper ${provider} DB updated successfully`);
 								resolve();
@@ -371,19 +367,6 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.ServiceName] ? this._config[SettingsProps.ServiceName] : null;
 	}
 
-	get sqliteConfig() {
-		let config = DirectoryServices.readJSON(SqliteConfigJsonPath);
-
-		if (CommonUtils.isObjectEmpty(config)) {
-			//noinspection JSConstructorReturnsPrimitive
-			return null;
-		}
-
-		let env = this._config[SqliteProps.EnvName];
-
-		return config[env];
-	}
-
 	get appConfig() {
 		return this._config;
 	}
@@ -410,6 +393,10 @@ class Bootstrapper {
 
 	get publicRegistration() {
 		return this._config[SettingsProps.PublicRegistration];
+	}
+
+	static get neDbRootPath() {
+		return defaults.nedb_storage_root;
 	}
 
 	//noinspection JSUnusedGlobalSymbols
@@ -781,8 +768,9 @@ class Bootstrapper {
 				}
 
 				switch (provider) {
-					case DbProviders.Sqlite:
-						this._ensureSqliteConfigJson().then(resolve).catch(_onConfigError);
+					case DbProviders.NeDB:
+						const nedb = new (require('./db/nedb'))(Bootstrapper.neDbRootPath, {});
+						nedb.start().then(resolve).catch(reject);
 						return;
 					//TODO implement Couchbase connector
 					// case DbProviders.Couchbase:
@@ -794,109 +782,10 @@ class Bootstrapper {
 		);
 	}
 
-	_ensureSqliteConfigJson() {
+	//region NeDB
+	_ensureNedbDir() {
 
-		return new Promise((resolve, reject) => {
-
-				logger.debug(`validating sqlite ${SqliteDbConfigFileName}...`);
-
-				let dbConfig = DirectoryServices.readJSON(SqliteConfigJsonPath);
-
-				if (CommonUtils.isObjectEmpty(dbConfig)) {
-					this._createSqliteConfigJson().then(resolve).catch(_onConfigError);
-					return;
-				}
-
-				logger.debug(`sqlite ${SqliteDbConfigFileName} found...`);
-
-				let dbConfigTemplate = defaults.SqliteConfigTemplate,
-				    env              = this._config[SqliteProps.EnvName],
-				    dbConfigKeys     = Object.keys(dbConfigTemplate[env]),
-				    updateFile       = false;
-
-				dbConfigKeys.forEach(key => {
-					if (!dbConfig[env].hasOwnProperty(key)) {
-						updateFile         = true;
-						dbConfig[env][key] = dbConfigTemplate[env][key];
-					}
-				});
-
-
-				if (updateFile) {
-					dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig, true)).then(() => {
-						logger.debug(`${SqliteDbConfigFileName} updated successfully...`);
-						resolve();
-					}).catch(reject);
-				}
-				else {
-					resolve();
-				}
-
-			}
-		);
-
-	}
-
-	_createSqliteConfigJson() {
-
-		return new Promise((resolve, reject) => {
-				let dbConfig = defaults.SqliteConfigTemplate,
-				    env      = this._config[SqliteProps.EnvName];
-
-				dbConfig[env]["username"] = this._config[SqliteProps.AdminUserName];
-				dbConfig[env]["password"] = CommonUtils.randomPassword(12);
-				dbConfig[env]["storage"]  = path.join(process.env.BEAME_SERVERS_AUTH_DATA_DIR || this._config[SqliteProps.StorageRoot], this._config[SqliteProps.DbName]);
-
-				dirServices.saveFileAsync(SqliteConfigJsonPath, CommonUtils.stringify(dbConfig, true)).then(() => {
-					logger.debug(`${SqliteDbConfigFileName} saved in ${path.dirname(SqliteConfigJsonPath)}...`);
-					resolve();
-				}).catch(reject);
-
-			}
-		);
-	}
-
-	//endregion
-
-	//region init sqlite db
-
-
-	_migrateSqliteSchema() {
-
-		logger.debug(`migrating sqlite schema...`);
-
-		return new Promise((resolve, reject) => {
-				//TODO implement https://github.com/sequelize/umzug
-				let args = ["db:migrate", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
-
-
-				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args, path.dirname(__dirname)).then(() => {
-					logger.debug(`sqlite migration completed successfully...`);
-					resolve();
-				}).catch(reject);
-
-			}
-		);
-	}
-
-	_runSqliteSeeders() {
-
-		logger.debug(`running sqlite seeders...`);
-
-		return new Promise((resolve, reject) => {
-				let args = ["db:seed:all", "--env", this._config[SqliteProps.EnvName], "--config", SqliteConfigJsonPath];
-
-				CommonUtils.runSequilizeCmd(require.resolve('sequelize'), args, path.dirname(__dirname)).then(() => {
-					logger.debug(`sqlite seeders applied successfully...`);
-					resolve();
-				}).catch(reject);
-			}
-		);
-	}
-
-	_ensureSqliteDir() {
-
-		return this._ensureConfigDir(SqliteProps.StorageRoot);
+		return this._ensureConfigDir(NeDBProps.StorageRoot);
 	}
 
 	//endregion

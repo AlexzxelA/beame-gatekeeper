@@ -67,7 +67,7 @@ class samlSession {
 	constructor(config) {
 		this._ssoPair      = config.ssoPair;
 		this._cred         = config.cred;
-		this._user         = config.user;
+		this._user         = config.users;
 		this._request      = config.SAMLRequest;
 		this._persistentId = config.persistentId;
 		this._path         = config.path;

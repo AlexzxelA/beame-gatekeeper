@@ -14,19 +14,19 @@ const BeameStore  = new beameSDK.BeameStore();
 const AuthToken   = beameSDK.AuthToken;
 
 function produceSAMLresponse(userIdData , payload, token, cb) {
-	let ssoManagerX = ssoManager.samlManager.getInstance();
-	let ssoConfig = ssoManagerX.getConfig(payload && payload.app_code);
-	ssoConfig.user = {
+	let ssoManagerX        = ssoManager.samlManager.getInstance();
+	let ssoConfig          = ssoManagerX.getConfig(payload && payload.app_code);
+	ssoConfig.users        = {
 		user:           userIdData.email || userIdData.name,
 		emails:         userIdData.email || userIdData.name,//userIdData.email,
 		name:           {givenName:undefined, familyName:undefined},
 		displayName:    userIdData.nickname,
 		id:             userIdData.email || userIdData.name,
 	};
-	ssoConfig.persistentId  = userIdData.persistentId;
-	ssoConfig.SAMLRequest   = payload && payload.SAMLRequest;
-	ssoConfig.RelayState    = payload && payload.RelayState;
-	let ssoSession          = new ssoManager.samlSession(ssoConfig);
+	ssoConfig.persistentId = userIdData.persistentId;
+	ssoConfig.SAMLRequest  = payload && payload.SAMLRequest;
+	ssoConfig.RelayState   = payload && payload.RelayState;
+	let ssoSession         = new ssoManager.samlSession(ssoConfig);
 	ssoSession.getSamlHtml((err, html)=>{
 		if(html)cb({
 			type: 'saml',

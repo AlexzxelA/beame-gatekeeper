@@ -25,7 +25,6 @@ const BeameAuthServices = require('../authServices');
 const beameAuthServices = BeameAuthServices.getInstance();
 
 const centralLoginServices = require('../centralLoginServices').getInstance();
-const hookServices         = require('../hooksServices').getInstance();
 
 const RESPONSE_SUCCESS_CODE = 1;
 const RESPONSE_ERROR_CODE   = 0;
@@ -306,7 +305,7 @@ class AdminRouter {
 			let data = req.body,
 			    fqdn = req.params.fqdn || Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 
-			logger.info(`Save invitation  with ${CommonUtils.data}`);
+			logger.info(`Save invitation  with ${CommonUtils.stringify(data)}`);
 
 			const _resolve = (resp) => {
 				return res.json({
@@ -559,53 +558,6 @@ class AdminRouter {
 		});
 		//endregion
 
-		//region hooks
-		this._router.get('/hooks/list', (req, res) => {
-			hookServices.getHooks().then(
-				array => {
-					res.status(200).json(array);
-				}
-			).catch(error => {
-				logger.error(error);
-				res.json([]);
-			});
-		});
-
-		this._router.post('/hook/create', (req, res) => {
-			let hook = req.body;
-			hookServices.saveHook(hook).then(
-				array => {
-					res.status(200).json(array);
-				}
-			).catch(error => {
-				res.status(400).send(error);
-			});
-		});
-
-		this._router.post('/hook/update', (req, res) => {
-			let hook = req.body;
-			hookServices.updateHook(hook).then(
-				array => {
-					res.status(200).json(array);
-				}
-			).catch(error => {
-				res.status(400).send(error);
-			});
-		});
-
-		this._router.post('/hook/destroy', (req, res) => {
-			let data = req.body,
-			    id   = parseInt(data.id);
-
-			hookServices.deleteHook(id).then(() => {
-				res.status(200).json({});
-			}).catch(error => {
-				res.status(400).send(error);
-			});
-
-		});
-		//endregion
-
 		//region gk logins
 		this._router.get('/login/list', (req, res) => {
 			centralLoginServices.getGkLogins().then(
@@ -675,7 +627,7 @@ class AdminRouter {
 
 			let data = req.body;
 
-			logger.info(`Save invitation  with ${CommonUtils.data}`);
+			logger.info(`Save invitation  with ${CommonUtils.stringify(data)}`);
 
 			function resolve() {
 				return res.json({

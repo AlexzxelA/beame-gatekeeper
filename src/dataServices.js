@@ -37,12 +37,13 @@ class DataServices {
 		}
 
 		switch (this._dbProvider) {
-			case DbProviders.Sqlite:
-				this._dbService = new (require('./db/sqlite'))(this._options);
-				break;
 
 			case DbProviders.Couchbase:
 				this._dbService = new (require('./db/couchbase'))(this._options);
+				break;
+
+			case DbProviders.NeDB:
+				this._dbService = new (require('./db/nedb'))(Bootstrapper.neDbRootPath, this._options);
 				break;
 
 			default:
@@ -233,8 +234,8 @@ class DataServices {
 		return this._dbService.updateService(service);
 	}
 
-	updateServiceUrl(id,url) {
-		return this._dbService.updateServiceUrl(id,url);
+	updateServiceUrl(id, url) {
+		return this._dbService.updateServiceUrl(id, url);
 	}
 
 	deleteService(id) {
@@ -298,6 +299,7 @@ class DataServices {
 	deleteHook(id) {
 		return this._dbService.deleteHook(id);
 	}
+
 	//endregion
 
 	/**

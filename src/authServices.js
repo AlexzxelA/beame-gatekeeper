@@ -150,6 +150,7 @@ class BeameAuthServices {
 							data.fqdn = payload.fqdn;
 
 							dataService.saveRegistration(data).then(() => {
+								logger.info(`Registration ${payload.fqdn} saved`);
 								resolve(payload);
 							}).catch(reject);
 						}
@@ -655,7 +656,7 @@ class BeameAuthServices {
 		);
 	}
 
-	createUser(data){
+	createUser(data) {
 		let User = {
 			name:           data.name,
 			email:          data.email,
@@ -665,15 +666,16 @@ class BeameAuthServices {
 		};
 
 		return new Promise((resolve, reject) => {
-			dataService.saveUser(User).then(() => {
+				dataService.saveUser(User).then(() => {
 
-				logger.info(`User created with ${data.fqdn}`);
-				resolve();
-			}).catch(reject);
+					logger.info(`User created with ${data.fqdn}`);
+					resolve();
+				}).catch(reject);
 			}
 		);
 
 	}
+
 	//endregion
 
 	//region invitations
@@ -937,7 +939,7 @@ class BeameAuthServices {
 								.catch(reject);
 							return;
 						default:
-							if(method == Constants.RegistrationMethod.Email || skipRegistrationMethod){
+							if (method == Constants.RegistrationMethod.Email || skipRegistrationMethod) {
 								assertEmail()
 									.then(getRegToken)
 									.then(saveInvitation)
@@ -945,7 +947,7 @@ class BeameAuthServices {
 									.then(resolve)
 									.catch(reject);
 							}
-							else{
+							else {
 								reject(`${method} registration method not allowed offline registration`);
 							}
 							return;
@@ -1209,31 +1211,47 @@ class BeameAuthServices {
 
 	sendCustomerInvitationCompleteEvent(fqdn) {
 		return new Promise((resolve, reject) => {
-				const method = bootstrapper.registrationMethod;
+				try {
+					let sign         = this.signData(fqdn),
+					    provisionApi = new ProvisionApi(),
+					    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.CompleteInvitation.endpoint}/${fqdn}`;
 
-				switch (method) {
-					case Constants.RegistrationMethod.Email:
-						try {
-							let sign         = this.signData(fqdn),
-							    provisionApi = new ProvisionApi(),
-							    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.CompleteInvitation.endpoint}/${fqdn}`;
-
-							provisionApi.postRequest(`https://${url}`, {}, (error) => {
-								if (error) {
-									reject(error);
-								}
-								else {
-									resolve();
-								}
-							}, sign, 10);
-						} catch (e) {
-							reject(e);
+					provisionApi.postRequest(`https://${url}`, {}, (error) => {
+						if (error) {
+							reject(error);
 						}
-						return;
-					default:
-						resolve();
-						return;
+						else {
+							resolve();
+						}
+					}, sign, 10);
+				} catch (e) {
+					reject(e);
 				}
+				// const method = bootstrapper.registrationMethod;
+				//
+				// switch (method) {
+				// 	case Constants.RegistrationMethod.Email:
+				// 		try {
+				// 			let sign         = this.signData(fqdn),
+				// 			    provisionApi = new ProvisionApi(),
+				// 			    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.CompleteInvitation.endpoint}/${fqdn}`;
+				//
+				// 			provisionApi.postRequest(`https://${url}`, {}, (error) => {
+				// 				if (error) {
+				// 					reject(error);
+				// 				}
+				// 				else {
+				// 					resolve();
+				// 				}
+				// 			}, sign, 10);
+				// 		} catch (e) {
+				// 			reject(e);
+				// 		}
+				// 		return;
+				// 	default:
+				// 		resolve();
+				// 		return;
+				// }
 			}
 		);
 	}

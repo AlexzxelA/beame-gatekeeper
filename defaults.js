@@ -9,14 +9,12 @@ const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
-const db_provider = Constants.DbProviders.Sqlite;
+const db_provider = Constants.DbProviders.NeDB;
 
 const ServiceName              = "ServiceName";
 const AppId                    = "";
-const sqlite_db_name           = "beame_server.db";
-const sqlite_db_admin_username = "admin";
-const sqlite_env_name          = "production";
-const sqlite_db_storage_root   = path.join(home,process.env.BEAME_DATA_FOLDER || ".beame_data");
+
+const nedb_storage_root = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
@@ -48,18 +46,6 @@ const WhispererSendPinInterval      = 1000 * 60;
 const OcspCachePeriod               = 30; //in days
 const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
 
-const SqliteConfigTemplate = {
-	[sqlite_env_name]: {
-		"username":             "",
-		"password":             "",
-		"storage":              "",
-		"database":             "beame_server",
-		"host":                 "127.0.0.1",
-		"dialect":              "sqlite",
-		"autoMigrateOldSchema": true,
-		"seederStorage":        "sequelize"
-	}
-};
 
 
 const ConfigProps = {
@@ -91,12 +77,8 @@ const ConfigProps = {
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
 		AllowDirectSignin:             "AllowDirectSignin"
 	},
-	Sqlite:   {
-		ConfigTemplate: "SqliteConfigTemplate",
-		DbName:         "sqlite_db_name",
-		AdminUserName:  "sqlite_db_admin_username",
-		StorageRoot:    "sqlite_db_storage_root",
-		EnvName:        "sqlite_env_name"
+	NeDB:     {
+		StorageRoot: "nedb_storage_root"
 	},
 	BeameDir: {
 		BeameFolderRootPath: "beame_server_folder_path",
@@ -119,7 +101,7 @@ const CredsConfigTemplate = {
 		server:   true,
 		internal: true
 	},
-	[Servers.GatekeeperLoginManager]: {
+	[Servers.GatekeeperLoginManager]:   {
 		fqdn:     "",
 		server:   true,
 		internal: true
@@ -179,12 +161,9 @@ module.exports = {
 
 	CredsConfigTemplate,
 	CustomerAuthServersTemplate,
-	SqliteConfigTemplate,
 
 	db_provider,
 
-	sqlite_db_name,
-	sqlite_db_storage_root,
-	sqlite_db_admin_username,
-	sqlite_env_name
+	nedb_storage_root
+
 };

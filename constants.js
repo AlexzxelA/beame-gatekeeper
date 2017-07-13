@@ -38,7 +38,6 @@ const CredsConfigFolder = "creds";
 const AppConfigFileName           = "app_config.json";
 const CredsFileName               = "creds.json";
 const CustomerAuthServersFileName = "auth_servers.json";
-const SqliteDbConfigFileName      = "sqlite_config.json";
 
 
 const CredsFolderPath             = path.join(BeameRootPath, CredsConfigFolder);
@@ -46,7 +45,6 @@ const CredsJsonPath               = path.join(BeameRootPath, CredsConfigFolder, 
 const CustomerAuthServersJsonPath = path.join(BeameRootPath, CredsConfigFolder, CustomerAuthServersFileName);
 const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
 const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
-const SqliteConfigJsonPath        = path.join(BeameRootPath, ConfigFolder, SqliteDbConfigFileName);
 
 const DEFAULT_LOAD_BALANCER_URL = "https://ioigl3wzx6lajrx6.tl5h1ipgobrdqsj6.v1.p.beameio.net";
 
@@ -125,8 +123,8 @@ const CredentialType = {
 
 
 const DbProviders = {
-	"Sqlite":    "sqlite",
-	"Couchbase": "couchbase"
+	"Couchbase": "couchbase",
+	"NeDB": "NeDB"
 };
 
 
@@ -195,12 +193,11 @@ module.exports = {
 	AppConfigFileName,
 	CredsFileName,
 	CustomerAuthServersFileName,
-	SqliteDbConfigFileName,
 
 	CredsFolderPath,
 	CredsJsonPath,
 	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
 	AppConfigJsonPath,
-	SqliteConfigJsonPath
+
 };
