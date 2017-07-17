@@ -17,9 +17,10 @@ const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 const Constants    = require('../../constants');
-const cookieNames = Constants.CookieNames;
+const cookieNames  = Constants.CookieNames;
 const public_dir   = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path    = path.join(public_dir, 'pages', 'beame_auth');
+
 
 const sns = new (require("../servers/beame_auth/sns"))();
 
@@ -66,6 +67,33 @@ class BeameAuthRouter {
 			}).catch(error => {
 				logger.error(BeameLogger.formatError(error));
 				res.redirect(Bootstrapper.getLogoutUrl())
+			});
+		});
+
+		this._router.get('/cred-info', (req, res) => {
+			this._beameAdminServices.getRequestAuthToken(req).then(token => {
+				let authFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) =>{
+					if(status){
+						store.find(token.signedBy).then(cred=>{
+							res.json({
+								ocspUrl:cred.certData.issuer.issuerOcspUrl,
+								notAfter:Date.parse(cred.certData.notAfter)/1000,
+								notBefore:Date.parse(cred.certData.notBefore)/1000,
+								success: true
+							});
+						}).catch(e=>{
+							res.json({success: false, msg: e});
+						});
+					}
+					else{
+						res.json({success: false, msg: 'not allowed'});
+					}
+				});
+
+			}).catch(e => {
+				res.status(401).send();
+				logger.error(e);
 			});
 		});
 

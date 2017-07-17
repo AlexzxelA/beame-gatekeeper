@@ -501,10 +501,6 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 		});
 });
 
-unauthenticatedApp.post('/beame-gw/tteesstt', (req, res) => {
-	// XXX: validate proxy_enable (make sure it's allowed to sign)
-	console.log('SAMLResponse: ' + req.body.SAMLResponse.charCodeAt(0) +' >>>:'+ req.body.SAMLResponse);
-});
 
 // XXX: When logging out destroy
 // (1) SocketIO session
