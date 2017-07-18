@@ -97,6 +97,38 @@ class BeameAuthRouter {
 			});
 		});
 
+		this._router.get('/cert-renew', (req, res) => {
+			this._beameAdminServices.getRequestAuthToken(req, true).then(token => {
+				let authFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
+				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) =>{
+					if(status){
+						const AuthToken = beameSDK.AuthToken;
+						store.find(authFqdn).then(parentCred=>{
+							AuthToken.createAsync(token.signedBy,
+								parentCred, 60 * 60 * 2).then(authToken => {
+								res.json({
+									regToken:authToken,
+									success: true
+								});
+							}).catch(e=>{
+								res.json({success: false, msg: e || 'GK: failed to create token'});
+							});
+
+						}).catch(e=>{
+							res.json({success: false, msg: e || 'GK: parent cred'});
+						});
+					}
+					else{
+						res.json({success: false, msg: 'GK: not allowed'});
+					}
+				}, true);
+
+			}).catch(e => {
+				res.json({success: false, msg: 'GK: auth token'});
+				logger.error(e);
+			});
+		});
+
 		this._router.get('/', (req, res) => {
 
 			this._isRequestValid(req).then(data => {

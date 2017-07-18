@@ -450,9 +450,10 @@ class BeameAuthServices {
 
 	/**
 	 * @param {SignatureToken} authToken
+	 * @param {bool} [allowExpired]
 	 * @returns {Promise}
 	 */
-	_validateAuthToken(authToken) {
+	_validateAuthToken(authToken, allowExpired) {
 		return new Promise((resolve, reject) => {
 
 				if (!BeameAuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
@@ -460,7 +461,7 @@ class BeameAuthServices {
 					return;
 				}
 
-				AuthToken.validate(authToken).then(resolve).catch(reject);
+				AuthToken.validate(authToken, allowExpired).then(resolve).catch(reject);
 
 			}
 		);
@@ -2076,7 +2077,7 @@ class BeameAuthServices {
 
 	//endregion
 
-	getRequestAuthToken(req) {
+	getRequestAuthToken(req, allowExpired) {
 		return new Promise((resolve, reject) => {
 				let authHead  = req.get('X-BeameAuthToken'),
 				    /** @type {SignatureToken|null} */
@@ -2107,7 +2108,7 @@ class BeameAuthServices {
 					return;
 				}
 
-				this._validateAuthToken(authToken).then(() => {
+				this._validateAuthToken(authToken, allowExpired).then(() => {
 					resolve(authToken)
 				}).catch(reject);
 			}
