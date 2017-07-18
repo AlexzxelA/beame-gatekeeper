@@ -26,15 +26,15 @@ const AppConfigFileName           = Constants.AppConfigFileName;
 const CredsFileName               = Constants.CredsFileName;
 const CustomerAuthServersFileName = Constants.CustomerAuthServersFileName;
 
-const BeameRootPath          = Constants.BeameRootPath;
+const BeameRootPath = Constants.BeameRootPath;
 
 const CredsFolderPath             = Constants.CredsFolderPath;
 const CredsJsonPath               = Constants.CredsJsonPath;
 const CustomerAuthServersJsonPath = Constants.CustomerAuthServersJsonPath;
 
 
-const ConfigFolderPath     = Constants.ConfigFolderPath;
-const AppConfigJsonPath    = Constants.AppConfigJsonPath;
+const ConfigFolderPath  = Constants.ConfigFolderPath;
+const AppConfigJsonPath = Constants.AppConfigJsonPath;
 
 
 const _onConfigError = error => {
@@ -71,16 +71,17 @@ class Bootstrapper {
 	/**
 	 *
 	 * @param {boolean} exit
+	 * @param {boolean} rejectInvalidDbProvider
 	 * @returns {Promise}
 	 */
-	initConfig(exit) {
+	initConfig(exit, rejectInvalidDbProvider = true) {
 
 		return new Promise((resolve) => {
 				Bootstrapper._ensureBeameServerDir()
 					.then(this._ensureAppConfigJson.bind(this))
 					.then(this._ensureCredsConfigJson.bind(this))
 					.then(this._ensureCustomerAuthServersJson.bind(this))
-					.then(this._ensureDbConfig.bind(this))
+					.then(this._ensureDbConfig.bind(this, rejectInvalidDbProvider))
 					.then(() => {
 						logger.info(`Beame-gatekeeper config files ensured`);
 						resolve();
@@ -170,6 +171,10 @@ class Bootstrapper {
 		else {
 			process.env.BEAME_INSTA_DOC_ROOT = 'public';
 		}
+	}
+
+	setExternalOcspEnv() {
+		process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn || process.env.EXTERNAL_OCSP_FQDN;
 	}
 
 	static isConfigurationValid() {
@@ -299,6 +304,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
 	}
 
+	set setDbProvider(provider) {
+		this._config[SettingsProps.DbProvider] = provider;
+	}
+
 	get registrationAuthTokenTtl() {
 		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : defaults.RegistrationAuthTokenTtl;
 	}
@@ -353,6 +362,18 @@ class Bootstrapper {
 
 	get externalMatchingFqdn() {
 		return this._config && this._config[SettingsProps.ExternalMatchingFqdn] ? this._config[SettingsProps.ExternalMatchingFqdn] : null;
+	}
+
+	get externalOcspServerFqdn() {
+		return this._config && this._config[SettingsProps.ExternalOcspServerFqdn] ? this._config[SettingsProps.ExternalOcspServerFqdn] : null;
+	}
+
+	get proxySettings() {
+		return this._config && this._config[SettingsProps.ProxySettings] ? this._config[SettingsProps.ProxySettings] : defaults.DefaultProxyConfig;
+	}
+
+	set setProxySettings(settings) {
+		this._config[SettingsProps.ProxySettings] = settings;
 	}
 
 	get externalLoginUrl() {
@@ -536,12 +557,12 @@ class Bootstrapper {
 							config[prop] = defaults[prop];
 						}
 
-						// //noinspection JSUnfilteredForInLoop
-						// if (prop == SettingsProps.AppId && !config[prop]) {
-						// 	updateFile   = true;
-						// 	//noinspection JSUnfilteredForInLoop
-						// 	config[prop] = uuid.v4();
-						// }
+						//noinspection JSUnfilteredForInLoop
+						if (prop == SettingsProps.ProxySettings && (!config[prop] || CommonUtils.isObjectEmpty(config[prop]))) {
+							updateFile   = true;
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = defaults.DefaultProxyConfig;
+						}
 					}
 
 					this._config = config;
@@ -755,7 +776,7 @@ class Bootstrapper {
 
 	//region Db services
 	//region config
-	_ensureDbConfig() {
+	_ensureDbConfig(rejectInvalidDbProvider) {
 
 		return new Promise((resolve, reject) => {
 				let provider = this._config[SettingsProps.DbProvider];
@@ -777,7 +798,15 @@ class Bootstrapper {
 					// 	break;
 				}
 
-				reject(`Db Provider ${provider} currently not supported`);
+				let msg = `Db Provider ${provider} currently not supported`;
+
+				if (rejectInvalidDbProvider) {
+					reject(msg);
+				}
+				else {
+					console.warn(msg)
+					resolve()
+				}
 			}
 		);
 	}

@@ -33,7 +33,7 @@ function start(callback) {
 	CommonUtils.validateMachineClock().then(() => {
 		const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
 		const ServersManager     = require('../serversManager');
-		const credentialManager = new (require('../credentialManager'))();
+		const credentialManager  = new (require('../credentialManager'))();
 
 		const assertServersSettings = (settings) => {
 			return new Promise((resolve) => {
@@ -45,7 +45,62 @@ function start(callback) {
 			});
 		};
 
+		const assertProxySettings = () => {
+
+			const _startGlobalTunnel = () =>{
+
+			};
+
+			return new Promise((resolve) => {
+					const Constants        = require('../../constants');
+					let sett               = bootstrapper.proxySettings,
+					      initGlobalTunnel = false,
+					    initGlobalHttpTunnel = false,
+					    initGlobalHttpsTunnel = false,
+					      port;
+					switch (sett.kind) {
+						case Constants.ProxySettingKinds.Both:
+							if (sett.both.host && sett.both.port) {
+
+
+								try {
+									port             = parseInt(sett.both.port);
+									initGlobalTunnel = true;
+								} catch (e) {
+								}
+							}
+
+							break;
+						case Constants.ProxySettingKinds.Separate:
+							if (sett.http.host && sett.http.port) {
+
+								try {
+									port             = parseInt(sett.http.port);
+									initGlobalHttpTunnel = true;
+								} catch (e) {
+								}
+							}
+
+							if (sett.https.host && sett.https.port) {
+
+								try {
+									port             = parseInt(sett.https.port);
+									initGlobalHttpsTunnel = true;
+								} catch (e) {
+								}
+							}
+							break;
+					}
+
+					if(initGlobalTunnel){
+
+					}
+				}
+			);
+		};
+
 		bootstrapper.initAll()
+			.then(assertProxySettings)
 			.then(startDataService)
 			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))
@@ -62,7 +117,34 @@ function start(callback) {
 
 start.params = {};
 
+function config(callback) {
 
+
+	bootstrapper.initConfig(false, false).then(() => {
+
+		bootstrapper.setHtmlEnvMode();
+
+		bootstrapper.setOcspCachePeriod();
+
+		let validationResp = Bootstrapper.isConfigurationValid();
+
+		if (!validationResp.valid) {
+
+			logger.fatal(validationResp.message);
+		}
+
+		const Server = require('../servers/config/server');
+		const server = new Server(serviceManager);
+
+		server.start(callback);
+
+	}).catch(error => {
+		logger.fatal(error);
+	});
+}
+config.params  = {};
+config.toText  = x => `Config Server started on ${x.url}`;
 module.exports = {
-	start
+	start,
+	config
 };

@@ -47,6 +47,51 @@ class AdminServices {
 		);
 	}
 
+	saveDbConfig(req) {
+		return new Promise((resolve) => {
+
+				let old = bootstrapper.appConfig;
+
+				bootstrapper.setDbProvider = CommonUtils.parse(req.data);
+
+				bootstrapper.saveAppConfigFile()
+					.then(resolve)
+					.catch(error => {
+						logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+
+						bootstrapper.setAppConfig = old;
+
+						return bootstrapper.saveAppConfigFile();
+					});
+			}
+		);
+	}
+
+	saveProxyConfig(data) {
+		return new Promise((resolve,reject) => {
+
+				if(CommonUtils.isObjectEmpty(data)){
+					reject('Empty data');
+					return
+				}
+
+				let old = bootstrapper.appConfig;
+
+				bootstrapper.setProxySettings = CommonUtils.parse(data);
+
+				bootstrapper.saveAppConfigFile()
+					.then(resolve)
+					.catch(error => {
+						logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+
+						bootstrapper.setAppConfig = old;
+
+						return bootstrapper.saveAppConfigFile();
+					});
+			}
+		);
+	}
+
 	getSettings() {
 		return new Promise((resolve, reject) => {
 				let data = {
@@ -65,12 +110,24 @@ class AdminServices {
 								callback();
 							},
 							callback => {
+
+								let lovDs = [], supportedDs = [];
+
+								Object.keys(Constants.DbProviders).forEach(key => {
+									lovDs.push({name: Constants.DbProviders[key]})
+								});
+
+								Object.keys(Constants.DbSupportedProviders).forEach(key => {
+									supportedDs.push(Constants.DbProviders[key])
+								});
+
 								data.DbConfig = {
-									provider: bootstrapper.dbProvider,
-									storage:  Bootstrapper.neDbRootPath
+									provider:  bootstrapper.dbProvider,
+									storage:   Bootstrapper.neDbRootPath,
+									lov:       lovDs,
+									supported: supportedDs.toString()
 								};
 								callback();
-
 							},
 							callback => {
 								data.Creds = bootstrapper.creds;

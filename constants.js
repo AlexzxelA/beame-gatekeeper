@@ -121,9 +121,18 @@ const CredentialType = {
 	GatekeeperLoginManager:   "GatekeeperLoginManager"
 };
 
+const ProxySettingKinds             = {
+	"Both":     1,
+	"Separate": 2
+};
 
 const DbProviders = {
 	"Couchbase": "couchbase",
+	"NeDB": "NeDB",
+	"Sqlite":"sqlite",
+};
+
+const DbSupportedProviders = {
 	"NeDB": "NeDB"
 };
 
@@ -168,6 +177,7 @@ module.exports = {
 	DelegatedLoginNotificationAction,
 	SetupServices,
 	DbProviders,
+	DbSupportedProviders,
 	CookieNames,
 	AuthMode: {
 		"SESSION":   "Session",
@@ -200,4 +210,5 @@ module.exports = {
 	ConfigFolderPath,
 	AppConfigJsonPath,
 
+	ProxySettingKinds
 };

@@ -32,7 +32,7 @@ class ServersManager {
 		this._servers        = {};
 
 		bootstrapper.setHtmlEnvMode();
-
+		bootstrapper.setExternalOcspEnv();
 		bootstrapper.setOcspCachePeriod();
 	}
 

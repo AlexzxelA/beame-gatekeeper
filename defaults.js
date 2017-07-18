@@ -11,8 +11,8 @@ const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
 const db_provider = Constants.DbProviders.NeDB;
 
-const ServiceName              = "ServiceName";
-const AppId                    = "";
+const ServiceName = "ServiceName";
+const AppId       = "";
 
 const nedb_storage_root = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
 
@@ -33,6 +33,7 @@ const EmailPostUrl         = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.bea
 const EmailSendCertUrl     = "https://rem064h0jljfwh4f.mpk3nobb568nycf5.v1.d.beameio.net/send/pfx";
 const ExternalMatchingFqdn = "i5un73q6o42bc8r0.q6ujqecc83gg6fod.v1.d.beameio.net";
 
+
 //in sec
 const RegistrationAuthTokenTtl      = 60 * 10;
 const ProxyInitiatingTtl            = 60 * 10;
@@ -47,9 +48,25 @@ const OcspCachePeriod               = 30; //in days
 const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || false;
 
 
+const DefaultProxyConfig = {
+	kind:  Constants.ProxySettingKinds.Both,
+	both:  {
+		host: "",
+		port: ""
+	},
+	https: {
+		host: "",
+		port: ""
+	},
+	http:  {
+		host: "",
+		port: ""
+	}
+};
 
 const ConfigProps = {
 	Settings: {
+		ProxySettings:                 "ProxySettings",
 		ServiceName:                   "ServiceName",
 		AppId:                         "AppId",
 		DbProvider:                    "db_provider",
@@ -57,6 +74,7 @@ const ConfigProps = {
 		HtmlEnvMode:                   "HtmlEnvMode",
 		UseBeameAuthOnLocal:           "UseBeameAuthOnLocal",
 		ExternalMatchingFqdn:          "ExternalMatchingFqdn",
+		ExternalOcspServerFqdn:        "ExternalOcspServerFqdn",
 		PublicRegistration:            "PublicRegistration",
 		PairingRequired:               "PairingRequired",
 		RegistrationImageRequired:     "RegistrationImageRequired",
@@ -142,11 +160,12 @@ module.exports = {
 	BrowserSessionTtl,
 	CustomerInvitationTtl,
 	OcspCachePeriod,
-	ExternalMatchingFqdn: ExternalMatchingFqdn,
-	PostEmailUrl:         EmailPostUrl,
-	EmailSendCertUrl:     EmailSendCertUrl,
-	PostSmsUrl:           "",
-	ExternalLoginServer:  "",
+	ExternalMatchingFqdn:   ExternalMatchingFqdn,
+	PostEmailUrl:           EmailPostUrl,
+	EmailSendCertUrl:       EmailSendCertUrl,
+	PostSmsUrl:             "",
+	ExternalLoginServer:    "",
+	ExternalOcspServerFqdn: "",
 	RegistrationMethod,
 	EnvMode,
 	HtmlEnvMode,
@@ -164,6 +183,10 @@ module.exports = {
 
 	db_provider,
 
-	nedb_storage_root
+	nedb_storage_root,
+
+	DefaultProxyConfig,
+
+	ProxySettings:null
 
 };
