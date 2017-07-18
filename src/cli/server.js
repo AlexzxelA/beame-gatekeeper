@@ -47,54 +47,29 @@ function start(callback) {
 
 		const assertProxySettings = () => {
 
-			const _startGlobalTunnel = () =>{
-
-			};
-
 			return new Promise((resolve) => {
-					const Constants        = require('../../constants');
-					let sett               = bootstrapper.proxySettings,
-					      initGlobalTunnel = false,
-					    initGlobalHttpTunnel = false,
-					    initGlobalHttpsTunnel = false,
-					      port;
-					switch (sett.kind) {
-						case Constants.ProxySettingKinds.Both:
-							if (sett.both.host && sett.both.port) {
+					let sett             = bootstrapper.proxySettings,
+					    initGlobalTunnel = false,
+					    port;
+					if (sett.host && sett.port) {
 
-
-								try {
-									port             = parseInt(sett.both.port);
-									initGlobalTunnel = true;
-								} catch (e) {
-								}
-							}
-
-							break;
-						case Constants.ProxySettingKinds.Separate:
-							if (sett.http.host && sett.http.port) {
-
-								try {
-									port             = parseInt(sett.http.port);
-									initGlobalHttpTunnel = true;
-								} catch (e) {
-								}
-							}
-
-							if (sett.https.host && sett.https.port) {
-
-								try {
-									port             = parseInt(sett.https.port);
-									initGlobalHttpsTunnel = true;
-								} catch (e) {
-								}
-							}
-							break;
+						try {
+							port             = parseInt(sett.port);
+							initGlobalTunnel = true;
+						} catch (e) {
+						}
 					}
 
-					if(initGlobalTunnel){
+					if (initGlobalTunnel) {
+						const globalTunnel = require('global-tunnel-ng');
 
+						globalTunnel.initialize({
+							host: sett.host,
+							port: port
+						});
 					}
+
+					resolve();
 				}
 			);
 		};

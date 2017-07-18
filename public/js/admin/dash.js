@@ -7,20 +7,6 @@ function loadSettings(){
 		viewDash  = new kendo.View("home",{
 			model: new kendo.observable({
 				data: settings,
-				proxyKinds:[{name:'Both Http/Https',value:1},{name:'Separate Http/Https',value:2}],
-				showProxyBothPanel:function(kind){
-
-					return  this.get("data.AppConfig.ProxySettings.kind") == 1;
-				},
-				showProxySeparatePanel:function(){
-
-					return  this.get("data.AppConfig.ProxySettings.kind") == 2;
-				},
-				onKindChanged:function(e){
-
-					this.set("data.AppConfig.ProxySettings.kind", parseInt(e.sender.value()));
-					console.log(this.get("data.AppConfig.ProxySettings.kind"));
-				},
 				onSave:function(){
 					showLoader();
 					$.ajax({

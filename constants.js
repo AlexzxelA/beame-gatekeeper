@@ -121,10 +121,6 @@ const CredentialType = {
 	GatekeeperLoginManager:   "GatekeeperLoginManager"
 };
 
-const ProxySettingKinds             = {
-	"Both":     1,
-	"Separate": 2
-};
 
 const DbProviders = {
 	"Couchbase": "couchbase",
@@ -208,7 +204,5 @@ module.exports = {
 	CredsJsonPath,
 	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
-	AppConfigJsonPath,
-
-	ProxySettingKinds
+	AppConfigJsonPath
 };
