@@ -57,7 +57,6 @@ function getCreds(regToken, fqdn, callback) {
 	}
 
 	bootstrapper.initAll()
-		.then(bootstrapper.assertProxySettings.bind(bootstrapper))
 		.then(()=>{
 
 			let validationResp = Bootstrapper.isConfigurationValid();
@@ -70,6 +69,7 @@ function getCreds(regToken, fqdn, callback) {
 			return Promise.resolve();
 
 		})
+		.then(bootstrapper.assertProxySettings.bind(bootstrapper))
 		.then(() => {
 			credentialManager.createInitialCredentials(zeroLevelFqdn ? null : regToken, zeroLevelFqdn || fqdn).then(metadata => {
 				console.log('');

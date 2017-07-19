@@ -195,6 +195,8 @@ class Bootstrapper {
 				if (initGlobalTunnel) {
 					const globalTunnel = require('global-tunnel-ng');
 
+					logger.info(`Proxy setting initializing on host ${sett.host} port ${port}`);
+
 					globalTunnel.initialize({
 						host: sett.host,
 						port: port
