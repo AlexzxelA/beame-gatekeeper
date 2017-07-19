@@ -57,7 +57,7 @@ const cli = new BeameCli('beame-gatekeeper', path.join(__dirname, 'src', 'cli'),
 cli.setGlobalSchema(parametersSchema);
 
 cli.approveCommand = (cmdName, subCmdName) => {
-	if((cmdName == 'creds') && (subCmdName == 'getCreds')) {
+	if(((cmdName == 'creds') && (subCmdName == 'getCreds')) || ((cmdName == 'server') && (subCmdName == 'config'))) {
 		return true;
 	}
 	let credsCount = list().length;
