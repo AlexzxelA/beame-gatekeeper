@@ -57,6 +57,7 @@ function getCreds(regToken, fqdn, callback) {
 	}
 
 	bootstrapper.initAll()
+		.then(bootstrapper.assertProxySettings.bind(bootstrapper))
 		.then(()=>{
 
 			let validationResp = Bootstrapper.isConfigurationValid();

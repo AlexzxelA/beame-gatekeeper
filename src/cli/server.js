@@ -45,37 +45,8 @@ function start(callback) {
 			});
 		};
 
-		const assertProxySettings = () => {
-
-			return new Promise((resolve) => {
-					let sett             = bootstrapper.proxySettings,
-					    initGlobalTunnel = false,
-					    port;
-					if (sett.host && sett.port) {
-
-						try {
-							port             = parseInt(sett.port);
-							initGlobalTunnel = true;
-						} catch (e) {
-						}
-					}
-
-					if (initGlobalTunnel) {
-						const globalTunnel = require('global-tunnel-ng');
-
-						globalTunnel.initialize({
-							host: sett.host,
-							port: port
-						});
-					}
-
-					resolve();
-				}
-			);
-		};
-
 		bootstrapper.initAll()
-			.then(assertProxySettings)
+			.then(bootstrapper.assertProxySettings.bind(bootstrapper))
 			.then(startDataService)
 			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))

@@ -177,6 +177,35 @@ class Bootstrapper {
 		process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn || process.env.EXTERNAL_OCSP_FQDN;
 	}
 
+	assertProxySettings (){
+
+		return new Promise((resolve) => {
+				let sett             = this.proxySettings,
+				    initGlobalTunnel = false,
+				    port;
+				if (sett.host && sett.port) {
+
+					try {
+						port             = parseInt(sett.port);
+						initGlobalTunnel = true;
+					} catch (e) {
+					}
+				}
+
+				if (initGlobalTunnel) {
+					const globalTunnel = require('global-tunnel-ng');
+
+					globalTunnel.initialize({
+						host: sett.host,
+						port: port
+					});
+				}
+
+				resolve();
+			}
+		);
+	}
+
 	static isConfigurationValid() {
 
 		let responseObj = {
