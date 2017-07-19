@@ -37,7 +37,7 @@ class ConfigServer {
 
 		let http = require('http').Server(this._app);
 
-		http.listen(4444, host, () => {
+		http.listen(0, host, () => {
 			this._server = http;
 			logger.info(`Listening on ${host}:${this._server.address().port}`);
 			cb && cb(null, {url: `http://${host}:${this._server.address().port}`})

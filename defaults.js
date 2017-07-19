@@ -140,6 +140,8 @@ module.exports = {
 	AppId,
 	ServiceName,
 
+	ProxySettings:null,
+
 	SessionRecordDeleteTimeout,
 	KillSocketOnDisconnectTimeout,
 	WhispererSendPinInterval,
@@ -174,8 +176,6 @@ module.exports = {
 
 	nedb_storage_root,
 
-	DefaultProxyConfig,
-
-	ProxySettings:null
+	DefaultProxyConfig
 
 };

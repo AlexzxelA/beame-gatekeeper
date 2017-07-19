@@ -179,7 +179,7 @@ class Bootstrapper {
 
 	assertProxySettings (){
 
-		return new Promise((resolve) => {
+		//return new Promise((resolve) => {
 				let sett             = this.proxySettings,
 				    initGlobalTunnel = false,
 				    port;
@@ -203,9 +203,9 @@ class Bootstrapper {
 					});
 				}
 
-				resolve();
-			}
-		);
+			// 	resolve();
+			// }
+		//);
 	}
 
 	static isConfigurationValid() {
@@ -543,10 +543,13 @@ class Bootstrapper {
 
 				for (let prop in defaults) {
 					//noinspection JSUnfilteredForInLoop
-					if (typeof defaults[prop] !== "object") {
+					if (typeof defaults[prop] !== "object" || prop == SettingsProps.ProxySettings) {
 						if (prop == SettingsProps.AppId) {
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = uuid.v4();
+						}
+						else if(prop == SettingsProps.ProxySettings){
+							config[prop] = defaults.DefaultProxyConfig;
 						}
 						else {
 							//noinspection JSUnfilteredForInLoop

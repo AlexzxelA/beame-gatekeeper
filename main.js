@@ -13,6 +13,9 @@ if (!semver.satisfies(process.versions.node, pjson.engines.node)) {
 }
 // Ensure correct NodeJS version - end
 
+const Bootstrapper   = require('./src/bootstrapper');
+const bootstrapper   = Bootstrapper.getInstance();
+bootstrapper.assertProxySettings();
 
 /**
  * Should be synchronized with token from Auth Server
