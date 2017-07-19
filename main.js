@@ -16,7 +16,7 @@ if (!semver.satisfies(process.versions.node, pjson.engines.node)) {
 const Bootstrapper   = require('./src/bootstrapper');
 const bootstrapper   = Bootstrapper.getInstance();
 bootstrapper.assertProxySettings();
-
+bootstrapper.setExternalOcspEnv();
 /**
  * Should be synchronized with token from Auth Server
  * @typedef {Object} EmailRegistrationData
