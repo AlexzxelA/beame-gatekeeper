@@ -206,6 +206,8 @@ function hashToArray(hash) {
 	}
 }
 
+
+
 module.exports = {
 	clearSessionCookie,
 	setExpressApp,

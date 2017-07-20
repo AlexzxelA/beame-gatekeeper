@@ -45,37 +45,8 @@ function start(callback) {
 			});
 		};
 
-		const assertProxySettings = () => {
-
-			return new Promise((resolve) => {
-					let sett             = bootstrapper.proxySettings,
-					    initProxyAgent = false,
-					    port;
-					if (sett.host && sett.port) {
-
-						try {
-							port             = parseInt(sett.port);
-							initProxyAgent = true;
-						} catch (e) {
-						}
-					}
-
-					if (initProxyAgent) {
-						const proxyAgent = beameSDK.ProxyAgent;
-
-						proxyAgent.initialize({
-							host: sett.host,
-							port: port
-						});
-					}
-
-					resolve();
-				}
-			);
-		};
-
 		bootstrapper.initAll()
-			.then(assertProxySettings)
+			// .then(utils.assertProxySettings(bootstrapper))
 			.then(startDataService)
 			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))
