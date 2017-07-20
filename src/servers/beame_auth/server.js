@@ -11,6 +11,8 @@ const utils = require('../../utils');
 
 const Router    = require('../../routers/beame_auth');
 const Constants = require('../../../constants');
+const Bootstrapper         = require('../../bootstrapper');
+const bootstrapper         = Bootstrapper.getInstance();
 
 const public_dir = path.join(__dirname, '..', '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 
@@ -63,16 +65,22 @@ class BeameAuthServer {
 				callback => {
 					const httpServer = http.createServer(this._app);
 
-					httpServer.listen(Constants.BeameAuthServerLocalPort);
+					httpServer.listen(0,()=>{
 
-					let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, this._callbacks);
+						bootstrapper.authServerLocalPort = httpServer.address().port;
 
-					beameHttpInstaServer.start().then(socketio_server => {
-						this._httpSocketServer = socketio_server;
-						callback(null);
-					}).catch(error => {
-						callback(error);
-					})
+						let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, this._callbacks);
+
+						beameHttpInstaServer.start().then(socketio_server => {
+							this._httpSocketServer = socketio_server;
+							callback(null);
+						}).catch(error => {
+							callback(error);
+						})
+					});
+
+
+
 				},
 				callback => {
 					beameSDK.BeameServer(this._fqdn, this._app, (data, app) => {

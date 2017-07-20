@@ -53,6 +53,7 @@ class Bootstrapper {
 		this._isDelegatedCentralLoginVerified = false;
 		this._roles                           = [];
 		this._proxyAgent                      = null;
+		this._authServerLocalPort             = null;
 	}
 
 	/**
@@ -179,16 +180,16 @@ class Bootstrapper {
 		process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn || process.env.EXTERNAL_OCSP_FQDN;
 	}
 
-	assertProxySettings(){
+	assertProxySettings() {
 
 		return new Promise((resolve) => {
-				let sett             = this.proxySettings,
-					initProxyAgent = false,
-					port;
+				let sett           = this.proxySettings,
+				    initProxyAgent = false,
+				    port;
 				if (sett.host && sett.port) {
 
 					try {
-						port             = parseInt(sett.port);
+						port           = parseInt(sett.port);
 						initProxyAgent = true;
 					} catch (e) {
 					}
@@ -506,6 +507,14 @@ class Bootstrapper {
 		return this._roles;
 	}
 
+	set authServerLocalPort(port) {
+		this._authServerLocalPort = port;
+	}
+
+	get authServerLocalPort() {
+		return this._authServerLocalPort;
+	}
+
 	//endregion
 
 	//region Beame folder
@@ -559,6 +568,7 @@ class Bootstrapper {
 							config[prop] = uuid.v4();
 						}
 						else if (prop == SettingsProps.ProxySettings) {
+							// noinspection JSUnfilteredForInLoop
 							config[prop] = defaults.DefaultProxyConfig;
 						}
 						else {

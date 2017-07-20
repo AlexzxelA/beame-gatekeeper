@@ -12,7 +12,6 @@ const EnvProfile = {
 	FqdnPattern: '.d.'
 };
 
-const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
 
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
@@ -158,7 +157,6 @@ const CookieNames = {
 };
 
 module.exports = {
-	BeameAuthServerLocalPort,
 	EnvProfile,
 	RequestType,
 	RegistrationMethod,

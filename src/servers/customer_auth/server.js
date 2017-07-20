@@ -7,7 +7,6 @@
 const path = require('path');
 
 const utils = require('../../utils');
-const Constants    = require('../../../constants');
 
 const router     = require('../../routers/customer_auth');
 const public_dir = path.join(__dirname, '..', '..', '..', process.env.BEAME_INSTA_DOC_ROOT);

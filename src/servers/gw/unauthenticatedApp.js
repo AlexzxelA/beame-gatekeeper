@@ -422,14 +422,14 @@ unauthenticatedApp.get('/customer-auth-done-2', (req, res) => {
 
 	switch (method) {
 		case Constants.RegistrationMethod.Pairing:
-			proxyingDestination = bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}` : `https://${beameAuthServerFqdn}`;
+			proxyingDestination = bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${bootstrapper.authServerLocalPort}` : `https://${beameAuthServerFqdn}`;
 			_redirectToBeameAuth('');
 			return;
 		case Constants.RegistrationMethod.Email:
 		case Constants.RegistrationMethod.SMS:
 
 			if (BeameAuthServices.isCustomerApproveRequired()) {
-				proxyingDestination = bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${Constants.BeameAuthServerLocalPort}/customer-approve` : `https://${beameAuthServerFqdn}/customer-approve`;
+				proxyingDestination = bootstrapper.useBeameAuthOnLocal ? `http://127.0.0.1:${bootstrapper.authServerLocalPort}/customer-approve` : `https://${beameAuthServerFqdn}/customer-approve`;
 				_redirectToBeameAuth(`&pin=${qs.pin}`);
 			}
 			else {
