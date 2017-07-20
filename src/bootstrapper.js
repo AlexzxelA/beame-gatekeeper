@@ -177,7 +177,9 @@ class Bootstrapper {
 	}
 
 	setExternalOcspEnv() {
-		process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn || process.env.EXTERNAL_OCSP_FQDN;
+		if (this.externalOcspServerFqdn) {
+			process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn;
+		}
 	}
 
 	assertProxySettings() {
