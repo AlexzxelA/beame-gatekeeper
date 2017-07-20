@@ -387,6 +387,33 @@ class AdminRouter {
 			}
 		});
 
+		this._router.post('/roles/save/:fqdn', (req, res) => {
+			let fqdn = req.params.fqdn,
+			    data = req.body;
+
+
+			function resolve(token) {
+				res.json({
+					"responseCode": RESPONSE_SUCCESS_CODE,
+					"responseDesc": token.message,
+					"data":         token.data
+				});
+			}
+
+			function sendError(e) {
+				console.error('/regtoken/create error', e);
+				return res.json({
+					"responseCode": RESPONSE_ERROR_CODE,
+					"responseDesc": BeameLogger.formatError(e)
+				});
+			}
+
+			beameAuthServices.saveRoles(fqdn, data)
+				.then(resolve)
+				.catch(sendError);
+
+		});
+
 		this._router.post('/send/pfx', (req, res) => {
 
 			let fqdn  = req.body.fqdn,

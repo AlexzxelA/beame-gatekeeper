@@ -1228,31 +1228,7 @@ class BeameAuthServices {
 				} catch (e) {
 					reject(e);
 				}
-				// const method = bootstrapper.registrationMethod;
-				//
-				// switch (method) {
-				// 	case Constants.RegistrationMethod.Email:
-				// 		try {
-				// 			let sign         = this.signData(fqdn),
-				// 			    provisionApi = new ProvisionApi(),
-				// 			    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.CompleteInvitation.endpoint}/${fqdn}`;
-				//
-				// 			provisionApi.postRequest(`https://${url}`, {}, (error) => {
-				// 				if (error) {
-				// 					reject(error);
-				// 				}
-				// 				else {
-				// 					resolve();
-				// 				}
-				// 			}, sign, 10);
-				// 		} catch (e) {
-				// 			reject(e);
-				// 		}
-				// 		return;
-				// 	default:
-				// 		resolve();
-				// 		return;
-				// }
+
 			}
 		);
 	}
@@ -1849,6 +1825,8 @@ class BeameAuthServices {
 					return item;
 				});
 
+				data.roles = data.roles || [];
+
 				data.pwd = cred.hasKey("PWD") ? String.fromCharCode.apply(null, cred.PWD) : null;
 
 				data.hasChildren = store.hasLocalChildren(fqdn);
@@ -2002,6 +1980,35 @@ class BeameAuthServices {
 					}).catch(reject);
 
 				}).catch(reject);
+			}
+		);
+	}
+
+	saveRoles(fqdn, roles) {
+		return new Promise((resolve, reject) => {
+				if (!fqdn) {
+					reject('Fqdn required');
+					return;
+				}
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.metadata.roles = roles;
+
+				cred.beameStoreServices.writeMetadataSync(cred.metadata);
+
+				Credential.saveCredAction(cred, {
+					action: Constants.CredAction.RolesUpdate,
+					roles,
+					date:   Date.now()
+				});
+
+
+				this.getCredDetail(fqdn).then(resolve).catch(reject);
 			}
 		);
 	}

@@ -2,10 +2,12 @@
 
 <script id="tmpl-cred-detail" type="text/x-kendo-template">
 
-    <div class="card-shadow">
+    <div class="card-shadow" id="cred-form-container">
 
-    <h3 class="title-admin-bg">Cred Details</h3>
-    <section class="row collapse" id="cred-form-container">
+    <h3 class="title-admin-bg">
+        Cred Details: <i data-bind="text: data.name"></i>
+    </h3>
+    <section class="row collapse" >
 
             <div class="medium-9 columns line-r">
 
@@ -15,8 +17,8 @@
                     <label class="lbl-info">
                         <span class="def">FQDN</span>
                         <span id="hid-fqdn">https://<span data-bind="text: data.fqdn"></span></span>
-                        <span id="copy-fqdn-btn" data-clipboard-action="copy" class="k-icon k-i-copy ml-half"
-                              title="Copy to clipboard"></span>
+                        <span id="copy-fqdn-btn" data-clipboard-action="copy" class="k-icon k-i-copy ml-half cursor-point"
+                              title="Copy to clipboard" ></span>
                     </label>
                     <label class="lbl-info">
                         <span class="def">Valid till</span>
@@ -28,7 +30,15 @@
                     </label>
                     <label class="lbl-info" data-bind="visible:data.parent_fqdn,attr:{title:data.parent_fqdn}">
                         <span class="def">Parent</span>
-                        <span data-bind="text:parentName()"></span></label>
+                        <span data-bind="text:parentName()"></span>
+                    </label>
+                    <label class="lbl-info" data-bind="visible:data.pwd">
+                        <span class="def">Pfx Pwd</span>
+                        <input data-bind="value: data.pwd, attr:{type:pfxPwdType}" id="pfx-pwd-input"  readonly />
+                        <input type="button" data-bind="click:showHidePfxPwd,value:showHidePfxPwdName" style="width: 80px" class="k-button"/>
+                        <span id="copy-pfx-pwd-btn" data-bind="visible:pfxPwdCopyVisibility" data-clipboard-action="copy" data-clipboard-target="\\#pfx-pwd-input" class="k-icon k-i-copy ml-half cursor-point"
+                              title="Copy to clipboard"></span>
+                    </label>
                     <label class="lbl-info">
                         <span class="def">Name</span>
                         <span data-bind="text: data.name"></span>
@@ -37,10 +47,22 @@
                         <span class="def">Email</span>
                         <span data-bind="text: data.email"></span>
                     </label>
-                    <label class="lbl-info" data-bind="visible:data.pwd">
-                        <span class="def">Pfx Pwd</span>
-                        <span data-bind="text: data.pwd"></span>
+                    <label class="lbl-roles" data-bind="visible:showValidCertForms">
+                        <span class="def">Roles</span>
+                        <span style="display: inline-block;">
+                            <select data-role="multiselect"
+                                    data-placeholder="Select credential roles"
+                                    data-value-primitive="false"
+                                    data-text-field="name"
+                                    data-value-field="id"
+                                    data-bind="source: data.roles_lov, value:data.roles"
+                                    style="width:300px;max-width: 400px;"
+                                    id="cred-roles-select">
+
+                            </select>
+                        </span>
                     </label>
+                    <button data-role="button" data-icon="save" data-bind="click:saveRoles,visible:showValidCertForms" style="margin-bottom: 15px"></button>
                 </form>
                 </div>
 
