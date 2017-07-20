@@ -52,6 +52,7 @@ class Bootstrapper {
 		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._isDelegatedCentralLoginVerified = false;
 		this._roles                           = [];
+		this._proxyAgent                      = null;
 	}
 
 	/**
@@ -193,10 +194,10 @@ class Bootstrapper {
 					}
 				}
 
-				if (initProxyAgent) {
-					const proxyAgent = beameSDK.ProxyAgent;
+				if (initProxyAgent && !this._proxyAgent) {
+					this._proxyAgent = beameSDK.ProxyAgent;
 
-					proxyAgent.initialize({
+					this._proxyAgent.initialize({
 						host: sett.host,
 						port: port
 					});
