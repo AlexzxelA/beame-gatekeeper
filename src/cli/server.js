@@ -46,7 +46,7 @@ function start(callback) {
 		};
 
 		bootstrapper.initAll()
-			// .then(utils.assertProxySettings(bootstrapper))
+			// .then(bootstrapper.assertProxySettings)
 			.then(startDataService)
 			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))

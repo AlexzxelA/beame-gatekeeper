@@ -60,6 +60,7 @@ class Bootstrapper {
 		return new Promise((resolve) => {
 			this.initConfig(false)
 				.then(this.initDb.bind(this, false))
+				.then(this.assertProxySettings.bind(this))
 				.then(() => {
 					logger.info(`beame-gatekeeper bootstrapped successfully`);
 					resolve();
