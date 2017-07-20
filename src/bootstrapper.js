@@ -178,35 +178,33 @@ class Bootstrapper {
 		process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn || process.env.EXTERNAL_OCSP_FQDN;
 	}
 
-	assertProxySettings() {
+	assertProxySettings(){
 
-		//return new Promise((resolve) => {
-		let sett             = this.proxySettings,
-		    initGlobalTunnel = false,
-		    port;
-		if (sett.host && sett.port) {
+		return new Promise((resolve) => {
+				let sett             = this.proxySettings,
+					initProxyAgent = false,
+					port;
+				if (sett.host && sett.port) {
 
-			try {
-				port             = parseInt(sett.port);
-				initGlobalTunnel = true;
-			} catch (e) {
+					try {
+						port             = parseInt(sett.port);
+						initProxyAgent = true;
+					} catch (e) {
+					}
+				}
+
+				if (initProxyAgent) {
+					const proxyAgent = beameSDK.ProxyAgent;
+
+					proxyAgent.initialize({
+						host: sett.host,
+						port: port
+					});
+				}
+
+				resolve();
 			}
-		}
-
-		if (initGlobalTunnel) {
-			const globalTunnel = require('global-tunnel-ng');
-
-			logger.info(`Proxy setting initializing on host ${sett.host} port ${port}`);
-
-			globalTunnel.initialize({
-				host: sett.host,
-				port: port
-			});
-		}
-
-		// 	resolve();
-		// }
-		//);
+		);
 	}
 
 	static isConfigurationValid() {
