@@ -28,7 +28,7 @@
                         Application
                     </li>
                     <li>
-                        Credentials
+                        Roles
                     </li>
                     <li>
                         Proxy Settings
@@ -222,32 +222,27 @@
                     </ul>
                 </div>
                 <div>
-                    <ul class="config-list">
-                        <li class="mt-2">
-                            <label>Zero Level</label>
-                            <span class="value-custom" data-bind="text:data.Creds.ZeroLevel.fqdn"></span>
-                        </li>
+                    <div data-role="grid"
+                         data-editable="inline"
+                         data-filterable="true"
+                         data-sortable="true"
+                         data-resizable= "true"
+                         data-toolbar="['create']"
+                         data-columns="[
+                                 { 'field': 'id', 'width': 80 },
+                                 { 'field': 'name' },
+                                 { 'title':'', 'width':'120' ,'command':['edit','destroy'] }
+                              ]"
+                         data-bind="source: role_ds"
+                         data-pageable="{
+                            'numeric': true,
+                            'pageSizes': true,
+                            'refresh':true
+                         }"
 
-                        <li>
-                            <label>Gateway Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.GatewayServer.fqdn"></span>
-                        </li>
+                         id="roles-grid">
 
-                        <li>
-                            <label>Client Login Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.GatekeeperLoginManager.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Beame Authorization Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.BeameAuthorizationServer.fqdn"></span>
-                        </li>
-
-                        <li class="mb-2">
-                            <label>Matching Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.MatchingServer.fqdn"></span>
-                        </li>
-                    </ul>
+                    </div>
                 </div>
                 <div>
                     <ul class="config-list">

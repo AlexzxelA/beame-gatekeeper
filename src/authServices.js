@@ -797,7 +797,7 @@ class BeameAuthServices {
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
 				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-				    version:       bootstrapper.version,
+				    version:       Bootstrapper.version,
 				    pairing:       bootstrapper.pairingRequired
 			    },
 			    postEmailUrl = null,
@@ -1021,7 +1021,7 @@ class BeameAuthServices {
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
 				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-				    version:       bootstrapper.version,
+				    version:       Bootstrapper.version,
 				    pairing:       bootstrapper.pairingRequired
 			    },
 			    postEmailUrl = null;
@@ -1641,7 +1641,7 @@ class BeameAuthServices {
 						serviceName: bootstrapper.serviceName,
 						serviceId:   bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
 						gwFqdn:      Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-						version:     bootstrapper.version,
+						version:     Bootstrapper.version,
 						pairing:     bootstrapper.pairingRequired
 					})
 					.then(regToken => {
@@ -1908,6 +1908,7 @@ class BeameAuthServices {
 						}
 					],
 					() => {
+						data.roles_lov = bootstrapper.roles;
 						resolve(data);
 					});
 			}

@@ -51,6 +51,7 @@ class Bootstrapper {
 		let config                            = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._isDelegatedCentralLoginVerified = false;
+		this._roles                           = [];
 	}
 
 	/**
@@ -177,34 +178,34 @@ class Bootstrapper {
 		process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn || process.env.EXTERNAL_OCSP_FQDN;
 	}
 
-	assertProxySettings (){
+	assertProxySettings() {
 
 		//return new Promise((resolve) => {
-				let sett             = this.proxySettings,
-				    initGlobalTunnel = false,
-				    port;
-				if (sett.host && sett.port) {
+		let sett             = this.proxySettings,
+		    initGlobalTunnel = false,
+		    port;
+		if (sett.host && sett.port) {
 
-					try {
-						port             = parseInt(sett.port);
-						initGlobalTunnel = true;
-					} catch (e) {
-					}
-				}
+			try {
+				port             = parseInt(sett.port);
+				initGlobalTunnel = true;
+			} catch (e) {
+			}
+		}
 
-				if (initGlobalTunnel) {
-					const globalTunnel = require('global-tunnel-ng');
+		if (initGlobalTunnel) {
+			const globalTunnel = require('global-tunnel-ng');
 
-					logger.info(`Proxy setting initializing on host ${sett.host} port ${port}`);
+			logger.info(`Proxy setting initializing on host ${sett.host} port ${port}`);
 
-					globalTunnel.initialize({
-						host: sett.host,
-						port: port
-					});
-				}
+			globalTunnel.initialize({
+				host: sett.host,
+				port: port
+			});
+		}
 
-			// 	resolve();
-			// }
+		// 	resolve();
+		// }
 		//);
 	}
 
@@ -434,7 +435,7 @@ class Bootstrapper {
 	get appData() {
 		return {
 			name:    this.serviceName,
-			version: this.version
+			version: Bootstrapper.version
 			//appId:   this.appId
 		}
 	}
@@ -451,7 +452,6 @@ class Bootstrapper {
 		return defaults.nedb_storage_root;
 	}
 
-	//noinspection JSUnusedGlobalSymbols
 	get pairingRequired() {
 		return this._config[SettingsProps.PairingRequired];
 	}
@@ -476,8 +476,7 @@ class Bootstrapper {
 		return this._config[SettingsProps.AllowDirectSignin];
 	}
 
-	//noinspection JSMethodCanBeStatic
-	get creds() {
+	static get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
 		if (CommonUtils.isObjectEmpty(creds)) {
@@ -487,13 +486,25 @@ class Bootstrapper {
 		return creds;
 	}
 
-	//noinspection JSMethodCanBeStatic
-	get version() {
+	static get version() {
 		return packageJson.version;
 	}
 
 	set setAppConfig(config) {
 		this._config = config;
+	}
+
+	set setRoles(roles) {
+		this._roles = roles.map(item => {
+			return {
+				id:   item.id,
+				name: item.name
+			}
+		});
+	}
+
+	get roles() {
+		return this._roles;
 	}
 
 	//endregion
@@ -548,7 +559,7 @@ class Bootstrapper {
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = uuid.v4();
 						}
-						else if(prop == SettingsProps.ProxySettings){
+						else if (prop == SettingsProps.ProxySettings) {
 							config[prop] = defaults.DefaultProxyConfig;
 						}
 						else {
@@ -838,7 +849,7 @@ class Bootstrapper {
 					reject(msg);
 				}
 				else {
-					console.warn(msg)
+					console.warn(msg);
 					resolve()
 				}
 			}

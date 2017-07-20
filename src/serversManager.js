@@ -285,6 +285,17 @@ class ServersManager {
 				},
 				callback => {
 					_startDemoApp(new (require('../apps/rasp'))(), callback);
+				},
+				callback =>{
+					const dataService = require('./dataServices').getInstance();
+
+					dataService.getRoles().then(roles=>{
+						bootstrapper.setRoles = roles;
+						callback();
+					}).catch(e=>{
+						logger.error(`Init roles error ${BeameLogger.formatError(e)}`);
+						callback();
+					})
 				}
 
 			],

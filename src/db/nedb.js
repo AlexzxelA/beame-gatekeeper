@@ -43,6 +43,10 @@ const Collections       = {
 		name:    'sessions',
 		indices: [{fieldName: 'id', unique: true}]
 	},
+	roles:         {
+		name:    'roles',
+		indices: [{fieldName: 'id', unique: true}]
+	}
 };
 
 function onError(reject, error) {
@@ -157,6 +161,15 @@ class NeDB {
 					},
 					cb => {
 						this._loadCollection(Collections.gk_logins.name, Collections.gk_logins.indices)
+							.then(() => {
+								cb(null);
+							})
+							.catch(err => {
+								cb(err);
+							})
+					},
+					cb => {
+						this._loadCollection(Collections.roles.name, Collections.roles.indices)
 							.then(() => {
 								cb(null);
 							})
@@ -697,11 +710,11 @@ class NeDB {
 	 */
 	markUserAsDeleted(fqdn) {
 		return this._updateDoc(Collections.users.name, {fqdn: fqdn}, {
-					$set: {
-						isDeleted: true,
-						isActive:  false
-					}
-				});
+			$set: {
+				isDeleted: true,
+				isActive:  false
+			}
+		});
 
 	}
 
@@ -711,11 +724,11 @@ class NeDB {
 	 */
 	updateUser(user) {
 		return this._updateDoc(Collections.users.name, {_id: user._id}, {
-					$set: {
-						isAdmin:  user.isAdmin,
-						isActive: user.isActive
-					}
-				});
+			$set: {
+				isAdmin:  user.isAdmin,
+				isActive: user.isActive
+			}
+		});
 	}
 
 	/**
@@ -724,11 +737,11 @@ class NeDB {
 	 */
 	updateUserProfile(user) {
 		return this._updateDoc(Collections.users.name, {_id: user._id}, {
-					$set: {
-						name:     user.name,
-						nickname: user.nickname
-					}
-				});
+			$set: {
+				name:     user.name,
+				nickname: user.nickname
+			}
+		});
 	}
 
 	getUsers() {
@@ -836,6 +849,73 @@ class NeDB {
 
 	deleteService(id) {
 		return this._removeDoc(Collections.services.name, {id: id});
+	}
+
+	//endregion
+
+	// region roles
+	getRoles() {
+		return this._findDocs(Collections.roles.name, {}, {id: 1})
+	}
+
+	_validateRole(query) {
+		return new Promise((resolve, reject) => {
+				try {
+
+					this._findDoc(Collections.roles.name, query).then(record => {
+						record ? reject(`Role name should be unique`) : resolve();
+					}).catch(reject)
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
+
+	saveRole(role) {
+		return new Promise((resolve, reject) => {
+
+				let query = {
+					name: role.name
+				};
+
+				this._validateRole(query).then(() => {
+
+					this._insertDoc(Collections.roles.name, role).then(doc => {
+						resolve(doc);
+					}).catch(onError.bind(this, reject));
+				}).catch(reject);
+
+			}
+		);
+	}
+
+	updateRole(role) {
+		return new Promise((resolve, reject) => {
+
+				let $this = this;
+
+				const _update = () => {
+					let update = {
+						$set: {
+							name:       role.name
+
+						}
+					};
+
+					this._updateDoc(Collections.roles.name, {_id: role._id}, update).then(resolve).catch(reject);
+				};
+
+				let query = {_id: {$ne: role._id}, name: role.name};
+
+				this._validateRole(query).then(_update.bind($this)).catch(reject);
+
+			}
+		);
+	}
+
+	deleteRole(id) {
+		return this._removeDoc(Collections.roles.name, {id: id});
 	}
 
 	//endregion

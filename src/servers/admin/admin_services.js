@@ -100,7 +100,7 @@ class AdminServices {
 					"Creds":      null,
 					"RegMethods": null,
 					"EnvModes":   null,
-					"Version":    bootstrapper.version
+					"Version":    Bootstrapper.version
 				};
 
 				try {
@@ -130,7 +130,7 @@ class AdminServices {
 								callback();
 							},
 							callback => {
-								data.Creds = bootstrapper.creds;
+								data.Creds = Bootstrapper.creds;
 								callback();
 							},
 							callback => {
@@ -259,6 +259,53 @@ class AdminServices {
 			}
 		);
 
+	}
+
+	//endregion
+
+	// region roles
+	//noinspection JSMethodCanBeStatic
+	getRoles() {
+		return dataService.getRoles();
+	}
+
+	_updateRoles (){
+		this.getRoles().then(roles=>{
+			bootstrapper.setRoles = roles;
+		}).catch(e=>{
+			logger.error(`Update roles error ${BeameLogger.formatError(e)}`);
+		});
+	}
+
+	saveRole(role) {
+		return new Promise((resolve, reject) => {
+				dataService.saveRole(role).then(entity=>{
+					this._updateRoles();
+					resolve(entity);
+				}).catch(reject)
+			}
+		);
+
+	}
+
+	updateRole(role) {
+		return new Promise((resolve, reject) => {
+				dataService.updateRole(role).then(entity=>{
+					this._updateRoles();
+					resolve(entity);
+				}).catch(reject)
+			}
+		);
+	}
+
+	deleteRole(id) {
+		return new Promise((resolve, reject) => {
+				dataService.deleteRole(id).then(()=>{
+					this._updateRoles();
+					resolve();
+				}).catch(reject)
+			}
+		);
 	}
 
 	//endregion
