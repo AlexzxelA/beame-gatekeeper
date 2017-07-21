@@ -83,12 +83,22 @@ function onMenuSelected(e){
 
 $(document).ready(function () {
 
+	$.get('templates/admin/notification.tmpl.html')
+		.success(function (result) {
+			//Add templates to DOM
+			$("body").append(result);
+			//console.log(path + ' loaded')
+		})
+		.error(function () {
+			console.error("Error Loading Templates -- TODO: Better Error Handling");
+		});
+
 	try {
 		if (window.parent) {
-			window.parent.setPageTitle('Gatekeeper Admin');
+			window.parent.setPageTitle('Gatekeeper Config');
 		}
 		else {
-			setPageTitle('Gatekeeper Admin');
+			setPageTitle('Gatekeeper Config');
 		}
 	} catch (e) {
 	}
