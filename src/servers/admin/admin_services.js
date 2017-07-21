@@ -47,6 +47,51 @@ class AdminServices {
 		);
 	}
 
+	saveDbConfig(req) {
+		return new Promise((resolve) => {
+
+				let old = bootstrapper.appConfig;
+
+				bootstrapper.setDbProvider = CommonUtils.parse(req.data);
+
+				bootstrapper.saveAppConfigFile()
+					.then(resolve)
+					.catch(error => {
+						logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+
+						bootstrapper.setAppConfig = old;
+
+						return bootstrapper.saveAppConfigFile();
+					});
+			}
+		);
+	}
+
+	saveProxyConfig(data) {
+		return new Promise((resolve,reject) => {
+
+				if(CommonUtils.isObjectEmpty(data)){
+					reject('Empty data');
+					return
+				}
+
+				let old = bootstrapper.appConfig;
+
+				bootstrapper.setProxySettings = CommonUtils.parse(data);
+
+				bootstrapper.saveAppConfigFile()
+					.then(resolve)
+					.catch(error => {
+						logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+
+						bootstrapper.setAppConfig = old;
+
+						return bootstrapper.saveAppConfigFile();
+					});
+			}
+		);
+	}
+
 	getSettings() {
 		return new Promise((resolve, reject) => {
 				let data = {
@@ -55,7 +100,7 @@ class AdminServices {
 					"Creds":      null,
 					"RegMethods": null,
 					"EnvModes":   null,
-					"Version":    bootstrapper.version
+					"Version":    Bootstrapper.version
 				};
 
 				try {
@@ -65,15 +110,27 @@ class AdminServices {
 								callback();
 							},
 							callback => {
+
+								let lovDs = [], supportedDs = [];
+
+								Object.keys(Constants.DbProviders).forEach(key => {
+									lovDs.push({name: Constants.DbProviders[key]})
+								});
+
+								Object.keys(Constants.DbSupportedProviders).forEach(key => {
+									supportedDs.push(Constants.DbProviders[key])
+								});
+
 								data.DbConfig = {
-									provider: bootstrapper.dbProvider,
-									storage:  Bootstrapper.neDbRootPath
+									provider:  bootstrapper.dbProvider,
+									storage:   Bootstrapper.neDbRootPath,
+									lov:       lovDs,
+									supported: supportedDs.toString()
 								};
 								callback();
-
 							},
 							callback => {
-								data.Creds = bootstrapper.creds;
+								data.Creds = Bootstrapper.creds;
 								callback();
 							},
 							callback => {
@@ -202,6 +259,53 @@ class AdminServices {
 			}
 		);
 
+	}
+
+	//endregion
+
+	// region roles
+	//noinspection JSMethodCanBeStatic
+	getRoles() {
+		return dataService.getRoles();
+	}
+
+	_updateRoles (){
+		this.getRoles().then(roles=>{
+			bootstrapper.setRoles = roles;
+		}).catch(e=>{
+			logger.error(`Update roles error ${BeameLogger.formatError(e)}`);
+		});
+	}
+
+	saveRole(role) {
+		return new Promise((resolve, reject) => {
+				dataService.saveRole(role).then(entity=>{
+					this._updateRoles();
+					resolve(entity);
+				}).catch(reject)
+			}
+		);
+
+	}
+
+	updateRole(role) {
+		return new Promise((resolve, reject) => {
+				dataService.updateRole(role).then(entity=>{
+					this._updateRoles();
+					resolve(entity);
+				}).catch(reject)
+			}
+		);
+	}
+
+	deleteRole(id) {
+		return new Promise((resolve, reject) => {
+				dataService.deleteRole(id).then(()=>{
+					this._updateRoles();
+					resolve();
+				}).catch(reject)
+			}
+		);
 	}
 
 	//endregion

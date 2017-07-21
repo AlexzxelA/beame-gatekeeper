@@ -12,7 +12,6 @@ const EnvProfile = {
 	FqdnPattern: '.p.'
 };
 
-const BeameAuthServerLocalPort = process.env.BEAME_AUTH_SERVER_PORT || 65000;
 
 const GatewayControllerPath    = '/beame-gw';
 const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
@@ -124,6 +123,11 @@ const CredentialType = {
 
 const DbProviders = {
 	"Couchbase": "couchbase",
+	"NeDB": "NeDB",
+	"Sqlite":"sqlite",
+};
+
+const DbSupportedProviders = {
 	"NeDB": "NeDB"
 };
 
@@ -153,7 +157,6 @@ const CookieNames = {
 };
 
 module.exports = {
-	BeameAuthServerLocalPort,
 	EnvProfile,
 	RequestType,
 	RegistrationMethod,
@@ -168,6 +171,7 @@ module.exports = {
 	DelegatedLoginNotificationAction,
 	SetupServices,
 	DbProviders,
+	DbSupportedProviders,
 	CookieNames,
 	AuthMode: {
 		"SESSION":   "Session",
@@ -198,6 +202,5 @@ module.exports = {
 	CredsJsonPath,
 	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
-	AppConfigJsonPath,
-
+	AppConfigJsonPath
 };

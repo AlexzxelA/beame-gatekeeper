@@ -26,15 +26,15 @@ const AppConfigFileName           = Constants.AppConfigFileName;
 const CredsFileName               = Constants.CredsFileName;
 const CustomerAuthServersFileName = Constants.CustomerAuthServersFileName;
 
-const BeameRootPath          = Constants.BeameRootPath;
+const BeameRootPath = Constants.BeameRootPath;
 
 const CredsFolderPath             = Constants.CredsFolderPath;
 const CredsJsonPath               = Constants.CredsJsonPath;
 const CustomerAuthServersJsonPath = Constants.CustomerAuthServersJsonPath;
 
 
-const ConfigFolderPath     = Constants.ConfigFolderPath;
-const AppConfigJsonPath    = Constants.AppConfigJsonPath;
+const ConfigFolderPath  = Constants.ConfigFolderPath;
+const AppConfigJsonPath = Constants.AppConfigJsonPath;
 
 
 const _onConfigError = error => {
@@ -51,6 +51,9 @@ class Bootstrapper {
 		let config                            = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
 		this._isDelegatedCentralLoginVerified = false;
+		this._roles                           = [];
+		this._proxyAgent                      = null;
+		this._authServerLocalPort             = null;
 	}
 
 	/**
@@ -71,16 +74,17 @@ class Bootstrapper {
 	/**
 	 *
 	 * @param {boolean} exit
+	 * @param {boolean} rejectInvalidDbProvider
 	 * @returns {Promise}
 	 */
-	initConfig(exit) {
+	initConfig(exit, rejectInvalidDbProvider = true) {
 
 		return new Promise((resolve) => {
 				Bootstrapper._ensureBeameServerDir()
 					.then(this._ensureAppConfigJson.bind(this))
 					.then(this._ensureCredsConfigJson.bind(this))
 					.then(this._ensureCustomerAuthServersJson.bind(this))
-					.then(this._ensureDbConfig.bind(this))
+					.then(this._ensureDbConfig.bind(this, rejectInvalidDbProvider))
 					.then(() => {
 						logger.info(`Beame-gatekeeper config files ensured`);
 						resolve();
@@ -170,6 +174,41 @@ class Bootstrapper {
 		else {
 			process.env.BEAME_INSTA_DOC_ROOT = 'public';
 		}
+	}
+
+	setExternalOcspEnv() {
+		if (this.externalOcspServerFqdn) {
+			process.env.EXTERNAL_OCSP_FQDN = this.externalOcspServerFqdn;
+		}
+	}
+
+	assertProxySettings() {
+
+		return new Promise((resolve) => {
+				let sett           = this.proxySettings,
+				    initProxyAgent = false,
+				    port;
+				if (sett.host && sett.port) {
+
+					try {
+						port           = parseInt(sett.port);
+						initProxyAgent = true;
+					} catch (e) {
+					}
+				}
+
+				if (initProxyAgent && !this._proxyAgent) {
+					this._proxyAgent = beameSDK.ProxyAgent;
+
+					this._proxyAgent.initialize({
+						host: sett.host,
+						port: port
+					});
+				}
+
+				resolve();
+			}
+		);
 	}
 
 	static isConfigurationValid() {
@@ -299,6 +338,10 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.DbProvider] ? this._config[SettingsProps.DbProvider] : null;
 	}
 
+	set setDbProvider(provider) {
+		this._config[SettingsProps.DbProvider] = provider;
+	}
+
 	get registrationAuthTokenTtl() {
 		return this._config && this._config[SettingsProps.RegistrationAuthTokenTtl] ? this._config[SettingsProps.RegistrationAuthTokenTtl] : defaults.RegistrationAuthTokenTtl;
 	}
@@ -355,6 +398,18 @@ class Bootstrapper {
 		return this._config && this._config[SettingsProps.ExternalMatchingFqdn] ? this._config[SettingsProps.ExternalMatchingFqdn] : null;
 	}
 
+	get externalOcspServerFqdn() {
+		return this._config && this._config[SettingsProps.ExternalOcspServerFqdn] ? this._config[SettingsProps.ExternalOcspServerFqdn] : null;
+	}
+
+	get proxySettings() {
+		return this._config && this._config[SettingsProps.ProxySettings] ? this._config[SettingsProps.ProxySettings] : defaults.DefaultProxyConfig;
+	}
+
+	set setProxySettings(settings) {
+		this._config[SettingsProps.ProxySettings] = settings;
+	}
+
 	get externalLoginUrl() {
 		return this._config && this._config[SettingsProps.ExternalLoginServer] ? this._config[SettingsProps.ExternalLoginServer] : null;
 	}
@@ -382,7 +437,7 @@ class Bootstrapper {
 	get appData() {
 		return {
 			name:    this.serviceName,
-			version: this.version
+			version: Bootstrapper.version
 			//appId:   this.appId
 		}
 	}
@@ -399,7 +454,6 @@ class Bootstrapper {
 		return defaults.nedb_storage_root;
 	}
 
-	//noinspection JSUnusedGlobalSymbols
 	get pairingRequired() {
 		return this._config[SettingsProps.PairingRequired];
 	}
@@ -424,8 +478,7 @@ class Bootstrapper {
 		return this._config[SettingsProps.AllowDirectSignin];
 	}
 
-	//noinspection JSMethodCanBeStatic
-	get creds() {
+	static get creds() {
 		let creds = DirectoryServices.readJSON(CredsJsonPath);
 
 		if (CommonUtils.isObjectEmpty(creds)) {
@@ -435,13 +488,33 @@ class Bootstrapper {
 		return creds;
 	}
 
-	//noinspection JSMethodCanBeStatic
-	get version() {
+	static get version() {
 		return packageJson.version;
 	}
 
 	set setAppConfig(config) {
 		this._config = config;
+	}
+
+	set setRoles(roles) {
+		this._roles = roles.map(item => {
+			return {
+				id:   item.id,
+				name: item.name
+			}
+		});
+	}
+
+	get roles() {
+		return this._roles;
+	}
+
+	set authServerLocalPort(port) {
+		this._authServerLocalPort = port;
+	}
+
+	get authServerLocalPort() {
+		return this._authServerLocalPort;
 	}
 
 	//endregion
@@ -491,10 +564,14 @@ class Bootstrapper {
 
 				for (let prop in defaults) {
 					//noinspection JSUnfilteredForInLoop
-					if (typeof defaults[prop] !== "object") {
+					if (typeof defaults[prop] !== "object" || prop == SettingsProps.ProxySettings) {
 						if (prop == SettingsProps.AppId) {
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = uuid.v4();
+						}
+						else if (prop == SettingsProps.ProxySettings) {
+							// noinspection JSUnfilteredForInLoop
+							config[prop] = defaults.DefaultProxyConfig;
 						}
 						else {
 							//noinspection JSUnfilteredForInLoop
@@ -536,12 +613,12 @@ class Bootstrapper {
 							config[prop] = defaults[prop];
 						}
 
-						// //noinspection JSUnfilteredForInLoop
-						// if (prop == SettingsProps.AppId && !config[prop]) {
-						// 	updateFile   = true;
-						// 	//noinspection JSUnfilteredForInLoop
-						// 	config[prop] = uuid.v4();
-						// }
+						//noinspection JSUnfilteredForInLoop
+						if (prop == SettingsProps.ProxySettings && (!config[prop] || CommonUtils.isObjectEmpty(config[prop]))) {
+							updateFile   = true;
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = defaults.DefaultProxyConfig;
+						}
 					}
 
 					this._config = config;
@@ -755,7 +832,7 @@ class Bootstrapper {
 
 	//region Db services
 	//region config
-	_ensureDbConfig() {
+	_ensureDbConfig(rejectInvalidDbProvider) {
 
 		return new Promise((resolve, reject) => {
 				let provider = this._config[SettingsProps.DbProvider];
@@ -777,7 +854,15 @@ class Bootstrapper {
 					// 	break;
 				}
 
-				reject(`Db Provider ${provider} currently not supported`);
+				let msg = `Db Provider ${provider} currently not supported`;
+
+				if (rejectInvalidDbProvider) {
+					reject(msg);
+				}
+				else {
+					console.warn(msg);
+					resolve()
+				}
 			}
 		);
 	}

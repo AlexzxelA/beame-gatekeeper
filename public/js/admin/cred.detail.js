@@ -275,6 +275,9 @@ function loadCredDetail(data) {
 			new Clipboard('#copy-fqdn-btn');
 			$('#copy-fqdn-btn').attr("data-clipboard-target", "#hid-fqdn");
 
+			 new Clipboard('#copy-pfx-pwd-btn');
+
+
 			this.set('revokeDisabled', this.data.hasChildren || this.data.revoked);
 			this.set('commonButtonDisabled', this.data.revoked);
 			this.set('renewButtonDisabled', this.data.revoked || !this.data.isLocal);
@@ -293,6 +296,7 @@ function loadCredDetail(data) {
 		emailFormVisible:     true,
 		showValidCertForms:   true,
 		showDns:              true,
+		showPfxPwd:           false,
 		data:                 data,
 
 		parentName:       function () {
@@ -416,6 +420,49 @@ function loadCredDetail(data) {
 			});
 		},
 
+		//PfxPwd
+		pfxPwdType:function(){
+			return this.get("showPfxPwd") ? 'text' : 'password';
+		},
+		pfxPwdCopyVisibility:function(){
+			return this.get("showPfxPwd");
+		},
+		showHidePfxPwd:function(){
+			this.set("showPfxPwd",!this.get("showPfxPwd"));
+		},
+		showHidePfxPwdName:function(){
+			return this.get("showPfxPwd") ? 'hide' : 'show';
+		},
+
+		//roles
+		saveRoles:function(e){
+			e.preventDefault();
+			var roles = this.get("data.roles");
+
+			showLoader();
+			$.ajax({
+				url:         '/roles/save/' + this.data.fqdn,
+				cache:       false,
+				type:        "Post",
+				data:JSON.stringify(roles),
+				datatype:    "json",
+				contentType: "application/json; charset=utf-8"
+				, success:   function (response) {
+
+					hideLoader();
+
+
+					if (response.responseCode == 1) {
+						showNotification(response, response.responseDesc);
+						reinitModel(response,true);
+					}
+					else {
+						showNotification(false, 'Error. ' + response.responseDesc);
+					}
+				}
+			});
+		},
+
 		//DNS record
 		dnsRecords:             [],
 		availableDnsRecords:    [],
@@ -533,7 +580,7 @@ function loadCredDetail(data) {
 
 			showLoader();
 
-			formData = {
+			var formData = {
 				fqdn:    credDetailViewModel.get('data.fqdn'),
 				dnsFqdn: data.fqdn
 			};

@@ -6,6 +6,38 @@ function loadSettings(){
 
 		viewDash  = new kendo.View("home",{
 			model: new kendo.observable({
+				role_ds: new kendo.data.DataSource({
+				transport: {
+					read:    {
+						url: "/role/list"
+					},
+					create:  {
+						url:      "/role/create",
+						method:   "POST",
+						dataType: "json"
+					},
+					update:  {
+						url:      "/role/update",
+						method:   "POST",
+						dataType: "json"
+					},
+					destroy: {
+						url:      "/role/destroy",
+						method:   "POST",
+						dataType: "json"
+					}
+				},
+				schema:    {
+					model: {
+						id:     "id",
+						fields: {
+							id:       {type: "number", "editable": false},
+							name:     {type: "string"}
+						}
+					}
+				},
+				pageSize:  20
+			}),
 				data: settings,
 				onSave:function(){
 					showLoader();
@@ -19,6 +51,42 @@ function loadSettings(){
 						},
 						dataType: 'json'
 					});
+				},
+				onDbSave:function(){
+					if(this.data.DbConfig.supported.indexOf(this.data.DbConfig.provider) < 0){
+						showNotification(false, 'Please select supported DB provider');
+						return;
+					}
+					showLoader();
+
+					$.ajax({
+						type: "POST",
+						url: '/db-provider/save',
+						data: {data: JSON.stringify(this.data.DbConfig.provider)},
+						success: function(result){
+							hideLoader();
+							alert(result.success ? 'Settings saved' : result.error);
+						},
+						dataType: 'json'
+					});
+				},
+				onProxySave:function(){
+					showLoader();
+
+					var data = JSON.stringify(this.data.AppConfig.ProxySettings);
+					console.log(data);
+
+					$.ajax({
+						type: "POST",
+						url: '/proxy/save',
+						data: {data: data},
+						success: function(result){
+							hideLoader();
+							alert(result.success ? 'Settings saved' : result.error);
+						},
+						dataType: 'json'
+					});
+
 				}
 			})
 		});
@@ -44,4 +112,8 @@ function loadSettings(){
 	else{
 		loadDash();
 	}
+
+	console.log('huy');
+
+
 }

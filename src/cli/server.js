@@ -33,7 +33,7 @@ function start(callback) {
 	CommonUtils.validateMachineClock().then(() => {
 		const getServersSettings = bootstrapper.getServersSettings.bind(bootstrapper);
 		const ServersManager     = require('../serversManager');
-		const credentialManager = new (require('../credentialManager'))();
+		const credentialManager  = new (require('../credentialManager'))();
 
 		const assertServersSettings = (settings) => {
 			return new Promise((resolve) => {
@@ -62,7 +62,34 @@ function start(callback) {
 
 start.params = {};
 
+function config(callback) {
 
+
+	bootstrapper.initConfig(false, false).then(() => {
+
+		bootstrapper.setHtmlEnvMode();
+
+		bootstrapper.setOcspCachePeriod();
+
+		let validationResp = Bootstrapper.isConfigurationValid();
+
+		if (!validationResp.valid) {
+
+			logger.fatal(validationResp.message);
+		}
+
+		const Server = require('../servers/config/server');
+		const server = new Server(serviceManager);
+
+		server.start(callback);
+
+	}).catch(error => {
+		logger.fatal(error);
+	});
+}
+config.params  = {};
+config.toText  = x => `Config Server started on ${x.url}`;
 module.exports = {
-	start
+	start,
+	config
 };

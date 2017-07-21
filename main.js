@@ -13,7 +13,10 @@ if (!semver.satisfies(process.versions.node, pjson.engines.node)) {
 }
 // Ensure correct NodeJS version - end
 
-
+const Bootstrapper   = require('./src/bootstrapper');
+const bootstrapper   = Bootstrapper.getInstance();
+bootstrapper.assertProxySettings();
+bootstrapper.setExternalOcspEnv();
 /**
  * Should be synchronized with token from Auth Server
  * @typedef {Object} EmailRegistrationData
@@ -57,7 +60,7 @@ const cli = new BeameCli('beame-gatekeeper', path.join(__dirname, 'src', 'cli'),
 cli.setGlobalSchema(parametersSchema);
 
 cli.approveCommand = (cmdName, subCmdName) => {
-	if((cmdName == 'creds') && (subCmdName == 'getCreds')) {
+	if(((cmdName == 'creds') && (subCmdName == 'getCreds')) || ((cmdName == 'server') && (subCmdName == 'config'))) {
 		return true;
 	}
 	let credsCount = list().length;

@@ -46,6 +46,7 @@
     "express-csv": "^0.6.0",
     "formidable": "^1.1.1",
     "http-proxy": "^1.15.1",
+    "https-proxy-agent": "^2.0.0",
     "minimist": "^1.2.0",
     "nedb": "^1.8.0",
     "onoff": "^1.1.1",

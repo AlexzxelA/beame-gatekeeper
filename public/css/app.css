@@ -3310,6 +3310,9 @@ p + p {
   color: #ccc;
   margin-top: .5rem; }
 
+.cursor-point {
+  cursor: pointer !important; }
+
 .overlay {
   position: fixed;
   top: 0;
@@ -3810,6 +3813,9 @@ Lists
           top: 8px;
           right: 4px;
           margin: 0; }
+  .dash-list.k-panelbar .config-list .proxy-panel > div > label {
+    width: 120px !important;
+    margin-right: 10px; }
 
 /* -------------------------
 Notifications

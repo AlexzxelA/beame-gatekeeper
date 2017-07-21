@@ -134,7 +134,7 @@ class Approver {
 			this._jsonQrData['matching']  = this._matchingServerFqdn;
 			this._jsonQrData['appId']     = bootstrapper.appId;
 			this._jsonQrData['gwFqdn']    = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
-			this._jsonQrData['version']   = bootstrapper.version;
+			this._jsonQrData['version']   = Bootstrapper.version;
 			this._jsonQrData['pairing']   = bootstrapper.pairingRequired;
 		});
 
@@ -221,7 +221,7 @@ class Approver {
 			matching:       this._matchingServerFqdn,
 			service:        this._serviceName,
 			appId:          bootstrapper.appId,
-			version:        bootstrapper.version,
+			version:        Bootstrapper.version,
 			pairing:        bootstrapper.pairingRequired
 
 		};

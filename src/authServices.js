@@ -450,9 +450,10 @@ class BeameAuthServices {
 
 	/**
 	 * @param {SignatureToken} authToken
+	 * @param {bool} [allowExpired]
 	 * @returns {Promise}
 	 */
-	_validateAuthToken(authToken) {
+	_validateAuthToken(authToken, allowExpired) {
 		return new Promise((resolve, reject) => {
 
 				if (!BeameAuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
@@ -460,7 +461,7 @@ class BeameAuthServices {
 					return;
 				}
 
-				AuthToken.validate(authToken).then(resolve).catch(reject);
+				AuthToken.validate(authToken, allowExpired).then(resolve).catch(reject);
 
 			}
 		);
@@ -796,7 +797,7 @@ class BeameAuthServices {
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
 				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-				    version:       bootstrapper.version,
+				    version:       Bootstrapper.version,
 				    pairing:       bootstrapper.pairingRequired
 			    },
 			    postEmailUrl = null,
@@ -1020,7 +1021,7 @@ class BeameAuthServices {
 				    ttl:           bootstrapper.customerInvitationTtl,
 				    imageRequired: bootstrapper.registrationImageRequired,
 				    gwFqdn:        Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-				    version:       bootstrapper.version,
+				    version:       Bootstrapper.version,
 				    pairing:       bootstrapper.pairingRequired
 			    },
 			    postEmailUrl = null;
@@ -1227,31 +1228,7 @@ class BeameAuthServices {
 				} catch (e) {
 					reject(e);
 				}
-				// const method = bootstrapper.registrationMethod;
-				//
-				// switch (method) {
-				// 	case Constants.RegistrationMethod.Email:
-				// 		try {
-				// 			let sign         = this.signData(fqdn),
-				// 			    provisionApi = new ProvisionApi(),
-				// 			    url          = `${this._matchingServerFqdn}${apiConfig.Actions.Matching.CompleteInvitation.endpoint}/${fqdn}`;
-				//
-				// 			provisionApi.postRequest(`https://${url}`, {}, (error) => {
-				// 				if (error) {
-				// 					reject(error);
-				// 				}
-				// 				else {
-				// 					resolve();
-				// 				}
-				// 			}, sign, 10);
-				// 		} catch (e) {
-				// 			reject(e);
-				// 		}
-				// 		return;
-				// 	default:
-				// 		resolve();
-				// 		return;
-				// }
+
 			}
 		);
 	}
@@ -1640,7 +1617,7 @@ class BeameAuthServices {
 						serviceName: bootstrapper.serviceName,
 						serviceId:   bootstrapper.appId, matchingFqdn: this._matchingServerFqdn,
 						gwFqdn:      Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer),
-						version:     bootstrapper.version,
+						version:     Bootstrapper.version,
 						pairing:     bootstrapper.pairingRequired
 					})
 					.then(regToken => {
@@ -1848,6 +1825,8 @@ class BeameAuthServices {
 					return item;
 				});
 
+				data.roles = data.roles || [];
+
 				data.pwd = cred.hasKey("PWD") ? String.fromCharCode.apply(null, cred.PWD) : null;
 
 				data.hasChildren = store.hasLocalChildren(fqdn);
@@ -1907,6 +1886,7 @@ class BeameAuthServices {
 						}
 					],
 					() => {
+						data.roles_lov = bootstrapper.roles;
 						resolve(data);
 					});
 			}
@@ -2004,6 +1984,35 @@ class BeameAuthServices {
 		);
 	}
 
+	saveRoles(fqdn, roles) {
+		return new Promise((resolve, reject) => {
+				if (!fqdn) {
+					reject('Fqdn required');
+					return;
+				}
+				let cred = store.getCredential(fqdn);
+
+				if (!cred) {
+					reject(`Credential ${fqdn} not found`);
+					return;
+				}
+
+				cred.metadata.roles = roles;
+
+				cred.beameStoreServices.writeMetadataSync(cred.metadata);
+
+				Credential.saveCredAction(cred, {
+					action: Constants.CredAction.RolesUpdate,
+					roles,
+					date:   Date.now()
+				});
+
+
+				this.getCredDetail(fqdn).then(resolve).catch(reject);
+			}
+		);
+	}
+
 	deleteDns(data) {
 		let fqdn = data.fqdn;
 		return new Promise((resolve, reject) => {
@@ -2076,7 +2085,7 @@ class BeameAuthServices {
 
 	//endregion
 
-	getRequestAuthToken(req) {
+	getRequestAuthToken(req, allowExpired) {
 		return new Promise((resolve, reject) => {
 				let authHead  = req.get('X-BeameAuthToken'),
 				    /** @type {SignatureToken|null} */
@@ -2107,7 +2116,7 @@ class BeameAuthServices {
 					return;
 				}
 
-				this._validateAuthToken(authToken).then(() => {
+				this._validateAuthToken(authToken, allowExpired).then(() => {
 					resolve(authToken)
 				}).catch(reject);
 			}

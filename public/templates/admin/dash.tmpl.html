@@ -28,7 +28,10 @@
                         Application
                     </li>
                     <li>
-                        Credentials
+                        Roles
+                    </li>
+                    <li>
+                        Proxy Settings
                     </li>
                     <li>
                         Database
@@ -142,6 +145,13 @@
                         </li>
 
                         <li>
+                            <label>External OCSP server fqdn</label>
+                            <textarea data-bind="value:data.AppConfig.ExternalOcspServerFqdn"
+                                      class='k-textbox value-custom'
+                                      id="ExternalOcspServerFqdn" cols="30" rows="1"></textarea>
+                        </li>
+
+                        <li>
                             <label>OCSP cache period (days)</label>
                             <input class="value-custom pt-half" data-role="numerictextbox"
                                    data-bind="value:data.AppConfig.OcspCachePeriod"
@@ -212,42 +222,70 @@
                     </ul>
                 </div>
                 <div>
+                    <div data-role="grid"
+                         data-editable="inline"
+                         data-filterable="true"
+                         data-sortable="true"
+                         data-resizable= "true"
+                         data-toolbar="['create']"
+                         data-columns="[
+                                 { 'field': 'id', 'width': 80 },
+                                 { 'field': 'name' },
+                                 { 'title':'', 'width':'120' ,'command':['edit','destroy'] }
+                              ]"
+                         data-bind="source: role_ds"
+                         data-pageable="{
+                            'numeric': true,
+                            'pageSizes': true,
+                            'refresh':true
+                         }"
+
+                         id="roles-grid">
+
+                    </div>
+                </div>
+                <div>
                     <ul class="config-list">
                         <li class="mt-2">
-                            <label>Zero Level</label>
-                            <span class="value-custom" data-bind="text:data.Creds.ZeroLevel.fqdn"></span>
+                            <label for="ProxyBothHost">Host</label>
+                            <input class="value-custom pt-half"
+                                   data-bind="value:data.AppConfig.ProxySettings.host"
+                                   id="ProxyBothHost" type="text"/>
                         </li>
-
-                        <li>
-                            <label>Gateway Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.GatewayServer.fqdn"></span>
+                        <li class="mt-2">
+                            <label for="ProxyBothPort">Port</label>
+                            <input class="value-custom pt-half"
+                                   style="width: 80px !important;"
+                                   data-role="numerictextbox"
+                                   data-bind="value:data.AppConfig.ProxySettings.port"
+                                   id="ProxyBothPort" type="text" data-spinners="false" data-format="{0:D}"/>
                         </li>
-
-                        <li>
-                            <label>Client Login Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.GatekeeperLoginManager.fqdn"></span>
-                        </li>
-
-                        <li>
-                            <label>Beame Authorization Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.BeameAuthorizationServer.fqdn"></span>
-                        </li>
-
-                        <li class="mb-2">
-                            <label>Matching Server</label>
-                            <span class="value-custom" data-bind="text:data.Creds.MatchingServer.fqdn"></span>
+                        <li class="mt-2">
+                            <label>&nbsp;</label>
+                            <button id="save-proxy-btn" class="k-primary bold d-inline-block px-2 my-2" data-bind="events: { click: onProxySave }" style="height: 22px">Save
+                            </button>
                         </li>
                     </ul>
+                    <label>*** if you change a settings, please restart server</label>
                 </div>
                 <div>
                     <ul class="config-list">
                         <li class="mt-2">
                             <label>Provider</label>
-                            <span data-bind="text: data.DbConfig.provider"></span>
+                            <input data-role="dropdownlist" data-auto-bind="true" data-value-primitive="true"
+                                   data-text-field="name" data-value-field="name"
+                                   data-bind="value: data.DbConfig.provider, source: data.DbConfig.lov"
+                                   class="k-textbox value-custom">
+                            <label style="display: block">Supported providers: <i style="padding: 1px 0 0 5px" data-bind="text: data.DbConfig.supported"></i></label>
                         </li>
                         <li class="mt-2">
                             <label>Storage</label>
                             <span data-bind="text: data.DbConfig.storage"></span>
+                        </li>
+                        <li class="mt-2">
+                            <label>&nbsp;</label>
+                            <button id="save-db-config-btn" class="k-primary bold d-inline-block px-2 my-2" data-bind="events: { click: onDbSave }" style="height: 22px">Save
+                            </button>
                         </li>
                     </ul>
                 </div>

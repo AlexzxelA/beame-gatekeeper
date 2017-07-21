@@ -244,6 +244,24 @@ class DataServices {
 
 	//endregion
 
+	//region roles
+	getRoles(){
+		return this._dbService.getRoles();
+	}
+
+	saveRole(role){
+		return this._dbService.saveRole(role);
+	}
+
+	updateRole(role){
+		return this._dbService.updateRole(role);
+	}
+
+	deleteRole(id) {
+		return this._dbService.deleteRole(id);
+	}
+	//endregion
+
 	//region GK Logins
 	getGkLogins() {
 		return this._dbService.getGkLogins();
