@@ -64,6 +64,53 @@ class ConfigRouter {
 				res.json({success: false, error: BeameLogger.formatError(error)});
 			});
 		});
+
+		// region roles
+		this._router.get('/role/list', (req, res) => {
+			this._beameAdminServices.getRoles().then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				logger.error(error);
+				res.json([]);
+			});
+		});
+
+		this._router.post('/role/create', (req, res) => {
+			let role = req.body;
+			this._beameAdminServices.saveRole(role).then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				res.status(400).send(error);
+			});
+		});
+
+		this._router.post('/role/update', (req, res) => {
+			let role = req.body;
+			this._beameAdminServices.updateRole(role).then(
+				array => {
+					res.status(200).json(array);
+				}
+			).catch(error => {
+				res.status(400).send(error);
+			});
+		});
+
+		this._router.post('/role/destroy', (req, res) => {
+			let data = req.body,
+			    id   = parseInt(data.id);
+
+			this._beameAdminServices.deleteRole(id).then(() => {
+				res.status(200).json({});
+			}).catch(error => {
+				res.status(400).send(error);
+			});
+
+		});
+		//endregion
 	}
 
 	get router() {

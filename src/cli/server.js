@@ -65,7 +65,9 @@ start.params = {};
 function config(callback) {
 
 
-	bootstrapper.initConfig(false, false).then(() => {
+	bootstrapper.initAll(false, false)
+		.then(startDataService)
+		.then(() => {
 
 		bootstrapper.setHtmlEnvMode();
 

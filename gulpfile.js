@@ -34,6 +34,7 @@ const tools_folder_name = 'tools';
 const tools_bucket_dir  = 'insta-server-meta';
 
 const web_src_root_path = './apps/';
+const gulpUtil          = require('gulp-util');
 
 const getVersion = () => {
 	const pad2 = (n) => {
@@ -80,6 +81,8 @@ const compilePage = (pagePath, distPath) => {
 			'utils-head':         `${cdn_folder_path}js/utils.min.js`,
 			'cef':                `${cdn_folder_path}js/cef.min.js`,
 			'safari':             `${cdn_folder_path}js/safari.js`,
+			'config-js-head':     `${cdn_folder_path}js/config.head.min.js`,
+			'config-js-foot':     `${cdn_folder_path}js/config.foot.min.js`,
 			'admin-js-head':      `${cdn_folder_path}js/admin.head.min.js`,
 			'admin-js-foot':      `${cdn_folder_path}js/admin.foot.min.js`,
 			'inv-js-foot':        `${cdn_folder_path}js/admin.invitation.min.js`,
@@ -93,7 +96,7 @@ const compilePage = (pagePath, distPath) => {
 
 };
 
-const gulpUtil  = require('gulp-util');
+
 const compileJs = (funcArray, dist_name, optimize, innerFolder = '') => {
 	gulp.src(funcArray)
 		.pipe(concat(dist_name))
@@ -224,6 +227,21 @@ gulp.task('compile-js', () => {
 		'./public/js/notification_manager.js',
 		'./public/lib/clipboard.min.js',
 		'./public/js/utils.js',
+		'./public/js/admin/config_head.js'
+	], 'config.head.min.js', true);
+
+	compileJs([
+		'./public/lib/jszip-2.4.0.min.js',
+		'./public/lib/jquery.form-3.5.1.min.js',
+		'./public/js/admin/notification.js',
+		'./public/js/admin/config_foot.js',
+		'./public/js/admin/dash.js'
+	], 'config.foot.min.js', true);
+
+	compileJs([
+		'./public/js/notification_manager.js',
+		'./public/lib/clipboard.min.js',
+		'./public/js/utils.js',
 		'./public/js/admin/admin_head.js'
 	], 'admin.head.min.js', true);
 
@@ -316,7 +334,7 @@ gulp.task('compile-js', () => {
 			'./public/js/safari.js'
 		], 'safari.js', false);
 
-		compileJs(
+	compileJs(
 		[
 			'./public/js/zendesk-widget.js'
 		], 'zendesk-widget.js', false);
@@ -394,6 +412,9 @@ gulp.task('compile-pages', () => {
 
 	compilePage('./public/pages/beame_auth/signup.html', `./${dist_folder_name}/pages/beame_auth/`);
 	compilePage('./public/pages/beame_auth/client_approval.html', `./${dist_folder_name}/pages/beame_auth/`);
+
+
+	compilePage('./public/pages/config/index.html', `./${dist_folder_name}/pages/config/`);
 
 
 	compilePage('./public/pages/admin/index.html', `./${dist_folder_name}/pages/admin/`);
