@@ -24,10 +24,6 @@ function setName(name, callback) {
 }
 setName.params = {'name': {required: true}};
 
-function registerAuthServer(fqdn, callback) {
-	bootstrapper.registerCustomerAuthServer(fqdn).then(callback.bind()).catch(callback);
-}
-registerAuthServer.params = {'fqdn': {required: true}};
 
 function apps(callback) {
 	bootstrapper.initAll()
@@ -40,7 +36,6 @@ function apps(callback) {
 module.exports = {
 	init,
 	setName,
-	registerAuthServer,
 	apps,
 };
 

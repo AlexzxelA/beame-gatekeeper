@@ -3,7 +3,7 @@
  */
 function loadSettings(){
 	var loadDash =  function(){
-
+console.log('huj');
 		viewDash  = new kendo.View("home",{
 			model: new kendo.observable({
 				role_ds: new kendo.data.DataSource({
@@ -38,6 +38,38 @@ function loadSettings(){
 				},
 				pageSize:  20
 			}),
+			provision_ds: new kendo.data.DataSource({
+				transport: {
+					// read:  function (e) {
+					// 	e.success(settings.ProvisionConfig.Fields);
+					// },
+					read:    {
+						url: "/provision/config/list"
+					},
+					update:  {
+						url:      "/provision/config/update",
+						method:   "POST",
+						dataType: "json"
+					},
+					parameterMap: function(options, operation) {
+						if (operation !== "read" && options.models) {
+							return {models: kendo.stringify(options.models)};
+						}
+					}
+				},
+				schema:    {
+					model: {
+						id:     "FiledName",
+						fields: {
+							FiledName: { editable: false },
+							Label: {  editable: false} ,
+							IsActive: { type: "boolean" },
+							Required: { type: "boolean" }
+						}
+					}
+				},
+				batch: true
+			}),
 				data: settings,
 				onSave:function(){
 					showLoader();
@@ -47,7 +79,7 @@ function loadSettings(){
 						data: {data: JSON.stringify(this.data)},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Settings saved' : result.error);
+							showNotification(result.success, result.success ? 'Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});
@@ -65,7 +97,7 @@ function loadSettings(){
 						data: {data: JSON.stringify(this.data.DbConfig.provider)},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Settings saved' : result.error);
+							showNotification(result.success, result.success ? 'DB Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});
@@ -82,7 +114,7 @@ function loadSettings(){
 						data: {data: data},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Settings saved' : result.error);
+							alert(result.success ? 'Proxy Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});
@@ -108,6 +140,7 @@ function loadSettings(){
 	};
 	if(!settings){
 		getSettings(loadDash);
+		//
 	}
 	else{
 		loadDash();

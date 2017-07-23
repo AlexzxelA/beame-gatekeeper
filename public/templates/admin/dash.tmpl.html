@@ -34,6 +34,9 @@
                         Proxy Settings
                     </li>
                     <li>
+                        Provision Settings
+                    </li>
+                    <li>
                         Database
                     </li>
                 </ul>
@@ -41,7 +44,7 @@
                     <ul class="config-list">
                         <li class="mt-2">
                             <label>Service name</label>
-                            <input type="text" class='k-textbox value-custom'
+                            <input class='k-textbox value-custom'
                                    data-bind="value: data.AppConfig.ServiceName"
                                    id="ServiceName"/>
                         </li>
@@ -82,6 +85,18 @@
                                    data-text-field="name"
                                    data-value-field="name"
                                    data-bind="value: data.AppConfig.HtmlEnvMode, source: data.HtmlEnvModes"
+                                   class='k-textbox value-custom'
+                            />
+                        </li>
+
+                        <li>
+                            <label>Custom login provider</label>
+                            <input data-role="combobox"
+                                   data-auto-bind="true"
+                                   data-value-primitive="true"
+                                   data-text-field="name"
+                                   data-value-field="code"
+                                   data-bind="value: data.AppConfig.CustomLoginProvider, source: data.CustomLoginProviders"
                                    class='k-textbox value-custom'
                             />
                         </li>
@@ -267,6 +282,23 @@
                         </li>
                     </ul>
                     <label>*** if you change a settings, please restart server</label>
+                </div>
+                <div>
+                    <div data-role="grid"
+                         data-editable="true"
+                         data-filterable="true"
+                         data-sortable="true"
+                         data-resizable= "true"
+                         data-toolbar="['save', 'cancel']",
+                         data-columns="[
+                                 { 'field': 'Label' , 'title':'Name'},
+                                 { 'field': 'IsActive', 'title':'Active' },
+                                 { 'field': 'Required' , 'title':'Required'}
+                              ]"
+                         data-bind="source: provision_ds"
+                         id="prov-settings-grid">
+
+                    </div>
                 </div>
                 <div>
                     <ul class="config-list">

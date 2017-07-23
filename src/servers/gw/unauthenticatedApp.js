@@ -303,7 +303,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	function assertGoodSignedBy(customerAuthServersFqdns) {
 		return new Promise((resolve, reject) => {
-			if (customerAuthServersFqdns.indexOf(req.body.encryptedUserData.signedBy) != -1) {
+			if (beameAuthServerFqdn === req.body.encryptedUserData.signedBy) {
 				resolve();
 			} else {
 				reject(`Signed by unauthorized fqdn: ${req.body.encryptedUserData.signedBy}. Should be one of ${customerAuthServersFqdns.join(',')}`);
@@ -388,8 +388,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	// TODO: get signing token, validate signature, decrypt user data, encrypt user data for auth server, send URL to GW server for proxying to beame authorization server
 
-	Bootstrapper.listCustomerAuthServers()
-		.then(assertGoodSignedBy)
+		 assertGoodSignedBy()
 		.then(getGwServerCredentials)
 		.then(decrypt)
 		.then(parseJson)

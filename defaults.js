@@ -5,7 +5,6 @@
 
 const path = require('path');
 const os   = require('os');
-const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
@@ -14,7 +13,7 @@ const db_provider = Constants.DbProviders.NeDB;
 const ServiceName = "ServiceName";
 const AppId       = "";
 
-const nedb_storage_root = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
+
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
@@ -82,7 +81,8 @@ const ConfigProps = {
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
-		AllowDirectSignin:             "AllowDirectSignin"
+		AllowDirectSignin:             "AllowDirectSignin",
+		CustomLoginProvider:           "CustomLoginProvider"
 	},
 	NeDB:     {
 		StorageRoot: "nedb_storage_root"
@@ -130,8 +130,39 @@ const CredsConfigTemplate = {
 	}
 };
 
-const CustomerAuthServersTemplate = {
-	"Servers": []
+const ProvisionSettingsTemplate = {
+	"Fields": [
+		{
+			"Label": "Email",
+			"FiledName":"email",
+			"IsActive":true,
+			"Required":false
+		},
+		{
+			"Label": "Name",
+			"FiledName":"name",
+			"IsActive":true,
+			"Required":false
+		},
+		{
+			"Label": "ExternalUserId",
+			"FiledName":"user_id",
+			"IsActive":true,
+			"Required":false
+		},
+		{
+			"Label": "AD UserName",
+			"FiledName":"ad_user_name",
+			"IsActive":false,
+			"Required":false
+		},
+		{
+			"Label": "AD Password",
+			"FiledName":"ad_pass",
+			"IsActive":false,
+			"Required":false
+		}
+	]
 };
 
 
@@ -170,11 +201,9 @@ module.exports = {
 	DisableDemoServers,
 
 	CredsConfigTemplate,
-	CustomerAuthServersTemplate,
+	ProvisionSettingsTemplate,
 
 	db_provider,
-
-	nedb_storage_root,
 
 	DefaultProxyConfig
 
