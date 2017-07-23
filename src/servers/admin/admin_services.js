@@ -197,9 +197,13 @@ class AdminServices {
 
 	//endregion
 
-	static getProvisionSettings() {
-		return Promise.resolve(bootstrapper.provisionConfig.Fields);
+	static getProvisionSettings(activeOnly = false) {
+
+		let config = bootstrapper.provisionConfig.Fields;
+
+		return Promise.resolve(activeOnly ? config.filter(x=>x.IsActive) : config);
 	}
+
 
 	saveProvisionSettings(data) {
 		return new Promise((resolve, reject) => {

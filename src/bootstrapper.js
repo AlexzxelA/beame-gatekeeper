@@ -136,8 +136,7 @@ class Bootstrapper {
 	}
 
 	initProvisionSettings() {
-		let config           = DirectoryServices.readJSON(ProvisionConfigPath);
-		this.provisionConfig = config;
+		this.provisionConfig = DirectoryServices.readJSON(ProvisionConfigPath);
 	}
 
 	getServersSettings() {
@@ -544,6 +543,10 @@ class Bootstrapper {
 
 	get provisionConfig() {
 		return this._provisionConfig;
+	}
+
+	static get readProvisionConfig() {
+		return DirectoryServices.readJSON(ProvisionConfigPath);
 	}
 
 

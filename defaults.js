@@ -136,31 +136,36 @@ const ProvisionSettingsTemplate = {
 			"Label": "Email",
 			"FiledName":"email",
 			"IsActive":true,
-			"Required":false
+			"Required":false,
+			"IsPassword":false
 		},
 		{
 			"Label": "Name",
 			"FiledName":"name",
 			"IsActive":true,
-			"Required":false
+			"Required":false,
+			"IsPassword":false
 		},
 		{
 			"Label": "ExternalUserId",
 			"FiledName":"user_id",
 			"IsActive":true,
-			"Required":false
+			"Required":false,
+			"IsPassword":false
 		},
 		{
 			"Label": "AD UserName",
 			"FiledName":"ad_user_name",
 			"IsActive":false,
-			"Required":false
+			"Required":false,
+			"IsPassword":false
 		},
 		{
 			"Label": "AD Password",
 			"FiledName":"ad_pass",
 			"IsActive":false,
-			"Required":false
+			"Required":false,
+			"IsPassword":true
 		}
 	]
 };

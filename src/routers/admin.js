@@ -822,6 +822,28 @@ class AdminRouter {
 
 		});
 		//endregion
+
+		//region provision config
+		this._router.get('/provision/config/list', (req, res) => {
+			const BeameAdminServices = require('../servers/admin/admin_services');
+
+			BeameAdminServices.getProvisionSettings().then(data => {
+				res.json(data);
+			}).catch(() => {
+				res.json({});
+			});
+		});
+
+		this._router.post('/provision/config/update', (req, res) => {
+			let models = req.body.models;
+			this._beameAdminServices.saveProvisionSettings(models).then(d => {
+				res.json(d);
+			}).catch(e => {
+				logger.error(e);
+				res.json({});
+			})
+		});
+		//endregion
 		//endregion
 	}
 

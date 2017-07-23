@@ -54,6 +54,14 @@ app.get(Constants.RegisterSuccessPath, (req, res) => {
 	res.sendFile(path.join(base_path, 'register_success.html'));
 });
 
+app.get('/provision/config/list', (req, res) => {
+	try {
+		res.json(Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive));
+	} catch (e) {
+		logger.error(e);
+		res.json([]);
+	}
+});
 
 app.post('/register/save', (req, res) => {
 
@@ -123,14 +131,7 @@ app.post('/register/save', (req, res) => {
 	}
 
 	function getSigningFqdn() {
-		return new Promise((resolve, reject) => {
-			Bootstrapper.listCustomerAuthServers().then(servers => {
-				  servers.length ?	resolve(servers[0]) : reject(`Signing FQDN not found`);
-				}
-				).catch(() => {
-				reject('Failed getting signing FQDN');
-			});
-		});
+		return Promise.resolve(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer));
 	}
 
 	function getSigningCred(signingFqdn) {
