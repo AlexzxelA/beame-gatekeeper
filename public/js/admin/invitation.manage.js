@@ -23,9 +23,6 @@ function onUploadStart(){
 
 }
 
-function exportToExcel() {
-    $("#inv-grid").data("kendoGrid").saveAsExcel();
-}
 
 function loadInvitations() {
 
