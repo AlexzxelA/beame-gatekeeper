@@ -284,18 +284,29 @@
                     <label>*** if you change a settings, please restart server</label>
                 </div>
                 <div>
+                    <style>
+                        #prov-settings-grid  tbody tr {
+                            cursor: move;
+                        }
+                    </style>
+                    <label style="display: block">Drag rows to change appearance order</label>
                     <div data-role="grid"
                          data-editable="true"
                          data-filterable="true"
                          data-sortable="true"
                          data-resizable= "true"
-                         data-toolbar="['save', 'cancel']",
+                         data-toolbar="['save', 'cancel']"
                          data-columns="[
+                                 { 'field': 'Order' , 'title':'Order', width:'60px'},
                                  { 'field': 'Label' , 'title':'Name'},
                                  { 'field': 'IsActive', 'title':'Active' },
                                  { 'field': 'Required' , 'title':'Required'}
                               ]"
                          data-bind="source: provision_ds"
+                         data-pageable="{
+                            'pageSizes': false,
+                            'refresh':true
+                         }"
                          id="prov-settings-grid">
 
                     </div>

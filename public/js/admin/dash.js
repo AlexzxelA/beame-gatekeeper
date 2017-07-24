@@ -1,9 +1,28 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
+
+function hintElement(element) { // Customize the hint
+
+	var grid = $("#prov-settings-grid").data("kendoGrid"),
+	    table = grid.table.clone(), // Clone Grid's table
+	    wrapperWidth = grid.wrapper.width(), //get Grid's width
+	    wrapper = $("<div class='k-grid k-widget'></div>").width(wrapperWidth),
+	    hint;
+
+	table.find("thead").remove(); // Remove Grid's header from the hint
+	table.find("tbody").empty(); // Remove the existing rows from the hint
+	table.wrap(wrapper); // Wrap the table
+	table.append(element.clone().removeAttr("uid")); // Append the dragged element
+
+	hint = table.parent(); // Get the wrapper
+
+	return hint; // Return the hint element
+}
+
 function loadSettings(){
 	var loadDash =  function(){
-console.log('huj');
+
 		viewDash  = new kendo.View("home",{
 			model: new kendo.observable({
 				role_ds: new kendo.data.DataSource({
@@ -62,12 +81,14 @@ console.log('huj');
 						id:     "FiledName",
 						fields: {
 							FiledName: { editable: false },
-							Label: {  editable: false} ,
+							Label: {  editable: true} ,
 							IsActive: { type: "boolean" },
 							Required: { type: "boolean" }
 						}
 					}
 				},
+				sort: { field: "Order", dir: "asc" },
+				pageSize:  20,
 				batch: true
 			}),
 				data: settings,
@@ -122,7 +143,47 @@ console.log('huj');
 				}
 			})
 		});
+
 		layout.showIn("#content", viewDash);
+
+		var grid = $("#prov-settings-grid").data("kendoGrid");
+
+		 console.log('huj');
+
+		grid.table.kendoSortable({
+			hint: hintElement,
+			cursor: "move",
+			placeholder: function(element) {
+				return element.clone().addClass("k-state-hover").css("opacity", 0.65);
+			},
+			container: "#prov-settings-grid tbody",
+			filter: " > tbody > tr",
+			change: function(e) {
+				var grid = $("#prov-settings-grid").data("kendoGrid"),
+				    oldIndex = e.oldIndex , // The old position
+				    newIndex = e.newIndex , // The new position
+				    view = grid.dataSource.view(),
+				    dataItem = grid.dataSource.getByUid(e.item.data("uid")); // Retrieve the moved dataItem
+
+				dataItem.Order = newIndex; // Update the order
+				dataItem.dirty = true;
+
+				// Shift the order of the records
+				if (oldIndex < newIndex) {
+					for (var i = oldIndex + 1; i <= newIndex; i++) {
+						view[i].Order--;
+						view[i].dirty = true;
+					}
+				} else {
+					for (var i = oldIndex - 1; i >= newIndex; i--) {
+						view[i].Order++;
+						view[i].dirty = true;
+					}
+				}
+
+				grid.dataSource.sync();
+			}
+		});
 
 		$("#config-tabstrip").kendoTabStrip({
 			animation:  {
@@ -146,7 +207,5 @@ console.log('huj');
 		loadDash();
 	}
 
-	console.log('huy');
-
-
 }
+

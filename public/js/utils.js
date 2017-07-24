@@ -187,3 +187,21 @@ function loadGwBundle(){
 	else
 		console.log(navigator.userAgent);
 }
+
+function buildRegistrationForm(container_selector){
+	$.getJSON('/provision/config/list',function(data){
+		console.log('Provision Settings data %j', data);
+
+		for(var i=0;i<data.length;i++){
+			var d = data[i];
+			var inp =$('<input />').addClass('form-input').attr({name:d.FiledName, type:d.IsPassword ? 'password' : 'text', placeholder:d.Label});
+			if(d.Required === true){
+				inp.attr('required','required');
+			}
+
+			$(container_selector).append(inp);
+		}
+	})
+
+}
+

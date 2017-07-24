@@ -14,7 +14,6 @@ const ServiceName = "ServiceName";
 const AppId       = "";
 
 
-
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
 const EncryptUserData              = false;
@@ -133,39 +132,49 @@ const CredsConfigTemplate = {
 const ProvisionSettingsTemplate = {
 	"Fields": [
 		{
-			"Label": "Email",
-			"FiledName":"email",
-			"IsActive":true,
-			"Required":false,
-			"IsPassword":false
+			"Order":         1,
+			"Label":         "Email",
+			"FiledName":     "email",
+			"IsActive":      true,
+			"Required":      true,
+			"IsPassword":    false,
+			"LoginProvider": null
 		},
 		{
-			"Label": "Name",
-			"FiledName":"name",
-			"IsActive":true,
-			"Required":false,
-			"IsPassword":false
+			"Order":         2,
+			"Label":         "Name",
+			"FiledName":     "name",
+			"IsActive":      true,
+			"Required":      false,
+			"IsPassword":    false,
+			"LoginProvider": null
 		},
 		{
-			"Label": "ExternalUserId",
-			"FiledName":"user_id",
-			"IsActive":true,
-			"Required":false,
-			"IsPassword":false
+			"Order":         3,
+			"Label":         "ExternalUserId",
+			"FiledName":     "user_id",
+			"IsActive":      true,
+			"Required":      false,
+			"IsPassword":    false,
+			"LoginProvider": null
 		},
 		{
-			"Label": "AD UserName",
-			"FiledName":"ad_user_name",
-			"IsActive":false,
-			"Required":false,
-			"IsPassword":false
+			"Order":         4,
+			"Label":         "AD UserName",
+			"FiledName":     "ad_user_name",
+			"IsActive":      false,
+			"Required":      false,
+			"IsPassword":    false,
+			"LoginProvider": Constants.CustomLoginProviders.Active_Directory.code
 		},
 		{
-			"Label": "AD Password",
-			"FiledName":"ad_pass",
-			"IsActive":false,
-			"Required":false,
-			"IsPassword":true
+			"Order":         5,
+			"Label":         "AD Password",
+			"FiledName":     "ad_pass",
+			"IsActive":      false,
+			"Required":      false,
+			"IsPassword":    true,
+			"LoginProvider": Constants.CustomLoginProviders.Active_Directory.code
 		}
 	]
 };
@@ -176,7 +185,7 @@ module.exports = {
 	AppId,
 	ServiceName,
 
-	ProxySettings:null,
+	ProxySettings: null,
 
 	SessionRecordDeleteTimeout,
 	KillSocketOnDisconnectTimeout,

@@ -41,10 +41,8 @@
         <div class="column medium-6 card-right shadow-main p-2">
 
             <form id="register_form" action='/register/save' method="post" class="form-main">
-
-                <span id="fields-container">
-
-                </span>
+                <div id="error"></div>
+                <span id="fields-container"></span>
                 <!--<input name="name" placeholder="Name" class="form-input"/>-->
                 <!--<input name="email" type="email" placeholder="Email" class="form-input"/>-->
                 <!--<input name="user_id" placeholder="External user ID" class="form-input"/>-->
@@ -87,19 +85,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", onStaticPageLoaded);
     $(document).ready(function(){
-	    $.getJSON('/provision/config/list',function(data){
-		    console.log('Provision Settings data %j', data);
-
-		    for(var i=0;i<data.length;i++){
-		    	var d = data[i];
-		    	var inp =$('<input />').addClass('form-input').attr({name:d.Name,type:d.IsPassword ? 'password' : 'text', placeholder:d.Label});
-			    if(d.Required){
-			    	inp.attr('required','required');
-                }
-
-		    	$('#fields-container').append(inp);
-            }
-	    })
+	    buildRegistrationForm('#fields-container')
     })
 </script>
 

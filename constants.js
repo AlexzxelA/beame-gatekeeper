@@ -35,15 +35,15 @@ const BeameServerConfigRootPath = path.join(home, beame_server_folder_name);
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
 
-const AppConfigFileName           = "app_config.json";
-const CredsFileName               = "creds.json";
-const ProvisionConfigFileName     = "provision_settings_config.json";
+const AppConfigFileName       = "app_config.json";
+const CredsFileName           = "creds.json";
+const ProvisionConfigFileName = "provision_settings_config.json";
 
-const CredsFolderPath             = path.join(BeameServerConfigRootPath, CredsConfigFolder);
-const CredsJsonPath               = path.join(BeameServerConfigRootPath, CredsConfigFolder, CredsFileName);
-const ConfigFolderPath            = path.join(BeameServerConfigRootPath, ConfigFolder);
-const AppConfigJsonPath           = path.join(BeameServerConfigRootPath, ConfigFolder, AppConfigFileName);
-const ProvisionConfigPath         = path.join(BeameServerConfigRootPath, ConfigFolder, ProvisionConfigFileName);
+const CredsFolderPath     = path.join(BeameServerConfigRootPath, CredsConfigFolder);
+const CredsJsonPath       = path.join(BeameServerConfigRootPath, CredsConfigFolder, CredsFileName);
+const ConfigFolderPath    = path.join(BeameServerConfigRootPath, ConfigFolder);
+const AppConfigJsonPath   = path.join(BeameServerConfigRootPath, ConfigFolder, AppConfigFileName);
+const ProvisionConfigPath = path.join(BeameServerConfigRootPath, ConfigFolder, ProvisionConfigFileName);
 
 const DEFAULT_LOAD_BALANCER_URL = "https://may129m153e6emrn.bqnp2d2beqol13qn.v1.d.beameio.net";
 
@@ -95,10 +95,12 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
-const CustomLoginProviders = [{
-	"name":"Active Directory",
-	"code":"ad"
-}];
+const CustomLoginProviders = {
+	"Active_Directory": {
+		"name": "Active Directory",
+		"code": "ad"
+	}
+};
 
 const CredAction = require('beame-sdk').Config.CredAction;
 

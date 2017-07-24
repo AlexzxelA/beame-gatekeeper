@@ -176,8 +176,9 @@ class AdminServices {
 								callback();
 							},
 							callback => {
+								const utils = require('../../utils');
 
-								data.CustomLoginProviders = Constants.CustomLoginProviders;
+								data.CustomLoginProviders = utils.hashToArray(Constants.CustomLoginProviders);
 
 								callback();
 							}
@@ -199,9 +200,19 @@ class AdminServices {
 
 	static getProvisionSettings(activeOnly = false) {
 
-		let config = bootstrapper.provisionConfig.Fields;
+		let config              = bootstrapper.provisionConfig.Fields,
+		    fields2Return       = [],
+		    customLoginProvider = bootstrapper.customLoginProvider;
 
-		return Promise.resolve(activeOnly ? config.filter(x=>x.IsActive) : config);
+		for (let i = 0; i < config.length; i++) {
+			let c = config[i];
+
+			if (c.LoginProvider == null || (c.LoginProvider != null && customLoginProvider != null && customLoginProvider == c.LoginProvider)) {
+				fields2Return.push(c);
+			}
+		}
+
+		return Promise.resolve(activeOnly ? fields2Return.filter(x => x.IsActive) : fields2Return);
 	}
 
 
@@ -218,8 +229,10 @@ class AdminServices {
 
 							for (let j = 0; j < config.Fields.length; j++) {
 								if (config.Fields[j].FiledName == m.FiledName) {
+									config.Fields[j].Label    = m.Label;
 									config.Fields[j].IsActive = m.IsActive;
 									config.Fields[j].Required = m.Required;
+									config.Fields[j].Order    = m.Order;
 									break;
 								}
 							}
