@@ -573,6 +573,7 @@ unauthenticatedApp.post('/beame-sso', (req, res) => {
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
+		logger.error(`SSO post error ${BeameLogger.formatError(e)}`);
 		res.status(500).send();
 	}
 });
@@ -587,6 +588,7 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
+		logger.error(`SSO get error ${BeameLogger.formatError(e)}`);
 		res.status(500).send();
 	}
 });
