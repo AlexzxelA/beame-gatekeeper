@@ -21,6 +21,7 @@ const PairingRequired              = true;
 const UseBeameAuthOnLocal          = true;
 const AllowDirectSignin            = true;
 const RunAuthServerOnZeroLevelCred = true;
+const ShowZendeskSupport           = true;
 
 const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
@@ -81,7 +82,8 @@ const ConfigProps = {
 		BrowserSessionTtl:             "BrowserSessionTtl",
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
 		AllowDirectSignin:             "AllowDirectSignin",
-		CustomLoginProvider:           "CustomLoginProvider"
+		CustomLoginProvider:           "CustomLoginProvider",
+		ShowZendeskSupport:            "ShowZendeskSupport"
 	},
 	NeDB:     {
 		StorageRoot: "nedb_storage_root"
@@ -213,6 +215,7 @@ module.exports = {
 	AllowDirectSignin,
 	RunAuthServerOnZeroLevelCred,
 	DisableDemoServers,
+	ShowZendeskSupport,
 
 	CredsConfigTemplate,
 	ProvisionSettingsTemplate,

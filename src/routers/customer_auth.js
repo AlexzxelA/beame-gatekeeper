@@ -30,6 +30,8 @@ app.get(Constants.RegisterPath, (req, res) => {
 	utils.clearSessionCookie(res);
 
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 
 	let isPublicRegistrationEnabled = bootstrapper.publicRegistration;
 
@@ -39,6 +41,7 @@ app.get(Constants.RegisterPath, (req, res) => {
 
 app.get(Constants.RegisterSuccessPath, (req, res) => {
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 	res.sendFile(path.join(base_path, 'register_success.html'));
 });
 

@@ -37,6 +37,8 @@ const loadLoginPage = (res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
+
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'login.html'));
 };
@@ -55,6 +57,9 @@ const setBeameCookie = (type, res) => {
 		case cookieNames.CentralLogin:
 			res.cookie(cookieNames.CentralLogin, Constants.BeameLoginURL);
 			break;
+		case cookieNames.ShowZendesk:
+			res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+			break;
 		default:break;
 	}
 
@@ -70,6 +75,7 @@ unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	setClientLoginManagerCookie(res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
@@ -79,12 +85,14 @@ unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 
 unauthenticatedApp.get(Constants.DCLSOfflinePath, (req, res) => {
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'offline.html'));
 });
@@ -103,6 +111,7 @@ unauthenticatedApp.get('/', (req, res) => {
 	}
 
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
@@ -524,6 +533,7 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 	console.log('unauthenticatedApp/get/login-reinit: Logging out');
 	clearSessionCookie(res);
 	setBeameCookie(cookieNames.CentralLogin, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	res.sendFile(path.join(base_path, 'logged-out.html'));
 
 });
@@ -541,11 +551,14 @@ unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
 			pairingGlobalsRef.setNewSessionId(sessionId, token);
 			res.send(data.replace('%$1Mpl363am31d3nt1f1k4t0r%',sessionId));
 		}
-		else
+		else {
+			setBeameCookie(cookieNames.ShowZendesk, res);
 			res.sendFile(path.join(base_path, 'forbidden.html'));
+		}
 
 	}).catch((e)=>{
 		console.log(e);
+		setBeameCookie(cookieNames.ShowZendesk, res);
 		res.sendFile(path.join(base_path, 'forbidden.html'));
 	});
 });
@@ -570,6 +583,7 @@ unauthenticatedApp.post('/beame-sso', (req, res) => {
 			console.log(SAMLRequest);
 		});
 		setClientLoginManagerCookie(res);
+		setBeameCookie(cookieNames.ShowZendesk, res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
@@ -585,6 +599,7 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 			console.log(SAMLRequest);
 		});
 		setClientLoginManagerCookie(res);
+		setBeameCookie(cookieNames.ShowZendesk, res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
@@ -609,6 +624,7 @@ samlp.auth({
 
 unauthenticatedApp.get('/beame-slo', (req, res) => {
 	clearSessionCookie(res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 

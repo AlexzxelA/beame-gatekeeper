@@ -492,6 +492,9 @@ class Bootstrapper {
 	get useBeameAuthOnLocal() {
 		return this._config[SettingsProps.UseBeameAuthOnLocal];
 	}
+	get showZendeskSupport() {
+		return this._config[SettingsProps.ShowZendeskSupport] ;
+	}
 
 	get allowDirectSignin() {
 		return this._config[SettingsProps.AllowDirectSignin];

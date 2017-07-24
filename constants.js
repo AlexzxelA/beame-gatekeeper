@@ -160,7 +160,8 @@ const CookieNames = {
 	"Proxy":          "proxy_enabling_token",
 	"UserInfo":       "beame_userinfo",
 	"ClientLoginUrl": "beame_client_login_url",
-	"LoginData":      "usrInData"
+	"LoginData":      "usrInData",
+	"ShowZendesk":    "beame_zendesk_settings"
 };
 
 module.exports = {

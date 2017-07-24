@@ -58,7 +58,7 @@ class BeameAuthRouter {
 			this._isRequestValid(req).then( data => {
 
 				let url = Bootstrapper.getLogoutUrl();
-
+				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
@@ -139,6 +139,7 @@ class BeameAuthRouter {
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
+				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 
 				res.sendFile(path.join(base_path, 'signup.html'));
 			}).catch(error => {
