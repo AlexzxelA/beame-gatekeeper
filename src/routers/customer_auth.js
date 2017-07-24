@@ -124,6 +124,18 @@ app.post('/register/save', (req, res) => {
 						}
 						else {
 							data.user_id = cred.encryptWithRSA(data2encrypt);
+							//remove sensitive fields
+							let  config               = bootstrapper.provisionConfig.Fields,
+							     customLoginProvider  = bootstrapper.customLoginProvider;
+
+							if(customLoginProvider){
+								let clp = config.filter(x => x.LoginProvider == customLoginProvider);
+
+								for (let i = 0; i < clp.length; i++) {
+									let item = clp[i];
+									delete  data[item.FiledName];
+								}
+							}
 							resolve();
 						}
 
