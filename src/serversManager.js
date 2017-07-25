@@ -228,9 +228,6 @@ class ServersManager {
 
 		};
 
-		const _registerCustomerAuthServer = () => {
-			return bootstrapper.registerCustomerAuthServer(this._settings.GatewayServer.fqdn);
-		};
 
 		const isDemoServersDisabled = bootstrapper.isCentralLogin || defaults.DisableDemoServers;
 
@@ -264,7 +261,6 @@ class ServersManager {
 						.then(_startGateway.bind(this))
 						.then(_startLoginManager.bind(this))
 						.then(_handleDelegatedLogin.bind(this))
-						.then(_registerCustomerAuthServer.bind(this))
 						.then(callback)
 						.catch(error => {
 							callback(error)

@@ -37,6 +37,8 @@ const loadLoginPage = (res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
+
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'login.html'));
 };
@@ -55,6 +57,9 @@ const setBeameCookie = (type, res) => {
 		case cookieNames.CentralLogin:
 			res.cookie(cookieNames.CentralLogin, Constants.BeameLoginURL);
 			break;
+		case cookieNames.ShowZendesk:
+			res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+			break;
 		default:break;
 	}
 
@@ -70,6 +75,7 @@ unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	setClientLoginManagerCookie(res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'signin.html'));
@@ -79,12 +85,14 @@ unauthenticatedApp.get(Constants.XprsSigninPath, (req, res) => {
 	setBeameCookie(cookieNames.Logout, res);
 	setBeameCookie(cookieNames.Logout2Login, res);
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 
 unauthenticatedApp.get(Constants.DCLSOfflinePath, (req, res) => {
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	clearSessionCookie(res);
 	res.sendFile(path.join(base_path, 'offline.html'));
 });
@@ -103,6 +111,7 @@ unauthenticatedApp.get('/', (req, res) => {
 	}
 
 	setBeameCookie(cookieNames.Service, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 
 	res.sendFile(path.join(base_path, 'welcome.html'));
 });
@@ -303,7 +312,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	function assertGoodSignedBy(customerAuthServersFqdns) {
 		return new Promise((resolve, reject) => {
-			if (customerAuthServersFqdns.indexOf(req.body.encryptedUserData.signedBy) != -1) {
+			if (beameAuthServerFqdn === req.body.encryptedUserData.signedBy) {
 				resolve();
 			} else {
 				reject(`Signed by unauthorized fqdn: ${req.body.encryptedUserData.signedBy}. Should be one of ${customerAuthServersFqdns.join(',')}`);
@@ -388,8 +397,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 
 	// TODO: get signing token, validate signature, decrypt user data, encrypt user data for auth server, send URL to GW server for proxying to beame authorization server
 
-	Bootstrapper.listCustomerAuthServers()
-		.then(assertGoodSignedBy)
+		 assertGoodSignedBy()
 		.then(getGwServerCredentials)
 		.then(decrypt)
 		.then(parseJson)
@@ -525,6 +533,7 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 	console.log('unauthenticatedApp/get/login-reinit: Logging out');
 	clearSessionCookie(res);
 	setBeameCookie(cookieNames.CentralLogin, res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	res.sendFile(path.join(base_path, 'logged-out.html'));
 
 });
@@ -542,11 +551,14 @@ unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
 			pairingGlobalsRef.setNewSessionId(sessionId, token);
 			res.send(data.replace('%$1Mpl363am31d3nt1f1k4t0r%',sessionId));
 		}
-		else
+		else {
+			setBeameCookie(cookieNames.ShowZendesk, res);
 			res.sendFile(path.join(base_path, 'forbidden.html'));
+		}
 
 	}).catch((e)=>{
 		console.log(e);
+		setBeameCookie(cookieNames.ShowZendesk, res);
 		res.sendFile(path.join(base_path, 'forbidden.html'));
 	});
 });
@@ -571,9 +583,11 @@ unauthenticatedApp.post('/beame-sso', (req, res) => {
 			console.log(SAMLRequest);
 		});
 		setClientLoginManagerCookie(res);
+		setBeameCookie(cookieNames.ShowZendesk, res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
+		logger.error(`SSO post error ${BeameLogger.formatError(e)}`);
 		res.status(500).send();
 	}
 });
@@ -585,9 +599,11 @@ unauthenticatedApp.get('/beame-sso', (req, res) => {
 			console.log(SAMLRequest);
 		});
 		setClientLoginManagerCookie(res);
+		setBeameCookie(cookieNames.ShowZendesk, res);
 		res.sendFile(path.join(base_path, 'signin.html'));
 	}
 	catch (e){
+		logger.error(`SSO get error ${BeameLogger.formatError(e)}`);
 		res.status(500).send();
 	}
 });
@@ -608,6 +624,7 @@ samlp.auth({
 
 unauthenticatedApp.get('/beame-slo', (req, res) => {
 	clearSessionCookie(res);
+	setBeameCookie(cookieNames.ShowZendesk, res);
 	res.sendFile(path.join(base_path, 'xprs_signin.html'));
 });
 

@@ -13,37 +13,37 @@ const EnvProfile = {
 };
 
 
-const GatewayControllerPath    = '/beame-gw';
-const XprsSigninPath           = `${GatewayControllerPath}/xprs-signin`;
-const SigninPath               = `${GatewayControllerPath}/signin`;
-const DCLSOfflinePath          = `${GatewayControllerPath}/offline`;
-const LoginPath                = `${GatewayControllerPath}/login`;
-const LogoutPath               = `${GatewayControllerPath}/logout`;
-const ClientLogoutPath         = `${GatewayControllerPath}/client-logout`;
-const ConfigData               = `${GatewayControllerPath}/config-data`;
-const LogoutToLoginPath        = `${GatewayControllerPath}/login-reinit`;
-const AppSwitchPath            = `${GatewayControllerPath}/choose-app`;
-const GwAuthenticatedPath      = `${GatewayControllerPath}/authenticated`;
-const RegisterPath             = `${GatewayControllerPath}/register`;
-const DirectPath               = `${GatewayControllerPath}/direct-signin`;
-const RegisterSuccessPath      = `${GatewayControllerPath}/register-success`;
-const beame_server_folder_name = process.env.BEAME_SERVER_FOLDER || ".beame_server";
-const BeameRootPath            = path.join(home, beame_server_folder_name);
+const GatewayControllerPath     = '/beame-gw';
+const XprsSigninPath            = `${GatewayControllerPath}/xprs-signin`;
+const SigninPath                = `${GatewayControllerPath}/signin`;
+const DCLSOfflinePath           = `${GatewayControllerPath}/offline`;
+const LoginPath                 = `${GatewayControllerPath}/login`;
+const LogoutPath                = `${GatewayControllerPath}/logout`;
+const ClientLogoutPath          = `${GatewayControllerPath}/client-logout`;
+const ConfigData                = `${GatewayControllerPath}/config-data`;
+const LogoutToLoginPath         = `${GatewayControllerPath}/login-reinit`;
+const AppSwitchPath             = `${GatewayControllerPath}/choose-app`;
+const GwAuthenticatedPath       = `${GatewayControllerPath}/authenticated`;
+const RegisterPath              = `${GatewayControllerPath}/register`;
+const DirectPath                = `${GatewayControllerPath}/direct-signin`;
+const RegisterSuccessPath       = `${GatewayControllerPath}/register-success`;
+const BeameDataStorageRootPath  = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
+const beame_server_folder_name  = process.env.BEAME_SERVER_FOLDER || ".beame_server";
+const BeameServerConfigRootPath = path.join(home, beame_server_folder_name);
 
 
 const ConfigFolder      = "config";
 const CredsConfigFolder = "creds";
 
-const AppConfigFileName           = "app_config.json";
-const CredsFileName               = "creds.json";
-const CustomerAuthServersFileName = "auth_servers.json";
+const AppConfigFileName       = "app_config.json";
+const CredsFileName           = "creds.json";
+const ProvisionConfigFileName = "provision_settings_config.json";
 
-
-const CredsFolderPath             = path.join(BeameRootPath, CredsConfigFolder);
-const CredsJsonPath               = path.join(BeameRootPath, CredsConfigFolder, CredsFileName);
-const CustomerAuthServersJsonPath = path.join(BeameRootPath, CredsConfigFolder, CustomerAuthServersFileName);
-const ConfigFolderPath            = path.join(BeameRootPath, ConfigFolder);
-const AppConfigJsonPath           = path.join(BeameRootPath, ConfigFolder, AppConfigFileName);
+const CredsFolderPath     = path.join(BeameServerConfigRootPath, CredsConfigFolder);
+const CredsJsonPath       = path.join(BeameServerConfigRootPath, CredsConfigFolder, CredsFileName);
+const ConfigFolderPath    = path.join(BeameServerConfigRootPath, ConfigFolder);
+const AppConfigJsonPath   = path.join(BeameServerConfigRootPath, ConfigFolder, AppConfigFileName);
+const ProvisionConfigPath = path.join(BeameServerConfigRootPath, ConfigFolder, ProvisionConfigFileName);
 
 const DEFAULT_LOAD_BALANCER_URL = "https://ioigl3wzx6lajrx6.tl5h1ipgobrdqsj6.v1.p.beameio.net";
 
@@ -95,6 +95,13 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
+const CustomLoginProviders = {
+	"Active_Directory": {
+		"name": "Active Directory",
+		"code": "ad"
+	}
+};
+
 const CredAction = require('beame-sdk').Config.CredAction;
 
 /**
@@ -123,8 +130,8 @@ const CredentialType = {
 
 const DbProviders = {
 	"Couchbase": "couchbase",
-	"NeDB": "NeDB",
-	"Sqlite":"sqlite",
+	"NeDB":      "NeDB",
+	"Sqlite":    "sqlite",
 };
 
 const DbSupportedProviders = {
@@ -153,7 +160,8 @@ const CookieNames = {
 	"Proxy":          "proxy_enabling_token",
 	"UserInfo":       "beame_userinfo",
 	"ClientLoginUrl": "beame_client_login_url",
-	"LoginData":      "usrInData"
+	"LoginData":      "usrInData",
+	"ShowZendesk":    "beame_zendesk_settings"
 };
 
 module.exports = {
@@ -172,6 +180,7 @@ module.exports = {
 	SetupServices,
 	DbProviders,
 	DbSupportedProviders,
+	CustomLoginProviders,
 	CookieNames,
 	AuthMode: {
 		"SESSION":   "Session",
@@ -192,15 +201,16 @@ module.exports = {
 	DirectPath,
 	RegisterSuccessPath,
 	UniversalLinkUrl,
-	BeameRootPath,
+	BeameServerConfigRootPath,
+	BeameDataStorageRootPath,
 
 	AppConfigFileName,
 	CredsFileName,
-	CustomerAuthServersFileName,
+	ProvisionConfigFileName,
 
 	CredsFolderPath,
 	CredsJsonPath,
-	CustomerAuthServersJsonPath,
 	ConfigFolderPath,
-	AppConfigJsonPath
+	AppConfigJsonPath,
+	ProvisionConfigPath
 };

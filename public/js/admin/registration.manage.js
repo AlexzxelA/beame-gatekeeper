@@ -2,10 +2,6 @@
  * Created by zenit1 on 14/05/2017.
  */
 
-function exportToExcel() {
-    $("#reg-grid").data("kendoGrid").saveAsExcel();
-}
-
 function loadRegs() {
 	$("#reg-grid").kendoGrid({
 		//toolbar:    ["excel"],

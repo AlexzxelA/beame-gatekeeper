@@ -2,10 +2,6 @@
  * Created by zenit1 on 14/05/2017.
  */
 
-function exportToExcel() {
-    $("#login-grid").data("kendoGrid").saveAsExcel();
-}
-
 function loadGkLogins() {
 	$("#login-grid").kendoGrid({
 		toolbar:    ["create"],

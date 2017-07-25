@@ -19,7 +19,7 @@ const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
-const cookieNames       = Constants.CookieNames;
+const cookieNames  = Constants.CookieNames;
 
 const BeameAuthServices = require('../authServices');
 const beameAuthServices = BeameAuthServices.getInstance();
@@ -41,11 +41,13 @@ class AdminRouter {
 	_initRoutes() {
 		//region static
 		this._router.get('/invitation', (req, res) => {
+			res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 			res.sendFile(path.join(base_path, 'invitation.html'));
 		});
 
 		this._router.get('/', (req, res) => {
 			res.cookie(cookieNames.ClientLogin, JSON.stringify({url: `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+			res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
@@ -66,6 +68,10 @@ class AdminRouter {
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
 			});
+		});
+
+		this._router.get('/zendesk', (req, res) => {
+			res.json({show: bootstrapper.showZendeskSupport});
 		});
 		//endregion
 
@@ -126,9 +132,9 @@ class AdminRouter {
 			}
 
 			beameAuthServices.createCred(data)
-				.then(resp=>{
+				.then(resp => {
 					responseMessage = resp;
-					data.fqdn = resp.fqdn;
+					data.fqdn       = resp.fqdn;
 					return beameAuthServices.createUser(data);
 				})
 				.then(resolve)
@@ -727,6 +733,7 @@ class AdminRouter {
 		this._router.post("/invitation/upload", (req, res) => {
 
 			if (bootstrapper.registrationImageRequired) {
+				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 				res.sendFile(path.join(base_path, 'offline_reg_forbidden.html'));
 				return;
 			}
@@ -822,14 +829,39 @@ class AdminRouter {
 
 		});
 		//endregion
+
+		//region provision config
+		this._router.get('/provision/config/list', (req, res) => {
+			const BeameAdminServices = require('../servers/admin/admin_services');
+
+			BeameAdminServices.getProvisionSettings().then(data => {
+				res.json(data);
+			}).catch(() => {
+				res.json({});
+			});
+		});
+
+		this._router.post('/provision/config/update', (req, res) => {
+			let models = req.body.models;
+			this._beameAdminServices.saveProvisionSettings(models).then(d => {
+				res.json(d);
+			}).catch(e => {
+				logger.error(e);
+				res.json({});
+			})
+		});
+		//endregion
 		//endregion
 	}
 
 	_sendInvitation(data) {
 		return new Promise((resolve, reject) => {
 				this._encryptUserData(data).then((encryptedData) => {
-					let data4hash = {email: encryptedData.email || 'email', user_id: encryptedData.user_id || 'user_id'};
-					encryptedData.hash     = CommonUtils.generateDigest(data4hash);
+					let data4hash      = {
+						email:   encryptedData.email || 'email',
+						user_id: encryptedData.user_id || 'user_id'
+					};
+					encryptedData.hash = CommonUtils.generateDigest(data4hash);
 
 					let method = bootstrapper.registrationMethod;
 
@@ -846,8 +878,11 @@ class AdminRouter {
 	_getInvitation(fqdn, data, sendByEmail) {
 		return new Promise((resolve, reject) => {
 			this._encryptUserData(data).then((encryptedData) => {
-				let data4hash = {email: encryptedData.email || 'email', user_id: encryptedData.user_id || 'user_id'};
-				encryptedData.hash     = CommonUtils.generateDigest(data4hash);
+				let data4hash      = {
+					email:   encryptedData.email || 'email',
+					user_id: encryptedData.user_id || 'user_id'
+				};
+				encryptedData.hash = CommonUtils.generateDigest(data4hash);
 
 				beameAuthServices.getInvitationForCred(fqdn, encryptedData, sendByEmail).then(resolve).catch(reject);
 			}).catch(reject);

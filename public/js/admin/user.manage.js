@@ -2,9 +2,7 @@
  * Created by zenit1 on 14/05/2017.
  */
 
-function exportToExcel() {
-    $("#user-grid").data("kendoGrid").saveAsExcel();
-}
+
 
 function loadUsers() {
 	$("#user-grid").kendoGrid({

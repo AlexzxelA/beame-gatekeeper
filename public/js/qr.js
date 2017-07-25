@@ -177,7 +177,7 @@ $(document).ready(function () {
 											color:           "#000",
 											background:      "transparent",
 											padding:         0,
-											size:            220
+											size:            260
 										});
 									}
 									else {

@@ -90,6 +90,10 @@ class NeDB {
 		);
 	}
 
+	static _formatBoolean(prop){
+		return prop == 'true';
+	}
+
 	//region seeders
 	_seedServices() {
 		return new Promise((resolve, reject) => {
@@ -653,7 +657,7 @@ class NeDB {
 
 	//region user
 	/**
-	 * @param {User} user
+	 * @param {Object} user
 	 */
 	saveUser(user) {
 		return new Promise((resolve, reject) => {
@@ -725,8 +729,8 @@ class NeDB {
 	updateUser(user) {
 		return this._updateDoc(Collections.users.name, {_id: user._id}, {
 			$set: {
-				isAdmin:  user.isAdmin,
-				isActive: user.isActive
+				isAdmin:  NeDB._formatBoolean(user.isAdmin),
+				isActive:  NeDB._formatBoolean(user.isActive)
 			}
 		});
 	}
@@ -782,7 +786,7 @@ class NeDB {
 				};
 
 				this._validateService(query).then(() => {
-
+					service = NeDB._formatService(service);
 					this._insertDoc(Collections.services.name, service).then(doc => {
 						resolve(doc);
 					}).catch(onError.bind(this, reject));
@@ -792,12 +796,21 @@ class NeDB {
 		);
 	}
 
+	static _formatService(service) {
+		service.isActive   = NeDB._formatBoolean(service.isActive);
+		service.isMobile   = NeDB._formatBoolean(service.isMobile);
+		service.isExternal = NeDB._formatBoolean(service.isExternal);
+
+		return service;
+	}
+
 	updateService(service) {
 		return new Promise((resolve, reject) => {
 
 				let $this = this;
 
 				const _update = () => {
+					service    = NeDB._formatService(service);
 					let update = {
 						$set: {
 							url:        service.url,
@@ -898,7 +911,7 @@ class NeDB {
 				const _update = () => {
 					let update = {
 						$set: {
-							name:       role.name
+							name: role.name
 
 						}
 					};
@@ -961,8 +974,8 @@ class NeDB {
 						$set: {
 							name:      login.name,
 							serviceId: login.serviceId,
-							isActive:  login.isActive,
-							isOnLine:  login.isOnline
+							isActive:  NeDB._formatBoolean(login.isActive),
+							isOnLine:  NeDB._formatBoolean(login.isOnline)
 						}
 					};
 

@@ -9,10 +9,10 @@ const express = require('express');
 const public_dir = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path  = path.join(public_dir, 'pages', 'config');
 
-const beameSDK     = require('beame-sdk');
-const module_name  = "BeameAdminServices";
-const BeameLogger  = beameSDK.Logger;
-const logger       = new BeameLogger(module_name);
+const beameSDK    = require('beame-sdk');
+const module_name = "BeameAdminServices";
+const BeameLogger = beameSDK.Logger;
+const logger      = new BeameLogger(module_name);
 
 const BeameAdminServices = require('../servers/admin/admin_services');
 
@@ -27,7 +27,7 @@ class ConfigRouter {
 		logger.info('Config router created');
 	}
 
-	_initRoutes(){
+	_initRoutes() {
 
 		this._router.get('/', (req, res) => {
 			res.sendFile(path.join(base_path, 'index.html'));
@@ -64,6 +64,27 @@ class ConfigRouter {
 				res.json({success: false, error: BeameLogger.formatError(error)});
 			});
 		});
+
+		//region provision config
+		this._router.get('/provision/config/list', (req, res) => {
+
+			BeameAdminServices.getProvisionSettings().then(data => {
+				res.json(data);
+			}).catch(() => {
+				res.json({});
+			});
+		});
+
+		this._router.post('/provision/config/update', (req, res) => {
+			let models = req.body.models;
+			this._beameAdminServices.saveProvisionSettings(models).then(d => {
+				res.json(d);
+			}).catch(e => {
+				logger.error(e);
+				res.json({});
+			})
+		});
+		//endregion
 
 		// region roles
 		this._router.get('/role/list', (req, res) => {

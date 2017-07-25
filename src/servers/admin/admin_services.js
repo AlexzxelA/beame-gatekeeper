@@ -68,9 +68,9 @@ class AdminServices {
 	}
 
 	saveProxyConfig(data) {
-		return new Promise((resolve,reject) => {
+		return new Promise((resolve, reject) => {
 
-				if(CommonUtils.isObjectEmpty(data)){
+				if (CommonUtils.isObjectEmpty(data)) {
 					reject('Empty data');
 					return
 				}
@@ -174,6 +174,13 @@ class AdminServices {
 								data.HtmlEnvModes = ds;
 
 								callback();
+							},
+							callback => {
+								const utils = require('../../utils');
+
+								data.CustomLoginProviders = utils.hashToArray(Constants.CustomLoginProviders);
+
+								callback();
 							}
 						],
 						() => {
@@ -190,6 +197,63 @@ class AdminServices {
 	}
 
 	//endregion
+
+	static getProvisionSettings(activeOnly = false) {
+
+		let config              = bootstrapper.provisionConfig.Fields,
+		    fields2Return       = [],
+		    customLoginProvider = bootstrapper.customLoginProvider;
+
+		for (let i = 0; i < config.length; i++) {
+			let c = config[i];
+
+			if (c.LoginProvider == null || (c.LoginProvider != null && customLoginProvider != null && customLoginProvider == c.LoginProvider)) {
+				fields2Return.push(c);
+			}
+		}
+
+		return Promise.resolve(activeOnly ? fields2Return.filter(x => x.IsActive) : fields2Return);
+	}
+
+
+	saveProvisionSettings(data) {
+		return new Promise((resolve, reject) => {
+				try {
+					let models = CommonUtils.parse(data);
+
+					if (models.length) {
+						let config = bootstrapper.provisionConfig;
+
+						for (let i = 0; i < models.length; i++) {
+							let m = models[i];
+
+							for (let j = 0; j < config.Fields.length; j++) {
+								if (config.Fields[j].FiledName == m.FiledName) {
+									config.Fields[j].Label    = m.Label;
+									config.Fields[j].IsActive = m.IsActive;
+									config.Fields[j].Required = m.Required;
+									config.Fields[j].Order    = m.Order;
+									break;
+								}
+							}
+
+						}
+
+						bootstrapper.updateProvisionConfig(config).then(() => {
+							bootstrapper.provisionConfig = config;
+							resolve(models);
+						}).catch(reject);
+					}
+					else {
+						resolve([]);
+					}
+
+				} catch (e) {
+					reject(e);
+				}
+			}
+		);
+	}
 
 	//region users
 	//noinspection JSMethodCanBeStatic
@@ -269,17 +333,17 @@ class AdminServices {
 		return dataService.getRoles();
 	}
 
-	_updateRoles (){
-		this.getRoles().then(roles=>{
+	_updateRoles() {
+		this.getRoles().then(roles => {
 			bootstrapper.setRoles = roles;
-		}).catch(e=>{
+		}).catch(e => {
 			logger.error(`Update roles error ${BeameLogger.formatError(e)}`);
 		});
 	}
 
 	saveRole(role) {
 		return new Promise((resolve, reject) => {
-				dataService.saveRole(role).then(entity=>{
+				dataService.saveRole(role).then(entity => {
 					this._updateRoles();
 					resolve(entity);
 				}).catch(reject)
@@ -290,7 +354,7 @@ class AdminServices {
 
 	updateRole(role) {
 		return new Promise((resolve, reject) => {
-				dataService.updateRole(role).then(entity=>{
+				dataService.updateRole(role).then(entity => {
 					this._updateRoles();
 					resolve(entity);
 				}).catch(reject)
@@ -300,7 +364,7 @@ class AdminServices {
 
 	deleteRole(id) {
 		return new Promise((resolve, reject) => {
-				dataService.deleteRole(id).then(()=>{
+				dataService.deleteRole(id).then(() => {
 					this._updateRoles();
 					resolve();
 				}).catch(reject)

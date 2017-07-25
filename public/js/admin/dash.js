@@ -1,6 +1,25 @@
 /**
  * Created by zenit1 on 14/05/2017.
  */
+
+function hintElement(element) { // Customize the hint
+
+	var grid = $("#prov-settings-grid").data("kendoGrid"),
+	    table = grid.table.clone(), // Clone Grid's table
+	    wrapperWidth = grid.wrapper.width(), //get Grid's width
+	    wrapper = $("<div class='k-grid k-widget'></div>").width(wrapperWidth),
+	    hint;
+
+	table.find("thead").remove(); // Remove Grid's header from the hint
+	table.find("tbody").empty(); // Remove the existing rows from the hint
+	table.wrap(wrapper); // Wrap the table
+	table.append(element.clone().removeAttr("uid")); // Append the dragged element
+
+	hint = table.parent(); // Get the wrapper
+
+	return hint; // Return the hint element
+}
+
 function loadSettings(){
 	var loadDash =  function(){
 
@@ -38,6 +57,40 @@ function loadSettings(){
 				},
 				pageSize:  20
 			}),
+			provision_ds: new kendo.data.DataSource({
+				transport: {
+					// read:  function (e) {
+					// 	e.success(settings.ProvisionConfig.Fields);
+					// },
+					read:    {
+						url: "/provision/config/list"
+					},
+					update:  {
+						url:      "/provision/config/update",
+						method:   "POST",
+						dataType: "json"
+					},
+					parameterMap: function(options, operation) {
+						if (operation !== "read" && options.models) {
+							return {models: kendo.stringify(options.models)};
+						}
+					}
+				},
+				schema:    {
+					model: {
+						id:     "FiledName",
+						fields: {
+							FiledName: { editable: false },
+							Label: {  editable: true} ,
+							IsActive: { type: "boolean" },
+							Required: { type: "boolean" }
+						}
+					}
+				},
+				sort: { field: "Order", dir: "asc" },
+				pageSize:  20,
+				batch: true
+			}),
 				data: settings,
 				onSave:function(){
 					showLoader();
@@ -47,7 +100,7 @@ function loadSettings(){
 						data: {data: JSON.stringify(this.data)},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Settings saved' : result.error);
+							showNotification(result.success, result.success ? 'Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});
@@ -65,7 +118,7 @@ function loadSettings(){
 						data: {data: JSON.stringify(this.data.DbConfig.provider)},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Settings saved' : result.error);
+							showNotification(result.success, result.success ? 'DB Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});
@@ -82,7 +135,7 @@ function loadSettings(){
 						data: {data: data},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Settings saved' : result.error);
+							alert(result.success ? 'Proxy Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});
@@ -90,7 +143,47 @@ function loadSettings(){
 				}
 			})
 		});
+
 		layout.showIn("#content", viewDash);
+
+		var grid = $("#prov-settings-grid").data("kendoGrid");
+
+		 console.log('huj');
+
+		grid.table.kendoSortable({
+			hint: hintElement,
+			cursor: "move",
+			placeholder: function(element) {
+				return element.clone().addClass("k-state-hover").css("opacity", 0.65);
+			},
+			container: "#prov-settings-grid tbody",
+			filter: " > tbody > tr",
+			change: function(e) {
+				var grid = $("#prov-settings-grid").data("kendoGrid"),
+				    oldIndex = e.oldIndex , // The old position
+				    newIndex = e.newIndex , // The new position
+				    view = grid.dataSource.view(),
+				    dataItem = grid.dataSource.getByUid(e.item.data("uid")); // Retrieve the moved dataItem
+
+				dataItem.Order = newIndex; // Update the order
+				dataItem.dirty = true;
+
+				// Shift the order of the records
+				if (oldIndex < newIndex) {
+					for (var i = oldIndex + 1; i <= newIndex; i++) {
+						view[i].Order--;
+						view[i].dirty = true;
+					}
+				} else {
+					for (var i = oldIndex - 1; i >= newIndex; i--) {
+						view[i].Order++;
+						view[i].dirty = true;
+					}
+				}
+
+				grid.dataSource.sync();
+			}
+		});
 
 		$("#config-tabstrip").kendoTabStrip({
 			animation:  {
@@ -108,12 +201,11 @@ function loadSettings(){
 	};
 	if(!settings){
 		getSettings(loadDash);
+		//
 	}
 	else{
 		loadDash();
 	}
 
-	console.log('huy');
-
-
 }
+

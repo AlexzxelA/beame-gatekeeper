@@ -34,6 +34,9 @@
                         Proxy Settings
                     </li>
                     <li>
+                        Provision Settings
+                    </li>
+                    <li>
                         Database
                     </li>
                 </ul>
@@ -41,7 +44,7 @@
                     <ul class="config-list">
                         <li class="mt-2">
                             <label>Service name</label>
-                            <input type="text" class='k-textbox value-custom'
+                            <input class='k-textbox value-custom'
                                    data-bind="value: data.AppConfig.ServiceName"
                                    id="ServiceName"/>
                         </li>
@@ -87,6 +90,18 @@
                         </li>
 
                         <li>
+                            <label>Custom login provider</label>
+                            <input data-role="combobox"
+                                   data-auto-bind="true"
+                                   data-value-primitive="true"
+                                   data-text-field="name"
+                                   data-value-field="code"
+                                   data-bind="value: data.AppConfig.CustomLoginProvider, source: data.CustomLoginProviders"
+                                   class='k-textbox value-custom'
+                            />
+                        </li>
+
+                        <li>
                             <label>Allow Public Registration</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.PublicRegistration"/>
                         </li>
@@ -115,6 +130,11 @@
                         <li>
                             <label>Allow Direct Signin</label>
                             <input type="checkbox" data-bind="checked:data.AppConfig.AllowDirectSignin"/>
+                        </li>
+
+                        <li>
+                            <label>Show Zendesk Support</label>
+                            <input type="checkbox" data-bind="checked:data.AppConfig.ShowZendeskSupport"/>
                         </li>
 
                         <li>
@@ -267,6 +287,34 @@
                         </li>
                     </ul>
                     <label>*** if you change a settings, please restart server</label>
+                </div>
+                <div>
+                    <style>
+                        #prov-settings-grid  tbody tr {
+                            cursor: move;
+                        }
+                    </style>
+                    <label style="display: block">Drag rows to change appearance order</label>
+                    <div data-role="grid"
+                         data-editable="true"
+                         data-filterable="true"
+                         data-sortable="true"
+                         data-resizable= "true"
+                         data-toolbar="['save', 'cancel']"
+                         data-columns="[
+                                 { 'field': 'Order' , 'title':'Order', width:'60px'},
+                                 { 'field': 'Label' , 'title':'Name'},
+                                 { 'field': 'IsActive', 'title':'Active' },
+                                 { 'field': 'Required' , 'title':'Required'}
+                              ]"
+                         data-bind="source: provision_ds"
+                         data-pageable="{
+                            'pageSizes': false,
+                            'refresh':true
+                         }"
+                         id="prov-settings-grid">
+
+                    </div>
                 </div>
                 <div>
                     <ul class="config-list">

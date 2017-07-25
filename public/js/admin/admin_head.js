@@ -138,3 +138,7 @@ function hideLoader(id){
 	//document.getElementById(id || "overlay").style.display = "none";
 	$('#'+(id || "overlay")).hide();
 }
+
+function exportToExcel(id) {
+	$("#" + id).data("kendoGrid").saveAsExcel();
+}

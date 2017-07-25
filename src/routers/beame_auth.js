@@ -58,7 +58,7 @@ class BeameAuthRouter {
 			this._isRequestValid(req).then( data => {
 
 				let url = Bootstrapper.getLogoutUrl();
-
+				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
@@ -71,11 +71,11 @@ class BeameAuthRouter {
 		});
 
 		this._router.get('/cred-info', (req, res) => {
-			this._beameAdminServices.getRequestAuthToken(req).then(token => {
+			this._beameAdminServices.getRequestAuthToken(req, true).then(token => {
 				let authFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
 				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) =>{
 					if(status){
-						store.find(token.signedBy).then(cred=>{
+						store.find(token.signedBy, true, true).then(cred=>{
 							res.json({
 								ocspUrl:cred.certData.issuer.issuerOcspUrl,
 								notAfter:Date.parse(cred.certData.notAfter)/1000,
@@ -89,7 +89,7 @@ class BeameAuthRouter {
 					else{
 						res.json({success: false, msg: 'not allowed'});
 					}
-				});
+				}, true, true);
 
 			}).catch(e => {
 				res.status(401).send();
@@ -103,7 +103,7 @@ class BeameAuthRouter {
 				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) =>{
 					if(status){
 						const AuthToken = beameSDK.AuthToken;
-						store.find(authFqdn).then(parentCred=>{
+						store.find(authFqdn, true, true).then(parentCred=>{
 							AuthToken.createAsync(token.signedBy,
 								parentCred, 60 * 60 * 2).then(authToken => {
 								res.json({
@@ -139,6 +139,7 @@ class BeameAuthRouter {
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
+				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 
 				res.sendFile(path.join(base_path, 'signup.html'));
 			}).catch(error => {

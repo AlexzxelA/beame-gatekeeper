@@ -16,32 +16,22 @@ const bootstrapper = Bootstrapper.getInstance();
 const app          = express();
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger('CustomerAuth');
-const utils                = require('../utils');
+const utils        = require('../utils');
+const uuid         = require('uuid');
 
 const public_dir = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 
 const base_path = path.join(public_dir, 'pages', 'customer_auth');
 
-function authenticate(data) {
-	//ADD CUSTOM LOGIC
-	return new Promise((resolve, reject) => {
-		console.log('data authenticated %j', data);
 
-		if (!data.email && !data.user_id) {
-			reject('You must enter either email or user_id');
-			return;
-		}
-		data.userImageRequired = bootstrapper.registrationImageRequired;
-		resolve();
-		// or reject('Authentication failed')
-	});
-}
 
 app.get(Constants.RegisterPath, (req, res) => {
 
 	utils.clearSessionCookie(res);
 
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 
 	let isPublicRegistrationEnabled = bootstrapper.publicRegistration;
 
@@ -51,37 +41,107 @@ app.get(Constants.RegisterPath, (req, res) => {
 
 app.get(Constants.RegisterSuccessPath, (req, res) => {
 	res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 	res.sendFile(path.join(base_path, 'register_success.html'));
 });
 
+app.get('/provision/config/list', (req, res) => {
+	try {
+		let props = Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive);
+
+		props = props.sort((a, b) => {
+			return a.Order - b.Order;
+		});
+
+		res.json(props);
+	} catch (e) {
+		logger.error(e);
+		res.json([]);
+	}
+});
 
 app.post('/register/save', (req, res) => {
 
-	let data = req.body; // name, email, user_id
+	let data = req.body;
 
 	logger.info(`Save registration with ${CommonUtils.data}`);
 
-	//for use in email or sms scenario
-	let data4hash = {email:data.email || 'email',user_id:data.user_id || 'user_id'};
-	data.hash = CommonUtils.generateDigest(data4hash);
-	//data.userImageRequired = bootstrapper.registrationImageRequired;
 
-	const BeameStore = new beameSDK.BeameStore();
-	const AuthToken  = beameSDK.AuthToken;
+	const BeameStore        = new beameSDK.BeameStore();
+	const AuthToken         = beameSDK.AuthToken;
 	//TODO to POST
 	const beameAuthServices = require('../authServices').getInstance();
 
 	const encryptTo = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 
+	function authenticate(user_data) {
+
+		return new Promise((resolve, reject) => {
+			logger.debug('data authenticated', user_data);
+
+			let config               = bootstrapper.provisionConfig.Fields,
+			    customLoginProvider  = bootstrapper.customLoginProvider,
+			    customLoginValidated = false;
+
+			if (customLoginProvider != null) {
+				let clp = config.filter(x => x.LoginProvider == customLoginProvider);
+
+				for (let i = 0; i < clp.length; i++) {
+					let item = clp[i];
+					if (!user_data[item.FiledName]) {
+						reject(`${item.Label} required`);
+						return;
+					}
+				}
+
+				customLoginValidated = true;
+
+			}
+
+			if (!customLoginValidated && CommonUtils.isObjectEmpty(user_data)) {
+				reject('You must enter any user fields: email or user_id');
+				return;
+			}
+
+			resolve();
+		});
+	}
+
 	function encryptUserData() {
 		return new Promise((resolve, reject) => {
+
+
+				data = utils.clearHashFromEmptyProps(data);
+				//for use in email or sms scenario
+				data.hash = uuid.v4();
+				data.userImageRequired = bootstrapper.registrationImageRequired;
+
 				if (bootstrapper.encryptUserData) {
 
 					BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
 
-						let data2encrypt = CommonUtils.stringify(data,false);//TODO - check final length to be < 214 bytes if QR is overloaded
-						data.user_id     = cred.encryptWithRSA(data2encrypt);
-						resolve();
+						let data2encrypt = CommonUtils.stringify(data, false);
+
+						if (data2encrypt.length > 214) {
+							reject(`Maximum user data length should be 214. Current length is ${data2encrypt.length}`);
+						}
+						else {
+							data.user_id = cred.encryptWithRSA(data2encrypt);
+							//remove sensitive fields
+							let  config               = bootstrapper.provisionConfig.Fields,
+							     customLoginProvider  = bootstrapper.customLoginProvider;
+
+							if(customLoginProvider){
+								let clp = config.filter(x => x.LoginProvider == customLoginProvider);
+
+								for (let i = 0; i < clp.length; i++) {
+									let item = clp[i];
+									delete  data[item.FiledName];
+								}
+							}
+							resolve();
+						}
+
 
 					}).catch(function (e) {
 						let errMsg = `Failed to encrypt user_id ${e.message}`;
@@ -89,7 +149,7 @@ app.post('/register/save', (req, res) => {
 						reject(errMsg)
 					});
 				}
-				else{
+				else {
 					resolve();
 				}
 			}
@@ -109,7 +169,7 @@ app.post('/register/save', (req, res) => {
 					case Constants.RegistrationMethod.Email:
 					case Constants.RegistrationMethod.SMS:
 
-						beameAuthServices.sendCustomerInvitation(method,data).then(pincode => {
+						beameAuthServices.sendCustomerInvitation(method, data).then(pincode => {
 							data.pin = pincode;
 							resolve();
 						}).catch(reject);
@@ -123,14 +183,7 @@ app.post('/register/save', (req, res) => {
 	}
 
 	function getSigningFqdn() {
-		return new Promise((resolve, reject) => {
-			Bootstrapper.listCustomerAuthServers().then(servers => {
-				  servers.length ?	resolve(servers[0]) : reject(`Signing FQDN not found`);
-				}
-				).catch(() => {
-				reject('Failed getting signing FQDN');
-			});
-		});
+		return Promise.resolve(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer));
 	}
 
 	function getSigningCred(signingFqdn) {
@@ -156,8 +209,8 @@ app.post('/register/save', (req, res) => {
 	function getRedirectUrl([signingFqdn, signingCred, encryptToCred]) {
 		// TODO: move 600 to config
 		return new Promise((resolve, reject) => {
-			const tokenWithUserData = AuthToken.create(CommonUtils.stringify(data,false), signingCred, 600);
-			const encryptedData     = encryptToCred.encrypt(encryptTo, CommonUtils.stringify(tokenWithUserData,false), signingFqdn);
+			const tokenWithUserData = AuthToken.create(CommonUtils.stringify(data, false), signingCred, 600);
+			const encryptedData     = encryptToCred.encrypt(encryptTo, CommonUtils.stringify(tokenWithUserData, false), signingFqdn);
 			console.log('encryptedData', encryptedData);
 			// TODO: unhardcode URL and timeout below
 			const url = `https://${encryptTo}/customer-auth-done`;
@@ -168,7 +221,7 @@ app.post('/register/save', (req, res) => {
 					json:    {encryptedUserData: encryptedData},
 					timeout: 10000
 				},
-				function (error, response, body) {
+				(error, response, body) => {
 					if (error) {
 						console.log('getRedirectUrl error', error);
 						reject(`Failed to get redirect URL: ${error} at ${url}`);
@@ -189,7 +242,6 @@ app.post('/register/save', (req, res) => {
 	function redirect(url) {
 		return new Promise(() => {
 			return res.json({
-				// "url": `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)}`,
 				"url":          url,
 				"responseCode": 0,
 				"responseDesc": "Please check your email and continue the registration process"

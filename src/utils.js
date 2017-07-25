@@ -206,7 +206,18 @@ function hashToArray(hash) {
 	}
 }
 
+function clearHashFromEmptyProps(json){
 
+	Object.keys(json).forEach(function (key) {
+		var value = json[key];
+		if (value === "" || value === null){
+			delete json[key];
+		}
+	});
+
+
+	return json;
+}
 
 module.exports = {
 	clearSessionCookie,
@@ -218,5 +229,6 @@ module.exports = {
 	produceSAMLresponse,
 	pairingGlobals,
 	clientCertGlobals,
-	hashToArray
+	hashToArray,
+	clearHashFromEmptyProps
 };

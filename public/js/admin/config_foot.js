@@ -54,7 +54,6 @@ function getSettings(cb){
 	$.getJSON('/settings/get',function(data){
 		console.log('Admin Settings data %j', data);
 		settings = data;
-
 		cb && cb();
 	})
 }

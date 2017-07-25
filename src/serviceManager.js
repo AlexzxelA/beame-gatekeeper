@@ -28,7 +28,7 @@ class ServiceManager {
 		return new Promise((resolve, reject) => {
 				const returnList = () => {
 
-					let approvedList = user.isAdmin ? this._activeApps : CommonUtils.filterHash(this._activeApps, (k, v) => v.code !== SetupServices.Admin.code && v.code !== SetupServices.AdminInvitation.code);
+					let approvedList = user.isAdmin == 'true' || user.isAdmin == true ? this._activeApps : CommonUtils.filterHash(this._activeApps, (k, v) => v.code !== SetupServices.Admin.code && v.code !== SetupServices.AdminInvitation.code);
 
 					let formattedList = {};
 

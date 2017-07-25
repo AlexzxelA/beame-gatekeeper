@@ -22,15 +22,15 @@ const dirServices       = new DirectoryServices();
 const Constants   = require('../constants');
 const DbProviders = Constants.DbProviders;
 
-const AppConfigFileName           = Constants.AppConfigFileName;
-const CredsFileName               = Constants.CredsFileName;
-const CustomerAuthServersFileName = Constants.CustomerAuthServersFileName;
+const AppConfigFileName       = Constants.AppConfigFileName;
+const CredsFileName           = Constants.CredsFileName;
+const ProvisionConfigFileName = Constants.ProvisionConfigFileName;
 
-const BeameRootPath = Constants.BeameRootPath;
+const BeameServerConfigRootPath = Constants.BeameServerConfigRootPath;
 
-const CredsFolderPath             = Constants.CredsFolderPath;
-const CredsJsonPath               = Constants.CredsJsonPath;
-const CustomerAuthServersJsonPath = Constants.CustomerAuthServersJsonPath;
+const CredsFolderPath     = Constants.CredsFolderPath;
+const CredsJsonPath       = Constants.CredsJsonPath;
+const ProvisionConfigPath = Constants.ProvisionConfigPath;
 
 
 const ConfigFolderPath  = Constants.ConfigFolderPath;
@@ -46,10 +46,10 @@ let bootstrapperInstance;
 
 class Bootstrapper {
 
-
 	constructor() {
 		let config                            = DirectoryServices.readJSON(AppConfigJsonPath);
 		this._config                          = CommonUtils.isObjectEmpty(config) ? null : config;
+		this._provisionConfig                 = null;
 		this._isDelegatedCentralLoginVerified = false;
 		this._roles                           = [];
 		this._proxyAgent                      = null;
@@ -63,6 +63,7 @@ class Bootstrapper {
 		return new Promise((resolve) => {
 			this.initConfig(false)
 				.then(this.initDb.bind(this, false))
+				.then(this.initProvisionSettings.bind(this))
 				.then(() => {
 					logger.info(`beame-gatekeeper bootstrapped successfully`);
 					resolve();
@@ -83,7 +84,7 @@ class Bootstrapper {
 				Bootstrapper._ensureBeameServerDir()
 					.then(this._ensureAppConfigJson.bind(this))
 					.then(this._ensureCredsConfigJson.bind(this))
-					.then(this._ensureCustomerAuthServersJson.bind(this))
+					.then(this._ensureProvisionConfigJson.bind(this))
 					.then(this._ensureDbConfig.bind(this, rejectInvalidDbProvider))
 					.then(() => {
 						logger.info(`Beame-gatekeeper config files ensured`);
@@ -132,6 +133,10 @@ class Bootstrapper {
 				reject(`Db Provider ${provider} currently not supported`);
 			}
 		);
+	}
+
+	initProvisionSettings() {
+		this.provisionConfig = DirectoryServices.readJSON(ProvisionConfigPath);
 	}
 
 	getServersSettings() {
@@ -317,6 +322,20 @@ class Bootstrapper {
 		);
 	}
 
+	updateProvisionConfig(config) {
+		return new Promise((resolve, reject) => {
+
+				DirectoryServices.saveFileSync(ProvisionConfigPath, CommonUtils.stringify(config, true), (error) => {
+					if (error) {
+						reject(error);
+						return;
+					}
+					resolve();
+				});
+			}
+		);
+	}
+
 	//region getters and setters
 	get delegatedLoginUrl() {
 		return this.externalLoginUrl ? (this.isDelegatedCentralLoginVerified ? this.externalLoginUrl : (this.allowDirectSignin ? null : Constants.DCLSOfflinePath)) : null;
@@ -451,7 +470,7 @@ class Bootstrapper {
 	}
 
 	static get neDbRootPath() {
-		return defaults.nedb_storage_root;
+		return Constants.BeameDataStorageRootPath;
 	}
 
 	get pairingRequired() {
@@ -472,6 +491,9 @@ class Bootstrapper {
 
 	get useBeameAuthOnLocal() {
 		return this._config[SettingsProps.UseBeameAuthOnLocal];
+	}
+	get showZendeskSupport() {
+		return this._config[SettingsProps.ShowZendeskSupport] ;
 	}
 
 	get allowDirectSignin() {
@@ -517,13 +539,32 @@ class Bootstrapper {
 		return this._authServerLocalPort;
 	}
 
+	get customLoginProvider() {
+		return this._config[SettingsProps.CustomLoginProvider] || null;
+	}
+
+
+	get provisionConfig() {
+		return this._provisionConfig;
+	}
+
+	static get readProvisionConfig() {
+		return DirectoryServices.readJSON(ProvisionConfigPath);
+	}
+
+
+	set provisionConfig(config) {
+		this._provisionConfig = config;
+	}
+
+
 	//endregion
 
 	//region Beame folder
 	static _ensureBeameServerDir() {
 
 		return new Promise((resolve, reject) => {
-				Bootstrapper._ensureDir(BeameRootPath)
+				Bootstrapper._ensureDir(BeameServerConfigRootPath)
 					.then(Bootstrapper._ensureDir(ConfigFolderPath))
 					.then(Bootstrapper._ensureDir(CredsFolderPath))
 					.then(resolve)
@@ -748,62 +789,24 @@ class Bootstrapper {
 
 	//endregion
 
-	// region Customer Auth servers config
-	registerCustomerAuthServer(fqdn) {
-		return new Promise((resolve, reject) => {
-				if (!fqdn) {
-					reject(`fqdn required`);
-					return;
-				}
-
-				let servers = DirectoryServices.readJSON(CustomerAuthServersJsonPath);
-
-				if (CommonUtils.isObjectEmpty(servers)) {
-					reject(`customer auth servers configuration file not found`);
-					return;
-				}
-
-				if (servers.Servers.indexOf(fqdn) >= 0) {
-					resolve();
-					return;
-				}
-
-				servers.Servers.push(fqdn);
-
-				DirectoryServices.saveFileSync(CustomerAuthServersJsonPath, CommonUtils.stringify(servers, true), (error) => {
-					if (error) {
-						reject(error);
-						return;
-					}
-					logger.info(`${fqdn} added to authorized customer servers...`);
-					resolve();
-				});
-			}
-		);
-	}
-
-	static listCustomerAuthServers() {
-		return new Promise((resolve) => {
-			resolve(DirectoryServices.readJSON(CustomerAuthServersJsonPath).Servers);
-		});
-	}
+	// region Provision  config
 
 	/**
 	 * @returns {Promise}
 	 * @private
 	 */
-	_ensureCustomerAuthServersJson() {
+	_ensureProvisionConfigJson() {
 		return new Promise((resolve) => {
-				logger.debug(`ensuring ${CustomerAuthServersFileName}...`);
+				logger.debug(`ensuring ${ProvisionConfigFileName}...`);
 
-				let isExists = DirectoryServices.doesPathExists(CustomerAuthServersJsonPath);
+				let isExists = DirectoryServices.doesPathExists(ProvisionConfigPath);
 
 				if (isExists) {
 					logger.debug(`${CredsFileName} found...`);
 					resolve();
 				}
 				else {
-					this._createCustomerAuthServersJson().then(resolve).catch(_onConfigError);
+					this._createProvisionConfigJson().then(resolve).catch(_onConfigError);
 				}
 			}
 		);
@@ -813,14 +816,14 @@ class Bootstrapper {
 	 ** @returns {Promise}
 	 * @private
 	 */
-	_createCustomerAuthServersJson() {
+	_createProvisionConfigJson() {
 
 		return new Promise((resolve, reject) => {
-				let credsConfig = defaults.CustomerAuthServersTemplate;
+				let provision = defaults.ProvisionSettingsTemplate;
 
 
-				dirServices.saveFileAsync(CustomerAuthServersJsonPath, CommonUtils.stringify(credsConfig, true)).then(() => {
-					logger.debug(`${CustomerAuthServersFileName} saved in ${path.dirname(CustomerAuthServersJsonPath)}...`);
+				dirServices.saveFileAsync(ProvisionConfigPath, CommonUtils.stringify(provision, true)).then(() => {
+					logger.debug(`${ProvisionConfigFileName} saved in ${path.dirname(ProvisionConfigPath)}...`);
 					resolve();
 				}).catch(reject);
 

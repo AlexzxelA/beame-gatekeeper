@@ -5,7 +5,6 @@
 
 const path = require('path');
 const os   = require('os');
-const home = process.env.BEAME_GATEKEEPER_DIR || os.homedir();
 
 const Constants   = require('./constants');
 const Servers     = Constants.CredentialType;
@@ -14,7 +13,6 @@ const db_provider = Constants.DbProviders.NeDB;
 const ServiceName = "ServiceName";
 const AppId       = "";
 
-const nedb_storage_root = path.join(home, process.env.BEAME_DATA_FOLDER || ".beame_data");
 
 const PublicRegistration           = true;
 const RegistrationImageRequired    = false;
@@ -23,6 +21,7 @@ const PairingRequired              = true;
 const UseBeameAuthOnLocal          = true;
 const AllowDirectSignin            = true;
 const RunAuthServerOnZeroLevelCred = true;
+const ShowZendeskSupport           = true;
 
 const RegistrationMethod = Constants.RegistrationMethod.Pairing;
 const EnvMode            = Constants.EnvMode.Gatekeeper;
@@ -82,7 +81,9 @@ const ConfigProps = {
 		ProxySessionTtl:               "ProxySessionTtl",
 		BrowserSessionTtl:             "BrowserSessionTtl",
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
-		AllowDirectSignin:             "AllowDirectSignin"
+		AllowDirectSignin:             "AllowDirectSignin",
+		CustomLoginProvider:           "CustomLoginProvider",
+		ShowZendeskSupport:            "ShowZendeskSupport"
 	},
 	NeDB:     {
 		StorageRoot: "nedb_storage_root"
@@ -130,8 +131,54 @@ const CredsConfigTemplate = {
 	}
 };
 
-const CustomerAuthServersTemplate = {
-	"Servers": []
+const ProvisionSettingsTemplate = {
+	"Fields": [
+		{
+			"Order":         1,
+			"Label":         "Email",
+			"FiledName":     "email",
+			"IsActive":      true,
+			"Required":      true,
+			"IsPassword":    false,
+			"LoginProvider": null
+		},
+		{
+			"Order":         2,
+			"Label":         "Name",
+			"FiledName":     "name",
+			"IsActive":      true,
+			"Required":      false,
+			"IsPassword":    false,
+			"LoginProvider": null
+		},
+		{
+			"Order":         3,
+			"Label":         "ExternalUserId",
+			"FiledName":     "user_id",
+			"IsActive":      true,
+			"Required":      false,
+			"IsPassword":    false,
+			"LoginProvider": null
+		},
+		{
+			"Order":         4,
+			"Label":         "AD UserName",
+			"FiledName":     "ad_user_name",
+			"IsActive":      false,
+			"Required":      false,
+			"IsPassword":    false,
+			"LoginProvider": Constants.CustomLoginProviders.Active_Directory.code
+		},
+		{
+			"Order":         5,
+			"Label":         "AD Password",
+			"FiledName":     "ad_pass",
+			"IsActive":      false,
+			"Required":      false,
+			"IsPassword":    true,
+			"LoginProvider": Constants.CustomLoginProviders.Active_Directory.code
+		}
+	]
 };
 
 
@@ -140,7 +187,7 @@ module.exports = {
 	AppId,
 	ServiceName,
 
-	ProxySettings:null,
+	ProxySettings: null,
 
 	SessionRecordDeleteTimeout,
 	KillSocketOnDisconnectTimeout,
@@ -168,13 +215,12 @@ module.exports = {
 	AllowDirectSignin,
 	RunAuthServerOnZeroLevelCred,
 	DisableDemoServers,
+	ShowZendeskSupport,
 
 	CredsConfigTemplate,
-	CustomerAuthServersTemplate,
+	ProvisionSettingsTemplate,
 
 	db_provider,
-
-	nedb_storage_root,
 
 	DefaultProxyConfig
 

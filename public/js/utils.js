@@ -187,3 +187,34 @@ function loadGwBundle(){
 	else
 		console.log(navigator.userAgent);
 }
+
+function buildRegistrationForm(container_selector){
+	$.getJSON('/provision/config/list',function(data){
+		console.log('Provision Settings data %j', data);
+
+		for(var i=0;i<data.length;i++){
+			var d = data[i];
+			var inp =$('<input />').addClass('form-input').attr({name:d.FiledName, type:d.IsPassword ? 'password' : 'text', placeholder:d.Label});
+			if(d.Required === true){
+				inp.attr('required','required');
+			}
+
+			$(container_selector).append(inp);
+		}
+	})
+
+}
+
+function setZendesk(){
+	var show = getCookie('beame_zendesk_settings');
+		console.log('huj3',show);
+	if(show === 'true' || show === true){
+		var zendesk_script = document.createElement('script');
+
+		zendesk_script.setAttribute('src','js/zendesk-widget.js');
+
+		document.head.appendChild(zendesk_script);
+	}
+}
+
+setZendesk();

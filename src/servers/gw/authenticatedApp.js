@@ -25,6 +25,7 @@ const authenticatedApp = express();
 
 authenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
+	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
 	res.sendFile(path.join(base_path, 'logged-in-home.html'));
 });
 
