@@ -47,6 +47,7 @@ certs
 data/
 bower_components
 local_config/
+serge_local_tests/
 tools
 npm-shrinkwrap.json
 #apps/photo/public/css
