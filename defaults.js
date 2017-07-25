@@ -221,6 +221,7 @@ module.exports = {
 	ProvisionSettingsTemplate,
 
 	db_provider,
+	nedb_storage_root:Constants.BeameDataStorageRootPath,
 
 	DefaultProxyConfig
 
