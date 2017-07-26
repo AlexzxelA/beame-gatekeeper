@@ -232,7 +232,7 @@ gulp.task('compile-js', () => {
 
 	compileJs([
 		'./public/lib/jszip-2.4.0.min.js',
-		'./public/lib/jquery.form-3.5.1.min.js',
+		'./public/lib/jquery/jquery.form-3.5.1.min.js',
 		'./public/js/admin/notification.js',
 		'./public/js/admin/config_foot.js',
 		'./public/js/admin/dash.js'
@@ -247,7 +247,7 @@ gulp.task('compile-js', () => {
 
 	compileJs([
 		'./public/lib/jszip-2.4.0.min.js',
-		'./public/lib/jquery.form-3.5.1.min.js',
+		'./public/lib/jquery/jquery.form-3.5.1.min.js',
 		'./public/js/admin/notification.js',
 		'./public/js/admin/admin_foot.js',
 		'./public/js/admin/cred.detail.js',
@@ -373,21 +373,21 @@ gulp.task('compile-js', () => {
 		[
 			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/angular-1.5.7.min.js',
-			'./public/lib/jquery-2.2.4.min.js',
+			'./public/lib/jquery/jquery-2.2.4.min.js',
 			'./public/lib/kendo-2017.2.621.qr.min.js'
 		], 'lib-sjak.min.js', false);
 
 	compileJs(
 		[
 			'./public/lib/socket.io-1.7.3.min.js',
-			'./public/lib/jquery-2.2.4.min.js',
+			'./public/lib/jquery/jquery-2.2.4.min.js',
 			'./public/lib/kendo-2017.2.621.qr.min.js'
 		], 'lib-sjk.min.js', false);
 
 	compileJs(
 		[
-			'./public/lib/jquery-2.2.4.min.js',
-			'./public/lib/jquery.form-3.5.1.min.js'
+			'./public/lib/jquery/jquery-2.2.4.min.js',
+			'./public/lib/jquery/jquery.form-3.5.1.min.js'
 		], 'lib-jjf.min.js', false);
 });
 
@@ -434,6 +434,7 @@ gulp.task('admin-index', function () {
 
 gulp.task('compile-static', () => {
 	gulp.src('./public/img/**/*').pipe(gulp.dest(`./${dist_folder_name}/img/`));
+
 	gulp.src('./public/templates/*.html')
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(inlinesource())
@@ -446,6 +447,12 @@ gulp.task('compile-static', () => {
 			'admin-template': ``
 		}))
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
+
+	gulp.src('./public/lib/kendo/**')
+		.pipe(gulp.dest(`./${dist_folder_name}/lib/kendo/`));
+
+	gulp.src('./public/lib/jquery/**')
+		.pipe(gulp.dest(`./${dist_folder_name}/lib/jquery/`));
 });
 
 gulp.task('compile', ['compile-sass', 'compile-css', 'compile-static', 'compile-js', 'compile-pages']);

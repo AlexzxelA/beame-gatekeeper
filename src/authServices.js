@@ -583,7 +583,7 @@ class BeameAuthServices {
 	//region user
 	static IsAdminCreated() {
 		return new Promise((resolve) => {
-				dataService.searchUsers({"isAdmin": true}).then(admins => {
+				dataService.searchUsers({"isAdmin": true,"isActive":true}).then(admins => {
 					resolve(admins.length > 0);
 				}).catch(error => {
 					logger.error(`IsAdminCreated error ${BeameLogger.formatError(error)}`);
