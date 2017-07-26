@@ -161,6 +161,7 @@ const CookieNames = {
 	"UserInfo":       "beame_userinfo",
 	"ClientLoginUrl": "beame_client_login_url",
 	"LoginData":      "usrInData",
+	"BeameSettings":  "beame_settings",
 	"ShowZendesk":    "beame_zendesk_settings"
 };
 

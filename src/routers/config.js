@@ -13,6 +13,7 @@ const beameSDK    = require('beame-sdk');
 const module_name = "BeameAdminServices";
 const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
+const utils = require('../utils');
 
 const BeameAdminServices = require('../servers/admin/admin_services');
 
@@ -30,6 +31,7 @@ class ConfigRouter {
 	_initRoutes() {
 
 		this._router.get('/', (req, res) => {
+			utils.writeSettingsCookie(res);
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
 

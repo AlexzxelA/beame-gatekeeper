@@ -13,6 +13,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
+		isSecure:   true,
 		url:        null
 	},
 	{
@@ -22,6 +23,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
+		isSecure:   true,
 		url:        null
 	},
 	{
@@ -31,6 +33,7 @@ module.exports = [
 		isOnline:   false,
 		isExternal: true,
 		isMobile:   false,
+		isSecure:   true,
 		url:        null
 	},
 	{
@@ -40,6 +43,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
+		isSecure:   true,
 		url:        null
 	},
 	{
@@ -49,6 +53,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   false,
+		isSecure:   true,
 		url:        null
 	},
 	{
@@ -58,6 +63,7 @@ module.exports = [
 		isOnline:   true,
 		isExternal: false,
 		isMobile:   true,
+		isSecure:   true,
 		url:        null
 	},
 	{
@@ -67,6 +73,7 @@ module.exports = [
 		isOnline:   false,
 		isExternal: false,
 		isMobile:   true,
+		isSecure:   true,
 		url:        null
 	}
 ];

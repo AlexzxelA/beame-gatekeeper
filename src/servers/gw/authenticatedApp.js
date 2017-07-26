@@ -24,8 +24,9 @@ const base_path  = path.join(public_dir, 'pages', 'gw', 'authenticated');
 const authenticatedApp = express();
 
 authenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
+	const utils = require('../../utils');
 	res.cookie(cookieNames.Service,CommonUtils.stringify(bootstrapper.appData));
-	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+	utils.writeSettingsCookie(res);
 	res.sendFile(path.join(base_path, 'logged-in-home.html'));
 });
 

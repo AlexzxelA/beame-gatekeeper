@@ -3,38 +3,40 @@
  */
 "use strict";
 
-const bodyParser = require('body-parser');
-const https      = require('https');
-const express    = require('express');
-const path       = require('path');
+const bodyParser  = require('body-parser');
+const https       = require('https');
+const express     = require('express');
+const path        = require('path');
 const ssoManager  = require('./samlSessionManager');
 const beameSDK    = require('beame-sdk');
 const CommonUtils = beameSDK.CommonUtils;
 const BeameStore  = new beameSDK.BeameStore();
 const AuthToken   = beameSDK.AuthToken;
 
-function produceSAMLresponse(userIdData , payload, token, cb) {
+
+
+function produceSAMLresponse(userIdData, payload, token, cb) {
 	let ssoManagerX        = ssoManager.samlManager.getInstance();
 	let ssoConfig          = ssoManagerX.getConfig(payload && payload.app_code);
 	ssoConfig.users        = {
-		user:           userIdData.email || userIdData.name,
-		emails:         userIdData.email || userIdData.name,//userIdData.email,
-		name:           {givenName:undefined, familyName:undefined},
-		displayName:    userIdData.nickname,
-		id:             userIdData.email || userIdData.name,
+		user:        userIdData.email || userIdData.name,
+		emails:      userIdData.email || userIdData.name,//userIdData.email,
+		name:        {givenName: undefined, familyName: undefined},
+		displayName: userIdData.nickname,
+		id:          userIdData.email || userIdData.name,
 	};
 	ssoConfig.persistentId = userIdData.persistentId;
 	ssoConfig.SAMLRequest  = payload && payload.SAMLRequest;
 	ssoConfig.RelayState   = payload && payload.RelayState;
 	let ssoSession         = new ssoManager.samlSession(ssoConfig);
-	ssoSession.getSamlHtml((err, html)=>{
-		if(html)cb({
-			type: 'saml',
+	ssoSession.getSamlHtml((err, html) => {
+		if (html) cb({
+			type:    'saml',
 			payload: {
-				success: true,
-				samlHtml: html,
+				success:       true,
+				samlHtml:      html,
 				session_token: token,
-				url: null
+				url:           null
 			}
 		});
 	});
@@ -98,7 +100,9 @@ function signDataWithFqdn(fqdn, data) {
 		});
 	});
 }
+
 let pairingGlobalsRef = null;
+
 class pairingGlobals {
 	constructor() {
 		this._sessionIdTimeout = 180;//adjust this value to allow "refresh" on mobile browser
@@ -137,13 +141,14 @@ class pairingGlobals {
 }
 
 let clientCertGlobalsRef = null;
+
 class clientCertGlobals {
 	constructor() {
 		this._sessionIdTimeout = 180;//adjust this value to allow "refresh" on mobile browser
 		this._sessionIdScan    = 60 * 1000;
 		if (!clientCertGlobalsRef) {
-			clientCertGlobalsRef      = this;
-			this._sessionIds = {};
+			clientCertGlobalsRef = this;
+			this._sessionIds     = {};
 		}
 	}
 
@@ -184,6 +189,19 @@ function clearSessionCookie(res) {
 	res.clearCookie(cookieNames.LoginData);
 }
 
+function writeSettingsCookie(res) {
+	const Bootstrapper = require('./bootstrapper');
+	const bootstrapper = Bootstrapper.getInstance();
+	const Constants  = require('../constants');
+	const cookieNames  = Constants.CookieNames;
+
+	const settings = {
+		showZendesk: bootstrapper.showZendeskSupport
+	};
+
+	res.cookie(cookieNames.BeameSettings, CommonUtils.stringify(settings));
+}
+
 function generateUID(length) {
 	let text     = "",
 	    possible = "_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef.ghijklmnopqrstuvwxyz0123456789.";
@@ -206,11 +224,11 @@ function hashToArray(hash) {
 	}
 }
 
-function clearHashFromEmptyProps(json){
+function clearHashFromEmptyProps(json) {
 
 	Object.keys(json).forEach(function (key) {
 		var value = json[key];
-		if (value === "" || value === null){
+		if (value === "" || value === null) {
 			delete json[key];
 		}
 	});
@@ -221,6 +239,7 @@ function clearHashFromEmptyProps(json){
 
 module.exports = {
 	clearSessionCookie,
+	writeSettingsCookie,
 	setExpressApp,
 	setExpressAppCommonRoutes,
 	createAuthTokenByFqdn,
