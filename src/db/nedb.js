@@ -800,6 +800,7 @@ class NeDB {
 		service.isActive   = NeDB._formatBoolean(service.isActive);
 		service.isMobile   = NeDB._formatBoolean(service.isMobile);
 		service.isExternal = NeDB._formatBoolean(service.isExternal);
+		service.isSecure   = NeDB._formatBoolean(service.isSecure);
 
 		return service;
 	}
@@ -816,9 +817,9 @@ class NeDB {
 							url:        service.url,
 							name:       service.name,
 							isActive:   service.isActive,
+							isSecure:   service.isSecure,
 							isMobile:   service.isMobile,
 							isExternal: service.isExternal
-
 						}
 					};
 

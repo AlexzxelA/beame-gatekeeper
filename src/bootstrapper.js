@@ -206,8 +206,9 @@ class Bootstrapper {
 					this._proxyAgent = beameSDK.ProxyAgent;
 
 					this._proxyAgent.initialize({
-						host: sett.host,
-						port: port
+						host:     sett.host,
+						port:     port,
+						excludes: sett.excludes
 					});
 				}
 
@@ -492,8 +493,9 @@ class Bootstrapper {
 	get useBeameAuthOnLocal() {
 		return this._config[SettingsProps.UseBeameAuthOnLocal];
 	}
+
 	get showZendeskSupport() {
-		return this._config[SettingsProps.ShowZendeskSupport] ;
+		return this._config[SettingsProps.ShowZendeskSupport];
 	}
 
 	get allowDirectSignin() {
@@ -543,7 +545,6 @@ class Bootstrapper {
 		return this._config[SettingsProps.CustomLoginProvider] || null;
 	}
 
-
 	get provisionConfig() {
 		return this._provisionConfig;
 	}
@@ -551,7 +552,6 @@ class Bootstrapper {
 	static get readProvisionConfig() {
 		return DirectoryServices.readJSON(ProvisionConfigPath);
 	}
-
 
 	set provisionConfig(config) {
 		this._provisionConfig = config;

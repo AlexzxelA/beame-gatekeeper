@@ -278,7 +278,15 @@
                                    style="width: 80px !important;"
                                    data-role="numerictextbox"
                                    data-bind="value:data.AppConfig.ProxySettings.port"
-                                   id="ProxyBothPort" type="text" data-spinners="false" data-format="{0:D}"/>
+                                   id="ProxyBothPort" data-spinners="false" data-format="{0:D}"/>
+                        </li>
+                        <li class="mt-2">
+                            <label for="ProxyExcludes">Excludes <i>(subdomains, comma-separated)</i></label>
+                            <textarea class="value-custom pt-half"
+                                      rows="3"
+                                      cols="40"
+                                   data-bind="value:data.AppConfig.ProxySettings.excludes"
+                                   id="ProxyExcludes"></textarea>
                         </li>
                         <li class="mt-2">
                             <label>&nbsp;</label>

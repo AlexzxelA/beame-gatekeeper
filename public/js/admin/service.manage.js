@@ -43,6 +43,7 @@ function loadServices() {
 					code:     {type: "string"},
 					url:      {type: "string"},
 					isActive: {type: "boolean", defaultValue: true},
+					isSecure: {type: "boolean", defaultValue: true},
 					isMobile: {type: "boolean", defaultValue: false},
 					isExternal: {type: "boolean", defaultValue: false}
 				}
@@ -86,6 +87,10 @@ function loadServices() {
 				field: "url",
 				title: "Url",
 				width: "30%"
+			},
+			{
+				field: "isSecure",
+				title: "Secured"
 			},
 			{
 				field: "isMobile",

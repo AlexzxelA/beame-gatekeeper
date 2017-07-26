@@ -82,7 +82,7 @@ router.get('/', (req, res) => {
 	let user = req.beame_user;
 	res.cookie(cookieNames.UserInfo, CommonUtils.stringify({name: user.name}));
 	res.cookie(cookieNames.Logout, JSON.stringify({url: `https://${gwServerFqdn}${Constants.ClientLogoutPath}`}));
-	res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+	utils.writeSettingsCookie(res);
 	res.sendFile(path.join(base_path, 'index.html'));
 });
 

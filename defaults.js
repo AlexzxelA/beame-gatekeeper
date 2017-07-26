@@ -49,7 +49,8 @@ const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || 
 
 const DefaultProxyConfig = {
 	host: "",
-	port: ""
+	port: "",
+	excludes:""
 };
 
 const ConfigProps = {

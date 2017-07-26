@@ -206,9 +206,14 @@ function buildRegistrationForm(container_selector){
 }
 
 function setZendesk(){
-	var show = getCookie('beame_zendesk_settings');
-		console.log('huj3',show);
-	if(show === 'true' || show === true){
+	var settings = getCookie('beame_settings');
+		console.log('huj3',settings);
+
+	if(!settings) return;
+
+	var s = JSON.parse(decodeURIComponent(settings));
+
+	if(s.showZendesk === 'true' || s.showZendesk === true){
 		var zendesk_script = document.createElement('script');
 
 		zendesk_script.setAttribute('src','js/zendesk-widget.js');

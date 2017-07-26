@@ -20,7 +20,7 @@ const Constants    = require('../../constants');
 const cookieNames  = Constants.CookieNames;
 const public_dir   = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
 const base_path    = path.join(public_dir, 'pages', 'beame_auth');
-
+const utils = require('../utils');
 
 const sns = new (require("../servers/beame_auth/sns"))();
 
@@ -58,7 +58,7 @@ class BeameAuthRouter {
 			this._isRequestValid(req).then( data => {
 
 				let url = Bootstrapper.getLogoutUrl();
-				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+				utils.writeSettingsCookie(res);
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
@@ -139,7 +139,7 @@ class BeameAuthRouter {
 				res.cookie(cookieNames.Logout, url);
 				res.cookie(cookieNames.Service, CommonUtils.stringify(bootstrapper.appData));
 				res.cookie(cookieNames.RegData, CommonUtils.stringify(data));
-				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+				utils.writeSettingsCookie(res);
 
 				res.sendFile(path.join(base_path, 'signup.html'));
 			}).catch(error => {
@@ -147,72 +147,6 @@ class BeameAuthRouter {
 				res.redirect(Bootstrapper.getLogoutUrl())
 			});
 		});
-
-		//region not in use
-		this._router.post('/client/dataout', function (req, res) {
-			let body_array = [];
-			req.on('data', (chunk) => {
-				body_array.push(chunk);
-			});
-			req.on('end', () => {
-				let rawData = body_array.join('');
-				logger.debug('sns message received bytes: ', rawData.byteLength);
-				let parsedData = CommonUtils.parse(rawData);
-				if(parsedData.signedData && parsedData.signature && parsedData.signedBy){
-					store.find(parsedData.signedBy, true).then(cred => {
-						if (!cred) {
-							onRequestError(res, 'Invalid credential', 401);
-						}
-						else{
-							let decrypted = (cred.decrypt(parsedData));
-							if(decrypted)
-							{
-								res.json(decrypted);
-							}
-							else {
-								onRequestError(res, 'Pic decrypt failed', 401);
-							}
-						}
-
-					}).catch(e => {
-						onRequestError(res,`Credential not found`, 401);
-					});
-				}
-			});
-		});
-
-		this._router.post('/client/datain', function (req, res) {
-			let body_array = [];
-			req.on('data', (chunk) => {
-				body_array.push(chunk);
-			});
-			req.on('end', () => {
-				let rawData = body_array.join('');
-				logger.debug('sns message received bytes: ', rawData.byteLength);
-				let parsedData = CommonUtils.parse(rawData);
-				if(parsedData.signedData && parsedData.signature && parsedData.signedBy){
-					store.find(parsedData.signedBy, true).then(cred => {
-						if (!cred) {
-							onRequestError(res, 'Invalid credential', 401);
-						}
-						else{
-							if(cred.checkSignature(parsedData)){
-								let selfCred = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
-								let dataPack = selfCred.encrypt(selfCred, parsedData.signedData, selfCred);
-								res.json(dataPack);
-							}
-							else {
-								onRequestError(res, 'Signature verification failed', 401);
-							}
-						}
-
-					}).catch(e => {
-						onRequestError(res,`Credential not found`, 401);
-					});
-				}
-			});
-		});
-		//endregion
 
 		this._router.post('/sns', function (req, res) {
 			let body_array = [];
