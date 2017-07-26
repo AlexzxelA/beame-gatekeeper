@@ -29,6 +29,8 @@ const centralLoginServices = require('../centralLoginServices').getInstance();
 const RESPONSE_SUCCESS_CODE = 1;
 const RESPONSE_ERROR_CODE   = 0;
 
+const utils = require('../utils');
+
 class AdminRouter {
 	constructor(adminServices) {
 		this._beameAdminServices = adminServices;
@@ -41,13 +43,13 @@ class AdminRouter {
 	_initRoutes() {
 		//region static
 		this._router.get('/invitation', (req, res) => {
-			res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+			utils.writeSettingsCookie(res);
 			res.sendFile(path.join(base_path, 'invitation.html'));
 		});
 
 		this._router.get('/', (req, res) => {
 			res.cookie(cookieNames.ClientLogin, JSON.stringify({url: `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
-			res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+			utils.writeSettingsCookie(res);
 
 			res.sendFile(path.join(base_path, 'index.html'));
 		});
@@ -72,6 +74,14 @@ class AdminRouter {
 
 		this._router.get('/zendesk', (req, res) => {
 			res.json({show: bootstrapper.showZendeskSupport});
+		});
+
+		this._router.post('/proxy/save', (req, res) => {
+			this._beameAdminServices.saveProxyConfig(req.body.data).then(() => {
+				res.json({success: true});
+			}).catch(error => {
+				res.json({success: false, error: BeameLogger.formatError(error)});
+			});
 		});
 		//endregion
 
@@ -733,7 +743,7 @@ class AdminRouter {
 		this._router.post("/invitation/upload", (req, res) => {
 
 			if (bootstrapper.registrationImageRequired) {
-				res.cookie(cookieNames.ShowZendesk, bootstrapper.showZendeskSupport);
+				utils.writeSettingsCookie(res);
 				res.sendFile(path.join(base_path, 'offline_reg_forbidden.html'));
 				return;
 			}
