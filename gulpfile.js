@@ -178,6 +178,9 @@ gulp.task('sass', function () {
 			process.exit(1);
 		}))
 		.pipe(gulp.dest('./public/css/'));
+
+	gulp.src('./public/scss/google_fonts/fonts/**')
+		.pipe(gulp.dest('./public/css/fonts/'));
 });
 
 gulp.task('web_sass', function () {
@@ -374,14 +377,14 @@ gulp.task('compile-js', () => {
 			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/angular-1.5.7.min.js',
 			'./public/lib/jquery/jquery-2.2.4.min.js',
-			'./public/lib/kendo-2017.2.621.qr.min.js'
+			'./public/lib/kendo/kendo-2017.2.621.qr.min.js'
 		], 'lib-sjak.min.js', false);
 
 	compileJs(
 		[
 			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/jquery/jquery-2.2.4.min.js',
-			'./public/lib/kendo-2017.2.621.qr.min.js'
+			'./public/lib/kendo/kendo-2017.2.621.qr.min.js'
 		], 'lib-sjk.min.js', false);
 
 	compileJs(
@@ -447,6 +450,9 @@ gulp.task('compile-static', () => {
 			'admin-template': ``
 		}))
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
+
+	gulp.src('./public/css/fonts/**')
+		.pipe(gulp.dest(`./${dist_folder_name}/css/fonts/`));
 
 	gulp.src('./public/lib/kendo/**')
 		.pipe(gulp.dest(`./${dist_folder_name}/lib/kendo/`));

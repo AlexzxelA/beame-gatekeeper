@@ -67,7 +67,12 @@ class BeameAuthServer {
 
 					httpServer.listen(0,()=>{
 
-						bootstrapper.authServerLocalPort = httpServer.address().port;
+
+						let port = httpServer.address().port;
+
+						logger.info(`Beame Auth Server started on ${port}`);
+
+						bootstrapper.authServerLocalPort = port;
 
 						let beameHttpInstaServer = new BeameInstaSocketServer(httpServer, this._fqdn, this._matchingServerFqdn, Constants.AuthMode.PROVISION, this._callbacks);
 

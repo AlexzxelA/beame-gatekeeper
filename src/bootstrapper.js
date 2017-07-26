@@ -498,6 +498,10 @@ class Bootstrapper {
 		return this._config[SettingsProps.ShowZendeskSupport];
 	}
 
+	get disableDemoServers() {
+		return this._config[SettingsProps.DisableDemoServers];
+	}
+
 	get allowDirectSignin() {
 		return this._config[SettingsProps.AllowDirectSignin];
 	}
