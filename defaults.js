@@ -48,9 +48,9 @@ const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || 
 
 
 const DefaultProxyConfig = {
-	host: "",
-	port: "",
-	excludes:""
+	host:     "",
+	port:     "",
+	excludes: ""
 };
 
 const ConfigProps = {
@@ -84,7 +84,8 @@ const ConfigProps = {
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
 		AllowDirectSignin:             "AllowDirectSignin",
 		CustomLoginProvider:           "CustomLoginProvider",
-		ShowZendeskSupport:            "ShowZendeskSupport"
+		ShowZendeskSupport:            "ShowZendeskSupport",
+		DisableDemoServers:            "DisableDemoServers"
 	},
 	NeDB:     {
 		StorageRoot: "nedb_storage_root"
@@ -222,7 +223,7 @@ module.exports = {
 	ProvisionSettingsTemplate,
 
 	db_provider,
-	nedb_storage_root:Constants.BeameDataStorageRootPath,
+	nedb_storage_root: Constants.BeameDataStorageRootPath,
 
 	DefaultProxyConfig
 

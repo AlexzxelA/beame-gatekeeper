@@ -228,8 +228,7 @@ class ServersManager {
 
 		};
 
-
-		const isDemoServersDisabled = bootstrapper.isCentralLogin || defaults.DisableDemoServers;
+		const isDemoServersDisabled = bootstrapper.isCentralLogin || bootstrapper.disableDemoServers;
 
 		const ServiceManager = require('./serviceManager');
 		const serviceManager = ServiceManager.getInstance();

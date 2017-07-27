@@ -35,6 +35,10 @@ app.get(Constants.RegisterPath, (req, res) => {
 
 	let isPublicRegistrationEnabled = bootstrapper.publicRegistration;
 
+	if(isPublicRegistrationEnabled){
+		res.cookie(cookieNames.ProvisionSettings, CommonUtils.stringify(Bootstrapper.getProvisionConfig));
+	}
+
 	res.sendFile(path.join(base_path, isPublicRegistrationEnabled ? 'register.html' : 'forbidden.html'));
 });
 
@@ -45,20 +49,6 @@ app.get(Constants.RegisterSuccessPath, (req, res) => {
 	res.sendFile(path.join(base_path, 'register_success.html'));
 });
 
-app.get('/provision/config/list', (req, res) => {
-	try {
-		let props = Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive);
-
-		props = props.sort((a, b) => {
-			return a.Order - b.Order;
-		});
-
-		res.json(props);
-	} catch (e) {
-		logger.error(e);
-		res.json([]);
-	}
-});
 
 app.post('/register/save', (req, res) => {
 

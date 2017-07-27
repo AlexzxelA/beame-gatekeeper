@@ -498,6 +498,10 @@ class Bootstrapper {
 		return this._config[SettingsProps.ShowZendeskSupport];
 	}
 
+	get disableDemoServers() {
+		return this._config[SettingsProps.DisableDemoServers];
+	}
+
 	get allowDirectSignin() {
 		return this._config[SettingsProps.AllowDirectSignin];
 	}
@@ -551,6 +555,10 @@ class Bootstrapper {
 
 	static get readProvisionConfig() {
 		return DirectoryServices.readJSON(ProvisionConfigPath);
+	}
+
+	static get getProvisionConfig() {
+		return Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive).sort((a, b) => {return a.Order - b.Order;});
 	}
 
 	set provisionConfig(config) {

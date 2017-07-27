@@ -32,7 +32,8 @@ let expectsAuthToken = false;
 let serviceManager   = null;
 
 
-const agentProxy = (agentModule) => {
+
+const agentProxy = (agentModule, verifyCert) => {
 
 	const agentOptions = {
 		      maxSockets:       100,
@@ -47,7 +48,7 @@ const agentProxy = (agentModule) => {
 	return httpProxy.createProxyServer({
 		xfwd:         true,
 		// Verify SSL cert
-		secure:       true,
+		secure:       verifyCert,
 		// Set request hostname to hostname from destination URL
 		changeOrigin: true,
 		// Do proxy web sockets
@@ -57,8 +58,10 @@ const agentProxy = (agentModule) => {
 	})
 };
 
-const http_proxy  = agentProxy('http');
-const https_proxy = agentProxy('https');
+const http_proxy  = agentProxy('http', true);
+const https_proxy  = agentProxy('https', true);
+const http_proxy_nossl = agentProxy('http', false);
+const https_proxy_nossl = agentProxy('https', false);
 
 function onProxyRes(proxyRes) {
 	if (proxyRes.statusCode == 301) {
@@ -85,7 +88,8 @@ function onProxyRes(proxyRes) {
 // another site. Rewriting 301 to 302 responses.
 http_proxy.on('proxyRes', onProxyRes);
 https_proxy.on('proxyRes', onProxyRes);
-
+http_proxy_nossl.on('proxyRes', onProxyRes);
+https_proxy_nossl.on('proxyRes', onProxyRes);
 
 function onProxyError(err, req, res) {
 	logger.error(err);
@@ -105,7 +109,8 @@ function onProxyError(err, req, res) {
 
 http_proxy.on('error', onProxyError);
 https_proxy.on('error', onProxyError);
-
+http_proxy_nossl.on('error', onProxyError);
+https_proxy_nossl.on('error', onProxyError);
 // Extracts URL token either from URL or from Cookie
 function extractAuthToken(req) {
 	if (!req.headers.cookie) {
@@ -153,11 +158,11 @@ function handleRequest(type, p1, p2, p3) {
 	const req = p1;
 	let res, socket, head, proxy_func;
 
-	function proxy_web(url) {
+	function proxy_web(url, isSecure = true) {
 		try {
-
-			(url.startsWith('https') ? https_proxy : http_proxy).web(req, res, {target: url});
-
+			isSecure?
+			(url.startsWith('https') ? https_proxy : http_proxy).web(req, res, {target: url}):
+				(url.startsWith('https') ? https_proxy_nossl : http_proxy_nossl).web(req, res, {target: url})
 		}
 		catch (e) {
 			logger.error(e);
@@ -165,9 +170,11 @@ function handleRequest(type, p1, p2, p3) {
 
 	}
 
-	function proxy_ws(url) {
+	function proxy_ws(url, isSecure = true) {
 		try {
-			(url.startsWith('https') ? https_proxy : http_proxy).ws(req, socket, head, {target: url});
+			isSecure?
+			(url.startsWith('https') ? https_proxy : http_proxy).ws(req, socket, head, {target: url}):
+				(url.startsWith('https') ? https_proxy_nossl : http_proxy_nossl).ws(req, socket, head, {target: url})
 		}
 		catch (e) {
 			logger.error(e);
@@ -278,10 +285,12 @@ function handleRequest(type, p1, p2, p3) {
 
 	if (authToken.app_id) {
 		logger.debug(`Proxying to app_id ${authToken.app_id}`);
-		serviceManager.appUrlById(authToken.app_id).then(url => {
+		serviceManager.appUrlById(authToken.app_id).then(app => {
+			let url = app.url;
+			let secure = app.isSecure || app.secure;
 			const u = url.split('***');
 			url     = u[0];
-			if (req.url == '/' && u[1]) {
+			if (req.url === '/' && u[1]) {
 				logger.info(`home page redirect to ${u[1]}`);
 				res.writeHead(302, {
 					'Location': u[1]
@@ -292,7 +301,7 @@ function handleRequest(type, p1, p2, p3) {
 			}
 			logger.info(`proxying req ${req.url}`);
 			logger.info(`proxying to service ${url}`);
-			proxy_func(url);
+			proxy_func(url, secure);
 		}).catch(e => {
 			logger.error(`Error handling authToken.app_id: ${e}`);
 			sendError(req, res, 500, `Don't know how to proxy. Probably invalid app_id.`);

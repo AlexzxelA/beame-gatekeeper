@@ -90,7 +90,7 @@ class NeDB {
 		);
 	}
 
-	static _formatBoolean(prop){
+	static _formatBoolean(prop) {
 		return prop == 'true';
 	}
 
@@ -730,7 +730,7 @@ class NeDB {
 		return this._updateDoc(Collections.users.name, {_id: user._id}, {
 			$set: {
 				isAdmin:  NeDB._formatBoolean(user.isAdmin),
-				isActive:  NeDB._formatBoolean(user.isActive)
+				isActive: NeDB._formatBoolean(user.isActive)
 			}
 		});
 	}
@@ -801,6 +801,7 @@ class NeDB {
 		service.isMobile   = NeDB._formatBoolean(service.isMobile);
 		service.isExternal = NeDB._formatBoolean(service.isExternal);
 		service.isSecure   = NeDB._formatBoolean(service.isSecure);
+		service.isDemo     = service.isDemo != null && service.isDemo != undefined ? NeDB._formatBoolean(service.isDemo) : false;
 
 		return service;
 	}

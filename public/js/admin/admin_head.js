@@ -63,6 +63,16 @@ var templateLoader = (function ($, host, event) {
 	};
 })(jQuery, document);
 
+$.get('templates/admin/notification.tmpl.html')
+	.success(function (result) {
+		//Add templates to DOM
+		$("body").append(result);
+		//console.log(path + ' loaded')
+	})
+	.error(function () {
+		console.error("Error Loading Templates -- TODO: Better Error Handling");
+	});
+
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Dash.path, ADMIN_TEMPLATES.Dash.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.User.path, ADMIN_TEMPLATES.User.event);
 templateLoader.loadExtTemplate(ADMIN_TEMPLATES.Regs.path, ADMIN_TEMPLATES.Regs.event);

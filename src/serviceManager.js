@@ -7,6 +7,8 @@ const module_name   = "ServiceManager";
 const BeameLogger   = beameSDK.Logger;
 const logger        = new BeameLogger(module_name);
 const CommonUtils   = beameSDK.CommonUtils;
+const Bootstrapper  = require('./bootstrapper');
+const bootstrapper  = Bootstrapper.getInstance();
 const SetupServices = require('../constants').SetupServices;
 const utils         = require('./utils');
 let serviceManager  = null;
@@ -19,7 +21,7 @@ class ServiceManager {
 		if (!serviceManager) serviceManager = this;
 	}
 
-	get _activeApps(){
+	get _activeApps() {
 		return CommonUtils.filterHash(this._appList, (k, v) => v.active == true)
 	}
 
@@ -28,7 +30,17 @@ class ServiceManager {
 		return new Promise((resolve, reject) => {
 				const returnList = () => {
 
-					let approvedList = user.isAdmin == 'true' || user.isAdmin == true ? this._activeApps : CommonUtils.filterHash(this._activeApps, (k, v) => v.code !== SetupServices.Admin.code && v.code !== SetupServices.AdminInvitation.code);
+					let disableDemoApps = bootstrapper.disableDemoServers,
+					    filteredApps;
+
+					if (disableDemoApps) {
+						filteredApps = CommonUtils.filterHash(this._activeApps, (k, v) => v.demo != false);
+					}
+					else {
+						filteredApps = this._activeApps;
+					}
+
+					let approvedList = user.isAdmin == 'true' || user.isAdmin == true ? filteredApps : CommonUtils.filterHash(filteredApps, (k, v) => v.code !== SetupServices.Admin.code && v.code !== SetupServices.AdminInvitation.code);
 
 					let formattedList = {};
 
@@ -39,7 +51,7 @@ class ServiceManager {
 							code:     approvedList[key].code,
 							name:     approvedList[key].name,
 							external: approvedList[key].external,
-							mobile: approvedList[key].mobile
+							mobile:   approvedList[key].mobile
 						};
 					});
 					logger.debug('app list:', formattedList);
@@ -84,14 +96,16 @@ class ServiceManager {
 							if (!app || !app.code) continue;
 
 							this._appList[app.id || app._id] = {
-								name:   app.name,
-								app_id: app.id || app._id,
-								code:   app.code,
-								url:    app.url,
-								online: app.isOnline,
+								name:     app.name,
+								app_id:   app.id || app._id,
+								code:     app.code,
+								url:      app.url,
+								online:   app.isOnline,
 								external: app.isExternal,
-								mobile: app.isMobile,
-								active:app.isActive
+								mobile:   app.isMobile,
+								active:   app.isActive,
+								demo:     app.isDemo,
+								secure:   app.isSecure
 							};
 						}
 
@@ -142,7 +156,7 @@ class ServiceManager {
 		return new Promise((resolve, reject) => {
 				let app = this._appList[app_id];
 
-				app ? resolve(app.url) : reject(`Unknown appId ${app_id}`);
+				app ? resolve(app) : reject(`Unknown appId ${app_id}`);
 			}
 		);
 	}

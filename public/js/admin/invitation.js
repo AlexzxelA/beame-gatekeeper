@@ -48,7 +48,7 @@ $(document).ready(function(){
 		},
 		createInvitation: function (e) {
 			e.preventDefault();
-
+console.log('huyasebe');
 			var email = this.get("email"),
 			    user_id = this.get("user_id");
 
@@ -105,6 +105,10 @@ $(document).ready(function(){
 		}
 	});
 
-	kendo.bind($("#app-wrapper"), createInvitationViewModel);
+	setTimeout(function(){
+		kendo.bind($("#app-wrapper"), createInvitationViewModel);
+	},150);
+
+
 
 });

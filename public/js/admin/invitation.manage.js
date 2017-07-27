@@ -26,6 +26,8 @@ function onUploadStart(){
 
 function loadInvitations() {
 
+	buildRegistrationForm('#fields-container');
+
 	$("#inv-grid").kendoGrid({
 		//toolbar:    ["excel"],
 		excel:      {

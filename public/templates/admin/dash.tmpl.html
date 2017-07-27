@@ -138,6 +138,11 @@
                         </li>
 
                         <li>
+                            <label>Disable Demo Servers</label>
+                            <input type="checkbox" data-bind="checked:data.AppConfig.DisableDemoServers"/>
+                        </li>
+
+                        <li>
                             <label for="ExternalMatchingFqdn">External Matching Fqdn</label>
                             <textarea data-bind="value:data.AppConfig.ExternalMatchingFqdn"
                                       class='k-textbox value-custom'

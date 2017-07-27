@@ -85,7 +85,8 @@ const compilePage = (pagePath, distPath) => {
 			'config-js-foot':     `${cdn_folder_path}js/config.foot.min.js`,
 			'admin-js-head':      `${cdn_folder_path}js/admin.head.min.js`,
 			'admin-js-foot':      `${cdn_folder_path}js/admin.foot.min.js`,
-			'inv-js-foot':        `${cdn_folder_path}js/admin.invitation.min.js`,
+			'inv-js-head':        `${cdn_folder_path}js/admin.invitation.head.min.js`,
+			'inv-js-foot':        `${cdn_folder_path}js/admin.invitation.foot.min.js`,
 			'admin-template':     ``,
 			'logo':               `<img src="${cdn_folder_path}img/logo.svg" />`
 		}))
@@ -171,16 +172,19 @@ const uploadStaticFile = (src, dist, renameFunc, invalidationPath) => {
 
 };
 
-gulp.task('sass', function () {
+gulp.task('sass', () => {
 	gulp.src('./public/scss/app.scss')
 		.pipe(sass().on('error', (err) => {
 			console.error(' gulp sass error ', err);
 			process.exit(1);
 		}))
 		.pipe(gulp.dest('./public/css/'));
+
+	gulp.src('./public/scss/google_fonts/fonts/**')
+		.pipe(gulp.dest('./public/css/fonts/'));
 });
 
-gulp.task('web_sass', function () {
+gulp.task('web_sass', () => {
 	gulp.src(web_src_root_path + 'scss/*.scss')
 		.pipe(sass())
 		.pipe(gulp.dest('./apps/photo/public/css/'));
@@ -191,14 +195,14 @@ gulp.task('web_sass', function () {
 
 });
 
-gulp.task('rasp_sass', function () {
+gulp.task('rasp_sass', () => {
 	gulp.src('./apps/rasp/public/scss/*.scss')
 		.pipe(sass())
 		.pipe(gulp.dest('./apps/rasp/public/css/'));
 
 });
 
-gulp.task('sass-tools', function () {
+gulp.task('sass-tools', () => {
 	gulp.src('./public/scss/app.scss')
 		.pipe(sass().on('error', (err) => {
 			console.error(' gulp sass error ', err);
@@ -207,7 +211,7 @@ gulp.task('sass-tools', function () {
 		.pipe(gulp.dest('./tools/css/'));
 });
 
-gulp.task('watch', function () {
+gulp.task('watch', () => {
 	gulp.watch("./public/scss/**/*.scss", ["sass"]);
 });
 
@@ -263,9 +267,14 @@ gulp.task('compile-js', () => {
 
 	compileJs(
 		[
+			'./public/js/utils.js'
+		], 'admin.invitation.head.min.js', true);
+
+	compileJs(
+		[
 			'./public/js/admin/notification.js',
 			'./public/js/admin/invitation.js'
-		], 'admin.invitation.min.js', true);
+		], 'admin.invitation.foot.min.js', true);
 
 	compileJs(
 		[
@@ -374,14 +383,14 @@ gulp.task('compile-js', () => {
 			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/angular-1.5.7.min.js',
 			'./public/lib/jquery/jquery-2.2.4.min.js',
-			'./public/lib/kendo-2017.2.621.qr.min.js'
+			'./public/lib/kendo/kendo-2017.2.621.qr.min.js'
 		], 'lib-sjak.min.js', false);
 
 	compileJs(
 		[
 			'./public/lib/socket.io-1.7.3.min.js',
 			'./public/lib/jquery/jquery-2.2.4.min.js',
-			'./public/lib/kendo-2017.2.621.qr.min.js'
+			'./public/lib/kendo/kendo-2017.2.621.qr.min.js'
 		], 'lib-sjk.min.js', false);
 
 	compileJs(
@@ -424,7 +433,7 @@ gulp.task('compile-pages', () => {
 	compilePage('./public/pages/login_manager/index.html', `./${dist_folder_name}/pages/login_manager/`);
 });
 
-gulp.task('admin-index', function () {
+gulp.task('admin-index', () => {
 	gulp.src(`./${build_folder_name}/pages/admin/index.html`)
 		.pipe(injectPartials({
 			prefix: `templates/`
@@ -447,6 +456,9 @@ gulp.task('compile-static', () => {
 			'admin-template': ``
 		}))
 		.pipe(gulp.dest(`./${dist_folder_name}/templates/admin/`));
+
+	gulp.src('./public/css/fonts/**')
+		.pipe(gulp.dest(`./${dist_folder_name}/css/fonts/`));
 
 	gulp.src('./public/lib/kendo/**')
 		.pipe(gulp.dest(`./${dist_folder_name}/lib/kendo/`));

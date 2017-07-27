@@ -14,6 +14,7 @@ module.exports = [
 		isExternal: false,
 		isMobile:   false,
 		isSecure:   true,
+		isDemo:     true,
 		url:        null
 	},
 	{
@@ -24,6 +25,7 @@ module.exports = [
 		isExternal: false,
 		isMobile:   false,
 		isSecure:   true,
+		isDemo:     true,
 		url:        null
 	},
 	{
@@ -34,6 +36,7 @@ module.exports = [
 		isExternal: true,
 		isMobile:   false,
 		isSecure:   true,
+		isDemo:     false,
 		url:        null
 	},
 	{
@@ -44,6 +47,7 @@ module.exports = [
 		isExternal: false,
 		isMobile:   false,
 		isSecure:   true,
+		isDemo:     false,
 		url:        null
 	},
 	{
@@ -54,6 +58,7 @@ module.exports = [
 		isExternal: false,
 		isMobile:   false,
 		isSecure:   true,
+		isDemo:     false,
 		url:        null
 	},
 	{
@@ -64,6 +69,7 @@ module.exports = [
 		isExternal: false,
 		isMobile:   true,
 		isSecure:   true,
+		isDemo:     false,
 		url:        null
 	},
 	{
@@ -74,6 +80,7 @@ module.exports = [
 		isExternal: false,
 		isMobile:   true,
 		isSecure:   true,
+		isDemo:     false,
 		url:        null
 	}
 ];
