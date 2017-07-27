@@ -69,29 +69,39 @@ app.post('/register/save', (req, res) => {
 		return new Promise((resolve, reject) => {
 			logger.debug('data authenticated', user_data);
 
-			let config               = bootstrapper.provisionConfig.Fields,
-			    customLoginProvider  = bootstrapper.customLoginProvider,
-			    customLoginValidated = false;
+			let config_settings = Bootstrapper.getProvisionConfig;
 
-			if (customLoginProvider != null) {
-				let clp = config.filter(x => x.LoginProvider == customLoginProvider);
-
-				for (let i = 0; i < clp.length; i++) {
-					let item = clp[i];
-					if (!user_data[item.FiledName]) {
-						reject(`${item.Label} required`);
-						return;
-					}
+			for (let i = 0; i < config_settings.length; i++) {
+				let item = config_settings[i];
+				if (item.Required && !user_data[item.FiledName]) {
+					reject(`${item.Label} required`);
+					return;
 				}
-
-				customLoginValidated = true;
-
 			}
 
-			if (!customLoginValidated && CommonUtils.isObjectEmpty(user_data)) {
-				reject('You must enter any user fields: email or user_id');
-				return;
-			}
+			// let config               = bootstrapper.provisionConfig.Fields,
+			//     customLoginProvider  = bootstrapper.customLoginProvider,
+			//     customLoginValidated = false;
+			//
+			// if (customLoginProvider != null) {
+			// 	let clp = config.filter(x => x.LoginProvider == customLoginProvider);
+			//
+			// 	for (let i = 0; i < clp.length; i++) {
+			// 		let item = clp[i];
+			// 		if (!user_data[item.FiledName]) {
+			// 			reject(`${item.Label} required`);
+			// 			return;
+			// 		}
+			// 	}
+			//
+			// 	customLoginValidated = true;
+			//
+			// }
+
+			// if (CommonUtils.isObjectEmpty(user_data)) {
+			// 	reject('You must enter any user fields: email or user_id');
+			// 	return;
+			// }
 
 			resolve();
 		});
