@@ -5,14 +5,14 @@
             <div class="large-6 columns p-2 line-r">
                 <h3 class="title-admin">Create Invitation</h3>
                 <section id="inv-form-container">
-                    <form id="frm-create-invitation" action='/invitation/send' method="post"
-                          class="form-main admin-form-main">
+                    <form id="frm-create-invitation" action='/invitation/send' method="post" class="form-main admin-form-main">
                         <div id="inv-info">&nbsp;</div>
-                        <input name="name" placeholder="Name" class="form-input"/>
-                        <input name="email" type="email" placeholder="Email" class="form-input"/>
-                        <input name="user_id" placeholder="External user ID" class="form-input"/>
-                        <input class="k-button px-2 mt-2 semi text-black" type="button" id="btn-create-invitation"
-                               name="submit" value="Send Invite">
+                        <span id="fields-container"></span>
+                        <!--<input name="name" placeholder="Name" class="form-input"/>-->
+                        <!--<input name="email" type="email" placeholder="Email" class="form-input"/>-->
+                        <!--<input name="user_id" placeholder="External user ID" class="form-input"/>-->
+
+                        <input class="k-button px-2 mt-2 semi text-black" type="button" id="btn-create-invitation" name="submit" value="Send Invite">
                     </form>
                 </section>
             </div>

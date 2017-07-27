@@ -44,11 +44,13 @@ class AdminRouter {
 		//region static
 		this._router.get('/invitation', (req, res) => {
 			utils.writeSettingsCookie(res);
+			res.cookie(cookieNames.ProvisionSettings, CommonUtils.stringify(Bootstrapper.getProvisionConfig));
 			res.sendFile(path.join(base_path, 'invitation.html'));
 		});
 
 		this._router.get('/', (req, res) => {
 			res.cookie(cookieNames.ClientLogin, JSON.stringify({url: `https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
+			res.cookie(cookieNames.ProvisionSettings, CommonUtils.stringify(Bootstrapper.getProvisionConfig));
 			utils.writeSettingsCookie(res);
 
 			res.sendFile(path.join(base_path, 'index.html'));

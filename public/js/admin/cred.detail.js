@@ -52,7 +52,7 @@ function bindEmailEvent() {
 	});
 }
 
-function initCredWindow(createUser) {
+function initCredWindow() {
 	var template = kendo.template($("#tmpl-create-child-cred").html());
 	credWnd.empty();
 	credWnd.kendoWindow({
@@ -68,8 +68,8 @@ function initCredWindow(createUser) {
 			"Close"
 		],
 		open:    function () {
-
-			createCredViewModel.init(createUser);
+			buildRegistrationForm('#usr-wnd-fields-container');
+			createCredViewModel.init();
 			kendo.bind($("#create-child-cred-window"), createCredViewModel);
 		}
 	});
@@ -91,7 +91,7 @@ function initInvitationWindow() {
 			"Close"
 		],
 		open:    function () {
-
+			buildRegistrationForm('#inv-wnd-fields-container');
 			createInvitationViewModel.init();
 			kendo.bind($("#create-invitation-window"), createInvitationViewModel);
 
@@ -318,11 +318,11 @@ function loadCredDetail(data) {
 			qrWnd.data("kendoWindow").center().open();
 		},
 		openCredWnd:      function () {
-			initCredWindow(false);
+			initCredWindow();
 			credWnd.data("kendoWindow").center().open();
 		},
 		openCredUserWnd:      function () {
-			initCredWindow(true);
+			initCredWindow();
 			credWnd.data("kendoWindow").center().open();
 		},
 		openInvitationWnd:      function () {
@@ -609,10 +609,8 @@ function loadCredDetail(data) {
 	kendo.bind($("#cred-form-container"), credDetailViewModel);
 
 	createCredViewModel = kendo.observable({
-		init:       function (createUser) {
+		init:       function () {
 			this.set("fqdn", data.fqdn);
-			this.set("createUser", createUser);
-			this.set("showUserId",createUser);
 		},
 		data:       data,
 		fqdn:       null,
@@ -633,14 +631,11 @@ function loadCredDetail(data) {
 				    fqdn:      fqdn,
 				    name:      this.get("name"),
 				    email:     this.get("email"),
+				    user_id:   this.get("user_id"),
 				    password:  this.get("password"),
 				    sendEmail: this.get("sendEmail")
 			    };
 
-			if(!formData.name && !formData.email){
-                showNotification(false, 'Name or Email required' );
-				return;
-			}
 
 			showLoader('wnd-overlay-cred');
 
@@ -664,7 +659,7 @@ function loadCredDetail(data) {
                             reinitModel(response, false);
                         }, 300);
 
-                        window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn,data:formData,newFqdn:response.newFqdn})
+                        window.getNotifManagerInstance().notify('credsChanged', {fqdn: fqdn,data:formData,newFqdn:response.newFqdn});
 
                         showNotification(response, response.responseDesc);
                     }

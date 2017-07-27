@@ -557,6 +557,10 @@ class Bootstrapper {
 		return DirectoryServices.readJSON(ProvisionConfigPath);
 	}
 
+	static get getProvisionConfig() {
+		return Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive).sort((a, b) => {return a.Order - b.Order;});
+	}
+
 	set provisionConfig(config) {
 		this._provisionConfig = config;
 	}

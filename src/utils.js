@@ -187,6 +187,7 @@ function clearSessionCookie(res) {
 	res.clearCookie(cookieNames.RegData);
 	res.clearCookie(cookieNames.UserInfo);
 	res.clearCookie(cookieNames.LoginData);
+	res.clearCookie(cookieNames.ProvisionSettings);
 }
 
 function writeSettingsCookie(res) {
@@ -226,8 +227,8 @@ function hashToArray(hash) {
 
 function clearHashFromEmptyProps(json) {
 
-	Object.keys(json).forEach(function (key) {
-		var value = json[key];
+	Object.keys(json).forEach( (key) => {
+		let value = json[key];
 		if (value === "" || value === null) {
 			delete json[key];
 		}

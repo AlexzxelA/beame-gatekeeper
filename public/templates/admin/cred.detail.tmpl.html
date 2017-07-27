@@ -216,14 +216,11 @@
     <form id="frm-create-child-cred" method="post" class="form-main admin-form-main">
         <label class="lbl-info">Fqdn: <span data-bind="text:data.fqdn"></span></label>
         <label class="lbl-info">Name: <span data-bind="text:data.name"></span></label>
-        <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
-        <input name="email" type="email" placeholder="Email" class="form-input" data-bind="value:email"/>
-        <input name="user_id" placeholder="External user ID" class="form-input" data-bind="value:user_id,visible:showUserId"/>
+        <span id="usr-wnd-fields-container"></span>
         <input name="password" placeholder="Pfx Password (min 8 chars)" pattern=".{8,16}" data-bind="value:password" class="form-input"/>
         <label class="d-inline-block small">
             <input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send cred by email
         </label>
-        <!--<div id="create-child-cred-info" class="invisible-msg">&nbsp;</div>-->
         <input type="button" value="Create Certificate" class="k-button btn-bold mt-2" data-bind="click:createCred">
     </form>
     <div id="wnd-overlay-cred" class="overlay" style="max-height: 100% !important">
@@ -273,10 +270,7 @@
 <script id="tmpl-create-invitation" type="text/x-kendo-template">
     <section id="inv-form-container">
         <form id="frm-create-invitation" method="post" class="form-main admin-form-main">
-            <!--<div id="inv-info">&nbsp;</div>-->
-            <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
-            <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
-            <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>
+            <span id="inv-wnd-fields-container"></span>
             <label class="d-inline-block small"><input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send invitation by email</label>
             <input class="k-button btn-bold mt-2" type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite">
         </form>
@@ -460,22 +454,6 @@
         <td><a class="k-button k-cancel-button" href="\\#"><span class="k-icon k-i-cancel"></span></a>
         </td>
     </tr>
-</script>
-
-<script id="errorTemplate" type="text/x-kendo-template">
-    <div class="notif-error">
-        <img src="img/forbidden.png" />
-        <h3>#= message #</h3>
-        <button class="js-close-notification">Close</button>
-    </div>
-</script>
-
-<script id="successTemplate" type="text/x-kendo-template">
-    <div class="notif-success">
-        <img src="img/button-accept.png" />
-        <h3>#= message #</h3>
-        <button class="js-close-notification">Close</button>
-    </div>
 </script>
 
 <div id="qr-window" class="wnd-default">

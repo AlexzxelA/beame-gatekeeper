@@ -16,6 +16,17 @@
     <script src="lib/jquery/jquery-2.2.4.min.js"></script>
     <script src="lib/kendo/kendo.all.min.js"></script>
 
+    <!-- Scripts -->
+    <!-- build:inv-js-head -->
+    <script src="js/utils.js"></script>
+    <!-- endbuild -->
+
+    <script>
+		document.addEventListener("DOMContentLoaded", function () {
+			buildRegistrationForm('#fields-container');
+		});
+    </script>
+
 </head>
 <body>
 <div class="admin-main-wrapper">
@@ -34,9 +45,7 @@
         <section id="inv-form-container" style="margin-bottom: 50px">
             <h4>Create Invitation</h4>
             <form id="frm-create-invitation" action='/cred/invite' method="post" class="form-main admin-form-main">
-                <input name="name" placeholder="Name" class="form-input" data-bind="value:name"/>
-                <input name="email" type="email" placeholder="Email"  data-bind="value:email" class="form-input"/>
-                <input name="user_id" placeholder="External user ID"  data-bind="value:user_id" class="form-input"/>
+                <span id="fields-container"></span>
                 <label class="d-inline-block small"><input type="checkbox" data-bind="checked:sendEmail,enabled:email" disabled/>&nbsp;Send invitation by email</label>
                 <input class="k-primary btn-bold mt-2" type="button" id="btn-create-invitation" data-bind="click:createInvitation" value="Invite">
             </form>
@@ -69,11 +78,6 @@
 <script src="js/admin/notification.js"></script>
 <script src="js/admin/invitation.js"></script>
 <!-- endbuild -->
-
-
-
-
-
 
 </body>
 </html>
