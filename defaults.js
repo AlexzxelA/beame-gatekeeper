@@ -50,7 +50,7 @@ const DisableDemoServers            = process.env.BEAME_DISABLE_DEMO_SERVERS || 
 const DefaultProxyConfig = {
 	host:     "",
 	port:     "",
-	excludes: ""
+	excludes: "127.0.0.1,localhost"
 };
 
 const ConfigProps = {
