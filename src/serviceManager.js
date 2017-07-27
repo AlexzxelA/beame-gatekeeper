@@ -104,7 +104,8 @@ class ServiceManager {
 								external: app.isExternal,
 								mobile:   app.isMobile,
 								active:   app.isActive,
-								demo:     app.isDemo
+								demo:     app.isDemo,
+								secure:   app.isSecure
 							};
 						}
 
@@ -155,7 +156,7 @@ class ServiceManager {
 		return new Promise((resolve, reject) => {
 				let app = this._appList[app_id];
 
-				app ? resolve(app.url) : reject(`Unknown appId ${app_id}`);
+				app ? resolve(app) : reject(`Unknown appId ${app_id}`);
 			}
 		);
 	}
