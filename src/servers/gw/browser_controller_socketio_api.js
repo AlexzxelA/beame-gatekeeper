@@ -153,7 +153,7 @@ const messageHandlers = {
 
 								if (loginProvider) {
 
-									let providerSettings = CommonUtils.filterHash(Constants.CustomLoginProviders, (k, v) => v.code === loginProvider);
+									let providerSettings = Constants.CustomLoginProviders.filter(v => v.code === loginProvider);
 
 									if (providerSettings.length === 1) {
 										let provider_settings = providerSettings[0];

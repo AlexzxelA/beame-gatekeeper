@@ -169,7 +169,7 @@ const ProvisionSettingsTemplate = {
 			"IsActive":      false,
 			"Required":      false,
 			"IsPassword":    false,
-			"LoginProvider": Constants.CustomLoginProviders.Active_Directory.code
+			"LoginProvider": "ad" //Active Directory
 		},
 		{
 			"Order":         5,
@@ -178,7 +178,7 @@ const ProvisionSettingsTemplate = {
 			"IsActive":      false,
 			"Required":      false,
 			"IsPassword":    true,
-			"LoginProvider": Constants.CustomLoginProviders.Active_Directory.code
+			"LoginProvider": "ad" //Active Directory
 		}
 	]
 };

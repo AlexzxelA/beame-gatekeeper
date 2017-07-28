@@ -95,8 +95,8 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
-const CustomLoginProviders = {
-	"Active_Directory": {
+const CustomLoginProviders = [
+	{
 		"name":         "Active Directory",
 		"code":         "ad",
 		"login_fields": {
@@ -104,7 +104,7 @@ const CustomLoginProviders = {
 			"pwd":       "ad_pass"
 		}
 	}
-};
+];
 
 const CredAction = require('beame-sdk').Config.CredAction;
 
