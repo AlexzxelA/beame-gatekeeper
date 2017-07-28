@@ -157,44 +157,52 @@ const messageHandlers = {
 
 									if (providerSettings.length === 1) {
 										let provider_settings = providerSettings[0],
-										    _userData = CommonUtils.parse(decryptedUserData);
+										    _userData         = CommonUtils.parse(decryptedUserData);
 
 										if (_userData[provider_settings.login_fields.user_name] && _userData[provider_settings.login_fields.pwd]) {
 											try {
 												const ActiveDirectory = require('activedirectory');
 
 												let user_name = _userData[provider_settings.login_fields.user_name],
-												    parts     = user_name.substring(user_name.split("\\")),
+												    parts     = user_name.split("\\"),
 												    dn        = parts[1].split('.'),
 												    baseDN    = `dc=${dn[0]},dc=${dn[1]}`,
 												    pwd       = _userData[provider_settings.login_fields.pwd],
-												    config    = {baseDN: baseDN},
+												    config    = {
+													    url:    `ldap://dc.${dn[0]}.$\{dn[1]}`,
+													    baseDN: baseDN
+												    },
 												    ad        = new ActiveDirectory(config);
 
 												ad.authenticate(user_name, pwd, (err, auth) => {
 													if (err) {
-														console.log('ERROR: ' + JSON.stringify(err));
+														logger.error('ERROR: ' + JSON.stringify(err));
+														reject(err);
 														return;
 													}
 
 													if (auth) {
+
 														console.log('Authenticated!');
+														resolve(token);
 													}
 													else {
 														console.log('Authentication failed!');
+														reject(`User authorization failed`);
 													}
 												});
 
 
 											} catch (e) {
+												logger.error(BeameLogger.formatError(e))
 											}
-
-
 										}
 									}
 
 								}
-
+								else {
+									resolve(token);
+								}
 
 								// let pwd_fields = Bootstrapper.getProvisionConfig.filter(x => x.IsPassword);
 								//
@@ -212,7 +220,7 @@ const messageHandlers = {
 								// 	}
 								// }
 
-								resolve(token);
+
 							}
 							else {
 								reject(`user data decryption failed`);
@@ -520,3 +528,4 @@ class BrowserControllerSocketioApi {
 
 
 module.exports = BrowserControllerSocketioApi;
+
