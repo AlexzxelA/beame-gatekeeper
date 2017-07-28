@@ -61,12 +61,14 @@ class SnsServices {
 											return;
 										case SnsMessageType.Revoke:
 											BeameAuthServices.onRevokeSnsReceived(token)
-												.then(BeameAuthServices.onUserCertRevoked.bind(null,token))
+												.then(BeameAuthServices.onUserCertRevoked.bind(null, token))
 												.then(resolve)
 												.catch(resolve);
 											return;
 										case SnsMessageType.Delete:
-											BeameAuthServices.onUserDeleted(token).then(resolve).catch(resolve);
+											BeameAuthServices.onRevokeSnsReceived(token)
+												.then(BeameAuthServices.onUserDeleted.bind(null, token))
+												.then(resolve).catch(resolve);
 											return;
 									}
 								}

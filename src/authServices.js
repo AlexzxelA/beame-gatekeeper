@@ -1948,7 +1948,7 @@ class BeameAuthServices {
 				}
 
 				//update ocsp status if revoked
-				cred.checkOcspStatus(cred, cred.metadata.revoked == true).then(resolve).catch(reject);
+				cred.checkOcspStatus(cred, true).then(resolve).catch(reject);
 
 			}
 		);
