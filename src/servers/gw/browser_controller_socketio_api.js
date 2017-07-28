@@ -156,17 +156,18 @@ const messageHandlers = {
 									let providerSettings = Constants.CustomLoginProviders.filter(v => v.code === loginProvider);
 
 									if (providerSettings.length === 1) {
-										let provider_settings = providerSettings[0];
+										let provider_settings = providerSettings[0],
+										    _userData = CommonUtils.parse(decryptedUserData);
 
-										if (userData[provider_settings.login_fields.user_name] && userData[provider_settings.login_fields.pwd]) {
+										if (_userData[provider_settings.login_fields.user_name] && _userData[provider_settings.login_fields.pwd]) {
 											try {
 												const ActiveDirectory = require('activedirectory');
 
-												let user_name = userData[provider_settings.login_fields.user_name],
+												let user_name = _userData[provider_settings.login_fields.user_name],
 												    parts     = user_name.substring(user_name.split("\\")),
 												    dn        = parts[1].split('.'),
 												    baseDN    = `dc=${dn[0]},dc=${dn[1]}`,
-												    pwd       = userData[provider_settings.login_fields.pwd],
+												    pwd       = _userData[provider_settings.login_fields.pwd],
 												    config    = {baseDN: baseDN},
 												    ad        = new ActiveDirectory(config);
 
