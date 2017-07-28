@@ -37,7 +37,7 @@
   "dependencies": {
     "BeameMatchingServer": "https://github.com/beameio/BeameMatchingServer.git",
     "async": "^2.1.2",
-    "beame-sdk": "2.0.55",
+    "beame-sdk": "2.0.56",
     "beame-cli": "0.0.3",
     "body-parser": "^1.15.2",
     "cookie": "0.3.1",
