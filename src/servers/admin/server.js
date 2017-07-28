@@ -15,7 +15,7 @@ const beameSDK          = require('beame-sdk');
 const module_name       = "BeameAuthServer";
 const BeameLogger       = beameSDK.Logger;
 const logger            = new BeameLogger(module_name);
-const BeameAdminServices = require('./admin_services');
+const BeameAdminServices = require('../../adminServices');
 
 class BeameAdminServer {
 

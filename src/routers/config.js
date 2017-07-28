@@ -15,7 +15,7 @@ const BeameLogger = beameSDK.Logger;
 const logger      = new BeameLogger(module_name);
 const utils = require('../utils');
 
-const BeameAdminServices = require('../servers/admin/admin_services');
+const BeameAdminServices = require('../adminServices');
 
 class ConfigRouter {
 	constructor(adminServices) {

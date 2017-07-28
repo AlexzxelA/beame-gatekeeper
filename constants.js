@@ -97,8 +97,12 @@ const DelegatedLoginNotificationAction = {
 
 const CustomLoginProviders = {
 	"Active_Directory": {
-		"name": "Active Directory",
-		"code": "ad"
+		"name":         "Active Directory",
+		"code":         "ad",
+		"login_fields": {
+			"user_name": "ad_user_name",
+			"pwd":       "ad_pass"
+		}
 	}
 };
 

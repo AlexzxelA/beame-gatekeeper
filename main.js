@@ -48,6 +48,7 @@ function list() {
 
 const parametersSchema = {
 	'format': {required: false, options: ['text', 'json'], default: 'text'},
+	'proxy': {required: false, default: 'text'}
 };
 
 const BeameCli = require('beame-cli');

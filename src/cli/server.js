@@ -35,7 +35,7 @@ function start(callback) {
 		const ServersManager     = require('../serversManager');
 		const credentialManager  = new (require('../credentialManager'))();
 
-		const assertServersSettings = (settings) => {
+		const _assertServersSettings = (settings) => {
 			return new Promise((resolve) => {
 				if (!settings) {
 					console.log(getHelpMessage('no-certificates.txt'));
@@ -50,7 +50,7 @@ function start(callback) {
 			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))
 			.then(getServersSettings)
-			.then(assertServersSettings)
+			.then(_assertServersSettings)
 			.then(ServersManager.go.bind(null, serviceManager))
 			.catch(callback);
 	}).catch(error => {
@@ -62,13 +62,10 @@ function start(callback) {
 
 start.params = {};
 
-function config(callback) {
+function config(proxy, callback) {
 
 
-	bootstrapper.initAll(false, false)
-		.then(startDataService)
-		.then(() => {
-
+	const _assertConfiguration = () => {
 		bootstrapper.setHtmlEnvMode();
 
 		bootstrapper.setOcspCachePeriod();
@@ -80,15 +77,52 @@ function config(callback) {
 			logger.fatal(validationResp.message);
 		}
 
-		const Server = require('../servers/config/server');
-		const server = new Server(serviceManager);
+		return Promise.resolve();
+	};
 
-		server.start(callback);
+	const _assertProxy = () => {
 
-	}).catch(error => {
+		return new Promise((resolve, reject) => {
+				if (proxy) {
+
+					let parts = proxy.split(':');
+
+					if (parts.length === 2) {
+						const adminServices = new (require('../adminServices'))(serviceManager);
+
+						let proxySettings = bootstrapper.proxySettings;
+
+						proxySettings.host = parts[0];
+						proxySettings.port = parts[1];
+
+						adminServices.saveProxyConfig(proxySettings).then(resolve).catch(reject);
+					}
+					else {
+						reject(`proxy should be in format host:port instead ${proxy}`);
+					}
+				}
+			}
+		);
+
+	};
+
+	bootstrapper.initAll(false, false)
+		.then(startDataService)
+		.then(_assertConfiguration)
+		.then(_assertProxy)
+		.then(() => {
+
+
+			const Server = require('../servers/config/server');
+			const server = new Server(serviceManager);
+
+			server.start(callback);
+
+		}).catch(error => {
 		logger.fatal(error);
 	});
 }
+
 config.params  = {};
 config.toText  = x => `Config Server started on ${x.url}`;
 module.exports = {

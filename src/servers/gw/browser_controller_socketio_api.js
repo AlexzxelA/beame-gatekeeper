@@ -149,21 +149,67 @@ const messageHandlers = {
 
 								decryptedUserData = decryptedData.toString();
 
-								let pwd_fields = Bootstrapper.getProvisionConfig.filter(x => x.IsPassword);
+								let loginProvider = bootstrapper.customLoginProvider;
 
-								if(pwd_fields.length == 1){
+								if (loginProvider) {
 
-									let pwd_field = pwd_fields[0];
+									let providerSettings = CommonUtils.filterHash(Constants.CustomLoginProviders, (k, v) => v.code === loginProvider);
 
-									let userData = CommonUtils.parse(decryptedUserData);
+									if (providerSettings.length === 1) {
+										let provider_settings = providerSettings[0];
 
-									if (userData && userData[pwd_field.FiledName]) {
+										if (userData[provider_settings.login_fields.user_name] && userData[provider_settings.login_fields.pwd]) {
+											try {
+												const ActiveDirectory = require('activedirectory');
 
-										userData[pwd_field.FiledName] = CommonUtils.generateDigest(userData[pwd_field.FiledName]);
+												let user_name = userData[provider_settings.login_fields.user_name],
+												    parts     = user_name.substring(user_name.split("\\")),
+												    dn        = parts[1].split('.'),
+												    baseDN    = `dc=${dn[0]},dc=${dn[1]}`,
+												    pwd       = userData[provider_settings.login_fields.pwd],
+												    config    = {baseDN: baseDN},
+												    ad        = new ActiveDirectory(config);
 
-										decryptedUserData = CommonUtils.stringify(userData);
+												ad.authenticate(user_name, pwd, (err, auth) => {
+													if (err) {
+														console.log('ERROR: ' + JSON.stringify(err));
+														return;
+													}
+
+													if (auth) {
+														console.log('Authenticated!');
+													}
+													else {
+														console.log('Authentication failed!');
+													}
+												});
+
+
+											} catch (e) {
+											}
+
+
+										}
 									}
+
 								}
+
+
+								// let pwd_fields = Bootstrapper.getProvisionConfig.filter(x => x.IsPassword);
+								//
+								// if(pwd_fields.length == 1){
+								//
+								// 	let pwd_field = pwd_fields[0];
+								//
+								// 	let userData = CommonUtils.parse(decryptedUserData);
+								//
+								// 	if (userData && userData[pwd_field.FiledName]) {
+								//
+								// 		userData[pwd_field.FiledName] = CommonUtils.generateDigest(userData[pwd_field.FiledName]);
+								//
+								// 		decryptedUserData = CommonUtils.stringify(userData);
+								// 	}
+								// }
 
 								resolve(token);
 							}

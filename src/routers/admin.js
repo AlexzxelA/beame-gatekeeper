@@ -844,7 +844,7 @@ class AdminRouter {
 
 		//region provision config
 		this._router.get('/provision/config/list', (req, res) => {
-			const BeameAdminServices = require('../servers/admin/admin_services');
+			const BeameAdminServices = require('../adminServices');
 
 			BeameAdminServices.getProvisionSettings().then(data => {
 				res.json(data);

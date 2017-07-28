@@ -9,8 +9,8 @@ const module_name  = "BeameAdminServices";
 const BeameLogger  = beameSDK.Logger;
 const logger       = new BeameLogger(module_name);
 const CommonUtils  = beameSDK.CommonUtils;
-const Constants    = require('../../../constants');
-const Bootstrapper = require('../../bootstrapper');
+const Constants    = require('../constants');
+const Bootstrapper = require('./bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
 let dataService    = null;
 
@@ -21,7 +21,7 @@ class AdminServices {
 	 */
 	constructor(_serviceManager) {
 		this._serviceManager = _serviceManager;
-		dataService          = require('../../dataServices').getInstance();
+		dataService          = require('./dataServices').getInstance();
 	}
 
 	//region settings
@@ -176,7 +176,7 @@ class AdminServices {
 								callback();
 							},
 							callback => {
-								const utils = require('../../utils');
+								const utils = require('./utils');
 
 								data.CustomLoginProviders = utils.hashToArray(Constants.CustomLoginProviders);
 
