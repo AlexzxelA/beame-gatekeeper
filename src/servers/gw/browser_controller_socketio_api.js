@@ -18,7 +18,7 @@ const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 let serviceManager      = null;
-const ssoManager       = require('../../samlSessionManager');
+const ssoManager        = require('../../samlSessionManager');
 
 
 function assertSignedByGw(session_token) {
@@ -55,7 +55,7 @@ const messageHandlers = {
 				BeameAuthServices.loginUser(token.signedBy).then(user => {
 					logger.info(`user authenticated ${CommonUtils.stringify(user)}`);
 					authenticatedUserInfo = user;
-					if(!decryptedUserData){
+					if (!decryptedUserData) {
 						user.persistentId = token.signedBy;
 						decryptedUserData = JSON.stringify(user);
 					}
@@ -77,12 +77,12 @@ const messageHandlers = {
 
 		function respond([apps, token]) {
 			return new Promise(() => {
-				if(payload.SAMLRequest){
+				if (payload.SAMLRequest) {
 					let userIdData;
-					try{
-						userIdData = (typeof decryptedUserData === 'object')?decryptedUserData:JSON.parse(decryptedUserData);
+					try {
+						userIdData = (typeof decryptedUserData === 'object') ? decryptedUserData : JSON.parse(decryptedUserData);
 					}
-					catch (e){
+					catch (e) {
 						logger.error('Internal app error. User ID not found');
 						userIdData = {};
 					}
@@ -112,14 +112,14 @@ const messageHandlers = {
 					// 	});
 					// });
 				}
-				else{
+				else {
 					logger.debug('messageHandlers/auth/respond token', token);
 					reply({
 						type:    'authenticated',
 						payload: {
-							serviceName:    bootstrapper.serviceName,
-							pairing:        bootstrapper.pairingRequired,
-							imageRequired:  bootstrapper.registrationImageRequired,
+							serviceName:   bootstrapper.serviceName,
+							pairing:       bootstrapper.pairingRequired,
+							imageRequired: bootstrapper.registrationImageRequired,
 							success:       true,
 							session_token: token,
 							apps:          apps,
@@ -146,7 +146,25 @@ const messageHandlers = {
 
 							if (decryptedData) {
 								decryptedData.persistentId = token.signedBy;
+
 								decryptedUserData = decryptedData.toString();
+
+								let pwd_fields = Bootstrapper.getProvisionConfig.filter(x => x.IsPassword);
+
+								if(pwd_fields.length == 1){
+
+									let pwd_field = pwd_fields[0];
+
+									let userData = CommonUtils.parse(decryptedUserData);
+
+									if (userData && userData[pwd_field.FiledName]) {
+
+										userData[pwd_field.FiledName] = CommonUtils.generateDigest(userData[pwd_field.FiledName]);
+
+										decryptedUserData = CommonUtils.stringify(userData);
+									}
+								}
+
 								resolve(token);
 							}
 							else {
@@ -212,8 +230,8 @@ const messageHandlers = {
 				logger.debug(`respond() URL is ${url}`);
 
 				let app = serviceManager.getAppById(payload.app_id);
-				if(payload.app_code && payload.app_code.includes('_saml_')){
-					let userIdData = (typeof payload.sessionUserData === 'object')?payload.sessionUserData:JSON.parse(payload.sessionUserData);
+				if (payload.app_code && payload.app_code.includes('_saml_')) {
+					let userIdData = (typeof payload.sessionUserData === 'object') ? payload.sessionUserData : JSON.parse(payload.sessionUserData);
 					utils.produceSAMLresponse(userIdData, payload, null, reply);
 
 					// let ssoManagerX = ssoManager.samlManager.getInstance();
@@ -242,13 +260,13 @@ const messageHandlers = {
 				}
 				else {
 					reply({
-						type: 'redirect',
+						type:    'redirect',
 						payload: {
-							success: true,
-							app_id: payload.app_id,
-							url: url,
+							success:  true,
+							app_id:   payload.app_id,
+							url:      url,
 							external: app.external,
-							mobile:app.mobile
+							mobile:   app.mobile
 						}
 					});
 				}
@@ -282,13 +300,13 @@ const messageHandlers = {
 
 		function respond(token) {
 			return new Promise(() => {
-				let url = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
+				let url  = `https://${gwServerFqdn}/beame-gw/logout?token=${encodeURIComponent(token)}`;
 				let type = 'redirect';
-				if(bootstrapper.externalLoginUrl){
-					url = bootstrapper.externalLoginUrl;
+				if (bootstrapper.externalLoginUrl) {
+					url  = bootstrapper.externalLoginUrl;
 					type = 'redirectTopWindow';
 				}
-				else if(payload.logout2login){//} && (payload.logout2login.indexOf('https') >= 0)){
+				else if (payload.logout2login) {//} && (payload.logout2login.indexOf('https') >= 0)){
 					url = `https://${gwServerFqdn}/beame-gw/login-reinit?token=${encodeURIComponent(token)}`;
 					//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
 				}
@@ -379,9 +397,9 @@ class BrowserControllerSocketioApi {
 		return new Promise((resolve, reject) => {
 				try {
 					this._socket_server = socket_io(server, {
-						path:  `${Constants.GatewayControllerPath}/socket.io`,
-						force: true,
-						destroyUpgradeTimeout: 10*1000
+						path:                  `${Constants.GatewayControllerPath}/socket.io`,
+						force:                 true,
+						destroyUpgradeTimeout: 10 * 1000
 					});
 					this._socket_server.on('connection', this._onConnection);
 					resolve(this._socket_server);
@@ -404,15 +422,16 @@ class BrowserControllerSocketioApi {
 		// Browser controller will connect here
 		logger.debug('[GW] handleSocketIoConnect');
 		let sessionUserData = null;
+
 		function reply(data) {
-			if(data.type && data.type === 'authenticated' && data.payload && data.payload.userData){
+			if (data.type && data.type === 'authenticated' && data.payload && data.payload.userData) {
 				sessionUserData = data.payload.userData;
 				logger.info(`Session user data set to ${data.payload.userData}`);
 			}
 			client.emit('data', JSON.stringify(data));
 		}
 
-		client.on('reconnect',()=>{
+		client.on('reconnect', () => {
 			console.log('GW socket reconnected');
 		});
 
@@ -427,7 +446,7 @@ class BrowserControllerSocketioApi {
 		});
 
 		const pairingUtils = require('../../pairing/pairing_utils');
-		let _pairingUtils = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
+		let _pairingUtils  = new pairingUtils(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer),
 			client, module_name);
 		_pairingUtils.setCommonHandlers();
 
@@ -442,11 +461,11 @@ class BrowserControllerSocketioApi {
 				return sendError(client, 'Data must have "type" and "payload" fields');
 			}
 			if (!messageHandlers[data.type]) {
-				let expectedMessages = ['userImage','loggedOut','beamePing','restart_pairing','approval_request'];
-				if(expectedMessages.indexOf(data.type)<0)
+				let expectedMessages = ['userImage', 'loggedOut', 'beamePing', 'restart_pairing', 'approval_request'];
+				if (expectedMessages.indexOf(data.type) < 0)
 					return sendError(client, `Don't know how to handle message of type ${data.type}`);
 			}
-			if(sessionUserData)data.payload.sessionUserData = sessionUserData;
+			if (sessionUserData) data.payload.sessionUserData = sessionUserData;
 			messageHandlers[data.type] && messageHandlers[data.type](data.payload || data, reply);
 		});
 	}

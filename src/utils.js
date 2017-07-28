@@ -70,7 +70,6 @@ function setExpressAppCommonRoutes(app) {
 	app.use(express.static(path.join(__dirname, '..', process.env.BEAME_INSTA_DOC_ROOT)));
 }
 
-
 function createAuthTokenByFqdn(fqdn, data, ttl) {
 	if (arguments.length < 3) {
 		return Promise.reject('createAuthTokenByFqdn() requires 3 arguments');
