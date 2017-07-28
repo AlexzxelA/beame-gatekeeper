@@ -162,19 +162,19 @@ const messageHandlers = {
 										if (_userData[provider_settings.login_fields.user_name] && _userData[provider_settings.login_fields.pwd]) {
 											try {
 												const ActiveDirectory = require('activedirectory');
-
+												//registration: domain\username
 												let user_name = _userData[provider_settings.login_fields.user_name],
-												    parts     = user_name.split("\\"),
-												    dn        = parts[1].split('.'),
-												    baseDN    = `dc=${dn[0]},dc=${dn[1]}`,
-												    pwd       = _userData[provider_settings.login_fields.pwd],
-												    config    = {
-													    url:    `ldap://dc.${dn[0]}.$\{dn[1]}`,
-													    baseDN: baseDN
-												    },
-												    ad        = new ActiveDirectory(config);
+													parts     = user_name.replace(/\s/g, '').split("\\"),
+													dn        = parts[0].split('.'),
+													baseDN    = `dc=${dn[0]},dc=${dn[1]}`,
+													pwd       = _userData[provider_settings.login_fields.pwd],
+													config    = {
+														url: `ldap://${dn[0]}.${dn[1]}`,
+														baseDN: baseDN
+													},
+													ad        = new ActiveDirectory(config);
 
-												ad.authenticate(user_name, pwd, (err, auth) => {
+												ad.authenticate(parts[1]+`@${dn[0]}.${dn[1]}`, pwd, (err, auth) => {
 													if (err) {
 														logger.error('ERROR: ' + JSON.stringify(err));
 														reject(err);
