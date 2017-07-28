@@ -88,14 +88,22 @@ function config(proxy, callback) {
 					let parts = proxy.split(':');
 
 					if (parts.length === 2) {
-						const adminServices = new (require('../adminServices'))(serviceManager);
 
 						let proxySettings = bootstrapper.proxySettings;
+
+						if((proxySettings.host && proxySettings.host != parts[0]) && (proxySettings.port && proxySettings.port != parts[1])){
+							reject(`proxy settings already defined on ${proxySettings.host}:${proxySettings.port}`);
+							return;
+						}
 
 						proxySettings.host = parts[0];
 						proxySettings.port = parts[1];
 
-						adminServices.saveProxyConfig(proxySettings).then(resolve).catch(reject);
+						bootstrapper.setProxySettings = proxySettings;
+
+						bootstrapper.assertProxySettings();
+
+						resolve();
 					}
 					else {
 						reject(`proxy should be in format host:port instead ${proxy}`);
