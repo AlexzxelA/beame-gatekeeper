@@ -211,7 +211,7 @@ class AdminServices {
 
 								data.CustomLoginProviders = utils.hashToArray(Constants.CustomLoginProviders);
 
-								data.AdSettings = bootstrapper.activeDirectoryDomains;
+								data.AdDomains = bootstrapper.activeDirectoryDomains.toString();
 
 								callback();
 							}
@@ -259,7 +259,7 @@ class AdminServices {
 							let m = models[i];
 
 							for (let j = 0; j < config.Fields.length; j++) {
-								if (config.Fields[j].FiledName == m.FiledName) {
+								if (config.Fields[j].FieldName == m.FieldName) {
 									config.Fields[j].Label    = m.Label;
 									config.Fields[j].IsActive = m.IsActive;
 									config.Fields[j].Required = m.Required;

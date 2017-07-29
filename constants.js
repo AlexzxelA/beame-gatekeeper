@@ -95,15 +95,20 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
-const ActiveDirectoryProviderCode = "ad";
+const ActiveDirectoryProviderFields = {
+	code:       "ad",
+	user_name:  "ad_user_name",
+	pwd:        "ad_pass",
+	domain_ddl: "ddl-ad-domain"
+};
 
 const CustomLoginProviders = [
 	{
 		"name":         "Active Directory",
-		"code":         ActiveDirectoryProviderCode,
+		"code":         ActiveDirectoryProviderFields.code,
 		"login_fields": {
-			"user_name": "ad_user_name",
-			"pwd":       "ad_pass"
+			"user_name": ActiveDirectoryProviderFields.user_name,
+			"pwd":       ActiveDirectoryProviderFields.pwd
 		}
 	}
 ];
@@ -190,9 +195,9 @@ module.exports = {
 	DbProviders,
 	DbSupportedProviders,
 	CustomLoginProviders,
-	ActiveDirectoryProvierCode: ActiveDirectoryProviderCode,
+	ActiveDirectoryProviderFields,
 	CookieNames,
-	AuthMode:                   {
+	AuthMode: {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"
 	},

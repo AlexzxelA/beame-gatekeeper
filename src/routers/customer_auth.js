@@ -36,11 +36,12 @@ app.get(Constants.RegisterPath, (req, res) => {
 
 	if (isPublicRegistrationEnabled) {
 		res.cookie(cookieNames.ProvisionSettings, CommonUtils.stringify(Bootstrapper.getProvisionConfig));
-		if (bootstrapper.customLoginProvider === Constants.ActiveDirectoryProvierCode) {
+		if (bootstrapper.customLoginProvider === Constants.ActiveDirectoryProviderFields.code) {
 
 			let data = {
-				required: true,
-				domains:  bootstrapper.activeDirectoryDomains
+				required:        true,
+				user_name_field: Constants.ActiveDirectoryProviderFields.user_name,
+				domains:         bootstrapper.activeDirectoryDomains
 			};
 
 			res.cookie(cookieNames.AdSettings, CommonUtils.stringify(data));
@@ -81,7 +82,7 @@ app.post('/register/save', (req, res) => {
 
 			for (let i = 0; i < config_settings.length; i++) {
 				let item = config_settings[i];
-				if (item.Required && !user_data[item.FiledName]) {
+				if (item.Required && !user_data[item.FieldName]) {
 					reject(`${item.Label} required`);
 					return;
 				}
@@ -94,6 +95,7 @@ app.post('/register/save', (req, res) => {
 	function encryptUserData() {
 		return new Promise((resolve, reject) => {
 
+				let customLoginProvider = bootstrapper.customLoginProvider;
 
 				data                   = utils.clearHashFromEmptyProps(data);
 				//for use in email or sms scenario
@@ -104,7 +106,15 @@ app.post('/register/save', (req, res) => {
 
 					BeameStore.find(Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer)).then(cred => {
 
-						let data2encrypt = CommonUtils.stringify(data, false);
+						let d  = data;
+
+						if(customLoginProvider === Constants.ActiveDirectoryProviderFields.code && data[Constants.ActiveDirectoryProviderFields.user_name] && data[Constants.ActiveDirectoryProviderFields.domain_ddl]){
+							d[Constants.ActiveDirectoryProviderFields.user_name] = `${d[Constants.ActiveDirectoryProviderFields.domain_ddl]}\\${d[Constants.ActiveDirectoryProviderFields.user_name]}`;
+						}
+
+						if(d[Constants.ActiveDirectoryProviderFields.domain_ddl]) delete d[Constants.ActiveDirectoryProviderFields.domain_ddl];
+
+						let data2encrypt = CommonUtils.stringify(d, false);
 
 						if (data2encrypt.length > 214) {
 							reject(`Maximum user data length should be 214. Current length is ${data2encrypt.length}`);
@@ -112,15 +122,14 @@ app.post('/register/save', (req, res) => {
 						else {
 							data.user_id            = cred.encryptWithRSA(data2encrypt);
 							//remove sensitive fields
-							let config              = bootstrapper.provisionConfig.Fields,
-							    customLoginProvider = bootstrapper.customLoginProvider;
+							let config              = bootstrapper.provisionConfig.Fields;
 
 							if (customLoginProvider) {
 								let clp = config.filter(x => x.LoginProvider == customLoginProvider);
 
 								for (let i = 0; i < clp.length; i++) {
 									let item = clp[i];
-									delete  data[item.FiledName];
+									delete  data[item.FieldName];
 								}
 							}
 							resolve();

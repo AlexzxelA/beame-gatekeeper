@@ -36,12 +36,12 @@
 
     <div class="row">
 
-        <div class="column medium-6 card-left p-2 shadow-main">
+        <div class="column medium-5 card-left p-2 shadow-main">
             <h4 class="main-title text-white">Register</h4>
             <p>Enter your name, email and/or user ID</p>
         </div>
 
-        <div class="column medium-6 card-right shadow-main p-2">
+        <div class="column medium-7 card-right shadow-main p-2">
 
             <form id="register_form" action='/register/save' method="post" class="form-main">
                 <div id="error"></div>
@@ -96,6 +96,9 @@
 
     $(document).ready(function () {
         $('#register_form').submit(function () {
+
+             console.log('huy');
+
             document.getElementById("overlay").style.display = "block";
             $(this).ajaxSubmit({
                 error: function (response) {

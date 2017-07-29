@@ -139,7 +139,7 @@ const ProvisionSettingsTemplate = {
 		{
 			"Order":         1,
 			"Label":         "Email",
-			"FiledName":     "email",
+			"FieldName":     "email",
 			"IsActive":      true,
 			"Required":      true,
 			"IsPassword":    false,
@@ -148,7 +148,7 @@ const ProvisionSettingsTemplate = {
 		{
 			"Order":         2,
 			"Label":         "Name",
-			"FiledName":     "name",
+			"FieldName":     "name",
 			"IsActive":      true,
 			"Required":      false,
 			"IsPassword":    false,
@@ -157,7 +157,7 @@ const ProvisionSettingsTemplate = {
 		{
 			"Order":         3,
 			"Label":         "ExternalUserId",
-			"FiledName":     "user_id",
+			"FieldName":     "user_id",
 			"IsActive":      true,
 			"Required":      false,
 			"IsPassword":    false,
@@ -166,20 +166,20 @@ const ProvisionSettingsTemplate = {
 		{
 			"Order":         4,
 			"Label":         "AD UserName",
-			"FiledName":     "ad_user_name",
+			"FieldName":     Constants.ActiveDirectoryProviderFields.user_name,
 			"IsActive":      false,
 			"Required":      false,
 			"IsPassword":    false,
-			"LoginProvider": Constants.ActiveDirectoryProvierCode
+			"LoginProvider": Constants.ActiveDirectoryProviderFields.code
 		},
 		{
 			"Order":         5,
 			"Label":         "AD Password",
-			"FiledName":     "ad_pass",
+			"FieldName":     Constants.ActiveDirectoryProviderFields.pwd,
 			"IsActive":      false,
 			"Required":      false,
 			"IsPassword":    true,
-			"LoginProvider": Constants.ActiveDirectoryProvierCode
+			"LoginProvider": Constants.ActiveDirectoryProviderFields.code
 		}
 	]
 };

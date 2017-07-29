@@ -204,8 +204,10 @@ function buildRegistrationForm(container_selector, exclude) {
 	var settings = getCookie('beame_prov_settings');
 	if (!settings) return;
 
-	var co_ad_settings = getCookie('beame_prov_settings'),
-		ad_settings = co_ad_settings ? JSON.parse(decodeURIComponent(co_ad_settings)) : null;
+	var co_ad_settings = getCookie('beame_ad_settings'),
+		ad_settings = co_ad_settings ? JSON.parse(decodeURIComponent(co_ad_settings)) : null,
+		showDomains = ad_settings && ad_settings.required,
+		ad_domains = ad_settings && ad_settings.required ? ad_settings.domains : [];
 
 	var excludeLoginProvider = exclude === undefined ? true : exclude;
 
@@ -220,14 +222,42 @@ function buildRegistrationForm(container_selector, exclude) {
 	var container = document.querySelector(container_selector);
 
 	for (var i = 0; i < data.length; i++) {
+
 		var filed = data[i];
 
 		if(filed.LoginProvider && excludeLoginProvider) continue;
 
+		var additionl_class = null;
+
+		if(showDomains && filed.FieldName === 'ad_user_name'){
+			var ddl = document.createElement("select");
+			ddl =  _addAttribute(ddl, 'class', 'form-input half');
+			ddl =  _addAttribute(ddl, 'name', 'ddl-ad-domain');
+
+			for(var j=0; j < ad_domains.length; j++){
+
+				var option = new Option(ad_domains[j], ad_domains[j], false, j==0);
+				ddl.appendChild(option);
+			}
+
+			container.appendChild(ddl);
+
+			additionl_class = 'half';
+
+			var sep = document.createElement("span");
+			sep = _addAttribute(sep, 'class', 'd-inline-block');
+			sep = _addAttribute(sep, 'style', 'width:2%;text-align:center');
+			sep.innerHTML = "\\";
+
+			container.appendChild(sep);
+
+		}
+
+
 		var input = document.createElement("input");
-		input     = _addAttribute(input, 'class', 'form-input');
-		input     = _addAttribute(input, 'name', filed.FiledName);
-		input     = _addAttribute(input, 'data-bind', "value:" + filed.FiledName);
+		input     = _addAttribute(input, 'class', 'form-input ' + (additionl_class ? additionl_class: ''));
+		input     = _addAttribute(input, 'name', filed.FieldName);
+		input     = _addAttribute(input, 'data-bind', "value:" + filed.FieldName);
 
 
 		input     = _addAttribute(input, 'placeholder', filed.Label);

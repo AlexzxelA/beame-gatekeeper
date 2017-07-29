@@ -68,6 +68,14 @@ class ConfigRouter {
 		});
 
 		//region provision config
+		this._router.post('/ad-domain/save', (req, res) => {
+			this._beameAdminServices.saveActiveDirectoryDomains(req.body.data).then(() => {
+				res.json({success: true});
+			}).catch(error => {
+				res.json({success: false, error: BeameLogger.formatError(error)});
+			});
+		});
+
 		this._router.get('/provision/config/list', (req, res) => {
 
 			BeameAdminServices.getProvisionSettings().then(data => {

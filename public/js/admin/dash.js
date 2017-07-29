@@ -78,9 +78,9 @@ function loadSettings(){
 				},
 				schema:    {
 					model: {
-						id:     "FiledName",
+						id:     "FieldName",
 						fields: {
-							FiledName: { editable: false },
+							FieldName: { editable: false },
 							Label: {  editable: true} ,
 							IsActive: { type: "boolean" },
 							Required: { type: "boolean" }
@@ -143,7 +143,7 @@ function loadSettings(){
 				},
 				onAdDomainsSave:function(){
 					showLoader();
-					var data = this.data.AppConfig.AdSettings != undefined && this.data.AppConfig.AdSettings.length > 2 ? JSON.stringify(this.data.AppConfig.AdSettings) : null;
+					var data = this.data.AdDomains != undefined && this.data.AdDomains.length > 2 ? JSON.stringify(this.data.AdDomains) : null;
 					console.log(data);
 
 					$.ajax({
@@ -165,7 +165,6 @@ function loadSettings(){
 
 		var grid = $("#prov-settings-grid").data("kendoGrid");
 
-		 console.log('huj');
 
 		grid.table.kendoSortable({
 			hint: hintElement,

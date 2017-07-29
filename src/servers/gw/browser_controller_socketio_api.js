@@ -167,6 +167,7 @@ const messageHandlers = {
 												      parts           = user_name.replace(/\s/g, '').split("\\"),
 												      dn              = parts[0].split('.'),
 												      baseDN          = `dc=${dn[0]},dc=${dn[1]}`,
+												      user            = `${parts[1]}@${parts[0]}`,
 												      ldapUrl         = `ldap://${dn[0]}.${dn[1]}`,
 												      pwd             = _userData[provider_settings.login_fields.pwd],
 												      config          = {
@@ -175,7 +176,7 @@ const messageHandlers = {
 												      },
 												      ad              = new ActiveDirectory(config);
 
-												ad.authenticate(`${parts[1]}@${dn[0]}.${dn[1]}`, pwd, (err, auth) => {
+												ad.authenticate(user, pwd, (err, auth) => {
 													if (err) {
 														logger.error(`Custom provider ${provider_settings.name} login error ${BeameLogger.formatError(err)}`);
 														reject(err);
