@@ -60,7 +60,7 @@ function loadRegs() {
 		remove: function(e) {
 			if (e.model.completed) {
 				e.preventDefault();
-				alert("Registration is completed, and can't be removed");
+				showNotification(false,"Registration is completed, and can't be removed", 500);
 
 			}
 		},

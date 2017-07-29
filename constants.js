@@ -95,10 +95,12 @@ const DelegatedLoginNotificationAction = {
 	"UnRegister": "unregister"
 };
 
+const ActiveDirectoryProviderCode = "ad";
+
 const CustomLoginProviders = [
 	{
 		"name":         "Active Directory",
-		"code":         "ad",
+		"code":         ActiveDirectoryProviderCode,
 		"login_fields": {
 			"user_name": "ad_user_name",
 			"pwd":       "ad_pass"
@@ -167,6 +169,7 @@ const CookieNames = {
 	"LoginData":         "usrInData",
 	"BeameSettings":     "beame_settings",
 	"ProvisionSettings": "beame_prov_settings",
+	"AdSettings":        "beame_ad_settings",
 	"ShowZendesk":       "beame_zendesk_settings"
 };
 
@@ -187,8 +190,9 @@ module.exports = {
 	DbProviders,
 	DbSupportedProviders,
 	CustomLoginProviders,
+	ActiveDirectoryProvierCode: ActiveDirectoryProviderCode,
 	CookieNames,
-	AuthMode: {
+	AuthMode:                   {
 		"SESSION":   "Session",
 		"PROVISION": "Provision"
 	},

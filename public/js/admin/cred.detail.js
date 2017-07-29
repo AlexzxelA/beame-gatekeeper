@@ -307,7 +307,7 @@ function loadCredDetail(data) {
 		},
 		showCredQr:       function () {
 			if (!this.data.download_cred_url) {
-				alert('Cred download url not defined');
+				showNotification(false,'Cred download url not defined');
 				return;
 			}
 			this.operQrWnd(this.data.download_cred_url);

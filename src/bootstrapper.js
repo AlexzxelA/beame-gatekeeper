@@ -549,6 +549,14 @@ class Bootstrapper {
 		return this._config[SettingsProps.CustomLoginProvider] || null;
 	}
 
+	get activeDirectoryDomains() {
+		return this._config[SettingsProps.ActiveDirectoryDomains] || [];
+	}
+
+	set activeDirectoryDomains(value) {
+		 this._config[SettingsProps.ActiveDirectoryDomains] = value;
+	}
+
 	get provisionConfig() {
 		return this._provisionConfig;
 	}
@@ -667,6 +675,13 @@ class Bootstrapper {
 							updateFile   = true;
 							//noinspection JSUnfilteredForInLoop
 							config[prop] = defaults.DefaultProxyConfig;
+						}
+
+						//noinspection JSUnfilteredForInLoop
+						if (prop == SettingsProps.ActiveDirectoryDomains && !config[prop]) {
+							updateFile   = true;
+							//noinspection JSUnfilteredForInLoop
+							config[prop] = defaults.ActiveDirectoryDomains;
 						}
 					}
 

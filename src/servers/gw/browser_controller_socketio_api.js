@@ -163,31 +163,38 @@ const messageHandlers = {
 											try {
 												const ActiveDirectory = require('activedirectory');
 												//registration: domain\username
-												let user_name = _userData[provider_settings.login_fields.user_name],
-													parts     = user_name.replace(/\s/g, '').split("\\"),
-													dn        = parts[0].split('.'),
-													baseDN    = `dc=${dn[0]},dc=${dn[1]}`,
-													pwd       = _userData[provider_settings.login_fields.pwd],
-													config    = {
-														url: `ldap://${dn[0]}.${dn[1]}`,
-														baseDN: baseDN
-													},
-													ad        = new ActiveDirectory(config);
+												let user_name         = _userData[provider_settings.login_fields.user_name],
+												      parts           = user_name.replace(/\s/g, '').split("\\"),
+												      dn              = parts[0].split('.'),
+												      baseDN          = `dc=${dn[0]},dc=${dn[1]}`,
+												      ldapUrl         = `ldap://${dn[0]}.${dn[1]}`,
+												      pwd             = _userData[provider_settings.login_fields.pwd],
+												      config          = {
+													      url:    ldapUrl,
+													      baseDN: baseDN
+												      },
+												      ad              = new ActiveDirectory(config);
 
-												ad.authenticate(parts[1]+`@${dn[0]}.${dn[1]}`, pwd, (err, auth) => {
+												ad.authenticate(`${parts[1]}@${dn[0]}.${dn[1]}`, pwd, (err, auth) => {
 													if (err) {
-														logger.error('ERROR: ' + JSON.stringify(err));
+														logger.error(`Custom provider ${provider_settings.name} login error ${BeameLogger.formatError(err)}`);
 														reject(err);
 														return;
 													}
 
 													if (auth) {
-
 														console.log('Authenticated!');
+
+														//delete AD fields
+														delete _userData[provider_settings.login_fields.user_name];
+														delete _userData[provider_settings.login_fields.pwd];
+
+														decryptedUserData = CommonUtils.stringify(_userData);
+
 														resolve(token);
 													}
 													else {
-														console.log('Authentication failed!');
+														logger.error(`Custom provider ${provider_settings.name} login authentication failed`);
 														reject(`User authorization failed`);
 													}
 												});
@@ -203,23 +210,6 @@ const messageHandlers = {
 								else {
 									resolve(token);
 								}
-
-								// let pwd_fields = Bootstrapper.getProvisionConfig.filter(x => x.IsPassword);
-								//
-								// if(pwd_fields.length == 1){
-								//
-								// 	let pwd_field = pwd_fields[0];
-								//
-								// 	let userData = CommonUtils.parse(decryptedUserData);
-								//
-								// 	if (userData && userData[pwd_field.FiledName]) {
-								//
-								// 		userData[pwd_field.FiledName] = CommonUtils.generateDigest(userData[pwd_field.FiledName]);
-								//
-								// 		decryptedUserData = CommonUtils.stringify(userData);
-								// 	}
-								// }
-
 
 							}
 							else {

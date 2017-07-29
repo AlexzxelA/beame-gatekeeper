@@ -27,11 +27,12 @@
                     <li class="k-state-active">
                         Application
                     </li>
-                    <li>
-                        Roles
-                    </li>
+
                     <li>
                         Proxy Settings
+                    </li>
+                    <li>
+                        AD Domains
                     </li>
                     <li>
                         Provision Settings
@@ -39,11 +40,14 @@
                     <li>
                         Database
                     </li>
+                    <li>
+                        Roles
+                    </li>
                 </ul>
                 <div>
                     <ul class="config-list">
                         <li class="mt-2">
-                            <label>Service name</label>
+                            <label for="ServiceName">Service name</label>
                             <input class='k-textbox value-custom'
                                    data-bind="value: data.AppConfig.ServiceName"
                                    id="ServiceName"/>
@@ -51,14 +55,6 @@
 
                         <li>
                             <label>Registration method</label>
-                            <!--<input data-role="dropdownlist"-->
-                            <!--data-auto-bind="true"-->
-                            <!--data-value-primitive="true"-->
-                            <!--data-text-field="name"-->
-                            <!--data-value-field="name"-->
-                            <!--data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"-->
-                            <!--class='k-textbox'-->
-                            <!--/>-->
                             <input data-role="dropdownlist" data-auto-bind="true" data-value-primitive="true"
                                    data-text-field="name" data-value-field="name"
                                    data-bind="value: data.AppConfig.RegistrationMethod, source: data.RegMethods"
@@ -246,29 +242,7 @@
 
                     </ul>
                 </div>
-                <div>
-                    <div data-role="grid"
-                         data-editable="inline"
-                         data-filterable="true"
-                         data-sortable="true"
-                         data-resizable= "true"
-                         data-toolbar="['create']"
-                         data-columns="[
-                                 { 'field': 'id', 'width': 80 },
-                                 { 'field': 'name' },
-                                 { 'title':'', 'width':'120' ,'command':['edit','destroy'] }
-                              ]"
-                         data-bind="source: role_ds"
-                         data-pageable="{
-                            'numeric': true,
-                            'pageSizes': true,
-                            'refresh':true
-                         }"
 
-                         id="roles-grid">
-
-                    </div>
-                </div>
                 <div>
                     <ul class="config-list">
                         <li class="mt-2">
@@ -300,6 +274,23 @@
                         </li>
                     </ul>
                     <label>*** if you change a settings, please restart server</label>
+                </div>
+                <div>
+                    <ul class="config-list">
+                        <li class="mt-2">
+                            <label for="ActiveDirectoryDomains">Domains <i>(comma-separated)</i></label>
+                            <textarea class="value-custom pt-half"
+                                      rows="3"
+                                      cols="40"
+                                      data-bind="value:data.AppConfig.AdDomains"
+                                      id="ActiveDirectoryDomains"></textarea>
+                        </li>
+                        <li class="mt-2">
+                            <label>&nbsp;</label>
+                            <button id="save-ad-btn" class="k-primary bold d-inline-block px-2 my-2" data-bind="events: { click: onAdDomainsSave }" style="height: 22px">Save
+                            </button>
+                        </li>
+                    </ul>
                 </div>
                 <div>
                     <style>
@@ -349,6 +340,30 @@
                             </button>
                         </li>
                     </ul>
+                </div>
+
+                <div>
+                    <div data-role="grid"
+                         data-editable="inline"
+                         data-filterable="true"
+                         data-sortable="true"
+                         data-resizable= "true"
+                         data-toolbar="['create']"
+                         data-columns="[
+                                 { 'field': 'id', 'width': 80 },
+                                 { 'field': 'name' },
+                                 { 'title':'', 'width':'120' ,'command':['edit','destroy'] }
+                              ]"
+                         data-bind="source: role_ds"
+                         data-pageable="{
+                            'numeric': true,
+                            'pageSizes': true,
+                            'refresh':true
+                         }"
+
+                         id="roles-grid">
+
+                    </div>
                 </div>
             </div>
 

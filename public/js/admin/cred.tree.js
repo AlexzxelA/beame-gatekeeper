@@ -224,7 +224,7 @@ function loadCreds() {
 						credsTree.data("kendoTreeView").dataSource.read();
 					}
 					else {
-						alert(response.responseDesc);
+						showNotification(false,response.responseDesc);
 					}
 
 				}

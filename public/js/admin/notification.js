@@ -1,11 +1,11 @@
 
-function showNotification(success,message){
+function showNotification(success,message, delay){
 
 	var wWidth = $(window).width(),newLeft;
 
 	newLeft = Math.floor(wWidth / 2 - 400 / 2);
 
-	var notificationDelay = success ? 3500 : 0;
+	var notificationDelay = success ? 3500 : (delay || 0);
 
 	var notification = $("#d-notif").kendoNotification({
 		position: {

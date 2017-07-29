@@ -84,6 +84,7 @@ const ConfigProps = {
 		CustomerInvitationTtl:         "CustomerInvitationTtl",
 		AllowDirectSignin:             "AllowDirectSignin",
 		CustomLoginProvider:           "CustomLoginProvider",
+		ActiveDirectoryDomains:        "ActiveDirectoryDomains",
 		ShowZendeskSupport:            "ShowZendeskSupport",
 		DisableDemoServers:            "DisableDemoServers"
 	},
@@ -169,7 +170,7 @@ const ProvisionSettingsTemplate = {
 			"IsActive":      false,
 			"Required":      false,
 			"IsPassword":    false,
-			"LoginProvider": "ad" //Active Directory
+			"LoginProvider": Constants.ActiveDirectoryProvierCode
 		},
 		{
 			"Order":         5,
@@ -178,13 +179,14 @@ const ProvisionSettingsTemplate = {
 			"IsActive":      false,
 			"Required":      false,
 			"IsPassword":    true,
-			"LoginProvider": "ad" //Active Directory
+			"LoginProvider": Constants.ActiveDirectoryProvierCode
 		}
 	]
 };
 
 
 module.exports = {
+	ActiveDirectoryDomains:[],
 	ConfigProps,
 	AppId,
 	ServiceName,

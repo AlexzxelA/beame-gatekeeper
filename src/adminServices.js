@@ -92,6 +92,37 @@ class AdminServices {
 		);
 	}
 
+	saveActiveDirectoryDomains(data) {
+		return new Promise((resolve, reject) => {
+
+				let old = bootstrapper.appConfig;
+
+				let domains = data && data.length ? CommonUtils.parse(data).split(',') : [],
+				    array   = [];
+
+
+				if(domains.length){
+					for (let i = 0; i < domains.length; i++) {
+						array.push(domains[i].trim())
+					}
+				}
+
+
+				bootstrapper.activeDirectoryDomains = array;
+
+				bootstrapper.saveAppConfigFile()
+					.then(resolve)
+					.catch(error => {
+						logger.error(`update app config error ${BeameLogger.formatError(error)}`);
+
+						bootstrapper.setAppConfig = old;
+
+						return bootstrapper.saveAppConfigFile();
+					});
+			}
+		);
+	}
+
 	getSettings() {
 		return new Promise((resolve, reject) => {
 				let data = {
@@ -180,12 +211,12 @@ class AdminServices {
 
 								data.CustomLoginProviders = utils.hashToArray(Constants.CustomLoginProviders);
 
+								data.AdSettings = bootstrapper.activeDirectoryDomains;
+
 								callback();
 							}
 						],
 						() => {
-
-
 							resolve(data);
 						});
 				} catch (e) {

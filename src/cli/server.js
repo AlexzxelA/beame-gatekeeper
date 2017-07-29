@@ -109,6 +109,9 @@ function config(proxy, callback) {
 						reject(`proxy should be in format host:port instead ${proxy}`);
 					}
 				}
+				else{
+					resolve()
+				}
 			}
 		);
 

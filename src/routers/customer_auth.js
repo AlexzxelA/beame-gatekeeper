@@ -24,7 +24,6 @@ const public_dir = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_
 const base_path = path.join(public_dir, 'pages', 'customer_auth');
 
 
-
 app.get(Constants.RegisterPath, (req, res) => {
 
 	utils.clearSessionCookie(res);
@@ -35,8 +34,17 @@ app.get(Constants.RegisterPath, (req, res) => {
 
 	let isPublicRegistrationEnabled = bootstrapper.publicRegistration;
 
-	if(isPublicRegistrationEnabled){
+	if (isPublicRegistrationEnabled) {
 		res.cookie(cookieNames.ProvisionSettings, CommonUtils.stringify(Bootstrapper.getProvisionConfig));
+		if (bootstrapper.customLoginProvider === Constants.ActiveDirectoryProvierCode) {
+
+			let data = {
+				required: true,
+				domains:  bootstrapper.activeDirectoryDomains
+			};
+
+			res.cookie(cookieNames.AdSettings, CommonUtils.stringify(data));
+		}
 	}
 
 	res.sendFile(path.join(base_path, isPublicRegistrationEnabled ? 'register.html' : 'forbidden.html'));
@@ -79,30 +87,6 @@ app.post('/register/save', (req, res) => {
 				}
 			}
 
-			// let config               = bootstrapper.provisionConfig.Fields,
-			//     customLoginProvider  = bootstrapper.customLoginProvider,
-			//     customLoginValidated = false;
-			//
-			// if (customLoginProvider != null) {
-			// 	let clp = config.filter(x => x.LoginProvider == customLoginProvider);
-			//
-			// 	for (let i = 0; i < clp.length; i++) {
-			// 		let item = clp[i];
-			// 		if (!user_data[item.FiledName]) {
-			// 			reject(`${item.Label} required`);
-			// 			return;
-			// 		}
-			// 	}
-			//
-			// 	customLoginValidated = true;
-			//
-			// }
-
-			// if (CommonUtils.isObjectEmpty(user_data)) {
-			// 	reject('You must enter any user fields: email or user_id');
-			// 	return;
-			// }
-
 			resolve();
 		});
 	}
@@ -111,9 +95,9 @@ app.post('/register/save', (req, res) => {
 		return new Promise((resolve, reject) => {
 
 
-				data = utils.clearHashFromEmptyProps(data);
+				data                   = utils.clearHashFromEmptyProps(data);
 				//for use in email or sms scenario
-				data.hash = uuid.v4();
+				data.hash              = uuid.v4();
 				data.userImageRequired = bootstrapper.registrationImageRequired;
 
 				if (bootstrapper.encryptUserData) {
@@ -126,12 +110,12 @@ app.post('/register/save', (req, res) => {
 							reject(`Maximum user data length should be 214. Current length is ${data2encrypt.length}`);
 						}
 						else {
-							data.user_id = cred.encryptWithRSA(data2encrypt);
+							data.user_id            = cred.encryptWithRSA(data2encrypt);
 							//remove sensitive fields
-							let  config               = bootstrapper.provisionConfig.Fields,
-							     customLoginProvider  = bootstrapper.customLoginProvider;
+							let config              = bootstrapper.provisionConfig.Fields,
+							    customLoginProvider = bootstrapper.customLoginProvider;
 
-							if(customLoginProvider){
+							if (customLoginProvider) {
 								let clp = config.filter(x => x.LoginProvider == customLoginProvider);
 
 								for (let i = 0; i < clp.length; i++) {

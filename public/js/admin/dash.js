@@ -135,7 +135,24 @@ function loadSettings(){
 						data: {data: data},
 						success: function(result){
 							hideLoader();
-							alert(result.success ? 'Proxy Settings saved' : result.error);
+							showNotification(result.success, result.success ? 'AD Domains saved' : result.error);
+						},
+						dataType: 'json'
+					});
+
+				},
+				onAdDomainsSave:function(){
+					showLoader();
+					var data = this.data.AppConfig.AdSettings != undefined && this.data.AppConfig.AdSettings.length > 2 ? JSON.stringify(this.data.AppConfig.AdSettings) : null;
+					console.log(data);
+
+					$.ajax({
+						type: "POST",
+						url: '/ad-domain/save',
+						data: {data: data},
+						success: function(result){
+							hideLoader();
+							showNotification(result.success, result.success ? 'Proxy Settings saved' : result.error);
 						},
 						dataType: 'json'
 					});

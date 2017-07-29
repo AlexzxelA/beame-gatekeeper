@@ -47,7 +47,7 @@ function loadVpn() {
 					hideLoader();
 					console.log(data);
 					if(data.error){
-						alert(data.error);
+						showNotification(false, data.error);
 					}
 					else{
 						$this.set("fqdn",data.fqdn);
@@ -121,7 +121,7 @@ function loadVpn() {
 		},
 		showIosProfileQr:     function () {
 			if (!this.download_ios_profile_url) {
-				alert('Ios Profile download url not defined');
+				showNotification(false, 'Ios Profile download url not defined', 1000);
 				return;
 			}
 			this.openQrWnd(this.download_ios_profile_url);
@@ -146,12 +146,12 @@ function loadVpn() {
 			};
 
 			if(!formData.vpn_name){
-				alert('set vpn name');
+				showNotification(false, 'set vpn name', 1000);
 				return;
 			}
 
 			if(!formData.fqdn){
-				alert('Select credential');
+				showNotification(false, 'Select credential', 1000);
 				return;
 			}
 			showLoader();
@@ -197,7 +197,7 @@ function loadVpn() {
 						$this.init();
 					}
 					else{
-						alert(response.responseDesc);
+						showNotification(false, response.responseDesc);
 					}
 				}
 			});

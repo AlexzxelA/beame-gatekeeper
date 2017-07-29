@@ -204,11 +204,18 @@ function buildRegistrationForm(container_selector, exclude) {
 	var settings = getCookie('beame_prov_settings');
 	if (!settings) return;
 
+	var co_ad_settings = getCookie('beame_prov_settings'),
+		ad_settings = co_ad_settings ? JSON.parse(decodeURIComponent(co_ad_settings)) : null;
+
 	var excludeLoginProvider = exclude === undefined ? true : exclude;
 
-	var data = JSON.parse(decodeURIComponent(settings));
+	if(ad_settings && ad_settings.required && ad_settings.domains.length == 0 && !excludeLoginProvider ){
+		alert('AD Domains required , please contact admin');
+		return;
+	}
 
-	console.log('Provision Settings data %j', data);
+
+	var data = JSON.parse(decodeURIComponent(settings));
 
 	var container = document.querySelector(container_selector);
 
