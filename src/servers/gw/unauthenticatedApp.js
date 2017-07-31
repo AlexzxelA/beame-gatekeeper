@@ -66,6 +66,10 @@ const setClientLoginManagerCookie = (res) =>{
 	res.cookie(cookieNames.ClientLoginUrl,JSON.stringify({url:`https://${Bootstrapper.getCredFqdn(Constants.CredentialType.GatekeeperLoginManager)}`}));
 };
 
+function validateAuthToken(cdr_event, auth_token) {
+	return AuthToken.validate(auth_token, false, cdr_event)
+}
+
 unauthenticatedApp.use('/beame-gw', express.static(public_dir));
 
 unauthenticatedApp.get(Constants.SigninPath, (req, res) => {
@@ -122,7 +126,7 @@ unauthenticatedApp.use(bodyParser.urlencoded({extended: false}));
 unauthenticatedApp.post(apiConfig.Actions.Login.RecoverServer.endpoint, (req, res) => {
 	let data = req.body;
 
-	AuthToken.getRequestAuthToken(req)
+	BeameAuthServices.validateRequestAuthToken(req, false, {event: Bootstrapper.CDREvents.ClientRecoverServer})
 		.then(token => {
 			res.status(200).send();
 			let loginMasterFqdn = token.signedBy;
@@ -168,7 +172,7 @@ unauthenticatedApp.get('/cred-download',(req,res) =>{
 		res.status(403).send(`authToken required`);
 		return;
 	}
-	AuthToken.validate(authToken)
+	validateAuthToken( {event: Bootstrapper.CDREvents.DownloadCred}, authToken)
 		.then( () =>{
 			let data = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(authToken).signedData.data));
 
@@ -218,7 +222,7 @@ unauthenticatedApp.get('/ios-profile-download',(req,res) =>{
 		res.status(403).send(`authToken required`);
 		return;
 	}
-	AuthToken.validate(authToken)
+	validateAuthToken( {event: Bootstrapper.CDREvents.DownloadIoSProfile}, authToken)
 		.then( () =>{
 			let data = CommonUtils.parse(CommonUtils.parse(CommonUtils.parse(authToken).signedData.data));
 
@@ -254,7 +258,7 @@ unauthenticatedApp.get('/ios-profile-download',(req,res) =>{
 
 unauthenticatedApp.post(apiConfig.Actions.Login.RegisterServer.endpoint, (req, res) => {
 
-	AuthToken.getRequestAuthToken(req).then(() => {
+	BeameAuthServices.validateRequestAuthToken(req, false, {event: Bootstrapper.CDREvents.ClientRegisterServer}).then(() => {
 		let data = req.body;
 
 		if (data && data.id && data.fqdn) {
@@ -398,7 +402,7 @@ unauthenticatedApp.post('/customer-auth-done', (req, res) => {
 		.then(getGwServerCredentials)
 		.then(decrypt)
 		.then(parseJson)
-		.then(AuthToken.validate)
+		.then(validateAuthToken.bind(null, {event: Bootstrapper.CDREvents.RegisterCustomer}))
 		.then(getEncryptToCred)
 		.then(replyWithUrl)
 		.catch((e) => {
@@ -471,7 +475,7 @@ unauthenticatedApp.get(Constants.AppSwitchPath, (req, res) => {
 		});
 	}
 
-	AuthToken.validate(qs.proxy_enable)
+	validateAuthToken( {event: Bootstrapper.CDREvents.RedirectToHome}, qs.proxy_enable)
 		.then(respond)
 		.catch(e => {
 			console.log('switch app error', e);
@@ -499,7 +503,7 @@ unauthenticatedApp.get(Constants.GwAuthenticatedPath, (req, res) => {
 		});
 	}
 
-	AuthToken.validate(qs.proxy_enable)
+	validateAuthToken({event:Bootstrapper.CDREvents.GwAuthenticated},qs.proxy_enable)
 		.then(respond)
 		.catch(e => {
 			console.log('switch app error', e);
@@ -537,9 +541,9 @@ unauthenticatedApp.get(Constants.LogoutToLoginPath, (req, res) => {
 
 unauthenticatedApp.get(Constants.DirectPath, (req, res) => {
 	let authHead  = req.get('X-BeameAuthToken');
-	console.log('DirectPath: checking '+authHead);
+	logger.debug('DirectPath: checking '+ authHead);
 	clearSessionCookie(res);
-	AuthToken.getRequestAuthToken(req).then(() => {
+	BeameAuthServices.validateRequestAuthToken(req, false, {event: Bootstrapper.CDREvents.DirectSignin}).then(() => {
 		let token = JSON.parse(authHead),
 		data = DirectoryServices.readFile(path.join(base_path, 'drct_signin.html'));
 		if(data){

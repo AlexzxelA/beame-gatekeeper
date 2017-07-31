@@ -36,17 +36,17 @@ class BeameAuthServer {
 
 		this._matchingServerFqdn = matchingServerFqdn;
 
-		this._beameAdminServices = BeameAuthServices.getInstance();
+		this._beameAuthServices = BeameAuthServices.getInstance();
 
 		/** @type {MessagingCallbacks} */
 		this._callbacks = {
-			RegisterFqdn:     this._beameAdminServices.getRegisterFqdn.bind(this._beameAdminServices),
-			RegRecovery:      this._beameAdminServices.recoveryRegistration.bind(this._beameAdminServices),
+			RegisterFqdn:     this._beameAuthServices.getRegisterFqdn.bind(this._beameAuthServices),
+			RegRecovery:      this._beameAuthServices.recoveryRegistration.bind(this._beameAuthServices),
 			UserDataReceived: BeameAuthServices.onUserDataReceived,
 			DeleteSession:    BeameAuthServices.deleteSession
 		};
 
-		this._app = app || utils.setExpressApp((new Router(this._beameAdminServices)).router, public_dir);
+		this._app = app || utils.setExpressApp((new Router()).router, public_dir);
 
 		this._server = null;
 

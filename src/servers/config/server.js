@@ -25,9 +25,9 @@ class ConfigServer {
 	 */
 	constructor(_serviceManager) {
 
-		this._beameAdminServices = new BeameAdminServices(_serviceManager);
+		this._beameAuthServices = new BeameAdminServices(_serviceManager);
 
-		this._app = utils.setExpressApp((new Router(this._beameAdminServices)).router, public_dir);
+		this._app = utils.setExpressApp((new Router(this._beameAuthServices)).router, public_dir);
 
 		this._server = null;
 

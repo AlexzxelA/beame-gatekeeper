@@ -14,6 +14,7 @@ const utils             = require('./utils');
 const beameSDK          = require('beame-sdk');
 const module_name       = "Bootstrapper";
 const BeameLogger       = beameSDK.Logger;
+const _cdrEvents        = beameSDK.Config.CDREvents;
 const logger            = new BeameLogger(module_name);
 const CommonUtils       = beameSDK.CommonUtils;
 const DirectoryServices = beameSDK.DirectoryServices;
@@ -554,7 +555,7 @@ class Bootstrapper {
 	}
 
 	set activeDirectoryDomains(value) {
-		 this._config[SettingsProps.ActiveDirectoryDomains] = value;
+		this._config[SettingsProps.ActiveDirectoryDomains] = value;
 	}
 
 	get provisionConfig() {
@@ -566,14 +567,18 @@ class Bootstrapper {
 	}
 
 	static get getProvisionConfig() {
-		return Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive).sort((a, b) => {return a.Order - b.Order;});
+		return Bootstrapper.readProvisionConfig.Fields.filter(x => x.IsActive).sort((a, b) => {
+			return a.Order - b.Order;
+		});
 	}
 
 	set provisionConfig(config) {
 		this._provisionConfig = config;
 	}
 
-
+	static get CDREvents(){
+		return _cdrEvents;
+	}
 	//endregion
 
 	//region Beame folder

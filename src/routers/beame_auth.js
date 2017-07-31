@@ -7,20 +7,21 @@ const path    = require('path');
 const express = require('express');
 
 
-const beameSDK     = require('beame-sdk');
-const store        = new (beameSDK.BeameStore)();
-const crypto       = require('crypto');
-const CommonUtils  = beameSDK.CommonUtils;
-const module_name  = "BeameAuthRouter";
-const BeameLogger  = beameSDK.Logger;
-const logger       = new BeameLogger(module_name);
-const Bootstrapper = require('../bootstrapper');
-const bootstrapper = Bootstrapper.getInstance();
-const Constants    = require('../../constants');
-const cookieNames  = Constants.CookieNames;
-const public_dir   = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
-const base_path    = path.join(public_dir, 'pages', 'beame_auth');
-const utils = require('../utils');
+const beameSDK          = require('beame-sdk');
+const store             = new (beameSDK.BeameStore)();
+const crypto            = require('crypto');
+const CommonUtils       = beameSDK.CommonUtils;
+const module_name       = "BeameAuthRouter";
+const BeameLogger       = beameSDK.Logger;
+const logger            = new BeameLogger(module_name);
+const Bootstrapper      = require('../bootstrapper');
+const bootstrapper      = Bootstrapper.getInstance();
+const Constants         = require('../../constants');
+const cookieNames       = Constants.CookieNames;
+const public_dir        = path.join(__dirname, '..', '..', process.env.BEAME_INSTA_DOC_ROOT);
+const base_path         = path.join(public_dir, 'pages', 'beame_auth');
+const utils             = require('../utils');
+const BeameAuthServices = require('../authServices');
 
 const sns = new (require("../servers/beame_auth/sns"))();
 
@@ -31,15 +32,16 @@ function onRequestError(res, error, code) {
 }
 
 class BeameAuthRouter {
-	constructor(authServices) {
+	constructor() {
 
-		this._beameAdminServices = authServices;
+		this._beameAuthServices = BeameAuthServices.getInstance();
 
+		// noinspection JSUnresolvedFunction
 		this._router = express.Router();
 
-		this._router.use((req,res,next) => {
-			if(/approve\/[a-z]/.test(req.url)){
-				req.url = req.url.replace('/customer-approve/','/');
+		this._router.use((req, res, next) => {
+			if (/approve\/[a-z]/.test(req.url)) {
+				req.url = req.url.replace('/customer-approve/', '/');
 			}
 
 
@@ -55,7 +57,7 @@ class BeameAuthRouter {
 
 		this._router.get('/customer-approve', (req, res) => {
 
-			this._isRequestValid(req).then( data => {
+			this._isRequestValid(req, {event: Bootstrapper.CDREvents.AuthCustomerApprove}).then(data => {
 
 				let url = Bootstrapper.getLogoutUrl();
 				utils.writeSettingsCookie(res);
@@ -71,22 +73,22 @@ class BeameAuthRouter {
 		});
 
 		this._router.get('/cred-info', (req, res) => {
-			this._beameAdminServices.getRequestAuthToken(req, true).then(token => {
+			BeameAuthServices.validateRequestAuthToken(req, true, {event: Bootstrapper.CDREvents.AuthGetCredInfo}).then(token => {
 				let authFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
-				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) =>{
-					if(status){
-						store.find(token.signedBy, true, true).then(cred=>{
+				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) => {
+					if (status) {
+						store.find(token.signedBy, true, true).then(cred => {
 							res.json({
-								ocspUrl:cred.certData.issuer.issuerOcspUrl,
-								notAfter:Date.parse(cred.certData.notAfter)/1000,
-								notBefore:Date.parse(cred.certData.notBefore)/1000,
-								success: true
+								ocspUrl:   cred.certData.issuer.issuerOcspUrl,
+								notAfter:  Date.parse(cred.certData.notAfter) / 1000,
+								notBefore: Date.parse(cred.certData.notBefore) / 1000,
+								success:   true
 							});
-						}).catch(e=>{
+						}).catch(e => {
 							res.json({success: false, msg: e});
 						});
 					}
-					else{
+					else {
 						res.json({success: false, msg: 'not allowed'});
 					}
 				}, true, true);
@@ -98,27 +100,27 @@ class BeameAuthRouter {
 		});
 
 		this._router.get('/cert-renew', (req, res) => {
-			this._beameAdminServices.getRequestAuthToken(req, true).then(token => {
+			BeameAuthServices.validateRequestAuthToken(req, true, {event: Bootstrapper.CDREvents.AuthRenewCert}).then(token => {
 				let authFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.BeameAuthorizationServer);
-				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) =>{
-					if(status){
+				store.verifyAncestry(authFqdn, token.signedBy, authFqdn, 99, (err, status) => {
+					if (status) {
 						const AuthToken = beameSDK.AuthToken;
-						store.find(authFqdn, true, true).then(parentCred=>{
+						store.find(authFqdn, true, true).then(parentCred => {
 							AuthToken.createAsync(token.signedBy,
 								parentCred, 60 * 60 * 2).then(authToken => {
 								res.json({
-									regToken:authToken,
-									success: true
+									regToken: authToken,
+									success:  true
 								});
-							}).catch(e=>{
+							}).catch(e => {
 								res.json({success: false, msg: e || 'GK: failed to create token'});
 							});
 
-						}).catch(e=>{
+						}).catch(e => {
 							res.json({success: false, msg: e || 'GK: parent cred'});
 						});
 					}
-					else{
+					else {
 						res.json({success: false, msg: 'GK: not allowed'});
 					}
 				}, true);
@@ -131,8 +133,9 @@ class BeameAuthRouter {
 
 		this._router.get('/', (req, res) => {
 
-			this._isRequestValid(req).then(data => {
-				this._beameAdminServices.saveSession(data);
+			this._isRequestValid(req, {event: Bootstrapper.CDREvents.AuthSignup}).then(data => {
+				// noinspection JSIgnoredPromiseFromCall
+				this._beameAuthServices.saveSession(data);
 
 				let url = Bootstrapper.getLogoutUrl();
 
@@ -166,9 +169,9 @@ class BeameAuthRouter {
 		this._router.route('/node/auth/register')
 			.post((req, res) => {
 
-					this._beameAdminServices.getRequestAuthToken(req).then(authToken => {
+					BeameAuthServices.validateRequestAuthToken(req, false, {event: Bootstrapper.CDREvents.AuthRegister}).then(authToken => {
 						let metadata = req.body;
-						this._beameAdminServices.authorizeEntity(metadata, authToken, req.get("X-BeameUserAgent")).then(payload => {
+						this._beameAuthServices.authorizeEntity(metadata, authToken, req.get("X-BeameUserAgent")).then(payload => {
 							res.json(payload);
 						}).catch(onRequestError.bind(null, res));
 
@@ -196,12 +199,13 @@ class BeameAuthRouter {
 	/**
 	 * @param req
 	 * @returns {Promise.<RegistrationData>}
+	 * @param {Object|undefined} [event]
 	 * @private
 	 */
-	_isRequestValid(req) {
+	_isRequestValid(req, event = null) {
 		let encryptedMessage = req.query && req.query["data"];
 
-		return encryptedMessage ? this._beameAdminServices.validateRegistrationToken(encryptedMessage) : Promise.reject(`auth token required`);
+		return encryptedMessage ? this._beameAuthServices.validateRegistrationToken(encryptedMessage, event) : Promise.reject(`auth token required`);
 	}
 
 	get router() {

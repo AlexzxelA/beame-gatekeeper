@@ -93,7 +93,7 @@ class AdminServices {
 	}
 
 	saveActiveDirectoryDomains(data) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 
 				let old = bootstrapper.appConfig;
 
@@ -135,6 +135,7 @@ class AdminServices {
 				};
 
 				try {
+					// noinspection JSUnresolvedFunction
 					async.parallel([
 							callback => {
 								data.AppConfig = bootstrapper.appConfig;
@@ -231,19 +232,19 @@ class AdminServices {
 
 	static getProvisionSettings(activeOnly = false) {
 
-		let config              = bootstrapper.provisionConfig.Fields,
-		    fields2Return       = [],
-		    customLoginProvider = bootstrapper.customLoginProvider;
+		let config              = bootstrapper.provisionConfig.Fields;
+		//     fields2Return       = [],
+		//     customLoginProvider = bootstrapper.customLoginProvider;
+		//
+		// for (let i = 0; i < config.length; i++) {
+		// 	let c = config[i];
+		//
+		// 	if (c.LoginProvider == null || (c.LoginProvider != null && customLoginProvider != null && customLoginProvider == c.LoginProvider)) {
+		// 		fields2Return.push(c);
+		// 	}
+		// }
 
-		for (let i = 0; i < config.length; i++) {
-			let c = config[i];
-
-			if (c.LoginProvider == null || (c.LoginProvider != null && customLoginProvider != null && customLoginProvider == c.LoginProvider)) {
-				fields2Return.push(c);
-			}
-		}
-
-		return Promise.resolve(activeOnly ? fields2Return.filter(x => x.IsActive) : fields2Return);
+		return Promise.resolve(activeOnly ? config.filter(x => x.IsActive) : config);
 	}
 
 

@@ -449,25 +449,6 @@ class BeameAuthServices {
 	}
 
 	/**
-	 * @param {SignatureToken} authToken
-	 * @param {bool} [allowExpired]
-	 * @returns {Promise}
-	 */
-	_validateAuthToken(authToken, allowExpired) {
-		return new Promise((resolve, reject) => {
-
-				if (!BeameAuthServices._validateCredAuthorizationPermissions(authToken.signedBy)) {
-					reject('Unauthorized signature');
-					return;
-				}
-
-				AuthToken.validate(authToken, allowExpired).then(resolve).catch(reject);
-
-			}
-		);
-	}
-
-	/**
 	 *
 	 * @param {String} endpoint
 	 * @param {Object} metadata
@@ -499,17 +480,13 @@ class BeameAuthServices {
 	//endregion
 
 	//region creds helpers
-	static _validateCredAuthorizationPermissions(fqdn) {
-		logger.info(`validate signer permissions for ${fqdn}`);
-		//TODO add pinning logic here
-		return true;
-	}
 
 	/**
 	 * @param {String} encryptedMessage
+	 * @param {Object|undefined} [event]
 	 * @returns {Promise.<RegistrationData>}
 	 */
-	validateRegistrationToken(encryptedMessage) {
+	validateRegistrationToken(encryptedMessage, event = null) {
 		return new Promise((resolve, reject) => {
 				try {
 
@@ -534,7 +511,7 @@ class BeameAuthServices {
 						return;
 					}
 
-					this._validateAuthToken(authToken).then(() => {
+					AuthToken.validate(authToken, false, event).then(() => {
 
 						/** @type {RegistrationData} */
 						let registrationData = CommonUtils.parse(authToken.signedData.data);
@@ -610,7 +587,7 @@ class BeameAuthServices {
 
 	/**
 	 * Using for handling mobile event, fields in use fqdn+name+nickname
-	 * @param {User} user
+	 * @param {Object} user
 	 */
 	static updateUserProfile(user) {
 		return new Promise((resolve, reject) => {
@@ -2085,42 +2062,14 @@ class BeameAuthServices {
 
 	//endregion
 
-	getRequestAuthToken(req, allowExpired) {
-		return new Promise((resolve, reject) => {
-				let authHead  = req.get('X-BeameAuthToken'),
-				    /** @type {SignatureToken|null} */
-				    authToken = null;
-
-				logger.debug(`auth head received ${authHead}`);
-
-				if (authHead) {
-					try {
-						authToken = CommonUtils.parse(authHead);
-
-						if (!CommonUtils.isObject(authToken)) {
-							logger.error(`invalid auth ${authToken} token format`);
-							reject({message: 'Auth token invalid json format'});
-							return;
-						}
-					}
-					catch (error) {
-						console.log('FUCK! (3):', error.toString());
-						logger.error(`Parse auth header error ${BeameLogger.formatError(error)}`);
-						reject({message: 'Auth token invalid json format'});
-						return;
-					}
-				}
-
-				if (!authToken) {
-					reject({message: 'Auth token required'});
-					return;
-				}
-
-				this._validateAuthToken(authToken, allowExpired).then(() => {
-					resolve(authToken)
-				}).catch(reject);
-			}
-		);
+	/**
+	 * @param {Request} req
+	 * @param {Boolean|undefined} [allowExpired]
+	 * @param {Object|undefined} [event]
+	 * @returns {*}
+	 */
+	static validateRequestAuthToken(req, allowExpired = false, event = null) {
+		return AuthToken.getRequestAuthToken(req, allowExpired, event)
 	}
 
 	/** @type {BeameAuthServices} */

@@ -34,7 +34,7 @@ class ServiceManager {
 					    filteredApps;
 
 					if (disableDemoApps) {
-						filteredApps = CommonUtils.filterHash(this._activeApps, (k, v) => v.demo != false);
+						filteredApps = CommonUtils.filterHash(this._activeApps, (k, v) => !v.demo);
 					}
 					else {
 						filteredApps = this._activeApps;

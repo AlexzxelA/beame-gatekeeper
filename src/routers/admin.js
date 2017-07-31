@@ -33,7 +33,7 @@ const utils = require('../utils');
 
 class AdminRouter {
 	constructor(adminServices) {
-		this._beameAdminServices = adminServices;
+		this._beameAuthServices = adminServices;
 
 		this._router = express.Router();
 
@@ -59,7 +59,7 @@ class AdminRouter {
 
 		//region settings
 		this._router.get('/settings/get', (req, res) => {
-			this._beameAdminServices.getSettings().then(data => {
+			this._beameAuthServices.getSettings().then(data => {
 				res.json(data);
 			}).catch(() => {
 				res.json({});
@@ -67,7 +67,7 @@ class AdminRouter {
 		});
 
 		this._router.post('/settings/save', (req, res) => {
-			this._beameAdminServices.saveAppConfig(req.body).then(() => {
+			this._beameAuthServices.saveAppConfig(req.body).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -79,7 +79,7 @@ class AdminRouter {
 		});
 
 		this._router.post('/proxy/save', (req, res) => {
-			this._beameAdminServices.saveProxyConfig(req.body.data).then(() => {
+			this._beameAuthServices.saveProxyConfig(req.body.data).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -87,7 +87,7 @@ class AdminRouter {
 		});
 
 		this._router.post('/ad-domain/save', (req, res) => {
-			this._beameAdminServices.saveActiveDirectoryDomains(req.body.data).then(() => {
+			this._beameAuthServices.saveActiveDirectoryDomains(req.body.data).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -518,7 +518,7 @@ class AdminRouter {
 		//region object actions
 		//region user
 		this._router.get('/user/list', (req, res) => {
-			this._beameAdminServices.getUsers().then(
+			this._beameAuthServices.getUsers().then(
 				array => {
 					res.json(array);
 				}
@@ -529,7 +529,7 @@ class AdminRouter {
 
 		this._router.post('/user/update', (req, res) => {
 			let user = req.body;
-			this._beameAdminServices.updateUser(user).then(
+			this._beameAuthServices.updateUser(user).then(
 				array => {
 					res.json(array);
 				}
@@ -541,7 +541,7 @@ class AdminRouter {
 
 		//region registrations
 		this._router.get('/registration/list', (req, res) => {
-			this._beameAdminServices.getRegistrations().then(
+			this._beameAuthServices.getRegistrations().then(
 				array => {
 					res.json(array);
 				}
@@ -555,7 +555,7 @@ class AdminRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._beameAdminServices.deleteRegistration(id).then(() => {
+			this._beameAuthServices.deleteRegistration(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);
@@ -566,7 +566,7 @@ class AdminRouter {
 
 		//region services
 		this._router.get('/service/list', (req, res) => {
-			this._beameAdminServices.getServices().then(
+			this._beameAuthServices.getServices().then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -578,7 +578,7 @@ class AdminRouter {
 
 		this._router.post('/service/create', (req, res) => {
 			let service = req.body;
-			this._beameAdminServices.saveService(service).then(
+			this._beameAuthServices.saveService(service).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -589,7 +589,7 @@ class AdminRouter {
 
 		this._router.post('/service/update', (req, res) => {
 			let service = req.body;
-			this._beameAdminServices.updateService(service).then(
+			this._beameAuthServices.updateService(service).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -602,7 +602,7 @@ class AdminRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._beameAdminServices.deleteService(id).then(() => {
+			this._beameAuthServices.deleteService(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);
@@ -613,7 +613,7 @@ class AdminRouter {
 
 		// region roles
 		this._router.get('/role/list', (req, res) => {
-			this._beameAdminServices.getRoles().then(
+			this._beameAuthServices.getRoles().then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -625,7 +625,7 @@ class AdminRouter {
 
 		this._router.post('/role/create', (req, res) => {
 			let role = req.body;
-			this._beameAdminServices.saveRole(role).then(
+			this._beameAuthServices.saveRole(role).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -636,7 +636,7 @@ class AdminRouter {
 
 		this._router.post('/role/update', (req, res) => {
 			let role = req.body;
-			this._beameAdminServices.updateRole(role).then(
+			this._beameAuthServices.updateRole(role).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -649,7 +649,7 @@ class AdminRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._beameAdminServices.deleteRole(id).then(() => {
+			this._beameAuthServices.deleteRole(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);
@@ -840,7 +840,7 @@ class AdminRouter {
 			    fqdn   = data.fqdn;
 
 			beameAuthServices.deleteInvitation(id, fqdn)
-				.then(this._beameAdminServices.deleteRegistration.bind(this, reg_id))
+				.then(this._beameAuthServices.deleteRegistration.bind(this, reg_id))
 				.then(() => {
 					res.status(200).json({});
 				}).catch(error => {
@@ -863,7 +863,7 @@ class AdminRouter {
 
 		this._router.post('/provision/config/update', (req, res) => {
 			let models = req.body.models;
-			this._beameAdminServices.saveProvisionSettings(models).then(d => {
+			this._beameAuthServices.saveProvisionSettings(models).then(d => {
 				res.json(d);
 			}).catch(e => {
 				logger.error(e);

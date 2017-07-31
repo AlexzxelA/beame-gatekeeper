@@ -19,7 +19,7 @@ const BeameAdminServices = require('../adminServices');
 
 class ConfigRouter {
 	constructor(adminServices) {
-		this._beameAdminServices = adminServices;
+		this._beameAuthServices = adminServices;
 
 		this._router = express.Router();
 
@@ -36,7 +36,7 @@ class ConfigRouter {
 		});
 
 		this._router.get('/settings/get', (req, res) => {
-			this._beameAdminServices.getSettings().then(data => {
+			this._beameAuthServices.getSettings().then(data => {
 				res.json(data);
 			}).catch(() => {
 				res.json({});
@@ -44,7 +44,7 @@ class ConfigRouter {
 		});
 
 		this._router.post('/settings/save', (req, res) => {
-			this._beameAdminServices.saveAppConfig(req.body).then(() => {
+			this._beameAuthServices.saveAppConfig(req.body).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -52,7 +52,7 @@ class ConfigRouter {
 		});
 
 		this._router.post('/db-provider/save', (req, res) => {
-			this._beameAdminServices.saveDbConfig(req.body).then(() => {
+			this._beameAuthServices.saveDbConfig(req.body).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -60,7 +60,7 @@ class ConfigRouter {
 		});
 
 		this._router.post('/proxy/save', (req, res) => {
-			this._beameAdminServices.saveProxyConfig(req.body.data).then(() => {
+			this._beameAuthServices.saveProxyConfig(req.body.data).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -69,7 +69,7 @@ class ConfigRouter {
 
 		//region provision config
 		this._router.post('/ad-domain/save', (req, res) => {
-			this._beameAdminServices.saveActiveDirectoryDomains(req.body.data).then(() => {
+			this._beameAuthServices.saveActiveDirectoryDomains(req.body.data).then(() => {
 				res.json({success: true});
 			}).catch(error => {
 				res.json({success: false, error: BeameLogger.formatError(error)});
@@ -87,7 +87,7 @@ class ConfigRouter {
 
 		this._router.post('/provision/config/update', (req, res) => {
 			let models = req.body.models;
-			this._beameAdminServices.saveProvisionSettings(models).then(d => {
+			this._beameAuthServices.saveProvisionSettings(models).then(d => {
 				res.json(d);
 			}).catch(e => {
 				logger.error(e);
@@ -98,7 +98,7 @@ class ConfigRouter {
 
 		// region roles
 		this._router.get('/role/list', (req, res) => {
-			this._beameAdminServices.getRoles().then(
+			this._beameAuthServices.getRoles().then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -110,7 +110,7 @@ class ConfigRouter {
 
 		this._router.post('/role/create', (req, res) => {
 			let role = req.body;
-			this._beameAdminServices.saveRole(role).then(
+			this._beameAuthServices.saveRole(role).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -121,7 +121,7 @@ class ConfigRouter {
 
 		this._router.post('/role/update', (req, res) => {
 			let role = req.body;
-			this._beameAdminServices.updateRole(role).then(
+			this._beameAuthServices.updateRole(role).then(
 				array => {
 					res.status(200).json(array);
 				}
@@ -134,7 +134,7 @@ class ConfigRouter {
 			let data = req.body,
 			    id   = parseInt(data.id);
 
-			this._beameAdminServices.deleteRole(id).then(() => {
+			this._beameAuthServices.deleteRole(id).then(() => {
 				res.status(200).json({});
 			}).catch(error => {
 				res.status(400).send(error);

@@ -6,7 +6,7 @@ const beameSDK     = require('beame-sdk');
 const BeameLogger  = beameSDK.Logger;
 const store        = new beameSDK.BeameStore();
 const crypto       = require('crypto');
-const authToken    = beameSDK.AuthToken;
+const AuthToken    = beameSDK.AuthToken;
 
 const Bootstrapper = require('../bootstrapper');
 const bootstrapper = Bootstrapper.getInstance();
@@ -14,6 +14,10 @@ const Constants    = require('../../constants');
 
 let module_name  = 'PairingUtils';
 const logger       = new BeameLogger(module_name);
+
+function validateAuthToken(auth_token, cdr_event) {
+	return AuthToken.validate(auth_token, false, cdr_event)
+}
 
 class PairingUtils {
 	constructor(fqdn, inSocket, name) {
@@ -57,14 +61,14 @@ class PairingUtils {
 	setCommonHandlers() {
 
 		this._socket.on('verifyToken', (token) => {
-			authToken.validate(token).then(() => {
+			validateAuthToken(token, {event: Bootstrapper.CDREvents.MobileVerifyToken}).then(() => {
 				let parsed     = JSON.parse(token);
 				let targetFqdn = (!(parsed.signedBy === parsed.signedData.data)) ? (parsed.signedData.data + Constants.XprsSigninPath) : 'none';
 
 				let fqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 				fqdn && store.find(fqdn, true).then((cred) => {
 					//let newToken    = (bootstrapper.delegatedLoginServers && bootstrapper.delegatedLoginServers.length > 1)? cred && authToken.create(token, cred, 10):token;
-					let newToken = cred && authToken.create(token, cred, 10);
+					let newToken = cred && AuthToken.create(token, cred, 10);
 					this._socket.emit('tokenVerified', JSON.stringify({
 						success: true,
 						target:  targetFqdn,
@@ -92,7 +96,7 @@ class PairingUtils {
 				    token2mobile = signinData.token;
 
 				if (bootstrapper.externalLoginUrl)
-					authToken.validate(parsedData.token).then(() => {
+					validateAuthToken(parsedData.token, {event:Bootstrapper.CDREvents.MobileNotifyMobile}).then(() => {
 						let parsedToken = JSON.parse(parsedData.token);
 
 						//let embeddedToken = parsedToken.signedData.data.includes('signedBy');//backward compatibility

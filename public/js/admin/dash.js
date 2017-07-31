@@ -59,9 +59,6 @@ function loadSettings(){
 			}),
 			provision_ds: new kendo.data.DataSource({
 				transport: {
-					// read:  function (e) {
-					// 	e.success(settings.ProvisionConfig.Fields);
-					// },
 					read:    {
 						url: "/provision/config/list"
 					},
@@ -71,6 +68,7 @@ function loadSettings(){
 						dataType: "json"
 					},
 					parameterMap: function(options, operation) {
+						console.log('huy');
 						if (operation !== "read" && options.models) {
 							return {models: kendo.stringify(options.models)};
 						}
@@ -80,6 +78,7 @@ function loadSettings(){
 					model: {
 						id:     "FieldName",
 						fields: {
+							Order: { type:"numeric" },
 							FieldName: { editable: false },
 							Label: {  editable: true} ,
 							IsActive: { type: "boolean" },

@@ -18,7 +18,8 @@ const BeameAuthServices = require('../../authServices');
 const utils             = require('../../utils');
 const gwServerFqdn      = Bootstrapper.getCredFqdn(Constants.CredentialType.GatewayServer);
 let serviceManager      = null;
-const ssoManager        = require('../../samlSessionManager');
+
+//const ssoManager        = require('../../samlSessionManager');
 
 
 function assertSignedByGw(session_token) {
@@ -35,9 +36,13 @@ function assertSignedByGw(session_token) {
 	}
 }
 
+function validateAuthToken(cdr_event, session_token) {
+	return AuthToken.validate(session_token, false, cdr_event)
+}
+
 // TODO: Session renewal?
 const messageHandlers = {
-	'auth':          function (payload, reply, cb) {
+	'auth':          function (payload, reply) {
 		// TODO: validate token and check it belongs to one of the registered users
 		// TODO: return apps list + session token
 		// --- request ---
@@ -231,7 +236,7 @@ const messageHandlers = {
 			);
 		}
 
-		AuthToken.validate(payload.token)
+		validateAuthToken({event: Bootstrapper.CDREvents.LoginUser}, payload.token)
 			.then(decryptUserData.bind(null, payload.userData))
 			.then(loginUser)
 			.then(serviceManager.listApplications.bind(serviceManager))
@@ -259,9 +264,16 @@ const messageHandlers = {
 		// type: 'redirect'
 		// payload: {success: true/false, app_id: (same as in request), url: ...}
 
-		function makeProxyEnablingToken(session_token) {
+		let app       = serviceManager.getAppById(payload.app_id),
+		    cdr_event = {event: Bootstrapper.CDREvents.ChooseApp};
+
+		if (app) {
+			cdr_event.app = app.name;
+		}
+
+		function makeProxyEnablingToken(auth_token) {
 			// console.log('choose incoming session_token', session_token);
-			let st = JSON.parse(JSON.parse(session_token.signedData.data));
+			let st = JSON.parse(JSON.parse(auth_token.signedData.data));
 			// console.log('PT 10', st);
 			return utils.createAuthTokenByFqdn(
 				gwServerFqdn,
@@ -275,7 +287,7 @@ const messageHandlers = {
 				const url = `https://${gwServerFqdn}/beame-gw/choose-app?proxy_enable=${encodeURIComponent(token)}`;
 				logger.debug(`respond() URL is ${url}`);
 
-				let app = serviceManager.getAppById(payload.app_id);
+
 				if (payload.app_code && payload.app_code.includes('_saml_')) {
 					let userIdData = (typeof payload.sessionUserData === 'object') ? payload.sessionUserData : JSON.parse(payload.sessionUserData);
 					utils.produceSAMLresponse(userIdData, payload, null, reply);
@@ -320,7 +332,7 @@ const messageHandlers = {
 		}
 
 		assertSignedByGw(payload.session_token)
-			.then(AuthToken.validate)
+			.then(validateAuthToken.bind(null,cdr_event))
 			.then(makeProxyEnablingToken)
 			.then(respond)
 			.catch(e => {
@@ -335,6 +347,8 @@ const messageHandlers = {
 		// --- response ---
 		// type: 'redirect'
 		// payload: {success: true/false, logout:true, url: ...}
+
+		let cdr_event = {event: Bootstrapper.CDREvents.Logout};
 
 		function makeLogoutToken() {
 			return utils.createAuthTokenByFqdn(
@@ -352,9 +366,11 @@ const messageHandlers = {
 					url  = bootstrapper.externalLoginUrl;
 					type = 'redirectTopWindow';
 				}
-				else if (payload.logout2login) {//} && (payload.logout2login.indexOf('https') >= 0)){
-					url = `https://${gwServerFqdn}/beame-gw/login-reinit?token=${encodeURIComponent(token)}`;
-					//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
+				else { // noinspection JSUnresolvedVariable
+					if (payload.logout2login) {//} && (payload.logout2login.indexOf('https') >= 0)){
+						url = `https://${gwServerFqdn}/beame-gw/login-reinit?token=${encodeURIComponent(token)}`;
+						//url = `${payload.logout2login}?usrData=${encodeURIComponent(token)}`;
+					}
 				}
 
 				logger.debug('respond() URL', url);
@@ -370,20 +386,21 @@ const messageHandlers = {
 		}
 
 		assertSignedByGw(payload.session_token)
-			.then(AuthToken.validate)
+			.then(validateAuthToken.bind(null,cdr_event))
 			.then(makeLogoutToken)
 			.then(respond);
 	},
 	'updateProfile': function (payload, reply) {
 
+		let user = {
+			fqdn:     payload.payload.fqdn,
+			name:     payload.payload.name,
+			nickname: payload.payload.nickname
+		},
+		cdr_event = {event: Bootstrapper.CDREvents.UpdateProfile , data:user};
+
 		function updateUserProfile() {
 			return new Promise((resolve, reject) => {
-					/** @type {User}*/
-					let user = {
-						fqdn:     payload.payload.fqdn,
-						name:     payload.payload.name,
-						nickname: payload.payload.nickname
-					};
 
 					BeameAuthServices.updateUserProfile(user).then(resolve).catch(reject);
 				}
@@ -403,7 +420,7 @@ const messageHandlers = {
 		}
 
 		assertSignedByGw(payload.session_token)
-			.then(AuthToken.validate)
+			.then(validateAuthToken.bind(null,cdr_event))
 			.then(updateUserProfile)
 			.then(respond)
 			.catch(e => {
