@@ -1250,27 +1250,10 @@ class BeameAuthServices {
 
 		const _checkOcspStatus = (cred) => {
 
-			const _saveOcspStatus = (isRevoked) => {
-				cred.metadata.revoked = isRevoked;
-				cred.beameStoreServices.writeMetadataSync(cred.metadata);
-			};
-
 			return new Promise((resolve) => {
-					if (cred.hasMetadataKey("revoked")) {
-						resolve(cred.getMetadataKey("revoked"));
-					}
-					else {
-
-						cred.checkOcspStatus(cred).then(() => {
-							_saveOcspStatus(false);
-							resolve(false);
-
-						}).catch(() => {
-							_saveOcspStatus(true);
-							resolve(true);
-
-						})
-					}
+				cred.checkOcspStatus(cred).then(status => {
+						resolve(status === beameSDK.Config.OcspStatus.Bad);
+					})
 				}
 			);
 
@@ -1297,7 +1280,7 @@ class BeameAuthServices {
 					}
 				};
 
-				let formatedList  = [],
+				let formattedList  = [],
 				    zeroLevelFqdn = Bootstrapper.getCredFqdn(Constants.CredentialType.ZeroLevel);
 
 				if (text) {
@@ -1322,14 +1305,14 @@ class BeameAuthServices {
 									return item.fqdn
 								}).reverse();
 								chain.push(cred.fqdn);
-								formatedList.push(chain);
+								formattedList.push(chain);
 							} catch (e) {
 								logger.error(`search cred error for ${cred.fqdn} ${BeameLogger.formatError(e)}`);
 								console.error(cred);
 							}
 						}
 					)).then(() => {
-						resolve(formatedList)
+						resolve(formattedList)
 					}).catch(reject);
 				}
 				else if (parent) {
@@ -1340,14 +1323,14 @@ class BeameAuthServices {
 					Promise.all(list.map(cred => {
 							return _checkOcspStatus(cred).then(revoked => {
 								if (excludeRevoked && revoked) return;
-								formatedList.push(_formatCred(cred, revoked));
+								formattedList.push(_formatCred(cred, revoked));
 							}).catch(e => {
 								logger.error(`check ocsp status for ${cred.fqdn} error ${BeameLogger.formatError(e)}`);
-								formatedList.push(_formatCred(cred, false));
+								formattedList.push(_formatCred(cred, false));
 							});
 						}
 					)).then(() => {
-						resolve(formatedList)
+						resolve(formattedList)
 					}).catch(reject);
 
 				}
