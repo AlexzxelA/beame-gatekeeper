@@ -62,7 +62,9 @@ class Bootstrapper {
 	 */
 	initAll() {
 		return new Promise((resolve) => {
-			this.initConfig(false)
+
+			this.initScs()
+				.then(this.initConfig.bind(this,false))
 				.then(this.initDb.bind(this, false))
 				.then(this.initProvisionSettings.bind(this))
 				.then(() => {
@@ -71,6 +73,20 @@ class Bootstrapper {
 				})
 				.catch(_onConfigError);
 		});
+	}
+
+	initScs(){
+		//ensure store init
+		beameSDK.BeameStore.getInstance();
+		const scs = beameSDK.StoreCacheServices.getInstance();
+
+		return new Promise((resolve) => {
+				scs.load().then(()=>{
+					resolve()
+				})
+			}
+		);
+
 	}
 
 	/**

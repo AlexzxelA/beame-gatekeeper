@@ -28,6 +28,12 @@ function startDataService() {
 
 }
 
+function startStoreCacheService(){
+	const scs = beameSDK.StoreCacheServices.getInstance();
+	scs.startScheduledRoutines();
+	return Promise.resolve();
+}
+
 function start(callback) {
 
 	CommonUtils.validateMachineClock().then(() => {
@@ -46,6 +52,7 @@ function start(callback) {
 		};
 
 		bootstrapper.initAll()
+			.then(startStoreCacheService)
 			.then(startDataService)
 			.then(credentialManager.createServersCredentials.bind(credentialManager))
 			.then(serviceManager.evaluateAppList.bind(serviceManager))

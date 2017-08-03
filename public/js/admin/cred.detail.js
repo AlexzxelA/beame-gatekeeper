@@ -192,8 +192,8 @@ function initCertWindow(certData) {
 	console.log('certData', certData);
 	certWnd.empty();
 	certWnd.kendoWindow({
-		width:   "750px",
-		height:  "600px",
+		width:   "780px",
+		height:  "640px",
 		title:   "Certificate Details",
 		visible: false,
 		modal:   true,
@@ -406,15 +406,16 @@ function loadCredDetail(data) {
 					hideLoader();
 
 					if (response.responseCode == 1) {
-						showNotification(response.data.status,response.data.status ? "Certificate OCSP status is OK" : "Certificate is revoked");
+						var isGood = response.data != 'Bad';
+						showNotification(isGood,isGood ? "Certificate OCSP status is OK" : "Certificate is revoked");
 					}
 					else {
 						showNotification(false,response.responseDesc);
 					}
 
-					console.log('response.data.status ------- ' + response.data.status)
-					console.log('response ------- ' + response)
-					console.log('response.data ------- ' + response.data)
+					console.log('response.data.status ------- ' + response.data.status);
+					console.log('response ------- ' + response);
+					console.log('response.data ------- ' + response.data);
 
 				}
 			});

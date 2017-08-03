@@ -51,9 +51,6 @@ function getCreds(regToken, fqdn, callback) {
 			callback(null, `All servers credentials exists`);
 			return;
 		}
-
-		// callback(`Zero level credential already registered on ${current_fqdn}`);
-		// return;
 	}
 
 	bootstrapper.initAll()

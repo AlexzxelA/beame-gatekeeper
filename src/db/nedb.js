@@ -115,15 +115,15 @@ class NeDB {
 				return this._findDocs(Collections.services.name, {}).then(existing_services => {
 					if (!existing_services.length) return _saveServices(services);
 
-					let additioan_services = [];
+					let additional_services = [];
 
 					for (let i = 0; i < services.length; i++) {
 						if (existing_services.some(x => x.code == services[i].code)) continue;
 
-						additioan_services.push(services[i]);
+						additional_services.push(services[i]);
 					}
 
-					return _saveServices(additioan_services);
+					return _saveServices(additional_services);
 				});
 			}
 		);
